@@ -3848,8 +3848,27 @@ void Spell::SpellEffectAddComboPoints(uint32 i) // Add Combo Points
 
 void Spell::SpellEffectCreateHouse(uint32 i) // Create House
 {
+	if(!u_caster)
+		return;
+	float x; float y; float z;
+	if( m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION )
+	{ 
+		x = m_targets.m_destX;
+		y = m_targets.m_destY;
+		z = m_targets.m_destZ;
+	}
+	else
+	{
+		LOG_ERROR("This means targeting for the spell isn't as I thought");
+		return;
+	}
 
-
+	GameObject *go = u_caster->GetMapMgr()->CreateGameObject(3266231);
+	if(go->CreateFromProto(3266231, m_caster->GetMapId(), x, y, z,  m_caster->GetOrientation()))
+	{
+		go->Phase(PHASE_SET, u_caster->GetPhase());
+		go->PushToWorld(m_caster->GetMapMgr());
+	}
 }
 
 void Spell::SpellEffectDuel(uint32 i) // Duel
