@@ -985,7 +985,7 @@ void WorldSession::FullLogin(Player * plr)
 #endif*/
 
 	// Revision
-	_player->BroadcastMessage("ChaoticUnited Emulator : Revision: %s405", MSG_COLOR_CYAN);
+	_player->BroadcastMessage("ChaoticUnited Emulator : Revision: %s407", MSG_COLOR_CYAN);
 	// Bugs
 	//_player->BroadcastMessage("Bugs: %s%s", MSG_COLOR_SEXHOTPINK, BUGTRACKER);
 	// Recruiting message
