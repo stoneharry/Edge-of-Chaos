@@ -1594,6 +1594,8 @@ void Player::GiveXP(uint32 xp, const uint64 &guid, bool allowbonus)
 
 		//VLack: 3.1.3, as a final step, send the player's talents, this will set the talent points right too...
 		smsg_TalentsInfo(false);
+		if(GetGuild())
+			GetGuild()->SendGuildRosterToAll();
 	}
 
 	// Set the update bit

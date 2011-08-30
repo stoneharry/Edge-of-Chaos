@@ -1195,10 +1195,10 @@ void Guild::SendGuildRoster(WorldSession * pClient)
 		data << uint8( (pPlayer!= NULL) ? 1 : 0 );
 		data << itr->first->name;
 		data << itr->second->pRank->iId;
-		data << uint8(itr->first->lastLevel);
+		data << uint8(pPlayer ? pPlayer->getLevel() : itr->first->lastLevel);
 		data << uint8(itr->first->cl);
 		data << uint8(itr->first->gender);
-		data << itr->first->lastZone;
+		data << (pPlayer ? pPlayer->GetZoneId() : itr->first->lastZone);
 
 		if(!pPlayer)
 			data << float((UNIXTIME-itr->first->lastOnline)/86400.0);
@@ -1218,6 +1218,16 @@ void Guild::SendGuildRoster(WorldSession * pClient)
 
 	pClient->SendPacket(&data);
 }
+
+void Guild::SendGuildRosterToAll()
+{
+	GuildMemberMap::iterator itr;
+	for(itr = m_members.begin(); itr != m_members.end(); ++itr)
+	{
+		if(itr->second->pPlayer->m_loggedInPlayer)
+			SendGuildRoster(itr->second->pPlayer->m_loggedInPlayer->GetSession());
+	}
+}	
 
 void Guild::SendGuildQuery(WorldSession * pClient)
 {

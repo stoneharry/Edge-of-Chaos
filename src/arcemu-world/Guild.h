@@ -368,6 +368,8 @@ public:
 	 */
 	void SendGuildRoster(WorldSession * pClient);
 
+	void SendGuildRosterToAll();
+
 	/** Sends the guild query response to this client.
 	 */
 	void SendGuildQuery(WorldSession * pClient);
