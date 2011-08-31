@@ -892,6 +892,11 @@ bool EyeOfTheStorm::GivePoints(uint32 team, uint32 points)
 
 		m_ended = true;
 		m_winningteam = static_cast<uint8>( team );
+		if (m_winningteam == 0) // alliance wins
+			PlaySoundToAll(SOUND_ALLIANCEWINS);
+		else // horde wins
+			PlaySoundToAll(SOUND_HORDEWINS);
+			
 		m_nextPvPUpdateTime = 0;
 
 		sEventMgr.RemoveEvents(this);

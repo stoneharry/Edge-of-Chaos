@@ -203,6 +203,11 @@ void WarsongGulch::HookOnAreaTrigger(Player * plr, uint32 id)
 			/* victory! */
 			m_ended = true;
 			m_winningteam = (uint8)plr->GetTeam();
+			if (plr->GetTeam() == 0) //alliance
+				PlaySoundToAll(SOUND_ALLIANCEWINS);
+			else //horde
+				PlaySoundToAll(SOUND_HORDEWINS);
+				
 			m_nextPvPUpdateTime = 0;
 
 			sEventMgr.RemoveEvents(this, EVENT_BATTLEGROUND_CLOSE);
