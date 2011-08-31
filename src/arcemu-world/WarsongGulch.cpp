@@ -362,11 +362,15 @@ void WarsongGulch::ReturnFlag(uint32 team)
 		m_homeFlags[team]->PushToWorld(m_mapMgr);
 	
 	if( team )
+	{
 		PlaySoundToAll(SOUND_ALLIANCE_RETURNED);
 		SendChatMessage( CHAT_MSG_BG_EVENT_NEUTRAL, 0, "The Alliance flag was returned to its base!" );
+	}
 	else
+	{
 		PlaySoundToAll(SOUND_HORDE_RETURNED);
 		SendChatMessage( CHAT_MSG_BG_EVENT_NEUTRAL, 0, "The Horde flag was returned to its base!" );
+	}
 }
 
 void WarsongGulch::HookFlagStand(Player * plr, GameObject * obj)
