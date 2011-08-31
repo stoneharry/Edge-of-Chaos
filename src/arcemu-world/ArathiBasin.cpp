@@ -557,8 +557,8 @@ void ArathiBasin::EventUpdateResources(uint32 Team)
 		/* add the marks of honor to all players */
 		SpellEntry * winner_spell = dbcSpell.LookupEntry(24953);
 		SpellEntry * loser_spell = dbcSpell.LookupEntry(24952);
-		uint32 lostHonorToAdd = m_honorPerKill;
-		uint32 winHonorToAdd = 2 * lostHonorToAdd;
+		uint32 lostHonorToAdd = 25;
+		uint32 winHonorToAdd = 75;
 		m_mainLock.Acquire();
 		for(uint32 i = 0; i < 2; ++i)
 		{

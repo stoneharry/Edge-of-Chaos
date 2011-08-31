@@ -898,8 +898,8 @@ bool EyeOfTheStorm::GivePoints(uint32 team, uint32 points)
 		sEventMgr.AddEvent(TO< CBattleground* >(this), &CBattleground::Close, EVENT_BATTLEGROUND_CLOSE, 120000, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 
 		/* add the marks of honor to all players */
-		uint32 lostHonorToAdd = m_honorPerKill;
-		uint32 winHonorToAdd = 2 * lostHonorToAdd;
+		uint32 lostHonorToAdd = 25;
+		uint32 winHonorToAdd = 75;
 		m_mainLock.Acquire();
 
 		for(uint32 i = 0; i < 2; ++i)

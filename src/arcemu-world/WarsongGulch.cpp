@@ -210,8 +210,8 @@ void WarsongGulch::HookOnAreaTrigger(Player * plr, uint32 id)
 			/* add the marks of honor to all players */
 			SpellEntry * winner_spell = dbcSpell.LookupEntry(24951);
 			SpellEntry * loser_spell = dbcSpell.LookupEntry(24950);
-			uint32 lostHonorToAdd = m_isWeekend ? 4 * m_honorPerKill : 2 * m_honorPerKill;
-			uint32 winHonorToAdd = lostHonorToAdd + (m_isWeekend ? 3 * m_honorPerKill : m_honorPerKill);
+			uint32 lostHonorToAdd = 25;
+			uint32 winHonorToAdd = 75;
 			
 			m_mainLock.Acquire();
 			for(uint32 i = 0; i < 2; ++i)
