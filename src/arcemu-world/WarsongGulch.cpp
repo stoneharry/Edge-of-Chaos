@@ -202,14 +202,10 @@ void WarsongGulch::HookOnAreaTrigger(Player * plr, uint32 id)
 		{
 			/* victory! */
 			m_ended = true;
-			m_winningteam = (uint8)plr->GetTeam();
-			if (plr->GetTeam() == 0) //alliance
-				PlaySoundToAll(SOUND_ALLIANCEWINS);
-			else //horde
-				PlaySoundToAll(SOUND_HORDEWINS);
-				
+			m_winningteam = (uint8)plr->GetTeam();	
 			m_nextPvPUpdateTime = 0;
 
+			PlaySoundToAll(plr->IsTeamHorde() ? SOUND_HORDEWINS : SOUND_ALLIANCEWINS);	
 			sEventMgr.RemoveEvents(this, EVENT_BATTLEGROUND_CLOSE);
 			sEventMgr.AddEvent(TO< CBattleground* >(this), &CBattleground::Close, EVENT_BATTLEGROUND_CLOSE, 120000, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 			/* add the marks of honor to all players */
@@ -259,6 +255,7 @@ void WarsongGulch::EventReturnFlags()
 		if (m_homeFlags[x] != NULL)
 			m_homeFlags[x]->PushToWorld(m_mapMgr);
 	}
+	PlaySoundToAll(SOUND_FLAGSRESET);
 	SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "The Alliance's flag is now placed at her base.");
 	SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "The Horde's flag is now placed at her base.");
 }
@@ -365,8 +362,10 @@ void WarsongGulch::ReturnFlag(uint32 team)
 		m_homeFlags[team]->PushToWorld(m_mapMgr);
 	
 	if( team )
+		PlaySoundToAll(SOUND_ALLIANCE_RETURNED);
 		SendChatMessage( CHAT_MSG_BG_EVENT_NEUTRAL, 0, "The Alliance flag was returned to its base!" );
 	else
+		PlaySoundToAll(SOUND_HORDE_RETURNED);
 		SendChatMessage( CHAT_MSG_BG_EVENT_NEUTRAL, 0, "The Horde flag was returned to its base!" );
 }
 
