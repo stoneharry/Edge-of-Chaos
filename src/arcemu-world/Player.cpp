@@ -472,6 +472,9 @@ myCorpseLocation()
 //	m_achievement_points = 0;
 
 	ChampioningFactionID = 0;
+
+	hp_regen_items = 0;
+	block_from_items = 0;
 }
 
 void Player::OnLogin()
@@ -4010,6 +4013,15 @@ void Player::_ApplyItemMods(Item* item, int16 slot, bool apply, bool justdrokedo
 
 	// Resistances
 	//TODO: FIX ME: can there be negative resistances from items?
+	if( proto->HolyRes )
+	{
+		if( apply )
+			FlatResistanceModifierPos[1] += proto->HolyRes;
+		else
+			FlatResistanceModifierPos[1] -= proto->HolyRes;
+		CalcResistance( 1 );
+	}
+
 	if( proto->FireRes )
 	{
 		if( apply )
@@ -5469,7 +5481,7 @@ void Player::UpdateStats()
 		if( block_multiplier < 1.0f )block_multiplier = 1.0f;
 
 		int32 blockable_damage = float2int32( (shield->GetProto()->Block + m_modblockvaluefromspells + GetUInt32Value( PLAYER_RATING_MODIFIER_BLOCK ) + ( str / 2.0f ) - 1.0f ) * block_multiplier);
-		SetUInt32Value( PLAYER_SHIELD_BLOCK, blockable_damage );
+		SetUInt32Value( PLAYER_SHIELD_BLOCK, blockable_damage+block_from_items );
 	}
 	else
 	{
@@ -6876,7 +6888,9 @@ void Player::RegenerateHealth( bool inCombat )
 		basespirit = 50;
 	}
 
-	float amt = basespirit * HPRegen->val + extraspirit * HPRegenBase->val;
+	float amt = hp_regen_items;
+
+	amt += basespirit * HPRegen->val + extraspirit * HPRegenBase->val;
 
 	if (PctRegenModifier)
 		amt+= (amt * PctRegenModifier) / 100;
@@ -9191,10 +9205,10 @@ void Player::ModifyBonuses( uint32 type, int32 val, bool apply )
 			{
 				ModRangedAttackPowerMods(val );
 			}break;
-		case FERAL_ATTACK_POWER:
+		/*case FERAL_ATTACK_POWER: Not actually used
 			{
 				ModAttackPowerMods(val );
-			}break;
+			}break;*/
 		case SPELL_HEALING_DONE:
 			{
 				for( uint8 school = 1; school < SCHOOL_COUNT; ++school )
@@ -9226,6 +9240,22 @@ void Player::ModifyBonuses( uint32 type, int32 val, bool apply )
 					HealDoneMod[ school ] += val;
 				}
 				ModHealingDoneMod(val );
+			}break;
+		case HEALTH_REGEN:
+			{
+				hp_regen_items += val;
+			}break;
+		case SPELL_PENETRATION:
+			{
+				for( uint8 x = 0; x < 7; x++ )
+				{
+					PowerCostPctMod[x] -= val;
+				}
+				ModSignedInt32Value( PLAYER_FIELD_MOD_TARGET_RESISTANCE, val);
+			}break;
+		case BLOCK_VALUE:
+			{
+				ModUnsigned32Value(PLAYER_SHIELD_BLOCK, val);
 			}break;
 		}
 }

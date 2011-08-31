@@ -2509,6 +2509,8 @@ public:
 	bool CanTrainAt(Trainer *);
 
 	Object *GetPlayerOwner(){ return this; };
+	int hp_regen_items;
+	int block_from_items;
 };
 
 class SkillIterator
