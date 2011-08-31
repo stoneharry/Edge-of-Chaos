@@ -1888,6 +1888,7 @@ public:
 	void ResetDualWield2H();
 
 	void SendItemInfo(uint32 entry);
+	void BuildAndSendFieldUpdatePacket(Player* Target, uint32 Index, uint32 Value);
 public:
 
 	std::string Lfgcomment;

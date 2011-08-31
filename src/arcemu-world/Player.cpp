@@ -13593,8 +13593,26 @@ void Player::BuildPetSpellList( WorldPacket &data ){
 void Player::SendItemInfo(uint32 entry)
 {
 	WorldPacket data(CMSG_ITEM_QUERY_SINGLE, 4);
-	data >> entry;
+	data << entry;
 	GetSession()->HandleItemQuerySingleOpcode(data);
 	data.SetOpcode(CMSG_ITEM_NAME_QUERY);
 	GetSession()->HandleItemNameQueryOpcode(data);
+}
+
+void Player::BuildAndSendFieldUpdatePacket(Player* Target, uint32 Index, uint32 Value)
+{
+	WorldPacket data(SMSG_UPDATE_OBJECT, 1500);
+	data << uint8(UPDATETYPE_VALUES);
+	data << Target->GetNewGUID();
+
+	uint32 mBlocks = Index/32+1;
+	data << (uint8)mBlocks;
+
+	for(uint32 dword_n=mBlocks-1;dword_n;dword_n--)
+		data << (uint32)0;
+
+	data << (((uint32)(1))<<(Index%32));
+	data << Value;
+
+	SendPacket(&data);
 }

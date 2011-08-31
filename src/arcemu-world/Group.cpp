@@ -182,6 +182,7 @@ void Group::SetLeader(Player* pPlayer, bool silent)
 
 void Group::Update()
 {
+	SendFakeFactions();
 	if( m_updateblock )
 		return;
 
@@ -1271,6 +1272,62 @@ Player* Group::GetRandomPlayerInRangeButSkip(Player* plr, float range, Player* p
 	return new_plr;
 }
 
+void Group::SendFakeFactions()
+{
+	GroupMembersSet::iterator itr1, itr2;
+	uint32 i = 0, j = 0;
+	SubGroup *sg1 = NULL;
+	SubGroup *sg2 = NULL;
+	Player * p1 = NULL;
+	Player * p2 = NULL;
+	Lock();
+
+	for( i = 0; i < m_SubGroupCount; i++ )
+	{
+		sg1 = m_SubGroups[i];
+
+		if( sg1 != NULL)
+		{
+			for( itr1 = sg1->GetGroupMembersBegin(); itr1 != sg1->GetGroupMembersEnd(); ++itr1 )
+			{
+				// should never happen but just in case
+				if( (*itr1) == NULL )
+					continue;
+
+				/* skip offline players */
+				if( (*itr1)->m_loggedInPlayer == NULL )
+					continue;
+
+
+				for( j = 0; j < m_SubGroupCount; j++ )
+				{
+					sg2 = m_SubGroups[j];
+					if( sg2 != NULL)
+					{
+						for( itr2 = sg2->GetGroupMembersBegin(); itr2 != sg2->GetGroupMembersEnd(); ++itr2 )
+						{
+							if( (*itr1) == (*itr2) ) // skip self
+								continue;
+
+							// should never happen but just in case
+							if( (*itr2) == NULL )
+								continue;
+
+							if((*itr2)->m_loggedInPlayer == NULL)
+								continue;
+							p1 = (*itr1)->m_loggedInPlayer;
+							p2 = (*itr2)->m_loggedInPlayer;
+							if(p1->GetGUID() == p2->GetGUID())
+								continue;
+							p1->BuildAndSendFieldUpdatePacket(p2, UNIT_FIELD_FACTIONTEMPLATE, p1->GetFaction());
+						}
+					}
+				}
+			}		
+		}
+	}
+	Unlock();
+}
 
 #ifdef ENABLE_ACHIEVEMENTS
 
