@@ -2699,19 +2699,6 @@ void Aura::SpellAuraModStealth(bool apply)
 			// check for stealth spells
 			if( p_target != NULL )
 			{
-				uint32 stealth_id = 0;
-				SpellSet::iterator itr = p_target->mSpells.begin();
-				SpellSet::iterator end = p_target->mSpells.end();
-				for(; itr != end; ++itr)
-				{
-					if( ( (*itr) == 1787 || (*itr) == 1786 || (*itr) == 1785 || (*itr) == 1784) && stealth_id < (*itr) )
-					{
-						stealth_id = *itr;
-					}
-				}
-				if( stealth_id != 0 )
-					p_target->CastSpell( p_target, dbcSpell.LookupEntry( stealth_id ), true );
-
 				p_target->Dismount();
 
 				if( p_target->m_bg && p_target->m_bgHasFlag )

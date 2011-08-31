@@ -5583,6 +5583,9 @@ bool Player::CanSee(Object* obj) // * Invisibility & Stealth Detection - Partha 
 	if (obj == this)
 	   return true;
 
+	if (!(m_phase & obj->m_phase)) //What you can't see, you can't see, no need to check things further.
+		return false;
+
 	uint32 object_type = obj->GetTypeId();
 
 	if(getDeathState() == CORPSE) // we are dead and we have released our spirit
@@ -5623,9 +5626,6 @@ bool Player::CanSee(Object* obj) // * Invisibility & Stealth Detection - Partha 
 	}
 	//------------------------------------------------------------------
 
-	if (!(m_phase & obj->m_phase)) //What you can't see, you can't see, no need to check things further.
-		return false;
-
 	switch(object_type) // we are alive or we haven't released our spirit yet
 	{
 		case TYPEID_PLAYER:
@@ -5660,30 +5660,35 @@ bool Player::CanSee(Object* obj) // * Invisibility & Stealth Detection - Partha 
 
 					if(pObj->stalkedby == GetGUID()) // Hunter's Mark / MindVision is visible to the caster
 						return true;
-
-					if(isInFront(pObj)) // stealthed player is in front of us
+					if(IsCreature())
 					{
-						// Detection Range = 5yds + (Detection Skill - Stealth Skill)/5
-						if(getLevel() < PLAYER_LEVEL_CAP)
-							detectRange = 5.0f + getLevel() + 0.2f * (float)(GetStealthDetectBonus() - pObj->GetStealthLevel());
-						else
-							detectRange = 75.0f + 0.2f * (float)(GetStealthDetectBonus() - pObj->GetStealthLevel());
-						// Hehe... stealth skill is increased by 5 each level and detection skill is increased by 5 each level too.
-						// This way, a level 70 should easily be able to detect a level 4 rogue (level 4 because that's when you get stealth)
-						//	detectRange += 0.2f * ( getLevel() - pObj->getLevel() );
-						if(detectRange < 1.0f) detectRange = 1.0f; // Minimum Detection Range = 1yd
+						if(isInFront(pObj)) // stealthed player is in front of us
+						{
+							// Detection Range = 5yds + (Detection Skill - Stealth Skill)/5
+							if(getLevel() < PLAYER_LEVEL_CAP)
+								detectRange = 5.0f + getLevel() + 0.2f * (float)(GetStealthDetectBonus() - pObj->GetStealthLevel());
+							else
+								detectRange = 75.0f + 0.2f * (float)(GetStealthDetectBonus() - pObj->GetStealthLevel());
+							// Hehe... stealth skill is increased by 5 each level and detection skill is increased by 5 each level too.
+							// This way, a level 70 should easily be able to detect a level 4 rogue (level 4 because that's when you get stealth)
+							//	detectRange += 0.2f * ( getLevel() - pObj->getLevel() );
+							if(detectRange < 1.0f) detectRange = 1.0f; // Minimum Detection Range = 1yd
+						}
+						else // stealthed player is behind us
+						{
+							if(GetStealthDetectBonus() > 1000) return true; // immune to stealth
+								else detectRange = 0.0f;
+						}
+						detectRange += GetBoundingRadius(); // adjust range for size of player
+						detectRange += pObj->GetBoundingRadius(); // adjust range for size of stealthed player
+						if(GetDistanceSq(pObj) > detectRange * detectRange)
+							return true;
 					}
-					else // stealthed player is behind us
+					else
 					{
-						if(GetStealthDetectBonus() > 1000) return true; // immune to stealth
-						else detectRange = 0.0f;
+						if(GetStealthDetectBonus() > pObj->GetStealthLevel())
+							return (HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM) != 0); // GM can see stealthed players
 					}
-
-					detectRange += GetBoundingRadius(); // adjust range for size of player
-					detectRange += pObj->GetBoundingRadius(); // adjust range for size of stealthed player
-					//sLog.outString( "Player::CanSee(%s): detect range = %f yards (%f ingame units), cansee = %s , distance = %f" , pObj->GetName() , detectRange , detectRange * detectRange , ( GetDistance2dSq(pObj) > detectRange * detectRange ) ? "yes" : "no" , GetDistanceSq(pObj) );
-					if(GetDistanceSq(pObj) > detectRange * detectRange)
-						return (HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM) != 0); // GM can see stealthed players
 				}
 
 				return !pObj->m_isGmInvisible;

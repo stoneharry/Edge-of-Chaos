@@ -139,12 +139,12 @@ bool isAttackable(Object* objA, Object* objB, bool CheckStealth){
 		if( objB->HasFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNTED_TAXI | UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_DEAD ) )
 			return false;
 
-		/// added by Zack : 
-        /// we cannot attack shealthed units. Maybe checked in other places too ?
-		/// !! warning, this presumes that objA is attacking ObjB
-        /// Capt: Added the possibility to disregard this (regarding the spell class)
-		if( TO< Unit* >( objB )->IsStealth() && CheckStealth )
-			return false;
+		// added by Zack : 
+        // we cannot attack shealthed units. Maybe checked in other places too ?
+		// !! warning, this presumes that objA is attacking ObjB
+        // Capt: Added the possibility to disregard this (regarding the spell class)
+		//if( TO< Unit* >( objB )->IsStealth() && CheckStealth )
+			//return false;
 	}
 
 	if( ( objA->GetPlayerOwner() != NULL ) && ( objB->GetPlayerOwner() != NULL ) ){

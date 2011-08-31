@@ -398,7 +398,7 @@ Unit::Unit()
 
 	Tagged = false;
 	TaggerGuid = 0;
-
+	detectRange = 0;
 	m_singleTargetAura.clear();
 }
 
@@ -5160,6 +5160,8 @@ void Unit::AddInRangeObject(Object* pObj)
 
 		if ( isFriendly( this, pObj ) )
 			m_sameFactsInRange.insert(pObj);
+		if(pObj->IsUnit())
+			TO_UNIT(pObj)->SendFullAuraUpdate();
     }
 
 	Object::AddInRangeObject(pObj);
@@ -6061,6 +6063,7 @@ void Unit::SendAuraUpdate( uint32 AuraSlot, bool remove ){
 	}
 
 	SendMessageToSet( &data, true );
+	SendFullAuraUpdate();
 }
 
 uint32 Unit::ModVisualAuraStackCount(Aura *aur, int32 count)
