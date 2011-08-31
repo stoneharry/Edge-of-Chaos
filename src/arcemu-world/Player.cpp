@@ -13646,3 +13646,43 @@ void Player::BuildAndSendFieldUpdatePacket(Player* Target, uint32 Index, uint32 
 
 	SendPacket(&data);
 }
+
+void Player::SendAurasForTarget(Unit* target)
+{
+	WorldPacket data( SMSG_AURA_UPDATE_ALL, 200 );
+
+	data << WoWGuid( target->GetNewGUID() );
+	for ( uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i )
+	{
+		Aura * aur = target->m_auras[ i ];
+		
+		if( aur != NULL ){
+			uint8 Flags = uint8( aur->GetAuraFlags() );
+
+			Flags = ( AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3 );
+		
+			if( aur->IsPositive() )
+				Flags |= AFLAG_CANCELLABLE;
+			else
+				Flags |= AFLAG_NEGATIVE;
+
+			if( aur->GetDuration() != 0 )
+				Flags |= AFLAG_DURATION;
+
+			data << uint8( aur->m_visualSlot );
+			data << uint32( aur->GetSpellId() );
+			data << uint8( Flags );
+			data << uint8( getLevel() );
+			data << uint8( m_auraStackCount[ aur->m_visualSlot ] );
+			
+			if( ( Flags & AFLAG_NOT_CASTER ) == 0 )
+				data << WoWGuid(aur->GetCasterGUID());
+
+			if( Flags & AFLAG_DURATION ){
+				data << uint32( aur->GetDuration() );
+				data << uint32( aur->GetTimeLeft() );
+			}
+		}
+	}
+	SendPacket(&data);
+}

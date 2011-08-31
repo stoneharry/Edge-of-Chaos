@@ -2511,6 +2511,8 @@ public:
 	Object *GetPlayerOwner(){ return this; };
 	int hp_regen_items;
 	int block_from_items;
+
+	void SendAurasForTarget(Unit* target);
 };
 
 class SkillIterator

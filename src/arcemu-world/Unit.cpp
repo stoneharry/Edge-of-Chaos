@@ -5160,8 +5160,6 @@ void Unit::AddInRangeObject(Object* pObj)
 
 		if ( isFriendly( this, pObj ) )
 			m_sameFactsInRange.insert(pObj);
-		if(pObj->IsUnit())
-			TO_UNIT(pObj)->SendFullAuraUpdate();
     }
 
 	Object::AddInRangeObject(pObj);
@@ -5971,51 +5969,6 @@ bool Unit::IsPoisoned()
 	return false;
 }
 
-void Unit::SendFullAuraUpdate(){
-
-	WorldPacket data( SMSG_AURA_UPDATE_ALL, 200 );
-
-	data << WoWGuid( GetNewGUID() );
-
-	uint32 Updates = 0;
-
-	for ( uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i ){
-		Aura * aur = m_auras[ i ];
-		
-		if( aur != NULL ){
-			uint8 Flags = uint8( aur->GetAuraFlags() );
-
-			Flags = ( AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3 );
-		
-			if( aur->IsPositive() )
-				Flags |= AFLAG_CANCELLABLE;
-			else
-				Flags |= AFLAG_NEGATIVE;
-
-			if( aur->GetDuration() != 0 )
-				Flags |= AFLAG_DURATION;
-
-			data << uint8( aur->m_visualSlot );
-			data << uint32( aur->GetSpellId() );
-			data << uint8( Flags );
-			data << uint8( getLevel() );
-			data << uint8( m_auraStackCount[ aur->m_visualSlot ] );
-			
-			if( ( Flags & AFLAG_NOT_CASTER ) == 0 )
-				data << WoWGuid(aur->GetCasterGUID());
-
-			if( Flags & AFLAG_DURATION ){
-				data << uint32( aur->GetDuration() );
-				data << uint32( aur->GetTimeLeft() );
-			}
-
-			++Updates;
-		}
-	}
-	SendMessageToSet(&data, true);
-
-	LOG_DEBUG("Full Aura Update: GUID: "I64FMT" - Updates: %u", GetGUID(), Updates);
-}
 
 void Unit::SendAuraUpdate( uint32 AuraSlot, bool remove ){
 	Aura *aur = m_auras[ AuraSlot ];
@@ -6063,7 +6016,6 @@ void Unit::SendAuraUpdate( uint32 AuraSlot, bool remove ){
 	}
 
 	SendMessageToSet( &data, true );
-	SendFullAuraUpdate();
 }
 
 uint32 Unit::ModVisualAuraStackCount(Aura *aur, int32 count)
@@ -6191,6 +6143,8 @@ void Unit::UpdateVisibility()
 					count = pObj->BuildCreateUpdateBlockForPlayer( &buf, plr );
 					plr->PushCreationData(&buf, count);
 					plr->AddVisibleObject(pObj->GetGUID());
+					if(pObj->IsUnit())
+						plr->SendAurasForTarget(TO_UNIT(pObj));
 				}
 			}
 			else
@@ -6215,6 +6169,7 @@ void Unit::UpdateVisibility()
 						count = plr->BuildCreateUpdateBlockForPlayer( &buf, pl );
 						pl->PushCreationData(&buf, count);
 						pl->AddVisibleObject(plr->GetGUID());
+						pl->SendAurasForTarget(plr);
 					}
 				}
 				else
@@ -6253,6 +6208,7 @@ void Unit::UpdateVisibility()
 					count = BuildCreateUpdateBlockForPlayer(&buf, p);
 					p->PushCreationData(&buf, count);
 					p->AddVisibleObject( this->GetGUID() );
+					p->SendAurasForTarget(this);
 				}
 			}
 		}
