@@ -225,9 +225,35 @@ public:
 
 };
 
+class SanctuaryMan : public CreatureAIScript
+{
+public:
+	ADD_CREATURE_FACTORY_FUNCTION( SanctuaryMan );
+	SanctuaryMan( Creature *c ) : CreatureAIScript( c )
+	{
+		RegisterAIUpdateEvent(100);
+	};
+
+	void OnLoad()
+	{
+		_unit->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+	}
+
+	void AIUpdate()
+	{
+		for( set< Object* >::iterator PlayerIter = _unit->GetInRangePlayerSetBegin(); PlayerIter != _unit->GetInRangePlayerSetEnd(); ++PlayerIter ) 
+		{
+			Player* p = TO< Player* >(*PlayerIter);
+			if(p && p->IsInWorld())
+				p->SetSanctuaryFlag();
+		};		
+	};
+};
+
 void SetupTrainerScript(ScriptMgr * mgr)
 {
     mgr->register_creature_gossip(11191, new MasterHammersmith);		// Lilith the Lithe
 	mgr->register_creature_gossip(11193, new MasterSwordsmith);		// Seril Scourgebane
 	mgr->register_creature_gossip(11192, new MasterAxesmith);			// Kilram
+	mgr->register_creature_script(100000, &SanctuaryMan::Create );
 }

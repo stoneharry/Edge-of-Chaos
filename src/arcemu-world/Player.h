@@ -1886,6 +1886,8 @@ public:
 	// DualWield2H (ex: Titan's grip)
 	bool DualWield2H;
 	void ResetDualWield2H();
+
+	void SendItemInfo(uint32 entry);
 public:
 
 	std::string Lfgcomment;

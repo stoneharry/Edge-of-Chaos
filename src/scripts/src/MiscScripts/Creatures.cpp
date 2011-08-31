@@ -202,7 +202,7 @@ public:
 
 	void OnCombatStart(Unit* mTarget)
 	{
-			_unit->PlaySoundToSet(5885);
+		_unit->PlaySoundToSet(5885);
 	}
 };
 
@@ -216,7 +216,7 @@ public:
 
 	void OnCombatStart(Unit* mTarget)
 	{
-			_unit->PlaySoundToSet(10155);
+		_unit->PlaySoundToSet(10155);
 	}
 };
 
@@ -230,7 +230,7 @@ public:
 
 	void OnCombatStart(Unit* mTarget)
 	{
-			_unit->PlaySoundToSet(5896);
+		_unit->PlaySoundToSet(5896);
 	}
 };
 
@@ -244,7 +244,7 @@ public:
 
 	void OnCombatStart(Unit* mTarget)
 	{
-			_unit->PlaySoundToSet(5880);
+		_unit->PlaySoundToSet(5880);
 	}
 };
 
@@ -258,7 +258,7 @@ public:
 
 	void OnCombatStart(Unit* mTarget)
 	{
-			_unit->PlaySoundToSet(5884);
+		_unit->PlaySoundToSet(5884);
 	}
 };
 
@@ -272,7 +272,7 @@ public:
 
 	void OnCombatStart(Unit* mTarget)
 	{
-			_unit->PlaySoundToSet(5886);
+		_unit->PlaySoundToSet(5886);
 	}
 };
 
