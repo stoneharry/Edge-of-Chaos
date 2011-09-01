@@ -4451,9 +4451,9 @@ void Spell::SpellEffectResurrectNew(uint32 i)
 	if(playerTarget->isAlive() || !playerTarget->IsInWorld())
 		return;
 	//resurrect
-	playerTarget->m_resurrectMapId = p_caster->GetMapId();
-	playerTarget->m_resurrectInstanceID = p_caster->GetInstanceID();
-	playerTarget->m_resurrectPosition = p_caster->GetPosition();
+	playerTarget->m_resurrectMapId = m_caster->GetMapId();
+	playerTarget->m_resurrectInstanceID = m_caster->GetInstanceID();
+	playerTarget->m_resurrectPosition = m_caster->GetPosition();
 	playerTarget->m_resurrectHealth = damage;
 	playerTarget->m_resurrectMana = GetProto()->EffectMiscValue[i];
 

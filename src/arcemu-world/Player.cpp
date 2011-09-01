@@ -3451,6 +3451,8 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 			}
 		}
 	}
+	if(GetSession()->CanUseCommand('a'))
+		ModUnsigned32Value(UNIT_FIELD_FLAGS_2, 0x40000);
 }
 
 void Player::SetPersistentInstanceId(Instance *pInstance)

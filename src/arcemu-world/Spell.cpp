@@ -2318,11 +2318,14 @@ void Spell::SendChannelStart(uint32 duration)
 
 void Spell::SendResurrectRequest(Player* target)
 {
-	WorldPacket data(SMSG_RESURRECT_REQUEST, 13);
-	data << m_caster->GetGUID();
-	data << uint32(0) << uint8(0);
-
-	target->GetSession()->SendPacket(&data);
+	const char* sentName = m_caster->IsCreature() ? TO_CREATURE(m_caster)->GetCreatureInfo()->Name : m_caster->IsGameObject() ? TO_GAMEOBJECT(m_caster)->GetInfo()->Name : "";
+    WorldPacket data(SMSG_RESURRECT_REQUEST, (8+4+strlen(sentName)+1+1+1));
+    data << uint64(m_caster->GetGUID());
+    data << uint32(strlen(sentName) + 1);
+    data << sentName;
+    data << uint8(0);
+    data << uint8(m_caster->GetTypeId() == TYPEID_PLAYER ? 0 : 1);
+    target->GetSession()->SendPacket(&data);
 	target->m_resurrecter = m_caster->GetGUID();
 }
 

@@ -1067,12 +1067,10 @@ void WorldSession::HandleResurrectResponseOpcode(WorldPacket & recv_data)
 	recv_data >> status;
 
 	// need to check guid
-	Player * pl = _player->GetMapMgr()->GetPlayer( (uint32)guid );
-	if ( pl == NULL )
-		pl = objmgr.GetPlayer( (uint32)guid );
+	Object *o = _player->GetMapMgr()->_GetObject(guid);
 
 	// checking valid resurrecter fixes exploits
-	if ( pl == NULL || status != 1 || !_player->m_resurrecter || _player->m_resurrecter != guid )
+	if ( o == NULL || status != 1 || !_player->m_resurrecter || _player->m_resurrecter != guid )
 	{
 		_player->m_resurrectHealth = 0;
 		_player->m_resurrectMana = 0;
