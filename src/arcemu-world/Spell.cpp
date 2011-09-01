@@ -2699,7 +2699,7 @@ void Spell::HandleEffects(uint64 guid, uint32 i)
 	if (m_spellInfo->EffectImplicitTargetB[i] != 0)
 		TargetType |= GetTargetType(m_spellInfo->EffectImplicitTargetB[i], i);
 
-	if (u_caster != NULL && unitTarget != NULL && unitTarget->IsCreature() && !(GetProto()->AttributesExB & 0x00020000) && !(GetProto()->AttributesEx & 0x00000400))
+	if (u_caster != NULL && unitTarget != NULL && unitTarget->IsCreature() && TargetType & SPELL_TARGET_REQUIRE_ATTACKABLE && !(m_spellInfo->AttributesEx & !(m_spellInfo->AttributesEx & ATTRIBUTESEX_NO_INITIAL_AGGRO)))
 	{
 		unitTarget->GetAIInterface()->AttackReaction(u_caster, 1, 0);
 		unitTarget->GetAIInterface()->HandleEvent(EVENT_HOSTILEACTION, u_caster, 0);
@@ -5041,7 +5041,7 @@ void Spell::Heal( int32 amount, bool ForceCrit )
 	unitTarget->RemoveAurasByHeal();
 
 	// add threat
-	if( u_caster != NULL && !(GetProto()->AttributesExB & 0x00020000) && !(GetProto()->AttributesEx & 0x00000400))
+	if( u_caster != NULL )
 	{
 		std::vector<Unit*> target_threat;
 		int count = 0;
@@ -5066,12 +5066,10 @@ void Spell::Heal( int32 amount, bool ForceCrit )
 			return;
 
 		amount = amount / count;
-		if(!(GetProto()->AttributesExB & 0x00020000) && !(GetProto()->AttributesEx & 0x00000400))
+
+		for( std::vector<Unit*>::iterator itr = target_threat.begin(); itr != target_threat.end(); ++itr )
 		{
-			for( std::vector<Unit*>::iterator itr = target_threat.begin(); itr != target_threat.end(); ++itr )
-			{
-				(*itr)->GetAIInterface()->HealReaction( u_caster, unitTarget, m_spellInfo, amount );
-			}
+			(*itr)->GetAIInterface()->HealReaction( u_caster, unitTarget, m_spellInfo, amount );
 		}
 
 		// remember that we healed (for combat status)
@@ -5764,7 +5762,7 @@ void Spell::HandleModeratedEffects( uint64 guid )
 	{
 		Object* obj = u_caster->GetMapMgr()->_GetObject(guid);
 
-		if (obj != NULL && obj->IsCreature() && !(GetProto()->AttributesExB & 0x00020000) && !(GetProto()->AttributesEx & 0x00000400))
+		if (obj != NULL && obj->IsCreature() && !(m_spellInfo->AttributesEx & ATTRIBUTESEX_NO_INITIAL_AGGRO))
 		{
 			TO_CREATURE(obj)->GetAIInterface()->AttackReaction(u_caster, 0, 0);
 			TO_CREATURE(obj)->GetAIInterface()->HandleEvent(EVENT_HOSTILEACTION, u_caster, 0);

@@ -3764,7 +3764,7 @@ void Player::OnPushToWorld()
 
 	z_axisposition = 0.0f;
 	m_changingMaps = false;
-	SendFullAuraUpdate();
+	SendAurasForTarget(this);
 
     this->GetItemInterface()->HandleItemDurations();
 }
