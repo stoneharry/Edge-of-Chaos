@@ -1123,6 +1123,7 @@ ARCEMU_INLINE bool CanAgroHash(uint32 spellhashname)
 //
 ////////////////////////////////////////////////////////////////////////////////
 bool IsDamagingSpell( SpellEntry *sp );
+bool CanAggro( SpellEntry *sp );
 
 ARCEMU_INLINE uint32 IsHealingSpell(SpellEntry *sp)
 {
@@ -2146,7 +2147,6 @@ public:
 
 
 	Spell * m_reflectedParent;
-
 protected:
 
     /// Spell state's
