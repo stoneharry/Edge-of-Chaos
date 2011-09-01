@@ -2699,7 +2699,7 @@ void Spell::HandleEffects(uint64 guid, uint32 i)
 	if (m_spellInfo->EffectImplicitTargetB[i] != 0)
 		TargetType |= GetTargetType(m_spellInfo->EffectImplicitTargetB[i], i);
 
-	if (u_caster != NULL && unitTarget != NULL && unitTarget->IsCreature() && TargetType & SPELL_TARGET_REQUIRE_ATTACKABLE && !(m_spellInfo->AttributesEx & !(m_spellInfo->AttributesEx & ATTRIBUTESEX_NO_INITIAL_AGGRO)))
+	if (u_caster != NULL && unitTarget != NULL && unitTarget->IsCreature() && TargetType & SPELL_TARGET_REQUIRE_ATTACKABLE && CanAggro(GetProto()))
 	{
 		unitTarget->GetAIInterface()->AttackReaction(u_caster, 1, 0);
 		unitTarget->GetAIInterface()->HandleEvent(EVENT_HOSTILEACTION, u_caster, 0);
@@ -5041,7 +5041,7 @@ void Spell::Heal( int32 amount, bool ForceCrit )
 	unitTarget->RemoveAurasByHeal();
 
 	// add threat
-	if( u_caster != NULL )
+	if( u_caster != NULL && CanAggro(GetProto()))
 	{
 		std::vector<Unit*> target_threat;
 		int count = 0;
@@ -5762,7 +5762,7 @@ void Spell::HandleModeratedEffects( uint64 guid )
 	{
 		Object* obj = u_caster->GetMapMgr()->_GetObject(guid);
 
-		if (obj != NULL && obj->IsCreature() && !(m_spellInfo->AttributesEx & ATTRIBUTESEX_NO_INITIAL_AGGRO))
+		if (obj != NULL && obj->IsCreature() && CanAggro(GetProto()))
 		{
 			TO_CREATURE(obj)->GetAIInterface()->AttackReaction(u_caster, 0, 0);
 			TO_CREATURE(obj)->GetAIInterface()->HandleEvent(EVENT_HOSTILEACTION, u_caster, 0);
@@ -5873,5 +5873,12 @@ bool IsDamagingSpell( SpellEntry *sp ){
 		sp->AppliesAura( SPELL_AURA_POWER_BURN ) )
 		return true;
 	
+	return false;
+}
+
+bool CanAggro( SpellEntry *sp )
+{
+	if(!(sp->AttributesExB & 0x00020000) && !(sp->AttributesEx & 0x00000400))
+		return true;
 	return false;
 }
