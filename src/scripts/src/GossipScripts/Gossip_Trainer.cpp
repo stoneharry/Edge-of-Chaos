@@ -244,7 +244,7 @@ public:
 		for( set< Object* >::iterator PlayerIter = _unit->GetInRangePlayerSetBegin(); PlayerIter != _unit->GetInRangePlayerSetEnd(); ++PlayerIter ) 
 		{
 			Player* p = TO< Player* >(*PlayerIter);
-			if(p && p->IsInWorld())
+			if(p && p->IsInWorld() && _unit->GetDistance2dSq(p) > 250.0f)
 				p->SetSanctuaryFlag();
 		};		
 	};
