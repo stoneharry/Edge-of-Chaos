@@ -110,6 +110,12 @@ bool Group::AddMember(PlayerInfo * info, int32 subgroupid/* =-1 */)
 	m_groupLock.Acquire();
 	Player * pPlayer = info->m_loggedInPlayer;
 
+	if(m_Leader != NULL && m_Leader->m_loggedInPlayer && pPlayer)
+	{
+		if(m_Leader->m_loggedInPlayer->GetFaction() != pPlayer->GetFaction() && m_Leader->m_loggedInPlayer->GetFaction() != 0)
+			pPlayer->SetFaction(m_Leader->m_loggedInPlayer->GetFaction());
+	}
+
 	if( m_isqueued )
 	{
 		m_isqueued = false;
@@ -314,13 +320,6 @@ void Group::Update()
 				data << uint8( m_difficulty );
 				data << uint8( m_raiddifficulty );
 				data << uint8( 0 ); // 3.3 - unk
-				if(m_Leader != NULL && m_Leader->m_loggedInPlayer)
-				{
-					if((*itr1)->m_loggedInPlayer && m_Leader->m_loggedInPlayer->GetFaction() != (*itr1)->m_loggedInPlayer->GetFaction())
-						(*itr1)->m_loggedInPlayer->SetFaction(m_Leader->m_loggedInPlayer->GetFaction());
-					if((*itr2)->m_loggedInPlayer && m_Leader->m_loggedInPlayer->GetFaction() != (*itr2)->m_loggedInPlayer->GetFaction())
-						(*itr2)->m_loggedInPlayer->SetFaction(m_Leader->m_loggedInPlayer->GetFaction());
-				}
 
 				if( !(*itr1)->m_loggedInPlayer->IsInWorld() )
 					(*itr1)->m_loggedInPlayer->CopyAndSendDelayedPacket( &data );
