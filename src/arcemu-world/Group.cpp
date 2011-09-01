@@ -182,7 +182,7 @@ void Group::SetLeader(Player* pPlayer, bool silent)
 
 void Group::Update()
 {
-	SendFakeFactions();
+	//SendFakeFactions();
 	if( m_updateblock )
 		return;
 
@@ -314,6 +314,13 @@ void Group::Update()
 				data << uint8( m_difficulty );
 				data << uint8( m_raiddifficulty );
 				data << uint8( 0 ); // 3.3 - unk
+				if(m_Leader != NULL && m_Leader->m_loggedInPlayer)
+				{
+					if((*itr1)->m_loggedInPlayer && m_Leader->m_loggedInPlayer->GetFaction() != (*itr1)->m_loggedInPlayer->GetFaction())
+						(*itr1)->m_loggedInPlayer->SetFaction(m_Leader->m_loggedInPlayer->GetFaction());
+					if((*itr2)->m_loggedInPlayer && m_Leader->m_loggedInPlayer->GetFaction() != (*itr2)->m_loggedInPlayer->GetFaction())
+						(*itr2)->m_loggedInPlayer->SetFaction(m_Leader->m_loggedInPlayer->GetFaction());
+				}
 
 				if( !(*itr1)->m_loggedInPlayer->IsInWorld() )
 					(*itr1)->m_loggedInPlayer->CopyAndSendDelayedPacket( &data );
@@ -478,6 +485,10 @@ void Group::RemovePlayer(PlayerInfo * info)
 
 	if( pPlayer != NULL )
 	{
+		if(pPlayer->IsTeamHorde())
+			pPlayer->SetFaction(5);
+		else
+			pPlayer->SetFaction(1);
 		if( pPlayer->GetSession() != NULL )
 		{
 			SendNullUpdate( pPlayer );

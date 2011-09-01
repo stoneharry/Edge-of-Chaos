@@ -892,6 +892,8 @@ void MapMgr::UpdateInRangeSet( Object *obj, Player *plObj, MapCell* cell, ByteBu
 						count = obj->BuildCreateUpdateBlockForPlayer(*buf, plObj2);
 						plObj2->PushCreationData(*buf, count);
 						plObj2->AddVisibleObject(obj->GetGUID());
+						if(obj->IsUnit())
+							plObj2->SendAurasForTarget(TO_UNIT(obj));
 						(*buf)->clear();
 					}
 				}
@@ -904,6 +906,8 @@ void MapMgr::UpdateInRangeSet( Object *obj, Player *plObj, MapCell* cell, ByteBu
 						count = curObj->BuildCreateUpdateBlockForPlayer( *buf, plObj );
 						plObj->PushCreationData( *buf, count );
 						plObj->AddVisibleObject( curObj->GetGUID() );
+						if(curObj->IsUnit())
+							plObj->SendAurasForTarget(TO_UNIT(curObj));
 						(*buf)->clear();
 					}
 				}
@@ -927,6 +931,8 @@ void MapMgr::UpdateInRangeSet( Object *obj, Player *plObj, MapCell* cell, ByteBu
 						count = obj->BuildCreateUpdateBlockForPlayer(*buf, plObj2);
 						plObj2->PushCreationData(*buf, count);
 						plObj2->AddVisibleObject(obj->GetGUID());
+						if(curObj->IsUnit())
+							plObj2->SendAurasForTarget(TO_UNIT(curObj));
 						(*buf)->clear();
 					}
 				}
@@ -946,6 +952,8 @@ void MapMgr::UpdateInRangeSet( Object *obj, Player *plObj, MapCell* cell, ByteBu
 						count = curObj->BuildCreateUpdateBlockForPlayer( *buf, plObj );
 						plObj->PushCreationData( *buf, count );
 						plObj->AddVisibleObject( curObj->GetGUID() );
+						if(curObj->IsUnit())
+							plObj->SendAurasForTarget(TO_UNIT(curObj));
 						(*buf)->clear();
 					}
 				}

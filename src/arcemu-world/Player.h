@@ -1635,8 +1635,8 @@ public:
 	void AddInRangeObject(Object* pObj);
 	void OnRemoveInRangeObject(Object* pObj);
 	void ClearInRangeSet();
-	 void AddVisibleObject( uint64 pObj ) { m_visibleObjects.insert(pObj); }
-	 void RemoveVisibleObject( uint64 pObj ) { m_visibleObjects.erase(pObj); }
+	void AddVisibleObject( uint64 pObj ) { m_visibleObjects.insert(pObj);}
+	void RemoveVisibleObject( uint64 pObj ) { m_visibleObjects.erase(pObj); }
 	 void RemoveVisibleObject( std::set< uint64 >::iterator itr) { m_visibleObjects.erase(itr); }
 	 std::set< uint64 >::iterator FindVisible( uint64 obj ) { return m_visibleObjects.find(obj); }	 
 	 void RemoveIfVisible( uint64 obj );
