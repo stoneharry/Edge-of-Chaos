@@ -5700,8 +5700,7 @@ bool Player::CanSee(Object* obj) // * Invisibility & Stealth Detection - Partha 
 					}
 					else
 					{
-						if(GetStealthDetectBonus() > pObj->GetStealthLevel())
-							return (HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM) != 0); // GM can see stealthed players
+						return false;
 					}
 				}
 
