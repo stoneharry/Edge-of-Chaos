@@ -112,7 +112,7 @@ bool Group::AddMember(PlayerInfo * info, int32 subgroupid/* =-1 */)
 
 	if(m_Leader != NULL && m_Leader->m_loggedInPlayer && pPlayer)
 	{
-		if(m_Leader->m_loggedInPlayer->GetFaction() != pPlayer->GetFaction() && m_Leader->m_loggedInPlayer->GetFaction() != 0)
+		if(m_Leader->m_loggedInPlayer->GetFaction() != pPlayer->GetFaction() && m_Leader->m_loggedInPlayer->GetFaction() != 0 && pPlayer->getLevel() >= 19)
 		{
 			pPlayer->SetTeam(m_Leader->m_loggedInPlayer->GetTeam());
 			pPlayer->SetFaction(m_Leader->m_loggedInPlayer->GetFaction());
