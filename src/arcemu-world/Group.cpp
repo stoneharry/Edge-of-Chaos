@@ -488,9 +488,15 @@ void Group::RemovePlayer(PlayerInfo * info)
 	if( pPlayer != NULL )
 	{
 		if(pPlayer->GetTeamInitial() == TEAM_HORDE)
+		{
 			pPlayer->SetFaction(5);
+			pPlayer->SetTeam(TEAM_HORDE);
+		}
 		else
+		{
 			pPlayer->SetFaction(1);
+			pPlayer->SetTeam(TEAM_ALLIANCE);
+		}
 		if( pPlayer->GetSession() != NULL )
 		{
 			SendNullUpdate( pPlayer );
