@@ -9253,7 +9253,7 @@ void Player::ModifyBonuses( uint32 type, int32 val, bool apply )
 				{
 					PowerCostPctMod[x] -= val;
 				}
-				ModSignedInt32Value( PLAYER_FIELD_MOD_TARGET_RESISTANCE, val);
+				ModSignedInt32Value( PLAYER_FIELD_MOD_TARGET_RESISTANCE, -val);
 			}break;
 		case BLOCK_VALUE:
 			{
