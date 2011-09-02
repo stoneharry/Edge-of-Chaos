@@ -113,7 +113,10 @@ bool Group::AddMember(PlayerInfo * info, int32 subgroupid/* =-1 */)
 	if(m_Leader != NULL && m_Leader->m_loggedInPlayer && pPlayer)
 	{
 		if(m_Leader->m_loggedInPlayer->GetFaction() != pPlayer->GetFaction() && m_Leader->m_loggedInPlayer->GetFaction() != 0)
+		{
+			pPlayer->SetTeam(m_Leader->m_loggedInPlayer->GetTeam());
 			pPlayer->SetFaction(m_Leader->m_loggedInPlayer->GetFaction());
+		}
 	}
 
 	if( m_isqueued )
@@ -484,7 +487,7 @@ void Group::RemovePlayer(PlayerInfo * info)
 
 	if( pPlayer != NULL )
 	{
-		if(pPlayer->IsTeamHorde())
+		if(pPlayer->GetTeamInitial() == TEAM_HORDE)
 			pPlayer->SetFaction(5);
 		else
 			pPlayer->SetFaction(1);
