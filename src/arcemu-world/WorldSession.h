@@ -774,6 +774,8 @@ public:
 	float m_wLevel; // Level of water the player is currently in
 	bool m_bIsWLevelSet; // Does the m_wLevel variable contain up-to-date information about water level?
 
+	void SendItemQueryAndNameInfo(uint32 itemid);
+
 private:
 	friend class Player;
 	Player *_player;

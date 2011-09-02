@@ -13624,11 +13624,7 @@ void Player::BuildPetSpellList( WorldPacket &data ){
 
 void Player::SendItemInfo(uint32 entry)
 {
-	/*WorldPacket data(CMSG_ITEM_QUERY_SINGLE, 4);
-	data << entry;
-	GetSession()->HandleItemQuerySingleOpcode(data);
-	data.SetOpcode(CMSG_ITEM_NAME_QUERY);
-	GetSession()->HandleItemNameQueryOpcode(data);*/
+	GetSession()->SendItemQueryAndNameInfo(entry);
 }
 
 void Player::BuildAndSendFieldUpdatePacket(Player* Target, uint32 Index, uint32 Value)
