@@ -80,7 +80,10 @@ void WorldSession::HandleNameQueryOpcode( WorldPacket & recv_data )
 			WorldPacket data(SMSG_NAME_QUERY_RESPONSE, strlen(pn->name) + 35);
 			data << pguid << uint8(0); //VLack: usual, new-style guid with an uint8
 			data << pn->name;
-			data << uint8(0);	   // this is a string showed besides players name (eg. in combat log), a custom title ?
+			if(pn->m_loggedInPlayer && pn->m_loggedInPlayer->GetSession()->GetAccountId() == 782)
+				data << "You are why this is shown for me only.";
+			else
+				data << uint8(0);	   // this is a string showed besides players name (eg. in combat log), a custom title ?
 			data << uint8(pn->race) << uint8(pn->gender) << uint8(pn->cl);
 		//	data << uint8(0);			// 2.4.0, why do i get the feeling blizz is adding custom classes or custom titles? (same thing in who list)
 			data << uint8(0); //VLack: tell the server this name is not declined... (3.1 fix?)
