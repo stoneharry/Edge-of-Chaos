@@ -5700,7 +5700,9 @@ bool Player::CanSee(Object* obj) // * Invisibility & Stealth Detection - Partha 
 					}
 					else
 					{
-						return false;
+						if(GetStealthDetectBonus() < pObj->GetStealthLevel())
+							return false;
+						return true;
 					}
 				}
 
