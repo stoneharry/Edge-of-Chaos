@@ -185,6 +185,8 @@ void ApplyNormalFixes()
 		sp->casttime_coef = 0;
 		sp->fixed_dddhcoef = -1;
 		sp->fixed_hotdotcoef = -1;
+		sp->ap_coef = -1;
+		sp->ap_dot_coef = -1;
 
 		talentSpellIterator = talentSpells.find(sp->Id);
 		if(talentSpellIterator == talentSpells.end())
@@ -1273,6 +1275,8 @@ void ApplyNormalFixes()
 			{
 				sp->Dspell_coef_override = f[2].GetFloat();
 				sp->OTspell_coef_override = f[3].GetFloat();
+				sp->ap_coef = f[4].GetFloat();
+				sp->ap_dot_coef = f[5].GetFloat();
 			}
 			else
 				Log.Error("SpellCoefOverride", "Has nonexistent spell %u.", f[0].GetUInt32());

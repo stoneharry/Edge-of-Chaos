@@ -4972,10 +4972,22 @@ int32 Unit::GetSpellDmgBonus(Unit *pVictim, SpellEntry *spellInfo,int32 base_dmg
 		//Bonus to DD part
 		if( spellInfo->fixed_dddhcoef >= 0 && !isdot )
 			plus_damage = float2int32( plus_damage * spellInfo->fixed_dddhcoef );
+		if( spellInfo->ap_coef >= 0 && !isdot )
+			plus_damage = float2int32( plus_damage + (spellInfo->ap_coef * caster->GetAttackPower()) );
 		//Bonus to DoT part
 		else if( spellInfo->fixed_hotdotcoef >= 0 && isdot )
 		{
 			plus_damage = float2int32( plus_damage * spellInfo->fixed_hotdotcoef );
+			if( caster->IsPlayer() )
+			{
+				int durmod = 0;
+				SM_FIValue(caster->SM_FDur, &durmod, spellInfo->SpellGroupType);
+				plus_damage += plus_damage * durmod / 15000;
+			}
+		}
+		else if( spellInfo->ap_dot_coef >= 0 && isdot )
+		{
+			plus_damage = float2int32( plus_damage + (spellInfo->ap_dot_coef * caster->GetAttackPower()) );
 			if( caster->IsPlayer() )
 			{
 				int durmod = 0;

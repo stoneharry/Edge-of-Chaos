@@ -29,15 +29,13 @@ void WorldSession::HandleNameQueryOpcode( WorldPacket & recv_data )
 	uint64 guid;
 	recv_data >> guid;
 
-	//PlayerInfo *pn = objmgr.GetPlayerInfo( (uint32)guid );
 	if(guid & 0x10000000)
 	{
 		int32 real_guid = int32(guid) & ~0x10000000;
-		//printf("  its a fake 0x%x, %d\n", int32(guid), real_guid);
- 
 		QueryResult *result = CharacterDatabase.Query(
 			"SELECT * FROM fake_players WHERE online=1 and entry=%d", real_guid);
-		if(!result) return;
+		if(!result) 
+			return;
  
 		const char *name = result->Fetch()[1].GetString();
 		//printf("  found %s\n", name);
@@ -52,42 +50,20 @@ void WorldSession::HandleNameQueryOpcode( WorldPacket & recv_data )
 
 		delete result;
 	}
-	//if(!pn)
-	//	return;
-
-	//LOG_DEBUG( "Received CMSG_NAME_QUERY for: %s", pn->name );
 	else
 	{
 		PlayerInfo *pn = objmgr.GetPlayerInfo( (uint32)guid );
-
-
-/*	WoWGuid pguid((uint64)pn->guid); //VLack: The usual new style guid handling on 3.1.2
-	WorldPacket data(SMSG_NAME_QUERY_RESPONSE, strlen(pn->name) + 35);
-//	data << pn->guid << uint32(0);	//highguid
-	data << pguid << uint8(0); //VLack: usual, new-style guid with an uint8
-	data << pn->name;
-	data << uint8(0);	   // this is a string showed besides players name (eg. in combat log), a custom title ?
-	data << uint8(pn->race) << uint8(pn->gender) << uint8(pn->cl);
-//	data << uint8(0);			// 2.4.0, why do i get the feeling blizz is adding custom classes or custom titles? (same thing in who list)
-	data << uint8(0); //VLack: tell the server this name is not declined... (3.1 fix?)
-	SendPacket( &data );*/
-
 		if(!pn)
 			return;
-
-			sLog.outDebug( "Received CMSG_NAME_QUERY for: %s", pn->name );
-			WoWGuid pguid((uint64)pn->guid);
-			WorldPacket data(SMSG_NAME_QUERY_RESPONSE, strlen(pn->name) + 35);
-			data << pguid << uint8(0); //VLack: usual, new-style guid with an uint8
-			data << pn->name;
-			//if(pn->m_loggedInPlayer && pn->m_loggedInPlayer->GetSession()->GetAccountId() == 782)
-				//data << "";
-			//else
-				data << uint8(0);	   // this is a string showed besides players name (eg. in combat log), a custom title ?
-			data << uint8(pn->race) << uint8(pn->gender) << uint8(pn->cl);
-		//	data << uint8(0);			// 2.4.0, why do i get the feeling blizz is adding custom classes or custom titles? (same thing in who list)
-			data << uint8(0); //VLack: tell the server this name is not declined... (3.1 fix?)
-			SendPacket( &data );
+		sLog.outDebug( "Received CMSG_NAME_QUERY for: %s", pn->name );
+		WoWGuid pguid((uint64)pn->guid);
+		WorldPacket data(SMSG_NAME_QUERY_RESPONSE, strlen(pn->name) + 35);
+		data << pguid << uint8(0); //VLack: usual, new-style guid with an uint8
+		data << pn->name;
+		data << uint8(0);	   // this is a string showed besides players name (eg. in combat log), a custom title ?
+		data << uint8(pn->race) << uint8(pn->gender) << uint8(pn->cl);
+		data << uint8(0); //VLack: tell the server this name is not declined... (3.1 fix?)
+		SendPacket( &data );
 	}
 }
 
