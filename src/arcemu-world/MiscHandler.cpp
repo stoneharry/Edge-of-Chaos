@@ -949,17 +949,18 @@ void WorldSession::HandleSetSelectionOpcode( WorldPacket & recv_data )
 
 	uint64 guid;
 	recv_data >> guid;
-	_player->SetSelection(guid);
-
-	if(_player->m_comboPoints)
-		_player->UpdateComboPoints();
-
-	_player->SetTargetGUID(  guid);
-	if(guid == 0) // deselected target
+	if( _player->IsInWorld() )
 	{
+		_player->SetSelection(guid);
 
-        if( _player->IsInWorld() )
-            _player->CombatStatusHandler_ResetPvPTimeout();
+		if(_player->m_comboPoints)
+			_player->UpdateComboPoints();
+
+		_player->SetTargetGUID(  guid);
+		if(Unit * u = _player->GetMapMgr()->GetUnit(guid))
+			_player->SendAurasForTarget(u);
+		if(guid == 0) // deselected target
+           _player->CombatStatusHandler_ResetPvPTimeout();
 	}
 }
 
