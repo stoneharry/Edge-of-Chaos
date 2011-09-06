@@ -413,32 +413,6 @@ void Spell::SpellEffectInstantKill(uint32 i)
 	if( !unitTarget || !unitTarget->isAlive() )
 		return;
 
-	//Sacrifice: if spell caster has "void walker" pet, pet dies and spell caster gets a
-	/*Sacrifices the Voidwalker, giving its owner a shield that will absorb
-	305 damage for 30 sec. While the shield holds, spellcasting will not be \
-	interrupted by damage.*/
-
-	/*
-	Demonic Sacrifice
-
-	When activated, sacrifices your summoned demon to grant you an effect that lasts
-	30 minutes. The effect is canceled if any Demon is summoned.
-	Imp: Increases your Fire damage by 15%.
-	Voidwalker: Restores 3% of total Health every 4 sec.
-	Succubus: Increases your Shadow damage by 15%.
-	Felhunter: Restores 2% of total Mana every 4 sec.
-
-	When activated, sacrifices your summoned demon to grant you an effect that lasts $18789d.  The effect is canceled if any Demon is summoned.
-
-	Imp: Increases your Fire damage by $18789s1%.
-
-	Voidwalker: Restores $18790s1% of total Health every $18790t1 sec.
-
-	Succubus: Increases your Shadow damage by $18791s1%.
-
-	Felhunter: Restores $18792s1% of total Mana every $18792t1 sec.
-
-	*/
 	uint32 spellId = GetProto()->Id;
 
 	switch( spellId )
@@ -498,16 +472,6 @@ void Spell::SpellEffectInstantKill(uint32 i)
 			sp->prepare( &targets );
 			return;
 		}break;
-
-	default:
-		{
-			// moar cheaters
-			if( !p_caster || (u_caster && u_caster->IsPet() ) )
-				return;
-
-			if( p_caster->GetSession()->GetPermissionCount() == 0 )
-				return;
-		}
 	}
 	//instant kill effects don't have a log
 	//m_caster->SpellNonMeleeDamageLog(unitTarget, GetProto()->Id, unitTarget->GetHealth(), true);
