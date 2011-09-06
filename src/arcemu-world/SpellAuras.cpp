@@ -2889,7 +2889,7 @@ void Aura::EventPeriodicManaPct(float RegenPct)
 
 void Aura::EventPeriodicTriggerDummy()
 {	
-	//if( !sScriptMgr.CallScriptedDummyAura( m_spellProto->Id, mod->i, this, true ) )
+	sScriptMgr.CallScriptedDummyAura( m_spellProto->Id, mod->i, this, true );
 		//LOG_ERROR("Spell %u ( %s ) has an apply periodic trigger dummy aura effect, but no handler for it.", m_spellProto->Id, m_spellProto->Name );
 }
 
