@@ -2875,7 +2875,7 @@ void Spell::HandleAddAura(uint64 guid)
 	}
 
 	int32 charges = m_charges;
-	if(charges > 0 && !(GetProto()->NameHash == SPELL_HASH_INNER_FIRE))
+	if(charges > 0)
 	{		
 		if(u_caster != NULL)
 		{
