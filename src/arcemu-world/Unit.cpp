@@ -4967,42 +4967,39 @@ int32 Unit::GetSpellDmgBonus(Unit *pVictim, SpellEntry *spellInfo,int32 base_dmg
 		plus_damage = float2int32( plus_damage * spellInfo->Dspell_coef_override );
 	else if( spellInfo->OTspell_coef_override >= 0 && isdot )
 		plus_damage = float2int32( plus_damage * spellInfo->OTspell_coef_override );
+		//Bonus to DD part
+	else if( spellInfo->fixed_dddhcoef >= 0 && !isdot )
+		plus_damage += float2int32( plus_damage * spellInfo->fixed_dddhcoef );
+	else if( spellInfo->ap_coef >= 0 && !isdot )
+		plus_damage += float2int32( plus_damage + (spellInfo->ap_coef * caster->GetAttackPower()) );
+	//Bonus to DoT part
+	else if( spellInfo->fixed_hotdotcoef >= 0 && isdot )
+	{
+		plus_damage += float2int32( plus_damage * spellInfo->fixed_hotdotcoef );
+		if( caster->IsPlayer() )
+		{
+			int durmod = 0;
+			SM_FIValue(caster->SM_FDur, &durmod, spellInfo->SpellGroupType);
+			plus_damage += plus_damage * durmod / 15000;
+		}
+	}
+	else if( spellInfo->ap_dot_coef >= 0 && isdot )
+	{
+		plus_damage += float2int32( plus_damage + (spellInfo->ap_dot_coef * caster->GetAttackPower()) );
+		if( caster->IsPlayer() )
+		{
+			int durmod = 0;
+			SM_FIValue(caster->SM_FDur, &durmod, spellInfo->SpellGroupType);
+			plus_damage += plus_damage * durmod / 15000;
+		}
+	}	
 	else
 	{
-		//Bonus to DD part
-		if( spellInfo->fixed_dddhcoef >= 0 && !isdot )
-			plus_damage = float2int32( plus_damage * spellInfo->fixed_dddhcoef );
-		if( spellInfo->ap_coef >= 0 && !isdot )
-			plus_damage = float2int32( plus_damage + (spellInfo->ap_coef * caster->GetAttackPower()) );
-		//Bonus to DoT part
-		else if( spellInfo->fixed_hotdotcoef >= 0 && isdot )
-		{
-			plus_damage = float2int32( plus_damage * spellInfo->fixed_hotdotcoef );
-			if( caster->IsPlayer() )
-			{
-				int durmod = 0;
-				SM_FIValue(caster->SM_FDur, &durmod, spellInfo->SpellGroupType);
-				plus_damage += plus_damage * durmod / 15000;
-			}
-		}
-		else if( spellInfo->ap_dot_coef >= 0 && isdot )
-		{
-			plus_damage = float2int32( plus_damage + (spellInfo->ap_dot_coef * caster->GetAttackPower()) );
-			if( caster->IsPlayer() )
-			{
-				int durmod = 0;
-				SM_FIValue(caster->SM_FDur, &durmod, spellInfo->SpellGroupType);
-				plus_damage += plus_damage * durmod / 15000;
-			}
-		}
 		//In case we dont fit in previous cases do old thing
-		else
-		{
-			plus_damage = float2int32( plus_damage * spellInfo->casttime_coef );
-			float td = float(GetDuration( dbcSpellDuration.LookupEntry( spellInfo->DurationIndex ) ) );
-			if( spellInfo->NameHash == SPELL_HASH_MOONFIRE || spellInfo->NameHash == SPELL_HASH_IMMOLATE || spellInfo->NameHash == SPELL_HASH_ICE_LANCE || spellInfo->NameHash == SPELL_HASH_PYROBLAST )
-				plus_damage = float2int32( plus_damage * ( 1.0f - ( ( td / 15000.0f ) / ( ( td / 15000.0f ) + dmgdoneaffectperc ) ) ) );
-		}
+		plus_damage = float2int32( plus_damage * spellInfo->casttime_coef );
+		float td = float(GetDuration( dbcSpellDuration.LookupEntry( spellInfo->DurationIndex ) ) );
+		if( spellInfo->NameHash == SPELL_HASH_MOONFIRE || spellInfo->NameHash == SPELL_HASH_IMMOLATE || spellInfo->NameHash == SPELL_HASH_ICE_LANCE || spellInfo->NameHash == SPELL_HASH_PYROBLAST )
+			plus_damage = float2int32( plus_damage * ( 1.0f - ( ( td / 15000.0f ) / ( ( td / 15000.0f ) + dmgdoneaffectperc ) ) ) );
 	}
 
 	//------------------------------by downranking----------------------------------------------
