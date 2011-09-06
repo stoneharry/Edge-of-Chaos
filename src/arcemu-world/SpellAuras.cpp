@@ -5313,7 +5313,7 @@ void Aura::SpellAuraPeriodicTriggerDummy(bool apply)
 	}
 	//else
 	//{
-		//if( !sScriptMgr.CallScriptedDummyAura( m_spellProto->Id, mod->i, this, false ) )
+		sScriptMgr.CallScriptedDummyAura( m_spellProto->Id, mod->i, this, false );
 			//LOG_ERROR("Spell %u ( %s ) has an apply periodic trigger dummy aura effect, but no handler for it.", m_spellProto->Id, m_spellProto->Name );
 	//}
 }
