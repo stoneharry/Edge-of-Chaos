@@ -259,6 +259,7 @@ protected:
 	bool HandleGMOffCommand(const char* args, WorldSession *m_session);
 	bool HandleGPSCommand(const char* args, WorldSession *m_session);
 	bool HandleKickCommand(const char* args, WorldSession *m_session);
+	bool HandleMultiKickCommand(const char *args, WorldSession *m_session);
 	bool HandleTaxiCheatCommand(const char* args, WorldSession *m_session);
 	bool HandleModifySpeedCommand(const char* args, WorldSession *m_session);
 	bool HandleModifyTPsCommand(const char* args, WorldSession *m_session);
@@ -443,6 +444,8 @@ protected:
 	// Unsorted?
 	Player* getSelectedChar(WorldSession *m_session, bool showerror = true);
 	Creature * getSelectedCreature(WorldSession *m_session, bool showerror = true);
+	Unit * getSelectedUnit(WorldSession *m_session, bool showerror = true);
+	const char* GetSelectedUnitName(Unit * u);
 	bool HandleGOScale(const char* args, WorldSession *m_session);
 	bool HandleReviveStringcommand(const char* args, WorldSession* m_session);
 	bool HandleMountCommand(const char* args, WorldSession* m_session);

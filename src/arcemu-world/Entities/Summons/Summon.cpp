@@ -29,7 +29,10 @@ Summon::~Summon(){
 
 void Summon::Load( CreatureProto *proto, Unit *owner, LocationVector &position, uint32 spellid, int32 summonslot ){
 	Arcemu::Util::ARCEMU_ASSERT( owner != NULL );
-
+	if( summonslot != -1 )
+		owner->summonhandler.AddSummonToSlot( this, summonslot );
+	else
+		owner->summonhandler.AddSummon( this );
 	Creature::Load( proto, position.x, position.y, position.z, position.o );
 
 	SetFaction( owner->GetFaction() );
@@ -68,10 +71,10 @@ void Summon::Load( CreatureProto *proto, Unit *owner, LocationVector &position, 
 }
 
 void Summon::OnPushToWorld(){
-	if( summonslot != -1 )
+	/*if( summonslot != -1 )
 		owner->summonhandler.AddSummonToSlot( this, summonslot );
 	else
-		owner->summonhandler.AddSummon( this );
+		owner->summonhandler.AddSummon( this );*/
 
 	Creature::OnPushToWorld();
 

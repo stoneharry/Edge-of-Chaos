@@ -406,16 +406,14 @@ void WorldSession::LogoutPlayer(bool Save)
 
 void WorldSession::SendBuyFailed(uint64 guid, uint32 itemid, uint8 error)
 {
-	WorldPacket data(13);
-	data.SetOpcode(SMSG_BUY_FAILED);
+	WorldPacket data(SMSG_BUY_FAILED, 13);
 	data << guid << itemid << error;
 	SendPacket(&data);
 }
 
 void WorldSession::SendSellItem(uint64 vendorguid, uint64 itemid, uint8 error)
 {
-	WorldPacket data(17);
-	data.SetOpcode(SMSG_SELL_ITEM);
+	WorldPacket data(SMSG_SELL_ITEM, 17);
 	data << vendorguid << itemid << error;
 	SendPacket(&data);
 }

@@ -1248,16 +1248,22 @@ bool ChatHandler::HandleGetTransporterTime(const char* args, WorldSession* m_ses
 
 bool ChatHandler::HandleRemoveAurasCommand(const char *args, WorldSession *m_session)
 {
-	Player *plr = getSelectedChar(m_session, true);
-	if(!plr) return false;
-
-	BlueSystemMessage(m_session, "Removing all auras...");
-	for(uint32 i = MAX_REMOVABLE_AURAS_START; i < MAX_REMOVABLE_AURAS_END; ++i)
+	Unit *u = getSelectedUnit(m_session, false);
+	if(!u) 
+		u = m_session->GetPlayer();
+	uint32 aura = atoi(args ? args : 0);
+	if(aura)
 	{
-		if(plr->m_auras[i] != 0) plr->m_auras[i]->Remove();
+		BlueSystemMessage(m_session, "Removing aura with spell id %u from %s", aura, GetSelectedUnitName(u));
+		u->RemoveAura(aura);
+		sGMLog.writefromsession(m_session, "Removed aura %u from %s.", aura, GetSelectedUnitName(u));
 	}
-	if(plr != m_session->GetPlayer())
-		sGMLog.writefromsession(m_session, "Removed all of %s's auras.", plr->GetName());
+	else
+	{
+		BlueSystemMessage(m_session, "Removing all auras from %s.", GetSelectedUnitName(u));
+		u->RemoveAllAuras();
+		sGMLog.writefromsession(m_session, "Removed all auras from %s.", GetSelectedUnitName(u));
+	}
 	return true;
 }
 

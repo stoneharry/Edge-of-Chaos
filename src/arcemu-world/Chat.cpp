@@ -742,6 +742,7 @@ void CommandTableStorage::Init()
 		{ "fixscale",        'm', &ChatHandler::HandleFixScaleCommand,                      "",                                                                                                                                        NULL,                     0, 0, 0 },
 		{ "addtrainerspell", 'm', &ChatHandler::HandleAddTrainerSpellCommand,               "",                                                                                                                                        NULL,                     0, 0, 0 },
 		{ "achieve",         '0', NULL,                                                     "",                                                                                                                                        achievementCommandTable,  0, 0, 0 },
+		{ "multikick",		 'b', &ChatHandler::HandleMultiKickCommand,						"kicks multiple , .multimute <reason> <player1> <player2> ...",			NULL, 0, 0, 0 },
 		{ NULL,              '0', NULL,                                                     "",                                                                                                                                        NULL,                     0, 0, 0 }
 	};
 	dupe_command_table(commandTable, _commandTable);
@@ -1012,6 +1013,38 @@ Creature * ChatHandler::getSelectedCreature(WorldSession *m_session, bool shower
 			RedSystemMessage(m_session, "This command requires that you select a creature.");
 		return NULL;
 	}
+}
+
+Unit * ChatHandler::getSelectedUnit(WorldSession *m_session, bool showerror)
+{
+	Unit *u = NULL;
+
+	if (m_session == NULL || m_session->GetPlayer() == NULL) 
+		return NULL;
+
+	u = m_session->GetPlayer()->GetMapMgr()->GetPet( GET_LOWGUID_PART(m_session->GetPlayer()->GetSelection()) );
+
+	if(u != NULL)
+		return u;
+	else
+	{
+		if(showerror)
+			RedSystemMessage(m_session, "This command requires that you select a unit.");
+		return NULL;
+	}
+}
+
+const char* ChatHandler::GetSelectedUnitName(Unit * u)
+{
+	if(!u)
+		return "Unknown Being";
+	if(u->IsPet())
+		return TO_PET(u)->GetName().c_str();
+	if(u->IsCreature())
+		return TO_CREATURE(u)->GetCreatureInfo()->Name;
+	if(u->IsPlayer())
+		return TO_PLAYER(u)->GetName();
+	return "Unknown Being";
 }
 
 void ChatHandler::SystemMessage(WorldSession *m_session, const char* message, ...)

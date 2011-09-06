@@ -294,6 +294,33 @@ bool ChatHandler::HandleKickCommand(const char* args, WorldSession *m_session)
 	}
 }
 
+bool ChatHandler::HandleMultiKickCommand(const char *args, WorldSession *m_session)
+{
+	vector<string> real_args = StrSplit(string(args), " ");
+	if( real_args.size() < 2 )
+		return false;
+
+	const char *reason = real_args[0].c_str();
+	uint32 i;
+	char msg[200];
+
+	for(i = 1; i < real_args.size(); i++)
+	{
+		Player* pPlayer = objmgr.GetPlayer(real_args[i].c_str(), false);
+		if( pPlayer == NULL )
+		{
+			SystemMessage(m_session, "Could not find player, %s.\n", real_args[i].c_str());
+			continue;
+		}
+
+		snprintf(msg, 200, "%s%s was kicked by %s (%s)", MSG_COLOR_WHITE, pPlayer->GetName(), m_session->GetPlayer()->GetName(), reason);
+		sWorld.SendWorldText(msg, NULL);
+		pPlayer->Kick(6000);
+	}
+
+	return true;
+}
+
 bool ChatHandler::HandleAddInvItemCommand(const char *args, WorldSession *m_session)
 {
 	uint32 itemid, count=1;

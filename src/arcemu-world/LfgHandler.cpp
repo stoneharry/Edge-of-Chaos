@@ -23,19 +23,19 @@
 void WorldSession::HandleSetLookingForGroupComment(WorldPacket& recvPacket)
 {
 	CHECK_INWORLD_RETURN
-
+/*
 	std::string comment;
 		
 	recvPacket >> comment;
 	
-	GetPlayer()->Lfgcomment = comment;	
+	GetPlayer()->Lfgcomment = comment;	*/
 }
 
 void WorldSession::HandleEnableAutoJoin(WorldPacket& recvPacket)
 {
 	CHECK_INWORLD_RETURN
 
-	uint32 i;
+	/*uint32 i;
 
 	// make sure they're not queued in any invalid cases
 	for(i = 0; i < MAX_LFG_QUEUE_ID; ++i)
@@ -59,14 +59,14 @@ void WorldSession::HandleEnableAutoJoin(WorldPacket& recvPacket)
 			_player->SendMeetingStoneQueue(_player->LfgDungeonId[i], 1);
 			sLfgMgr.UpdateLfgQueue(_player->LfgDungeonId[i]);
 		}
-	}
+	}*/
 }
 
 void WorldSession::HandleDisableAutoJoin(WorldPacket& recvPacket)
 {
 	CHECK_INWORLD_RETURN
 
-	uint32 i;
+	/*uint32 i;
 	_player->m_Autojoin = false;
 
 	for(i = 0; i < MAX_LFG_QUEUE_ID; ++i)
@@ -76,14 +76,14 @@ void WorldSession::HandleDisableAutoJoin(WorldPacket& recvPacket)
 			if(LfgDungeonTypes[_player->LfgDungeonId[i]] == LFG_INSTANCE || LfgDungeonTypes[_player->LfgDungeonId[i]] == LFG_HEROIC_DUNGEON)
 				_player->SendMeetingStoneQueue(_player->LfgDungeonId[i], 0);
 		}
-	}
+	}*/
 }
 
 void WorldSession::HandleEnableAutoAddMembers(WorldPacket& recvPacket)
 {
 	CHECK_INWORLD_RETURN
 
-	uint32 i;
+	/*uint32 i;
 	_player->m_AutoAddMem = true;
 
 	for(i = 0; i < MAX_LFG_QUEUE_ID; ++i)
@@ -92,19 +92,20 @@ void WorldSession::HandleEnableAutoAddMembers(WorldPacket& recvPacket)
 		{
 			sLfgMgr.UpdateLfgQueue(_player->LfgDungeonId[i]);
 		}
-	}
+	}*/
 }
 
 void WorldSession::HandleDisableAutoAddMembers(WorldPacket& recvPacket)
 {
 	CHECK_INWORLD_RETURN
 
-	_player->m_AutoAddMem = false;	
+	//_player->m_AutoAddMem = false;	
 }
 
 void WorldSession::HandleMsgLookingForGroup(WorldPacket& recvPacket)
 {
-	/* this is looking for more */
+	CHECK_INWORLD_RETURN
+	/* this is looking for more 
 	uint32 LfgType,LfgDungeonId,unk1;
 	recvPacket >> LfgType >> LfgDungeonId >> unk1;
 	
@@ -112,14 +113,14 @@ void WorldSession::HandleMsgLookingForGroup(WorldPacket& recvPacket)
 		return;
 
 	if(LfgDungeonId)
-		sLfgMgr.SendLfgList(_player, LfgDungeonId);
+		sLfgMgr.SendLfgList(_player, LfgDungeonId);*/
 }
 
 void WorldSession::HandleSetLookingForGroup(WorldPacket& recvPacket)
 {
 	CHECK_INWORLD_RETURN
 
-	uint32 LfgQueueId;
+	/*uint32 LfgQueueId;
 	uint16 LfgDungeonId;
 	uint8 LfgType,unk1;
 	uint32 i;
@@ -156,14 +157,14 @@ void WorldSession::HandleSetLookingForGroup(WorldPacket& recvPacket)
 
 		if( i == 3 )
 			_player->PartLFGChannel();
-	}
+	}*/
 }
 
 void WorldSession::HandleSetLookingForMore(WorldPacket& recvPacket)
 {
 	CHECK_INWORLD_RETURN
 
-	uint16 LfgDungeonId;
+	/*uint16 LfgDungeonId;
 	uint8 LfgType,unk1;
 
 	recvPacket >> LfgDungeonId >> unk1 >> LfgType;
@@ -178,28 +179,27 @@ void WorldSession::HandleSetLookingForMore(WorldPacket& recvPacket)
 	_player->LfmType = LfgType;
 
 	if(LfgDungeonId)
-		sLfgMgr.SetPlayerInLfmList(_player, LfgDungeonId);
+		sLfgMgr.SetPlayerInLfmList(_player, LfgDungeonId);*/
 }
 
 void WorldSession::HandleLfgClear(WorldPacket & recvPacket)
 {
 	CHECK_INWORLD_RETURN
 
-	sLfgMgr.RemovePlayerFromLfgQueues(_player);
+	//sLfgMgr.RemovePlayerFromLfgQueues(_player);
 }
 
 void WorldSession::HandleMeetingStoneInfo(WorldPacket & recvPacket)
 {
 	CHECK_INWORLD_RETURN
 
-	_player->SendMeetingStoneQueue(0,6); //values drawn from packet logs, don't appear to change
+	//_player->SendMeetingStoneQueue(0,6); //values drawn from packet logs, don't appear to change
 }
 
 void WorldSession::HandleLfgInviteAccept(WorldPacket & recvPacket)
 {
 	CHECK_INWORLD_RETURN;
-	
-	_player->PartLFGChannel();
+	/*_player->PartLFGChannel();
 	if(_player->m_lfgMatch == NULL && _player->m_lfgInviterGuid == 0)
 	{
 		if(_player->m_lfgMatch == NULL)
@@ -250,5 +250,5 @@ void WorldSession::HandleLfgInviteAccept(WorldPacket & recvPacket)
 		pPlayer->GetGroup()->AddMember(_player->m_playerInfo);
 	}
 	_player->m_lfgInviterGuid = 0;
-	_player->m_lfgMatch = NULL;
+	_player->m_lfgMatch = NULL;*/
 }
