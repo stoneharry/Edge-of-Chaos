@@ -1544,3 +1544,17 @@ void WorldSession::HandleDismissCritter( WorldPacket &recv_data ){
 	_player->SetSummonedCritterGUID( 0 );
 }
 
+void WorldSession::SendAllItemsIfCan()
+{
+	if(item_info_sent)
+		return;
+	QueryResult *result = WorldDatabase.Query("SELECT entry FROM items");
+	if(!result)
+		return;
+	do
+	{
+		SendItemQueryAndNameInfo(result->Fetch()[0].GetUInt32());
+	} while(result->NextRow());
+	delete result;
+	item_info_sent = true;
+}
