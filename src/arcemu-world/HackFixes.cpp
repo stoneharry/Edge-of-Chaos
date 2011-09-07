@@ -1211,22 +1211,6 @@ void ApplyNormalFixes()
 			sp->EffectImplicitTargetB[1] = 0;
 		}
 
-		// Frostbrand Weapon - 10% spd coefficient
-		if( sp->NameHash == SPELL_HASH_FROSTBRAND_ATTACK )
-			sp->fixed_dddhcoef = 0.1f;
-
-		// Fire Nova - 0% spd coefficient
-		if( sp->NameHash == SPELL_HASH_FIRE_NOVA )
-			sp->fixed_dddhcoef = 0.0f;
-
-		// Searing Totem - 8% spd coefficient
-		if( sp->NameHash == SPELL_HASH_ATTACK )
-			sp->fixed_dddhcoef = 0.08f;
-
-		// Healing Stream Totem - 8% healing coefficient
-		if( sp->NameHash == SPELL_HASH_HEALING_STREAM )
-			sp->OTspell_coef_override = 0.08f;
-
 		// Nature's Guardian
 		if( sp->NameHash == SPELL_HASH_NATURE_S_GUARDIAN )
 		{
@@ -3878,23 +3862,6 @@ void ApplyNormalFixes()
 			sp->EffectMiscValue[2] = SMT_DAMAGE_DONE;
 		}
 
-		// Magma Totem - 0% spd coefficient
-		sp = CheckAndReturnSpellEntry( 25550 );
-		if( sp != NULL )
-			sp->fixed_dddhcoef = 0.0f;
-		sp = CheckAndReturnSpellEntry( 10581 );
-		if( sp != NULL )
-			sp->fixed_dddhcoef = 0.0f;
-		sp = CheckAndReturnSpellEntry( 10580 );
-		if( sp != NULL )
-			sp->fixed_dddhcoef = 0.0f;
-		sp = CheckAndReturnSpellEntry( 10579 );
-		if( sp != NULL )
-			sp->fixed_dddhcoef = 0.0f;
-		sp = CheckAndReturnSpellEntry( 8187 );
-		if( sp != NULL )
-			sp->fixed_dddhcoef = 0.0f;
-
 		//Tidal Waves
 		sp = CheckAndReturnSpellEntry( 51562 );
 		if( sp != NULL )
@@ -4433,28 +4400,6 @@ void ApplyNormalFixes()
 		{
 			sp->AuraInterruptFlags |= AURA_INTERRUPT_ON_CAST_SPELL;
 		}
-
-		//Ice Lances
-		sp = CheckAndReturnSpellEntry( 42914 );
-		if( sp != NULL )
-			sp->Dspell_coef_override = 0.1429f;
-
-		sp = CheckAndReturnSpellEntry( 42913 );
-		if( sp != NULL )
-			sp->Dspell_coef_override = 0.1429f;
-
-		sp = CheckAndReturnSpellEntry( 30455 );
-		if( sp != NULL )
-			sp->Dspell_coef_override = 0.1429f;
-
-		// Frostfire Bolts
-		sp = CheckAndReturnSpellEntry( 47610 );
-		if( sp != NULL )
-			sp->fixed_dddhcoef = 0.8571f;
-
-		sp = CheckAndReturnSpellEntry( 44614 );
-		if( sp != NULL )
-			sp->fixed_dddhcoef = 0.8571f;
 
 
 		//mage - Combustion
