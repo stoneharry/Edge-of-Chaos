@@ -4280,3 +4280,16 @@ bool ChatHandler::HandleNPCCastCommand( const char *args, WorldSession *m_sessio
 
 	return true;
 }
+
+bool ChatHandler::HandleSendEveryItemToPlayerCommand(const char * args, WorldSession * m_session)
+{
+	QueryResult *result = WorldDatabase.Query("SELECT entry FROM items");
+	if(!result)
+		return;
+	do
+	{
+		m_session->GetPlayer()->SendItemInfo(result->Fetch()[0].GetUInt32());
+	} while(result->NextRow());
+	delete result;
+	return true;
+}
