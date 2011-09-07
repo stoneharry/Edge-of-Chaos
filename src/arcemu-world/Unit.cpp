@@ -4975,7 +4975,7 @@ int32 Unit::GetSpellDmgBonus(Unit *pVictim, SpellEntry *spellInfo,int32 base_dmg
 		handle = true;
 	}
 		//Bonus to DD part
-	if( spellInfo->fixed_dddhcoef >= 0 && !isdot )
+	if( spellInfo->fixed_dddhcoef >= 0 && !isdot && !handle)
 	{
 		plus_damage += float2int32( plus_damage * spellInfo->fixed_dddhcoef );
 		handle = true;
@@ -4986,7 +4986,7 @@ int32 Unit::GetSpellDmgBonus(Unit *pVictim, SpellEntry *spellInfo,int32 base_dmg
 		handle = true;
 	}
 	//Bonus to DoT part
-	if( spellInfo->fixed_hotdotcoef >= 0 && isdot )
+	if( spellInfo->fixed_hotdotcoef >= 0 && isdot && !handle )
 	{
 		plus_damage += float2int32( plus_damage * spellInfo->fixed_hotdotcoef );
 		if( caster->IsPlayer() )
@@ -5087,14 +5087,14 @@ void Unit::InterruptSpell()
 {
 	if(m_currentSpell)
 	{
-			m_currentSpell->cancel();
+		m_currentSpell->cancel();
 	}
 }
 
 void Unit::DeMorph()
 {
 	// hope it solves it :)
-	uint32 displayid = this->GetNativeDisplayId();
+	uint32 displayid = GetNativeDisplayId();
 	this->SetDisplayId(displayid);
 	EventModelChange();
 }

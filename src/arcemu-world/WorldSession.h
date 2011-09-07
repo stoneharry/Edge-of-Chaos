@@ -823,6 +823,21 @@ public:
 	uint32 language;
 	WorldPacket* BuildQuestQueryResponse(Quest *qst);
 	uint32 m_muted;
+	bool item_info_sent;
+	void SendAllItemsIfCan()
+	{
+		if(item_info_sent)
+			return;
+		QueryResult *result = WorldDatabase.Query("SELECT entry FROM items");
+		if(!result)
+			return;
+		do
+		{
+			SendItemQueryAndNameInfo(result->Fetch()[0].GetUInt32());
+		} while(result->NextRow());
+		delete result;
+		item_info_sent = true;
+	}
 };
 
 typedef std::set<WorldSession*> SessionSet;

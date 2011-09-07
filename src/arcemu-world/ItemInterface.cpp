@@ -360,8 +360,6 @@ AddItemResult ItemInterface::m_AddItem(Item *item, int8 ContainerSlot, int16 slo
         if( m_pOwner->IsInWorld() )
             sEventMgr.AddEvent( item, &Item::SendDurationUpdate, EVENT_SEND_PACKET_TO_PLAYER_AFTER_LOGIN, 0, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT );
     }
-	if(GetOwner())
-		GetOwner()->SendItemInfo(item->GetEntry());
 	return ADD_ITEM_RESULT_OK;
 }
 
@@ -3972,7 +3970,6 @@ bool ItemInterface::AddItemById( uint32 itemid, uint32 count, int32 randomprop )
 	if( error != 0 ){
 		return false;
 	}
-	GetOwner()->SendItemInfo(itemid);
 	uint32 maxStack = chr->ItemStackCheat ? 0x7fffffff : it->MaxCount;
 	uint32 toadd;
 	bool freeslots = true;

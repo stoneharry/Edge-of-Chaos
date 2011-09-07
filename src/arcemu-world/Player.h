@@ -2513,6 +2513,16 @@ public:
 	int block_from_items;
 
 	void SendAurasForTarget(Unit* target);
+	uint8 GetChatTag() const
+	{
+		if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM))
+			return 4;
+		else if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_DND))
+			return 3;
+		else if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_AFK))
+			return 1;
+		return 0;
+	}
 };
 
 class SkillIterator

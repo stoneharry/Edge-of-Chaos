@@ -50,7 +50,8 @@ _updatecount(0),
 floodLines(0),
 floodTime(UNIXTIME),
 language(0),
-m_muted(0)
+m_muted(0),
+item_info_sent(false)
 
 {
 	memset(movement_packet, 0, sizeof(movement_packet));

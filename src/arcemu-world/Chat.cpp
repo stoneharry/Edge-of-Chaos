@@ -743,7 +743,6 @@ void CommandTableStorage::Init()
 		{ "addtrainerspell", 'm', &ChatHandler::HandleAddTrainerSpellCommand,               "",                                                                                                                                        NULL,                     0, 0, 0 },
 		{ "achieve",         '0', NULL,                                                     "",                                                                                                                                        achievementCommandTable,  0, 0, 0 },
 		{ "multikick",		 'b', &ChatHandler::HandleMultiKickCommand,						"kicks multiple , .multimute <reason> <player1> <player2> ...",			NULL, 0, 0, 0 },
-		{ "testcommand",	 'b', &ChatHandler::HandleSendEveryItemToPlayerCommand,			"Sends ever item in the dbs info to the client.",			NULL, 0, 0, 0 },
 		{ NULL,              '0', NULL,                                                     "",                                                                                                                                        NULL,                     0, 0, 0 }
 	};
 	dupe_command_table(commandTable, _commandTable);

@@ -612,7 +612,6 @@ protected:
 	bool HandleAchievementResetCommand(const char * args, WorldSession * m_session);
 #endif
 	//Testing Commands
-	bool HandleSendEveryItemToPlayerCommand(const char * args, WorldSession * m_session);
 };
 
 

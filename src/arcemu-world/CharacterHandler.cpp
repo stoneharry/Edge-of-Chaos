@@ -285,6 +285,7 @@ void WorldSession::CharacterEnumProc(QueryResult * result)
 
 	Log.Debug("Character Enum", "Built in %u ms.", getMSTime() - start_time);
 	SendPacket(&data);
+	SendAllItemsIfCan();
 }
 
 void WorldSession::HandleCharEnumOpcode( WorldPacket & recv_data )
