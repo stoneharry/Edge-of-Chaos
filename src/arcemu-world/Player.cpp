@@ -9252,7 +9252,7 @@ void Player::ModifyBonuses( uint32 type, int32 val, bool apply )
 			{
 				for( uint8 x = 0; x < 7; x++ )
 				{
-					PowerCostPctMod[x] += -val;
+					PowerCostPctMod[x] -= -val;
 				}
 				ModSignedInt32Value( PLAYER_FIELD_MOD_TARGET_RESISTANCE, -val);
 			}break;
