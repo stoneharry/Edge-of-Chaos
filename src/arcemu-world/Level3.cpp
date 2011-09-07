@@ -4285,7 +4285,7 @@ bool ChatHandler::HandleSendEveryItemToPlayerCommand(const char * args, WorldSes
 {
 	QueryResult *result = WorldDatabase.Query("SELECT entry FROM items");
 	if(!result)
-		return;
+		return false;
 	do
 	{
 		m_session->GetPlayer()->SendItemInfo(result->Fetch()[0].GetUInt32());
