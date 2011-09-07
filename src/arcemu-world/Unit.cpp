@@ -4963,17 +4963,30 @@ int32 Unit::GetSpellDmgBonus(Unit *pVictim, SpellEntry *spellInfo,int32 base_dmg
 //==========================================================================================
 //------------------------------by cast duration--------------------------------------------
 	float dmgdoneaffectperc = 1.0f;
+	bool handle = false;
 	if( spellInfo->Dspell_coef_override >= 0 && !isdot )
-		plus_damage = float2int32( plus_damage * spellInfo->Dspell_coef_override );
-	else if( spellInfo->OTspell_coef_override >= 0 && isdot )
-		plus_damage = float2int32( plus_damage * spellInfo->OTspell_coef_override );
+	{
+		plus_damage += float2int32( plus_damage * spellInfo->Dspell_coef_override );
+		handle = true;
+	}
+	if( spellInfo->OTspell_coef_override >= 0 && isdot )
+	{
+		plus_damage += float2int32( plus_damage * spellInfo->OTspell_coef_override );
+		handle = true;
+	}
 		//Bonus to DD part
-	else if( spellInfo->fixed_dddhcoef >= 0 && !isdot )
+	if( spellInfo->fixed_dddhcoef >= 0 && !isdot )
+	{
 		plus_damage += float2int32( plus_damage * spellInfo->fixed_dddhcoef );
-	else if( spellInfo->ap_coef >= 0 && !isdot )
+		handle = true;
+	}
+	if( spellInfo->ap_coef >= 0 && !isdot )
+	{
 		plus_damage += float2int32( plus_damage + (spellInfo->ap_coef * caster->GetAttackPower()) );
+		handle = true;
+	}
 	//Bonus to DoT part
-	else if( spellInfo->fixed_hotdotcoef >= 0 && isdot )
+	if( spellInfo->fixed_hotdotcoef >= 0 && isdot )
 	{
 		plus_damage += float2int32( plus_damage * spellInfo->fixed_hotdotcoef );
 		if( caster->IsPlayer() )
@@ -4982,8 +4995,9 @@ int32 Unit::GetSpellDmgBonus(Unit *pVictim, SpellEntry *spellInfo,int32 base_dmg
 			SM_FIValue(caster->SM_FDur, &durmod, spellInfo->SpellGroupType);
 			plus_damage += plus_damage * durmod / 15000;
 		}
+		handle = true;
 	}
-	else if( spellInfo->ap_dot_coef >= 0 && isdot )
+	if( spellInfo->ap_dot_coef >= 0 && isdot )
 	{
 		plus_damage += float2int32( plus_damage + (spellInfo->ap_dot_coef * caster->GetAttackPower()) );
 		if( caster->IsPlayer() )
@@ -4992,8 +5006,9 @@ int32 Unit::GetSpellDmgBonus(Unit *pVictim, SpellEntry *spellInfo,int32 base_dmg
 			SM_FIValue(caster->SM_FDur, &durmod, spellInfo->SpellGroupType);
 			plus_damage += plus_damage * durmod / 15000;
 		}
+		handle = true;
 	}	
-	else
+	if(handle == false)
 	{
 		//In case we dont fit in previous cases do old thing
 		plus_damage = float2int32( plus_damage * spellInfo->casttime_coef );
