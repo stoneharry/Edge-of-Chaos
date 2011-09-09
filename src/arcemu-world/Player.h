@@ -2523,6 +2523,7 @@ public:
 			return 1;
 		return 0;
 	}
+	bool confirm_item_send;
 };
 
 class SkillIterator

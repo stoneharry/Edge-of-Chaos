@@ -7181,4 +7181,12 @@ void ApplyNormalFixes()
 	{
 		sp->m_target->m_destX;
 	}*/
+
+	sp = CheckAndReturnSpellEntry(52644);
+	if(sp)
+	{
+		sp->EffectImplicitTargetA[0] = EFF_TARGET_SELF;
+		sp->EffectImplicitTargetB[0] = 0;
+		sp->Effect[0] = SPELL_EFFECT_DUMMY;
+	}
 }

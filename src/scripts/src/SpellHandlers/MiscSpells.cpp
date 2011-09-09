@@ -488,6 +488,24 @@ bool TeleportToCoordinates( uint32 i, Spell *s )
 	return true;
 }
 
+bool CacheSend(uint32 i, Spell*s)
+{
+	if( s->p_caster == NULL )
+		return true;
+	Player * p = s->p_caster;
+	if(!p->confirm_item_send)
+	{
+		sChatHandler.BlueSystemMessage(p->GetSession(), "Cast this spell again to replace your item cache with the servers, this clears the need for reloging and deleting cache but also may lag you for 30 seconds or more.");
+		p->confirm_item_send = true);
+	}
+	else
+	{
+		sChatHandler.BlueSystemMessage(p->GetSession(), "Warning you will experince lag but please do not exit the game during this time");
+		p->GetSession()->SendAllItemsIfCan();
+	}
+
+}
+
 void SetupMiscSpellhandlers( ScriptMgr *mgr ){
 	mgr->register_dummy_spell( 11189, &FrostWarding );
 	mgr->register_dummy_spell( 28332, &FrostWarding );
@@ -561,5 +579,7 @@ void SetupMiscSpellhandlers( ScriptMgr *mgr ){
 	};
 
 	mgr->register_script_effect( teleportToCoordinates, &TeleportToCoordinates);
+
+	mgr->register_dummy_spell(52644, &CacheSend );
 }
 

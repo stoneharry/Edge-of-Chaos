@@ -206,6 +206,11 @@ void WorldSession::HandleUseItemOpcode(WorldPacket& recvPacket)
 #ifdef ENABLE_ACHIEVEMENTS
 	_player->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_USE_ITEM,itemProto->ItemId,0,0);
 #endif
+	if(_player->confirm_item_send && spellId != 52644)
+	{
+		sChatHandler.BlueSystemMessage(this, "Cache sending canceled");
+		_player->confirm_item_send = false;
+	}
 
 }
 

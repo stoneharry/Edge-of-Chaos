@@ -475,6 +475,7 @@ myCorpseLocation()
 
 	hp_regen_items = 0;
 	block_from_items = 0;
+	confirm_item_send = false;
 }
 
 void Player::OnLogin()
