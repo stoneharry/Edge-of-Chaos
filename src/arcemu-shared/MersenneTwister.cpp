@@ -95,6 +95,24 @@ uint32 RandomUInt(uint32 n)
 	}
 }
 
+uint32 RandomUInt(uint32 n, uint32 o)
+{
+	uint32 ret;
+	uint32 c;
+	for(;;)
+	{
+		c = counter.GetVal() % NUMBER_OF_GENERATORS;
+		if(m_locks[c]->AttemptAcquire())
+		{
+			ret = m_generators[c]->IRandom(o, n);
+			m_locks[c]->Release();
+			return ret;
+		}
+
+		++counter;
+	}
+}
+
 double RandomDouble(double n)
 {
 	return RandomDouble() * n;

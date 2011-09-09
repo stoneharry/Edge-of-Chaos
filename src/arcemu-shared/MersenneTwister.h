@@ -32,6 +32,7 @@ SERVER_DECL float RandomFloat();
 SERVER_DECL float RandomFloat(float n);
 SERVER_DECL uint32 RandomUInt();
 SERVER_DECL uint32 RandomUInt(uint32 n);
+SERVER_DECL uint32 RandomUInt(uint32 n, uint32 o);
 
 /*************************** RANDOMC.H ***************** 2007-09-22 Agner Fog *
 *
