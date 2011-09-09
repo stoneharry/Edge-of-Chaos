@@ -661,7 +661,8 @@ public:
 	AchievementCriteriaEntryList const& GetAchievementCriteriaByType(AchievementCriteriaTypes type);
 	std::set<uint32> allCompletedAchievements;
 #endif
-
+	int32 SetBonusDamageWithLimitsIfCan(uint32 spellid, int32 bonus);
+	void ReloadSpellCoef();
 #undef ENABLE_ALWAYS_SERIOUS_MODE_GCC_STL_HACK
 
 // it's for private persons (pps)

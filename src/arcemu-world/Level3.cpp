@@ -4280,3 +4280,9 @@ bool ChatHandler::HandleNPCCastCommand( const char *args, WorldSession *m_sessio
 
 	return true;
 }
+
+bool ChatHandler::HandleReloadSpellCoefCommand(const char *args, WorldSession *m_session)
+{
+	objmgr.ReloadSpellCoef();
+	this->GreenSystemMessage(m_session, "Reloaded spell coef");
+}

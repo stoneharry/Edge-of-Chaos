@@ -3387,3 +3387,41 @@ PlayerCache* ObjectMgr::GetPlayerCache( const char* name, bool caseSensitive /*=
 
 	return ret;
 }
+
+int32 ObjectMgr::SetBonusDamageWithLimitsIfCan(uint32 spellid, int32 bonus)
+{
+	int32 res = bonus;
+	if(QueryResult *q = WorldDatabase.Query("SELECT limit, range_1, range_2 from spell_bonus_limit where entry = %u", spellid))
+	{
+		Field *f = q->Fetch();
+		if(res > f[0].GetInt32())
+		{
+			res -= RandomUInt(f[1].GetUInt32(), f[2].GetUInt32());
+		}
+	}
+	return res;
+}
+
+void ObjectMgr::ReloadSpellCoef()
+{
+	QueryResult * resultx = WorldDatabase.Query("SELECT * FROM spell_coef_override");
+	if( resultx != NULL )
+	{
+		do
+		{
+			Field * f;
+			f = resultx->Fetch();
+			SpellEntry * sp = dbcSpell.LookupEntryForced( f[0].GetUInt32() );
+			if( sp != NULL )
+			{
+				sp->Dspell_coef_override = f[2].GetFloat();
+				sp->OTspell_coef_override = f[3].GetFloat();
+				sp->ap_coef = f[4].GetFloat();
+				sp->ap_dot_coef = f[5].GetFloat();
+			}
+			else
+				Log.Error("SpellCoefOverride", "Has nonexistent spell %u.", f[0].GetUInt32());
+		} while( resultx->NextRow() );
+		delete resultx;
+	}
+}
