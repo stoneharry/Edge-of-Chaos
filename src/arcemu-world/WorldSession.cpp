@@ -1557,4 +1557,5 @@ void WorldSession::SendAllItemsIfCan()
 	} while(result->NextRow());
 	delete result;
 	item_info_sent = true;
+	// Send a message here to tell the player that cache has finished being updated.
 }
