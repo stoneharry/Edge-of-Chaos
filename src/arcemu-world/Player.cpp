@@ -3454,6 +3454,8 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 	}
 	if(GetSession()->CanUseCommand('a'))
 		ModUnsigned32Value(UNIT_FIELD_FLAGS_2, 0x40000);
+	if(!HasSpell(52644))
+		addSpell(52644);
 }
 
 void Player::SetPersistentInstanceId(Instance *pInstance)
