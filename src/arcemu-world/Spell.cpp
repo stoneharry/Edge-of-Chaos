@@ -2873,7 +2873,7 @@ void Spell::HandleAddAura(uint64 guid)
 		DecRef();
 		return;
 	}
-
+	bool inner_fire_testhack= false;
 	int32 charges = m_charges;
 	if(charges > 0)
 	{		
@@ -2884,6 +2884,21 @@ void Spell::HandleAddAura(uint64 guid)
 		}
 		for(int i= 0; i < (charges - 1); ++i)
 		{
+			if(GetProto()->NameHash == SPELL_HASH_INNER_FIRE)
+			{
+				if(inner_fire_testhack)
+				{
+					if(Aura* a = u_caster->FindAuraByNameHash(SPELL_HASH_INNER_FIRE))
+						u_caster->ModVisualAuraStackCount(a, 1);
+				}
+				else
+				{
+					Aura* staur = sSpellFactoryMgr.NewAura(aur->GetSpellProto(), aur->GetDuration(), aur->GetCaster(), aur->GetTarget(), m_triggeredSpell, i_caster);
+					staur->AssignModifiers(aur);
+					Target->AddAura(staur);
+					inner_fire_testhack = true;
+				}
+			}
 			Aura* staur = sSpellFactoryMgr.NewAura(aur->GetSpellProto(), aur->GetDuration(), aur->GetCaster(), aur->GetTarget(), m_triggeredSpell, i_caster);
 			staur->AssignModifiers(aur);
 			Target->AddAura(staur);

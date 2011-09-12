@@ -2895,8 +2895,6 @@ void Aura::EventPeriodicTriggerDummy()
 
 void Aura::SpellAuraModResistance(bool apply)
 {
-	if(apply && GetUnitCaster()->HasAuraWithName(SPELL_HASH_INNER_FIRE) && GetSpellProto()->NameHash == SPELL_HASH_INNER_FIRE)
-		return;
 	uint32 Flag = mod->m_miscValue;
 	int32 amt;
 	if(apply)
