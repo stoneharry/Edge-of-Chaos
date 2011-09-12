@@ -1544,18 +1544,73 @@ void WorldSession::HandleDismissCritter( WorldPacket &recv_data ){
 	_player->SetSummonedCritterGUID( 0 );
 }
 
-void WorldSession::SendAllItemsIfCan()
+bool WorldSession::SendAllItemsIfCan()
 {
 	if(item_info_sent)
-		return;
+		return false;
 	QueryResult *result = WorldDatabase.Query("SELECT entry FROM items");
 	if(!result)
-		return;
+		return false;
 	do
 	{
 		SendItemQueryAndNameInfo(result->Fetch()[0].GetUInt32());
 	} while(result->NextRow());
 	delete result;
 	item_info_sent = true;
-	// Send a message here to tell the player that cache has finished being updated.
+	return true;
+}
+
+void WorldSession::FakeMirrorImageTest(Creature* c)
+{
+	QueryResult * q = WorldDatabase.Query("select * from fake_mirrors where entry = %u", c->GetEntry());
+	if(!q)
+		return;
+	Field *f = q->Fetch();
+	uint64 guid = (uint64)0;
+	uint32 displayid = f[1].GetUInt32();
+	uint8 race = f[2].GetUInt8();
+	uint8 gender = f[3].GetUInt8();
+	uint8 _class = f[4].GetUInt8();
+	uint8 skin = f[5].GetUInt8();
+	uint8 face = f[6].GetUInt8();
+	uint8 hairstyle = f[7].GetUInt8();
+	uint8 haircolor = f[8].GetUInt8();
+	uint8 facialhair = f[9].GetUInt8();
+	uint32 item_displays[11];
+	item_displays[1] = f[10].GetUInt32();
+	item_displays[2] = f[11].GetUInt32();
+	item_displays[3] = f[12].GetUInt32();
+	item_displays[4] = f[13].GetUInt32();
+	item_displays[5] = f[14].GetUInt32();
+	item_displays[6] = f[15].GetUInt32();
+	item_displays[7] = f[16].GetUInt32();
+	item_displays[8] = f[17].GetUInt32();
+	item_displays[9] = f[18].GetUInt32();
+	item_displays[10] = f[19].GetUInt32();
+	item_displays[11] = f[20].GetUInt32();
+	if(c)
+	{
+		guid = c->GetGUID();
+		c->CastSpell(c,69828, false);
+		c->CastSpell(c,69837, false);
+		c->SetDisplayId(displayid);
+		c->SetNativeDisplayId(displayid);
+		c->SetUInt32Value(UNIT_FIELD_FLAGS_2, c->GetUInt32Value( UNIT_FIELD_FLAGS_2 ) | UNIT_FLAG2_MIRROR_IMAGE);
+	}
+	WorldPacket data( SMSG_MIRRORIMAGE_DATA, 68 );
+	data << uint64( guid );
+	data << uint32( displayid );
+	data << uint8( race );
+	data << uint8( gender );
+	data << uint8( _class );             
+	data << uint8(skin); // skin color
+	data << uint8(face); // face
+	data << uint8(hairstyle); // hair style 
+	data << uint8(haircolor); // hair color             
+	data << uint8(facialhair); // facial hair
+	data << uint32( 0 );		
+	for( uint32 i = 0; i < 11; ++i )
+		data << uint32( item_displays[i] );
+    SendPacket( &data );
+    LOG_DEBUG("Sent: SMSG_MIRRORIMAGE_DATA");
 }

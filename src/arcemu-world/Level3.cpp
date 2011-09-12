@@ -4287,3 +4287,70 @@ bool ChatHandler::HandleReloadSpellCoefCommand(const char *args, WorldSession *m
 	GreenSystemMessage(m_session, "Reloaded spell coef");
 	return true;
 }
+
+bool ChatHandler::HandleMirrorTestSaveCommand(const char *args, WorldSession *m_session)
+{
+	Creature * c = getSelectedCreature(m_session);
+	if(!c)
+		return true;
+	Player * p = m_session->GetPlayer();
+	static const uint32 imageitemslots[] = {
+			EQUIPMENT_SLOT_HEAD,
+			EQUIPMENT_SLOT_SHOULDERS,
+			EQUIPMENT_SLOT_BODY,
+			EQUIPMENT_SLOT_CHEST,
+			EQUIPMENT_SLOT_WAIST,
+			EQUIPMENT_SLOT_LEGS,
+			EQUIPMENT_SLOT_FEET,
+			EQUIPMENT_SLOT_WRISTS,
+			EQUIPMENT_SLOT_HANDS,
+			EQUIPMENT_SLOT_BACK,
+			EQUIPMENT_SLOT_TABARD
+		};
+	std::stringstream ss;
+
+	ss << "INSERT INTO fake_mirrors VALUES ("
+	<< c->GetEntry() << ", "
+	<< p->GetDisplayId() << ", "
+	<< p->getRace() << ", "
+	<< p->getGender() << ", "
+	<< p->getClass() << ", "
+	<< p->GetByte( PLAYER_BYTES, 0 ) << ", "
+	<< p->GetByte( PLAYER_BYTES, 1 ) << ", "
+	<< p->GetByte( PLAYER_BYTES, 2 ) << ", "
+	<< p->GetByte( PLAYER_BYTES, 3 ) << ", "
+	<< p->GetByte( PLAYER_BYTES_2, 0 ) << ", ";
+					
+	for( uint32 i = 0; i < 11; ++i )
+	{
+		Item *item = p->GetItemInterface()->GetInventoryItem( static_cast< int16 >( imageitemslots[ i ] ) );
+					
+		if( item != NULL )
+		{
+			ss << uint32( item->GetProto()->DisplayInfoID );
+			if( i != 11)
+				ss << ",";
+		}
+		else
+		{
+			ss << "0";
+			if( i != 11)
+				ss << ",";
+		}
+	}
+	ss << ")";
+	if(WorldDatabase.Execute(ss.str().c_str()))
+		BlueSystemMessage(m_session,"Query executed");
+	else
+		RedSystemMessage(m_session, "Query failed QQ");
+	return true;
+}
+
+bool ChatHandler::HandleMirrorTestSendCommand(const char *args, WorldSession *m_session)
+{
+	Creature * c = getSelectedCreature(m_session);
+	if(!c)
+		return true;
+	m_session->FakeMirrorImageTest(c);
+	return true;
+}

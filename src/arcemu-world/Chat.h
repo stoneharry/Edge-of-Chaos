@@ -612,6 +612,8 @@ protected:
 	bool HandleAchievementResetCommand(const char * args, WorldSession * m_session);
 #endif
 	bool HandleReloadSpellCoefCommand(const char *args, WorldSession *m_session);
+	bool HandleMirrorTestSaveCommand(const char *args, WorldSession *m_session);
+	bool HandleMirrorTestSendCommand(const char *args, WorldSession *m_session);
 };
 
 

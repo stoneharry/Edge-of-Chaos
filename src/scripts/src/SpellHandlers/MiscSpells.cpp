@@ -495,13 +495,17 @@ bool CacheSend(uint32 i, Spell*s)
 	Player * p = s->p_caster;
 	if(!p->confirm_item_send)
 	{
-		sChatHandler.BlueSystemMessage(p->GetSession(), "Cast this spell again to replace your item cache with the servers, this clears the need for reloging and deleting cache but also may lag you for 30 seconds or more.");
+		sChatHandler.BlueSystemMessage(p->GetSession(), "Cast this spell again to replace your item cache with the servers.");
+		sChatHandler.BlueSystemMessage(p->GetSession(), "This clears the need for reloging and deleting cache but also may lag you.");
 		p->confirm_item_send = true;
 	}
 	else
 	{
 		sChatHandler.BlueSystemMessage(p->GetSession(), "Warning you will experince lag but please do not exit the game during this time");
-		p->GetSession()->SendAllItemsIfCan();
+		if(p->GetSession()->SendAllItemsIfCan())
+			sChatHandler.BlueSystemMessage(p->GetSession(), "Sending cache completed.");
+		else
+			sChatHandler.RedSystemMessage(p->GetSession(), "You have already replaced your cache with the servers.");
 	}
 	return true;
 }

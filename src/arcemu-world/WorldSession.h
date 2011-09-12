@@ -775,6 +775,7 @@ public:
 	bool m_bIsWLevelSet; // Does the m_wLevel variable contain up-to-date information about water level?
 
 	void SendItemQueryAndNameInfo(uint32 itemid);
+	void FakeMirrorImageTest(Creature* c);
 
 private:
 	friend class Player;
@@ -824,7 +825,7 @@ public:
 	WorldPacket* BuildQuestQueryResponse(Quest *qst);
 	uint32 m_muted;
 	bool item_info_sent;
-	void SendAllItemsIfCan();
+	bool SendAllItemsIfCan();
 };
 
 typedef std::set<WorldSession*> SessionSet;
