@@ -4474,7 +4474,7 @@ exit:
 			value = float2int32(value*(float)(spell_pct_modifers/100.0f)) + spell_flat_modifers;
 		}
 	}
-
+	value = objmgr.SetBonusDamageWithLimitsIfCan(GetProto()->Id, value);
 	return value;
 }
 

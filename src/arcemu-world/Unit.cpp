@@ -5079,7 +5079,6 @@ int32 Unit::GetSpellDmgBonus(Unit *pVictim, SpellEntry *spellInfo,int32 base_dmg
 	int32 res = (int32)((base_dmg+bonus_damage)*summaryPCTmod + bonus_damage);
 	if( res < 0 )
 		res = 0;
-	res = objmgr.SetBonusDamageWithLimitsIfCan(spellInfo->Id, res);
 	return res;
 }
 
