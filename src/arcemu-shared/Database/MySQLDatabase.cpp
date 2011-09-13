@@ -156,8 +156,8 @@ bool MySQLDatabase::_SendQuery(DatabaseConnection* con, const char* Sql, bool Se
 			// stop after sending the query twice.
 			result = _SendQuery(con, Sql, true);
 		}
-		//else
-			//sLog.outError("Sql query failed due to [%s], Query: [%s]", mysql_error(static_cast<MySQLDatabaseConnection*>(con)->MySql), Sql);
+		else
+			sLog.outError("Sql query failed due to [%s], Query: [%s]", mysql_error(static_cast<MySQLDatabaseConnection*>(con)->MySql), Sql);
 	}
 
 	return (result == 0 ? true : false);

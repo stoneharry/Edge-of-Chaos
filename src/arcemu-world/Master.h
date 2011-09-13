@@ -43,8 +43,8 @@
 #define BUILDTYPE "Release"
 #endif
 
-#define REQUIRED_WORLD_DB_VERSION 4378
-#define REQUIRED_CHAR_DB_VERSION 3800
+#define REQUIRED_WORLD_DB_VERSION 4553
+#define REQUIRED_CHAR_DB_VERSION 4479
 
 #define DEFAULT_LOOP_TIME 0 /* 0 milliseconds - instant */
 #define DEFAULT_LOG_LEVEL 0
@@ -61,25 +61,25 @@
 
 class Master : public Singleton<Master>
 {
-public:
-	Master();
-	~Master();
-	bool Run(int argc, char ** argv);
-	bool m_ShutdownEvent;
-	uint32 m_ShutdownTimer;
+	public:
+		Master();
+		~Master();
+		bool Run(int argc, char** argv);
+		bool m_ShutdownEvent;
+		uint32 m_ShutdownTimer;
 
-	static volatile bool m_stopEvent;
-	bool m_restartEvent;
+		static volatile bool m_stopEvent;
+		bool m_restartEvent;
 
-private:
-	bool _StartDB();
-	void _StopDB();
-	bool CheckDBVersion();
+	private:
+		bool _StartDB();
+		void _StopDB();
+		bool CheckDBVersion();
 
-	void _HookSignals();
-	void _UnhookSignals();
+		void _HookSignals();
+		void _UnhookSignals();
 
-	static void _OnSignal(int s);
+		static void _OnSignal(int s);
 };
 
 #define sMaster Master::getSingleton()

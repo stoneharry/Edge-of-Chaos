@@ -539,6 +539,14 @@ RegType<Unit> UnitMethods[] =
 	{ "MoveJump", &LuaUnit::MoveJump },
 	{ "MoveKnockback", &LuaUnit::MoveKnockback },
 	{ "MoveCharge", &LuaUnit::MoveCharge },
+	{ "AddPassenger", &LuaUnit::AddPassenger },
+	{ "AddPassengerToSeat", &LuaUnit::AddPassengerToSeat },
+	{ "EjectPassenger", &LuaUnit::EjectPassenger },
+	{ "EjectPassengerFromSeat", &LuaUnit::EjectPassengerFromSeat },
+	{ "EjectAllPassengers", &LuaUnit::EjectAllPassengers },
+	{ "MovePassengerToSeat", &LuaUnit::MovePassengerToSeat },
+	{ "IsVehicle", &LuaUnit::IsVehicle },
+	{ "GetVehicle", &LuaUnit::GetVehicle },
 	{ NULL, NULL },
 };
 

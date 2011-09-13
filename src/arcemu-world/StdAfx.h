@@ -31,8 +31,18 @@
 #undef max
 #endif
 
-template< class T, class U > T TO( U u ){ return static_cast< T >( u ); }
-#define TO_CREATURE(ptr) TO<Creature*>(ptr) 
+/* platforms that already define M_PI in math.h */
+#ifdef M_PI
+#undef M_PI
+#endif
+
+#define M_PI	   3.14159265358979323846
+#define M_H_PI     1.57079632679489661923
+#define M_Q_PI     0.785398163397448309615
+#define M_PI_FLOAT 3.14159f
+
+template< class T, class U > T TO(U u) { return static_cast< T >(u); }
+#define TO_CREATURE(ptr) TO<Creature*>(ptr)
 #define TO_PLAYER(ptr) TO<Player*>(ptr)
 #define TO_OBJECT(ptr) TO<Object*>(ptr)
 #define TO_UNIT(ptr) TO<Unit*>(ptr)
@@ -111,6 +121,7 @@ template< class T, class U > T TO( U u ){ return static_cast< T >( u ); }
 #include "LootMgr.h"
 #include "SpellProc.h"
 #include "SummonHandler.h"
+#include "Vehicle.h"
 #include "Unit.h"
 #include "Gossip.h"
 
@@ -118,24 +129,14 @@ template< class T, class U > T TO( U u ){ return static_cast< T >( u ); }
 #include "AchievementMgr.h"
 #endif
 
-/* platforms that already define M_PI in math.h */
-#ifdef M_PI
-#undef M_PI
-#endif
-
-#define M_PI	   3.14159265358979323846
-#define M_H_PI     1.57079632679489661923
-#define M_Q_PI     0.785398163397448309615
-#define M_PI_FLOAT 3.14159f
-
 //VMAP
-#include "vmap/ModelInstance.h"
-#include "vmap/WorldModel.h"
-#include "vmap/MapTree.h"
-#include "vmap/BIH.h"
-#include "vmap/VMapFactory.h"
-#include "vmap/VMapManager2.h"
-#include "vmap/VMapDefinitions.h"
+#include "ModelInstance.h"
+#include "WorldModel.h"
+#include "MapTree.h"
+#include "BIH.h"
+#include "VMapFactory.h"
+#include "VMapManager2.h"
+#include "VMapDefinitions.h"
 
 #include "AddonMgr.h"
 #include "AIEvents.h"
@@ -199,7 +200,6 @@ template< class T, class U > T TO( U u ){ return static_cast< T >( u ); }
 #include "ItemInterface.h"
 #include "Stats.h"
 #include "WorldCreator.h"
-#include "Vehicle.h"
 #include "ObjectMgr.h"
 #include "CThreads.h"
 #include "ScriptMgr.h"

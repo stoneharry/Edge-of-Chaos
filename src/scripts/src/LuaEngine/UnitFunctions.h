@@ -5594,7 +5594,7 @@ class LuaUnit
 			if(ptr->isRooted())
 				RET_BOOL(true)
 				RET_BOOL(false)
-			}
+		}
 
 		static int HasAuraWithMechanic(lua_State* L, Unit* ptr)
 		{
@@ -5603,7 +5603,7 @@ class LuaUnit
 			if(mechanic && ptr->HasAuraWithMechanics(mechanic))
 				RET_BOOL(true)
 				RET_BOOL(false)
-			}
+		}
 
 		static int HasNegativeAura(lua_State* L, Unit* ptr)
 		{
@@ -5978,6 +5978,82 @@ class LuaUnit
 			float y = CHECK_FLOAT(L,2);
 			float z = CHECK_FLOAT(L,3);
 			ptr->GetAIInterface()->MoveCharge(x,y,z);
+			return 1;
+		}
+
+		static int AddPassenger(lua_State* L, Unit* ptr)
+		{
+			TEST_UNITPLAYER();
+			if(!ptr->IsVehicle())
+				return 0;
+			Unit* B = CHECK_UNIT(L, 1);
+			ptr->GetVehicleComponent()->AddPassenger(B);
+			return 1;
+		}
+
+		static int AddPassengerToSeat(lua_State* L, Unit* ptr)
+		{
+			TEST_UNITPLAYER();
+			if(!ptr->IsVehicle())
+				return 0;
+			Unit* B = CHECK_UNIT(L, 1);
+			uint32 seat = luaL_checkint(L, 2);
+			ptr->GetVehicleComponent()->AddPassengerToSeat(B, seat);
+			return 1;
+		}
+
+		static int EjectPassenger(lua_State* L, Unit* ptr)
+		{
+			TEST_UNITPLAYER();
+			if(!ptr->IsVehicle())
+				return 0;
+			Unit* B = CHECK_UNIT(L, 1);
+			ptr->GetVehicleComponent()->EjectPassenger(B);
+			return 1;
+		}
+
+		static int EjectPassengerFromSeat(lua_State* L, Unit* ptr)
+		{
+			TEST_UNITPLAYER();
+			if(!ptr->IsVehicle())
+				return 0;
+			uint32 seat = luaL_checkint(L, 1);
+			ptr->GetVehicleComponent()->EjectPassengerFromSeat(seat);
+			return 1;
+		}
+
+		static int EjectAllPassengers(lua_State* L, Unit* ptr)
+		{
+			TEST_UNITPLAYER();
+			if(!ptr->IsVehicle())
+				return 0;
+			ptr->GetVehicleComponent()->EjectAllPassengers();
+			return 1;
+		}
+
+		static int MovePassengerToSeat(lua_State* L, Unit* ptr)
+		{
+			TEST_UNITPLAYER();
+			if(!ptr->IsVehicle())
+				return 0;
+			Unit* B = CHECK_UNIT(L, 1);
+			uint32 seat = luaL_checkint(L, 2);
+			ptr->GetVehicleComponent()->MovePassengerToSeat(B, seat);
+			return 1;
+		}
+
+		static int IsVehicle(lua_State* L, Unit* ptr)
+		{
+			TEST_UNITPLAYER_RET();
+			if(ptr->IsVehicle())
+				RET_BOOL(true)
+			RET_BOOL(false)
+		}
+
+		static int GetVehicle(lua_State* L, Unit* ptr)
+		{
+			TEST_UNITPLAYER();
+			PUSH_UNIT(L, TO_UNIT(ptr->GetCurrentVehicle()));
 			return 1;
 		}
 };
