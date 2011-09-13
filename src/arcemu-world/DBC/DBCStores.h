@@ -803,7 +803,7 @@ struct SpellEntry
 	float  Dspell_coef_override;            //!!! CUSTOM, overrides any spell coefficient calculation and use this value in DD&DH
 	float  OTspell_coef_override;           //!!! CUSTOM, overrides any spell coefficient calculation and use this value in HOT&DOT
 	float  ap_coef;
-	float  ap_dot_cef;
+	float  ap_dot_coef;
 	int    ai_target_type;
 
 	bool   self_cast_only;

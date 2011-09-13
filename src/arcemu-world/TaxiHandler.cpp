@@ -175,7 +175,7 @@ void WorldSession::HandleActivateTaxiOpcode(WorldPacket & recv_data)
 	}
 
 	// Check for gold
-	//newmoney = (GetPlayer()->GetGold() - taxipath->GetPrice());
+	newmoney = (GetPlayer()->GetGold() - 0);
 	if(newmoney < 0)
 	{
 		data << uint32(3);

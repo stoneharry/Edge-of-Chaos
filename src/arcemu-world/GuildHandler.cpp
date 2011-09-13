@@ -632,7 +632,7 @@ void WorldSession::HandleCharterBuy(WorldPacket & recv_data)
 			return;			// error message needed here
 
 		ItemPrototype * ip = ItemPrototypeStorage.LookupEntry(item_ids[arena_type]);
-		Arcemu::Util::ARCEMU_ASSERT(   ip != NULL );
+		Arcemu::Util::ArcemuAssert(   ip != NULL );
 		SlotResult res = _player->GetItemInterface()->FindFreeInventorySlot(ip);
 		if(res.Result == 0)
 		{
@@ -706,7 +706,7 @@ void WorldSession::HandleCharterBuy(WorldPacket & recv_data)
 		}
 
 		ItemPrototype * ip = ItemPrototypeStorage.LookupEntry(ITEM_ENTRY_GUILD_CHARTER);
-		Arcemu::Util::ARCEMU_ASSERT(   ip != NULL );
+		Arcemu::Util::ArcemuAssert(   ip != NULL );
 		SlotResult res = _player->GetItemInterface()->FindFreeInventorySlot(ip);
 		if(res.Result == 0)
 		{

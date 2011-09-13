@@ -839,6 +839,7 @@ class SERVER_DECL WorldSession
 		uint32 m_muted;
 		bool item_info_sent;
 		bool SendAllItemsIfCan();
+		void SendItemQueryAndNameInfo(uint32 itemid);
 };
 
 typedef std::set<WorldSession*> SessionSet;

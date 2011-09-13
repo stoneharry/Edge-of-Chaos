@@ -868,7 +868,7 @@ void MapMgr::UpdateInRangeSet( Object *obj, Player *plObj, MapCell* cell, ByteBu
 		if( curObj == NULL )
 			continue;
 
-		if( curObj->IsPlayer() && obj->IsPlayer() && plObj != NULL && plObj->m_TransporterGUID && plObj->m_TransporterGUID == TO< Player* >( curObj )->m_TransporterGUID )
+		if( curObj->IsPlayer() && obj->IsPlayer() && plObj != NULL && plObj->transporter_info.guid && plObj->transporter_info.guid == TO< Player* >( curObj )->transporter_info.guid )
 			fRange = 0.0f; // unlimited distance for people on same boat
 		else if( curObj->GetTypeFromGUID() == HIGHGUID_TYPE_TRANSPORTER )
 			fRange = 0.0f; // unlimited distance for transporters (only up to 2 cells +/- anyway.)

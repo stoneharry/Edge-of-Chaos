@@ -13853,11 +13853,6 @@ void Player::RemoveVehicleComponent(){
 	vehicle = NULL;
 }
 
-void Player::SendItemInfo(uint32 entry)
-{
-	GetSession()->SendItemQueryAndNameInfo(entry);
-}
-
 void Player::SendAurasForTarget(Unit* target)
 {
 	WorldPacket data( SMSG_AURA_UPDATE_ALL, 200 );
