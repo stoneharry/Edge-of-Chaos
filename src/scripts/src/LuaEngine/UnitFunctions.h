@@ -6049,12 +6049,5 @@ class LuaUnit
 				RET_BOOL(true)
 			RET_BOOL(false)
 		}
-
-		static int GetVehicle(lua_State* L, Unit* ptr)
-		{
-			TEST_UNITPLAYER();
-			PUSH_UNIT(L, TO_UNIT(ptr->GetCurrentVehicle()));
-			return 1;
-		}
 };
 #endif
