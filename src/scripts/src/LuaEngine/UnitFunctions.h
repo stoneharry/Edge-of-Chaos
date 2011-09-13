@@ -5981,7 +5981,7 @@ class LuaUnit
 			return 1;
 		}
 
-		static int AddPassenger(lua_State* L, Unit* ptr)
+		/*static int AddPassenger(lua_State* L, Unit* ptr)
 		{
 			TEST_UNITPLAYER();
 			if(!ptr->IsVehicle())
@@ -6040,7 +6040,7 @@ class LuaUnit
 			uint32 seat = luaL_checkint(L, 2);
 			ptr->GetVehicleComponent()->MovePassengerToSeat(B, seat);
 			return 1;
-		}
+		}*/
 
 		static int IsVehicle(lua_State* L, Unit* ptr)
 		{
