@@ -330,11 +330,14 @@ void Transporter::UpdatePosition()
 		mNextWaypoint = GetNextWaypoint();
 		if(mCurrentWaypoint->second.mapid != GetMapId() || mCurrentWaypoint->second.teleport)
 		{
+			passengers.clear();
 			TransportPassengers(mCurrentWaypoint->second.mapid, GetMapId(), mCurrentWaypoint->second.x, mCurrentWaypoint->second.y, mCurrentWaypoint->second.z);
 			break;
 		}
-		else
+		else{
 			SetPosition(mCurrentWaypoint->second.x, mCurrentWaypoint->second.y, mCurrentWaypoint->second.z, m_position.o, false);
+			MovePassengers( mCurrentWaypoint->second.x, mCurrentWaypoint->second.y, mCurrentWaypoint->second.z, m_position.o );
+		}
 
 		if(mCurrentWaypoint->second.delayed)
 		{
@@ -405,8 +408,6 @@ void Transporter::TransportPassengers(uint32 mapid, uint32 oldmap, float x, floa
 			}
 			if(!plr->GetSession() || !plr->IsInWorld())
 				continue;
-
-			plr->m_lockTransportVariables = true;
 
 			v.x = x + plr->transporter_info.x;
 			v.y = y + plr->transporter_info.y;
@@ -547,10 +548,45 @@ uint32 Transporter::BuildCreateUpdateBlockForPlayer(ByteBuffer* data, Player* ta
 
 	// add all the npcs to the packet
 	for(TransportNPCMap::iterator itr = m_npcs.begin(); itr != m_npcs.end(); ++itr)
-	{
-		itr->second->SetPosition(GetPosition(), false);
 		cnt += itr->second->BuildCreateUpdateBlockForPlayer(data, target);
-	}
 
 	return cnt;
 }
+
+void Transporter::MovePassengers( float x, float y, float z, float o ){
+	for( TransportNPCMap::iterator itr = m_npcs.begin(); itr != m_npcs.end(); ++itr ){
+		Object *obj = itr->second;
+		
+		obj->SetPosition( x + obj->transporter_info.x, y + obj->transporter_info.y, z + obj->transporter_info.z, o + obj->transporter_info.o, false );
+	}
+
+	for( PassengerMap::iterator itr = mPassengers.begin(); itr != mPassengers.end(); ++itr ){
+		Player *p = itr->second;
+		p->SetPosition( x + p->transporter_info.x, y + p->transporter_info.y, z + p->transporter_info.z, o + p->transporter_info.o, false );
+	}
+
+	for( std::map< uint64, Object* >::iterator itr = passengers.begin(); itr != passengers.end(); ++itr ){
+		Object *obj = itr->second;
+		
+		obj->SetPosition( x + obj->transporter_info.x, y + obj->transporter_info.y, z + obj->transporter_info.z, o + obj->transporter_info.o, false );
+	}
+}
+
+void Transporter::AddPassenger( Object *o ){
+	if( o->IsPlayer() ){
+		AddPlayer( static_cast< Player* >( o ) );
+		return;
+	}
+
+	passengers[ o->GetGUID() ] = o;
+}
+
+void Transporter::RemovePassenger( Object *o ){
+	if( o->IsPlayer() ){
+		RemovePlayer( static_cast< Player* >( o ) );
+		return;
+	}
+
+	passengers.erase( o->GetGUID() );
+}
+

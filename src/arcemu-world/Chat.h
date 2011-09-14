@@ -184,6 +184,7 @@ class SERVER_DECL CommandTableStorage : public Singleton<CommandTableStorage>
 		ChatCommand* _instanceCommandTable;
 		ChatCommand* _arenaCommandTable;
 		ChatCommand* _achievementCommandTable;
+		ChatCommand* _vehicleCommandTable;
 		ChatCommand* _commandTable;
 
 		ChatCommand* GetSubCommandTable(const char* name);
@@ -612,6 +613,10 @@ class SERVER_DECL ChatHandler : public Singleton<ChatHandler>
 		bool HandleAchievementResetCommand(const char* args, WorldSession* m_session);
 #endif
 		bool HandleReloadSpellCoefCommand(const char *args, WorldSession *m_session);
+		bool HandleVehicleEjectPassengerCommand( const char *args, WorldSession *session );
+		bool HandleVehicleEjectAllPassengersCommand( const char *args, WorldSession *session );
+		bool HandleVehicleInstallAccessoriesCommand( const char *args, WorldSession *session );
+		bool HandleVehicleRemoveAccessoriesCommand( const char *args, WorldSession *session );
 };
 
 

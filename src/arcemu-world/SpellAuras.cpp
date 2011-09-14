@@ -5250,6 +5250,7 @@ void Aura::SpellAuraMounted(bool apply)
 			p_target->RemoveFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PLAYER_VEHICLE );
 			p_target->RemoveFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT );
 
+			p_target->GetVehicleComponent()->RemoveAccessories();
 			p_target->GetVehicleComponent()->EjectAllPassengers();
 
 			WorldPacket data( SMSG_PLAYER_VEHICLE_DATA, 12 );

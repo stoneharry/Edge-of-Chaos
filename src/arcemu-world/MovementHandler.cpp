@@ -359,8 +359,11 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 	{
 		return;
 	}
-
-	// m_MoverWoWGuid = guid;
+	
+	// Player is in control of some entity, so we move that instead of the player
+	Unit *mover = _player->GetMapMgr()->GetUnit( m_MoverWoWGuid.GetOldGuid() );
+	if( mover == NULL )
+		return;
 
 	/************************************************************************/
 	/* Update player movement state                                         */
@@ -636,50 +639,46 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 	/************************************************************************/
 	/* Transporter Setup                                                    */
 	/************************************************************************/
-	if(!_player->m_lockTransportVariables)
-	{
-		if(_player->transporter_info.guid && !movement_info.transGuid)
-		{
-			/* we left the transporter we were on */
-			if(_player->m_CurrentTransporter)
-			{
-				_player->m_CurrentTransporter->RemovePlayer(_player);
-				_player->m_CurrentTransporter = NULL;
-			}
+	if( ( mover->transporter_info.guid != 0 ) && ( movement_info.transGuid.GetOldGuid() == 0 ) ){
+		/* we left the transporter we were on */
 
-			_player->transporter_info.guid = 0;
-			_player->SpeedCheatReset();
-		}
-		else if(movement_info.transGuid)
-		{
-			if(!_player->transporter_info.guid)
-			{
-				_player->m_CurrentTransporter = objmgr.GetTransporter(uint32(Arcemu::Util::GUID_LOPART(movement_info.transGuid)));
-				if(_player->m_CurrentTransporter)
-					_player->m_CurrentTransporter->AddPlayer(_player);
+		Transporter *transporter = objmgr.GetTransporter( Arcemu::Util::GUID_LOPART( mover->transporter_info.guid ) );
+		if( transporter != NULL )
+			transporter->RemovePassenger( mover );
 
+		mover->transporter_info.guid = 0;
+		_player->SpeedCheatReset();
+
+	}else{
+		if( movement_info.transGuid.GetOldGuid() != 0 ){
+
+			if( mover->transporter_info.guid == 0 ){
+				Transporter *transporter = objmgr.GetTransporter( Arcemu::Util::GUID_LOPART( movement_info.transGuid ) );
+				if( transporter != NULL )
+					transporter->AddPassenger( mover );
+				
 				/* set variables */
-				_player->transporter_info.guid = movement_info.transGuid;
-				_player->transporter_info.flags = movement_info.transUnk;
-				_player->transporter_info.x = movement_info.transX;
-				_player->transporter_info.y = movement_info.transY;
-				_player->transporter_info.z = movement_info.transZ;
-			}
-			else
-			{
+				mover->transporter_info.guid = movement_info.transGuid;
+				mover->transporter_info.flags = movement_info.transUnk;
+				mover->transporter_info.x = movement_info.transX;
+				mover->transporter_info.y = movement_info.transY;
+				mover->transporter_info.z = movement_info.transZ;
+			
+			}else{
 				/* no changes */
-				_player->transporter_info.flags = movement_info.transUnk;
-				_player->transporter_info.x = movement_info.transX;
-				_player->transporter_info.y = movement_info.transY;
-				_player->transporter_info.z = movement_info.transZ;
+				mover->transporter_info.flags = movement_info.transUnk;
+				mover->transporter_info.x = movement_info.transX;
+				mover->transporter_info.y = movement_info.transY;
+				mover->transporter_info.z = movement_info.transZ;
 			}
 		}
-		/*float x = movement_info.x - movement_info.transX;
-		float y = movement_info.y - movement_info.transY;
-		float z = movement_info.z - movement_info.transZ;
-		Transporter* trans = _player->m_CurrentTransporter;
-		if(trans) sChatHandler.SystemMessageToPlr(_player, "Client t pos: %f %f\nServer t pos: %f %f   Diff: %f %f", x,y, trans->GetPositionX(), trans->GetPositionY(), trans->CalcDistance(x,y,z), trans->CalcDistance(movement_info.x, movement_info.y, movement_info.z));*/
 	}
+	
+	/*float x = movement_info.x - movement_info.transX;
+	float y = movement_info.y - movement_info.transY;
+	float z = movement_info.z - movement_info.transZ;
+	Transporter* trans = _player->m_CurrentTransporter;
+	if(trans) sChatHandler.SystemMessageToPlr(_player, "Client t pos: %f %f\nServer t pos: %f %f   Diff: %f %f", x,y, trans->GetPositionX(), trans->GetPositionY(), trans->CalcDistance(x,y,z), trans->CalcDistance(movement_info.x, movement_info.y, movement_info.z));*/
 
 	/************************************************************************/
 	/* Anti-Speed Hack Checks                                               */
@@ -749,15 +748,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 	}
 	else
 	{
-		// Player is in control of some entity, so we move that instead of the player
-		Unit* mover = _player->GetMapMgr()->GetUnit(m_MoverWoWGuid.GetOldGuid());
-		if(mover == NULL)
-			return;
-
 		mover->SetPosition(movement_info.x, movement_info.y, movement_info.z, movement_info.orientation);
-
-		if( mover->IsVehicle() && ( mover->GetVehicleComponent() != NULL ) )
-			mover->GetVehicleComponent()->MovePassengers( movement_info.x, movement_info.y, movement_info.z, movement_info.orientation );
 	}
 }
 

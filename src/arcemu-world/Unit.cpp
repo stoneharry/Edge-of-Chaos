@@ -19,8 +19,8 @@
  */
 
 // Last edited by:	$Author: dfighter1985 $
-// revision:		$Rev: 4553 $
-// date:		$Date: 2011-09-12 19:58:19 -0400 (Mon, 12 Sep 2011) $
+// revision:		$Rev: 4557 $
+// date:		$Date: 2011-09-14 14:02:13 -0400 (Wed, 14 Sep 2011) $
 
 
 #include "StdAfx.h"
@@ -6007,8 +6007,10 @@ void Unit::RemoveFromWorld(bool free_guid)
 	if( GetCurrentVehicle() != NULL )
 		GetCurrentVehicle()->EjectPassenger( this );
 
-	if( GetVehicleComponent() != NULL )
+	if( GetVehicleComponent() != NULL ){
+		GetVehicleComponent()->RemoveAccessories();
 		GetVehicleComponent()->EjectAllPassengers();
+	}
 
 	RemoveVehicleComponent();
 

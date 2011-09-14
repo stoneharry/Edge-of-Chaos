@@ -76,7 +76,6 @@ Player::Player(uint32 guid)
 	m_bUnlimitedBreath(false),
 	m_UnderwaterTime(180000),
 	m_UnderwaterState(0),
-	m_lockTransportVariables(false),
 	m_AllowAreaTriggerPort(true),
 // Battleground
 	m_bg(NULL),
@@ -967,15 +966,6 @@ void Player::Update(uint32 p_time)
 	// Autosave
 	if(mstime >= m_nextSave)
 		SaveToDB(false);
-
-	if(m_CurrentTransporter && !m_lockTransportVariables)
-	{
-		// Update our position, using trnasporter X/Y
-		float c_tposx = m_CurrentTransporter->GetPositionX() + transporter_info.x;
-		float c_tposy = m_CurrentTransporter->GetPositionY() + transporter_info.y;
-		float c_tposz = m_CurrentTransporter->GetPositionZ() + transporter_info.z;
-		SetPosition(c_tposx, c_tposy, c_tposz, GetOrientation(), false);
-	}
 
 	// Exploration
 	if(mstime >= m_explorationTimer)
@@ -3692,7 +3682,6 @@ void Player::OnPushToWorld()
 	SpeedCheatReset();
 	m_beingPushed = false;
 	AddItemsToWorld();
-	m_lockTransportVariables = false;
 
 	// delay the unlock movement packet
 	WorldPacket* data = new WorldPacket(SMSG_TIME_SYNC_REQ, 4);
@@ -8384,7 +8373,7 @@ bool Player::SafeTeleport(uint32 MapID, uint32 InstanceID, const LocationVector 
 	if(transporter_info.guid)
 	{
 		Transporter* pTrans = objmgr.GetTransporter(Arcemu::Util::GUID_LOPART(transporter_info.guid));
-		if(pTrans && !m_lockTransportVariables)
+		if(pTrans)
 		{
 			pTrans->RemovePlayer(this);
 			m_CurrentTransporter = NULL;
@@ -13131,6 +13120,10 @@ void Player::TakeDamage(Unit* pAttacker, uint32 damage, uint32 spellid, bool no_
 
 void Player::Die(Unit* pAttacker, uint32 damage, uint32 spellid)
 {
+	if( GetVehicleComponent() != NULL ){
+		GetVehicleComponent()->RemoveAccessories();
+		GetVehicleComponent()->EjectAllPassengers();
+	}
 
 #ifdef ENABLE_ACHIEVEMENTS
 	// A Player has died

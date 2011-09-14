@@ -435,8 +435,24 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	void InstallAccessories();
 
+
+	/////////////////////////////////////////////////////////////////////////
+	//void RemoveAccessories()
+	//  Removes all installed vehicle accessories
+	//
+	//Parameter(s)
+	//  None
+	//
+	//Return Value
+	//  None
+	//
+	//
+	/////////////////////////////////////////////////////////////////////////
+	void RemoveAccessories();
+
 private:
 	std::tr1::array< VehicleSeat*, MAX_VEHICLE_SEATS > seats;
+	std::vector< uint64 > installed_accessories;
 	uint32 creature_entry;
 	Unit *owner;
 	VehicleEntry *vehicle_info;

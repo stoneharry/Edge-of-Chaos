@@ -834,6 +834,12 @@ bool Object::SetPosition(float newX, float newY, float newZ, float newOrientatio
 		}
 	}
 
+	if( IsUnit() ){
+		Unit *u = static_cast< Unit* >( this );
+		if( u->GetVehicleComponent() != NULL )
+			u->GetVehicleComponent()->MovePassengers( newX, newY, newZ, newOrientation );
+	}
+
 	return result;
 }
 

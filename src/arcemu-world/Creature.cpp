@@ -1347,7 +1347,7 @@ bool Creature::Load(CreatureSpawn* spawn, uint32 mode, MapInfo* info)
 
 	GetAIInterface()->SetWalk();
 
-	if(isattackable(spawn) && !(proto->isTrainingDummy))
+	if(isattackable(spawn) && !(proto->isTrainingDummy) && !IsVehicle() )
 	{
 		GetAIInterface()->SetAllowedToEnterCombat(true);
 	}
@@ -1450,7 +1450,7 @@ void Creature::Load(CreatureProto* proto_, float x, float y, float z, float o)
 	if(!creature_info)
 		return;
 
-	if(proto_->isTrainingDummy == 0)
+	if(proto_->isTrainingDummy == 0 && !IsVehicle() )
 	{
 		GetAIInterface()->SetAllowedToEnterCombat(true);
 	}
@@ -2067,8 +2067,10 @@ void Creature::TakeDamage(Unit* pAttacker, uint32 damage, uint32 spellid, bool n
 
 void Creature::Die(Unit* pAttacker, uint32 damage, uint32 spellid)
 {
-	if( GetVehicleComponent() != NULL )
+	if( GetVehicleComponent() != NULL ){
+		GetVehicleComponent()->RemoveAccessories();
 		GetVehicleComponent()->EjectAllPassengers();
+	}
 
 	//general hook for die
 	if(!sHookInterface.OnPreUnitDie(pAttacker, this))

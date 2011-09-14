@@ -81,6 +81,8 @@ ChatCommand* CommandTableStorage::GetSubCommandTable(const char* name)
 		return _arenaCommandTable;
 	else if(!stricmp(name, "achieve"))
 		return _achievementCommandTable;
+	else if(!stricmp(name, "vehicle"))
+		return _vehicleCommandTable;
 	return 0;
 }
 
@@ -219,6 +221,7 @@ void CommandTableStorage::Dealloc()
 	free(_instanceCommandTable);
 	free(_arenaCommandTable);
 	free(_achievementCommandTable);
+	free(_vehicleCommandTable);
 	free(_commandTable);
 }
 
@@ -685,6 +688,16 @@ void CommandTableStorage::Init()
 	};
 	dupe_command_table(achievementCommandTable, _achievementCommandTable);
 
+	static ChatCommand vehicleCommandTable[] = {
+		{ "ejectpassenger",       'm', &ChatHandler::HandleVehicleEjectPassengerCommand,     "Ejects the passenger from the specified seat",      NULL, 0, 0, 0 },
+		{ "ejectallpassengers",   'm', &ChatHandler::HandleVehicleEjectAllPassengersCommand, "Ejects all passengers from the vehicle",            NULL, 0, 0, 0 },
+		{ "installaccessories",   'm', &ChatHandler::HandleVehicleInstallAccessoriesCommand, "Installs the accessories for the selected vehicle", NULL, 0, 0, 0 },
+		{ "removeaccessories",    'm', &ChatHandler::HandleVehicleRemoveAccessoriesCommand,  "Removes the accessories of the selected vehicle",   NULL, 0, 0, 0 },
+		{ NULL,                   '0', NULL,                                                 "",                                                  NULL, 0, 0, 0 }
+	};
+
+	dupe_command_table(vehicleCommandTable, _vehicleCommandTable);
+
 	static ChatCommand commandTable[] =
 	{
 		{ "commands",        '0', &ChatHandler::HandleCommandsCommand,                      "Shows commands",                                                                                                                          NULL,                     0, 0, 0 },
@@ -746,7 +759,8 @@ void CommandTableStorage::Init()
 		{ "fixscale",        'm', &ChatHandler::HandleFixScaleCommand,                      "",                                                                                                                                        NULL,                     0, 0, 0 },
 		{ "addtrainerspell", 'm', &ChatHandler::HandleAddTrainerSpellCommand,               "",                                                                                                                                        NULL,                     0, 0, 0 },
 		{ "achieve",         '0', NULL,                                                     "",                                                                                                                                        achievementCommandTable,  0, 0, 0 },
-		{ "multikick",		 'b', &ChatHandler::HandleMultiKickCommand,						"kicks multiple , .multimute <reason> <player1> <player2> ...",			NULL, 0, 0, 0 },
+		{ "multikick",		 'b', &ChatHandler::HandleMultiKickCommand,						"kicks multiple people.",			NULL, 0, 0, 0 },
+		{ "vehicle",         'm', NULL,                                                     "",                                                                                                                                        vehicleCommandTable,      0, 0, 0 },
 		{ NULL,              '0', NULL,                                                     "",                                                                                                                                        NULL,                     0, 0, 0 }
 	};
 	dupe_command_table(commandTable, _commandTable);

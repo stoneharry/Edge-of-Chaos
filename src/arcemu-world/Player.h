@@ -1664,9 +1664,6 @@ class SERVER_DECL Player : public Unit
 		std::set< uint64 >::iterator FindVisible(uint64 obj) { return m_visibleObjects.find(obj); }
 		void RemoveIfVisible(uint64 obj);
 
-		//Transporters
-		bool m_lockTransportVariables;
-
 		// Misc
 		void EventCannibalize(uint32 amount);
 		bool m_AllowAreaTriggerPort;

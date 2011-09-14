@@ -1389,3 +1389,115 @@ bool ChatHandler::HandleLookupAchievementCmd(const char* args, WorldSession* m_s
 
 
 #endif
+
+bool ChatHandler::HandleVehicleEjectPassengerCommand( const char *args, WorldSession *session ){
+	if( args == NULL ){
+		RedSystemMessage( session, "You need to specify a seat number." );
+		return false;
+	}
+
+	uint32 seat = 0;
+
+	std::stringstream ss( args );
+	ss >> seat;
+	if( ss.bad() ){
+		RedSystemMessage( session, "You need to specify a seat number." );
+		return false;
+	}
+
+	Player *p = session->GetPlayer();
+
+	if( p->GetTargetGUID() == 0 ){
+		RedSystemMessage( session, "You need to select a vehicle." );
+		return false;
+	}
+
+	Unit *u = p->GetMapMgr()->GetUnit( p->GetTargetGUID() );
+	if( u == NULL ){
+		RedSystemMessage( session, "You need to select a vehicle." );
+		return false;
+	}
+
+	if( u->GetVehicleComponent() == NULL ){
+		RedSystemMessage( session, "You need to select a vehicle." );
+		return false;
+	}
+
+	u->GetVehicleComponent()->EjectPassengerFromSeat( seat );
+
+	return true;
+}
+
+bool ChatHandler::HandleVehicleEjectAllPassengersCommand( const char *args, WorldSession *session ){
+	Player *p = session->GetPlayer();
+
+	if( p->GetTargetGUID() == 0 ){
+		RedSystemMessage( session, "You need to select a vehicle." );
+		return false;
+	}
+
+	Unit *u = p->GetMapMgr()->GetUnit( p->GetTargetGUID() );
+	if( u == NULL ){
+		RedSystemMessage( session, "You need to select a vehicle." );
+		return false;
+	}
+
+	if( u->GetVehicleComponent() == NULL ){
+		RedSystemMessage( session, "You need to select a vehicle." );
+		return false;
+	}
+
+	u->GetVehicleComponent()->EjectAllPassengers();
+
+	return true;
+}
+
+bool ChatHandler::HandleVehicleInstallAccessoriesCommand( const char *args, WorldSession *session ){
+	Player *p = session->GetPlayer();
+
+	if( p->GetTargetGUID() == 0 ){
+		RedSystemMessage( session, "You need to select a vehicle." );
+		return false;
+	}
+
+	Unit *u = p->GetMapMgr()->GetUnit( p->GetTargetGUID() );
+	if( u == NULL ){
+		RedSystemMessage( session, "You need to select a vehicle." );
+		return false;
+	}
+
+	if( u->GetVehicleComponent() == NULL ){
+		RedSystemMessage( session, "You need to select a vehicle." );
+		return false;
+	}
+
+	u->GetVehicleComponent()->InstallAccessories();
+
+	return true;
+}
+
+bool ChatHandler::HandleVehicleRemoveAccessoriesCommand( const char *args, WorldSession *session ){
+	Player *p = session->GetPlayer();
+
+	if( p->GetTargetGUID() == 0 ){
+		RedSystemMessage( session, "You need to select a vehicle." );
+		return false;
+	}
+
+	Unit *u = p->GetMapMgr()->GetUnit( p->GetTargetGUID() );
+	if( u == NULL ){
+		RedSystemMessage( session, "You need to select a vehicle." );
+		return false;
+	}
+
+	if( u->GetVehicleComponent() == NULL ){
+		RedSystemMessage( session, "You need to select a vehicle." );
+		return false;
+	}
+
+	u->GetVehicleComponent()->RemoveAccessories();
+
+
+	return true;
+}
+

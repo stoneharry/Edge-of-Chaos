@@ -112,6 +112,7 @@ void TotemSummon::SetupSpells()
 
 	SpellEntry* creatorspell = dbcSpell.LookupEntry(GetCreatedBySpell());
 	SpellEntry* TotemSpell = dbcSpell.LookupEntry(proto->AISpells[ 0 ]);
+	SpellEntry* TotemSpell2 = dbcSpell.LookupEntry(proto->AISpells[ 1 ]);
 
 	if(TotemSpell == NULL)
 	{
@@ -156,6 +157,8 @@ void TotemSummon::SetupSpells()
 		m_aiInterface->m_totemspelltimer = 0;
 		m_aiInterface->m_totemspelltime  = 3 * MSTIME_SECOND;
 	}
+	if(TotemSpell2)
+		CastSpell(this, TotemSpell2, true);
 }
 
 void TotemSummon::Die(Unit* pAttacker, uint32 damage, uint32 spellid)

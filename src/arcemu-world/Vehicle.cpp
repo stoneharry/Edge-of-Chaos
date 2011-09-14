@@ -23,12 +23,14 @@ Vehicle::Vehicle(){
 	owner = NULL;
 	vehicle_info = NULL;
 	std::fill( seats.begin(), seats.end(), reinterpret_cast< VehicleSeat* >( NULL ) );
+	installed_accessories.clear();
 }
 
 Vehicle::~Vehicle(){
 	for( uint32 i = 0; i < MAX_VEHICLE_SEATS; i++ )
 		delete seats[ i ];
 
+	installed_accessories.clear();
 }
 
 
@@ -163,6 +165,10 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid ){
 		passenger->SetFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NOT_ATTACKABLE_2 );
 
 	// remove spellclick flag if full
+	if( !HasEmptySeat() ){
+		owner->RemoveFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK );
+		owner->RemoveFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PLAYER_VEHICLE );
+	}
 }
 
 void Vehicle::EjectPassenger( Unit *passenger ){
@@ -236,12 +242,29 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 	seats[ seatid ]->RemovePassenger();
 	passenger->SetCurrentVehicle( NULL );
 	passenger->RemoveFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NOT_ATTACKABLE_2 );
+
+	if( HasEmptySeat() ){
+		if( owner->IsPlayer() )
+			owner->SetFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PLAYER_VEHICLE );
+		else
+			owner->SetFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK );
+	}
 }
 
 void Vehicle::EjectAllPassengers(){
 	for( uint32 i = 0; i < MAX_VEHICLE_SEATS; i++ )
-		if( ( seats[ i ] != NULL ) && ( seats[ i ]->GetPassengerGUID() != 0 ) )
-			EjectPassengerFromSeat( i );
+		if( ( seats[ i ] != NULL ) && ( seats[ i ]->GetPassengerGUID() != 0 ) ){
+			Unit *u = owner->GetMapMgr()->GetUnit( seats[ i ]->GetPassengerGUID() );
+			if( u == NULL ){
+				seats[ i ]->RemovePassenger();
+				continue;
+			}
+
+			if( u->GetVehicleComponent() != NULL )
+				u->GetVehicleComponent()->EjectAllPassengers();
+			else
+				EjectPassengerFromSeat( i );
+		}
 }
 
 void Vehicle::MovePassengerToSeat( Unit *passenger, uint32 seat ){
@@ -366,6 +389,9 @@ uint16 Vehicle::GetMoveFlags2() const{
 
 
 void Vehicle::InstallAccessories(){
+	if( !installed_accessories.empty() )
+		return;
+
 	std::vector< VehicleAccessoryEntry* >* v = objmgr.GetVehicleAccessories( creature_entry );
 	if( v == NULL )
 		return;
@@ -387,5 +413,23 @@ void Vehicle::InstallAccessories(){
 		c->PushToWorld( owner->GetMapMgr() );
 		
 		AddPassengerToSeat( c, accessory->seat );
+		installed_accessories.push_back( c->GetGUID() );
 	}
 }
+
+void Vehicle::RemoveAccessories(){
+	for( std::vector< uint64 >::iterator itr = installed_accessories.begin(); itr != installed_accessories.end(); ++itr ){
+		Unit *u = owner->GetMapMgr()->GetUnit( *itr );
+		if( u == NULL )
+			continue;
+
+		if( u->GetVehicleComponent() != NULL )
+			u->GetVehicleComponent()->EjectAllPassengers();
+
+		EjectPassenger( u );
+		u->Delete();
+	}
+	
+	installed_accessories.clear();
+}
+
