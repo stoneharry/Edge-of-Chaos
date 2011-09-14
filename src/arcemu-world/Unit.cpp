@@ -6291,6 +6291,8 @@ void Unit::EnableFlight()
 {
 	if(!IsPlayer() || TO_PLAYER(this)->m_changingMaps)
 	{
+		if(IsCreature()) // give them a "flying" animation so they don't just airwalk lul
+			SetByteFlag( UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_UNK_2 );
 		WorldPacket data(SMSG_MOVE_SET_CAN_FLY, 13);
 		data << GetNewGUID();
 		data << uint32(2);
@@ -6312,6 +6314,8 @@ void Unit::DisableFlight()
 {
 	if(!IsPlayer() || TO_PLAYER(this)->m_changingMaps)
 	{
+		if(IsCreature())
+			RemoveByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_UNK_2 );
 		WorldPacket data(SMSG_MOVE_UNSET_CAN_FLY, 13);
 		data << GetNewGUID();
 		data << uint32(5);
