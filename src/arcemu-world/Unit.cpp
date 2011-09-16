@@ -19,8 +19,8 @@
  */
 
 // Last edited by:	$Author: dfighter1985 $
-// revision:		$Rev: 4557 $
-// date:		$Date: 2011-09-14 14:02:13 -0400 (Wed, 14 Sep 2011) $
+// revision:		$Rev: 4565 $
+// date:		$Date: 2011-09-15 19:57:57 -0400 (Thu, 15 Sep 2011) $
 
 
 #include "StdAfx.h"
@@ -8297,4 +8297,25 @@ void Unit::SendHopOffVehicle( Unit *vehicleowner, LocationVector &landposition )
 	data << float( vehicleowner->GetPositionZ() );
 
     SendMessageToSet(&data, true);
+}
+
+
+void Unit::EnterVehicle( uint64 guid, uint32 delay ){
+	if( delay != 0 ){
+		sEventMgr.AddEvent( this, &Unit::EnterVehicle, guid, uint32( 0 ), 0, delay, 1, 0 );
+		return;
+	}
+
+	Unit *u = m_mapMgr->GetUnit( guid );
+
+	if( u == NULL )
+		return;
+
+	if( u->GetVehicleComponent() == NULL )
+		return;
+
+	if( currentvehicle != NULL )
+		return;
+
+	u->GetVehicleComponent()->AddPassenger( this );
 }

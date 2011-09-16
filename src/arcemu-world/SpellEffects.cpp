@@ -2313,13 +2313,20 @@ void Spell::SpellEffectSummonVehicle( uint32 i, SummonPropertiesEntry *spe, Crea
 	if( u_caster == NULL )
 		return;
 
+	// If it has no vehicle id, then we can't really do anything with it as a vehicle :/
+	if( ( proto->vehicleid == 0 ) && ( p_caster == NULL ) && ( !p_caster->GetSession()->HasGMPermissions() ) )
+		return;
+
 	Creature *c = u_caster->GetMapMgr()->CreateCreature( proto->Id );
-	c->Load( proto,v.x, v.y, v.z, v.o );
+	c->Load( proto,v.x, v.y, v.z, v.o );	
 	c->SetCreatedBySpell( m_spellInfo->Id );
 	c->SetCreatedByGUID( u_caster->GetGUID() );
 	c->SetSummonedByGUID( u_caster->GetGUID() );
+	c->RemoveFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK );
 	c->PushToWorld( u_caster->GetMapMgr() );
 
+	// Need to delay this a bit since first the client needs to see the vehicle
+	u_caster->EnterVehicle( c->GetGUID(), 1 * 1000 );
 }
 
 void Spell::SpellEffectLeap(uint32 i) // Leap

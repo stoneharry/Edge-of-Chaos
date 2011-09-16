@@ -1391,16 +1391,11 @@ bool ChatHandler::HandleLookupAchievementCmd(const char* args, WorldSession* m_s
 #endif
 
 bool ChatHandler::HandleVehicleEjectPassengerCommand( const char *args, WorldSession *session ){
-	if( args == NULL ){
-		RedSystemMessage( session, "You need to specify a seat number." );
-		return false;
-	}
-
 	uint32 seat = 0;
 
 	std::stringstream ss( args );
 	ss >> seat;
-	if( ss.bad() ){
+	if( ss.fail() ){
 		RedSystemMessage( session, "You need to specify a seat number." );
 		return false;
 	}

@@ -67,6 +67,12 @@ void WorldSession::HandleChangeVehicleSeat( WorldPacket &recv_data ){
 				if( u->GetVehicleComponent() == NULL )
 					return;
 
+				// We can only switch to accessory or back to the parent vehicle
+				if( !_player->GetCurrentVehicle()->HasAccessoryWithGUID( vehicle.GetOldGuid() ) && 
+					!u->GetVehicleComponent()->HasAccessoryWithGUID( _player->GetCurrentVehicle()->GetOwner()->GetGUID() ) )
+					return;
+
+				_player->GetCurrentVehicle()->EjectPassenger( _player );
 				u->GetVehicleComponent()->AddPassengerToSeat( _player, seat );
 			}
 
@@ -104,6 +110,11 @@ void WorldSession::HandleChangeVehicleSeat( WorldPacket &recv_data ){
 			if( src_vehicle->GetGUID() == dst_vehicle->GetGUID() ){
 				src_vehicle->GetVehicleComponent()->MovePassengerToSeat( _player, seat );
 			}else{
+				// We can only switch to accessory or back to parent vehicle
+				if( !src_vehicle->GetVehicleComponent()->HasAccessoryWithGUID( dst_vehicle->GetGUID() ) && 
+					!dst_vehicle->GetVehicleComponent()->HasAccessoryWithGUID( src_vehicle->GetGUID() ) )
+					return;
+
 				_player->GetCurrentVehicle()->EjectPassenger( _player );
 				dst_vehicle->GetVehicleComponent()->AddPassengerToSeat( _player, seat );
 			}
@@ -152,6 +163,9 @@ void WorldSession::HandleEnterVehicle( WorldPacket &recv_data ){
 
 	Unit *v = _player->GetMapMgr()->GetUnit( guid );
 	if( v == NULL )
+		return;
+
+	if( !_player->isInRange( v, MAX_INTERACTION_RANGE ) )
 		return;
 
 	if( v->GetVehicleComponent() == NULL )

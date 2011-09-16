@@ -45,6 +45,8 @@ enum HIGHGUID_TYPE
 #define GET_TYPE_FROM_GUID(x) ( Arcemu::Util::GUID_HIPART( (x) ) & HIGHGUID_TYPE_MASK )
 #define GET_LOWGUID_PART(x) ( Arcemu::Util::GUID_LOPART( (x) ) & LOWGUID_ENTRY_MASK )
 
+#define MAX_INTERACTION_RANGE 5.0f
+
 // TODO: fix that type mess
 
 enum TYPE

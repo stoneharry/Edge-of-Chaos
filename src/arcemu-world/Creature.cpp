@@ -2338,7 +2338,7 @@ void Creature::BuildPetSpellList(WorldPacket & data)
 		{
 			data << uint16(0);
 			data << uint8(0);
-			data << uint8(i + 5);
+			data << uint8(i + 8);
 		}
 	}
 

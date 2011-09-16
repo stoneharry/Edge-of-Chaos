@@ -194,7 +194,7 @@ private:
 //  Implements vehicles in the game
 //
 ////////////////////////////////////////////
-class Vehicle{
+class SERVER_DECL Vehicle{
 public:
 	Vehicle();
 
@@ -450,12 +450,28 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	void RemoveAccessories();
 
+
+	////////////////////////////////////////////////////////////////////////
+	//bool HasAccessoryWithGUID( uint64 guid )
+	//  Tells if this vehicle has the specified accessory attached to it
+	//
+	//Parameter(s)
+	//  uint64 guid  -  GUID of the accessory
+	//
+	//Return Value
+	//  Returns true if the vehicle has the accessory attached.
+	//  Returns false otherwise.
+	//
+	////////////////////////////////////////////////////////////////////////
+	bool HasAccessoryWithGUID( uint64 guid );
+
 private:
 	std::tr1::array< VehicleSeat*, MAX_VEHICLE_SEATS > seats;
 	std::vector< uint64 > installed_accessories;
 	uint32 creature_entry;
 	Unit *owner;
 	VehicleEntry *vehicle_info;
+	uint32 passengercount;
 };
 
 struct VehicleAccessoryEntry{

@@ -22,6 +22,7 @@
 Vehicle::Vehicle(){
 	owner = NULL;
 	vehicle_info = NULL;
+	passengercount = 0;
 	std::fill( seats.begin(), seats.end(), reinterpret_cast< VehicleSeat* >( NULL ) );
 	installed_accessories.clear();
 }
@@ -164,10 +165,33 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid ){
 	if( seats[ seatid ]->HidesPassenger() )
 		passenger->SetFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NOT_ATTACKABLE_2 );
 
+	passengercount++;
+
 	// remove spellclick flag if full
 	if( !HasEmptySeat() ){
 		owner->RemoveFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK );
 		owner->RemoveFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PLAYER_VEHICLE );
+
+	}
+
+	if( passenger->IsCreature() ){
+		Creature *c = static_cast< Creature* >( passenger );
+		
+		if( c->GetScript() != NULL ){
+			c->GetScript()->OnEnterVehicle();
+		}
+	}
+
+	if( owner->IsCreature() ){
+		Creature *c = static_cast< Creature* >( owner );
+
+		if( c->GetScript() != NULL ){
+			if( passengercount == 1 )
+				c->GetScript()->OnFirstPassengerEntered( passenger );
+
+			if( !HasEmptySeat() )
+				c->GetScript()->OnVehicleFull();
+		}
 	}
 }
 
@@ -242,12 +266,33 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 	seats[ seatid ]->RemovePassenger();
 	passenger->SetCurrentVehicle( NULL );
 	passenger->RemoveFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NOT_ATTACKABLE_2 );
+	passengercount--;
 
 	if( HasEmptySeat() ){
 		if( owner->IsPlayer() )
 			owner->SetFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PLAYER_VEHICLE );
 		else
 			owner->SetFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK );
+	}
+
+	if( passenger->IsCreature() ){
+		Creature *c = static_cast< Creature* >( passenger );
+
+		if( c->GetScript() != NULL ){
+			c->GetScript()->OnExitVehicle();
+		}
+	}
+	if( owner->IsCreature() ){
+		Creature *c = static_cast< Creature* >( owner );
+
+		if( c->GetScript() != NULL ){
+			if( passengercount == 0 )
+				c->GetScript()->OnLastPassengerLeft( passenger );
+		}else{
+			// The passenger summoned the vehicle, and we have no script to remove it, so we remove it here
+			if( ( passengercount == 0 ) && ( c->GetSummonedByGUID() == passenger->GetGUID() ) )
+				c->Despawn( 1 * 1000, 0 );
+		}
 	}
 }
 
@@ -398,6 +443,13 @@ void Vehicle::InstallAccessories(){
 	
 	for( std::vector< VehicleAccessoryEntry* >::iterator itr = v->begin(); itr != v->end(); ++itr ){
 		VehicleAccessoryEntry *accessory = *itr;
+
+		if( seats[ accessory->seat ] == NULL )
+			continue;
+
+		if( seats[ accessory->seat ]->HasPassenger() )
+			EjectPassengerFromSeat( accessory->seat );
+
 		CreatureInfo  *ci = CreatureNameStorage.LookupEntry( accessory->accessory_entry );
 		if( ci == NULL )
 			continue;
@@ -433,3 +485,12 @@ void Vehicle::RemoveAccessories(){
 	installed_accessories.clear();
 }
 
+bool Vehicle::HasAccessoryWithGUID( uint64 guid ){
+	std::vector< uint64 >::iterator itr =
+		std::find( installed_accessories.begin(), installed_accessories.end(), guid );
+
+	if( itr == installed_accessories.end() )
+		return false;
+	else
+		return true;
+}

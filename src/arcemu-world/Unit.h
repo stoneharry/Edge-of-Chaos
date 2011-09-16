@@ -1931,6 +1931,7 @@ class SERVER_DECL Unit : public Object
 
 	public:
 		void SetCurrentVehicle( Vehicle *v ){ currentvehicle = v; }
+		void EnterVehicle( uint64 guid, uint32 delay );
 		Vehicle* GetCurrentVehicle(){ return currentvehicle; }
 		Vehicle* GetVehicleComponent(){ return vehicle; }
 		virtual void AddVehicleComponent( uint32 creature_entry, uint32 vehicleid ){}
