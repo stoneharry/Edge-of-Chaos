@@ -617,6 +617,7 @@ class SERVER_DECL ChatHandler : public Singleton<ChatHandler>
 		bool HandleVehicleEjectAllPassengersCommand( const char *args, WorldSession *session );
 		bool HandleVehicleInstallAccessoriesCommand( const char *args, WorldSession *session );
 		bool HandleVehicleRemoveAccessoriesCommand( const char *args, WorldSession *session );
+		bool HandleVehicleAddPassengerCommand( const char *args, WorldSession *session );
 };
 
 

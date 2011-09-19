@@ -4368,6 +4368,12 @@ void Player::SetSpeeds( uint8 type, float speed )
 
 	switch(type)
 	{
+		case WALK:{
+			data.SetOpcode( SMSG_FORCE_WALK_SPEED_CHANGE );
+			m_walkSpeed = speed;
+
+			break; }
+
 		case RUN:
 			{
 				if(speed == m_lastRunSpeed)

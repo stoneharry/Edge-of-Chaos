@@ -1910,6 +1910,12 @@ void Creature::SetSpeeds( uint8 type, float speed ){
 	data << float( speed );
 
 	switch( type ){
+
+		case WALK:{
+			data.SetOpcode( SMSG_FORCE_WALK_SPEED_CHANGE );
+			m_walkSpeed = speed;
+			break;}
+
 		case RUN:{
 			data.SetOpcode(SMSG_FORCE_RUN_SPEED_CHANGE);
 			m_runSpeed = speed;

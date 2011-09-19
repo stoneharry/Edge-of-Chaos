@@ -19,8 +19,8 @@
  */
 
 // Last edited by:	$Author: dfighter1985 $
-// revision:		$Rev: 4565 $
-// date:		$Date: 2011-09-15 19:57:57 -0400 (Thu, 15 Sep 2011) $
+// revision:		$Rev: 4573 $
+// date:		$Date: 2011-09-17 15:53:29 -0400 (Sat, 17 Sep 2011) $
 
 
 #include "StdAfx.h"
@@ -8319,3 +8319,14 @@ void Unit::EnterVehicle( uint64 guid, uint32 delay ){
 
 	u->GetVehicleComponent()->AddPassenger( this );
 }
+
+Unit* Unit::GetVehicleBase(){
+	if( currentvehicle != NULL )
+		return currentvehicle->GetOwner();
+	else
+	if( vehicle != NULL )
+		return this;
+
+	return NULL;
+}
+

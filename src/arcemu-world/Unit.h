@@ -1940,6 +1940,8 @@ class SERVER_DECL Unit : public Object
 		void SendHopOnVehicle( Unit *vehicleowner, uint32 seat );
 		void SendHopOffVehicle( Unit *vehicleowner, LocationVector &landposition );
 
+		Unit* GetVehicleBase();
+
 		virtual Group* GetGroup() { return NULL; }
 		bool InParty(Unit* u);
 		bool InRaid(Unit* u);

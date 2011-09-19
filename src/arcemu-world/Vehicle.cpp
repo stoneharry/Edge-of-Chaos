@@ -136,6 +136,12 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid ){
 
 	passenger->SetPosition( v, false );
 
+	// Player's client sets these
+	if( passenger->IsCreature() ){
+		passenger->transporter_info.guid = owner->GetGUID();
+		passenger->transporter_info.seat = seatid;
+	}
+
 	if( passenger->IsPlayer() ){
 		WorldPacket ack( SMSG_CONTROL_VEHICLE, 0);
 		passenger->SendPacket( &ack );

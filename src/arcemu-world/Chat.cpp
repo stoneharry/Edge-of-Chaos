@@ -693,6 +693,7 @@ void CommandTableStorage::Init()
 		{ "ejectallpassengers",   'm', &ChatHandler::HandleVehicleEjectAllPassengersCommand, "Ejects all passengers from the vehicle",            NULL, 0, 0, 0 },
 		{ "installaccessories",   'm', &ChatHandler::HandleVehicleInstallAccessoriesCommand, "Installs the accessories for the selected vehicle", NULL, 0, 0, 0 },
 		{ "removeaccessories",    'm', &ChatHandler::HandleVehicleRemoveAccessoriesCommand,  "Removes the accessories of the selected vehicle",   NULL, 0, 0, 0 },
+		{ "addpassenger",         'm', &ChatHandler::HandleVehicleAddPassengerCommand,       "Adds a new NPC passenger to the vehicle",           NULL, 0, 0, 0 },
 		{ NULL,                   '0', NULL,                                                 "",                                                  NULL, 0, 0, 0 }
 	};
 
