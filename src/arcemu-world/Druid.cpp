@@ -1,6 +1,7 @@
 /*
- * ArcEntityProductions
- * Copyright (C) 2010-2011 <http://www.ArcEntityProductions.com/>
+ * ArcEmu MMORPG Server
+ * Copyright (C) 2005-2007 Ascent Team <http://www.ascentemu.com/>
+ * Copyright (C) 2008-2011 <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -17,4 +18,4 @@
  *
  */
 
-#include "precompiledheaders.h"
+#include "StdAfx.h"

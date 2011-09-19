@@ -546,7 +546,6 @@ RegType<Unit> UnitMethods[] =
 	{ "EjectAllPassengers", &LuaUnit::EjectAllPassengers },
 	{ "MovePassengerToSeat", &LuaUnit::MovePassengerToSeat },
 	{ "IsVehicle", &LuaUnit::IsVehicle },
-	{ "GetVehicle", &LuaUnit::GetVehicle },
 	{ "IsOnVehicle", &LuaUnit::IsOnVehicle },
 	{ "SpawnAndEnterVehicle", &LuaUnit::SpawnAndEnterVehicle },
 	{ "DismissVehicle", &LuaUnit::DismissVehicle },

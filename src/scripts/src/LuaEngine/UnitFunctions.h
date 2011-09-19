@@ -3673,10 +3673,10 @@ class LuaUnit
 			float Speed = CHECK_FLOAT(L, 1);
 			if(Speed < 1 || Speed > 255)
 				return 0;
-			plr->SetPlayerSpeed(RUN, Speed);
-			plr->SetPlayerSpeed(SWIM, Speed);
-			plr->SetPlayerSpeed(RUNBACK, Speed / 2);
-			plr->SetPlayerSpeed(FLY, Speed * 2);
+			plr->SetSpeeds(RUN, Speed);
+			plr->SetSpeeds(SWIM, Speed);
+			plr->SetSpeeds(RUNBACK, Speed / 2);
+			plr->SetSpeeds(FLY, Speed * 2);
 			return 0;
 		}
 
@@ -6048,13 +6048,6 @@ class LuaUnit
 			if(ptr->IsVehicle())
 				RET_BOOL(true)
 			RET_BOOL(false)
-		}
-
-		static int GetVehicle(lua_State* L, Unit* ptr)
-		{
-			TEST_UNITPLAYER();
-			PUSH_UNIT(L, TO_UNIT(ptr->GetCurrentVehicle()));
-			return 1;
 		}
 
 		static int IsOnVehicle( lua_State *L, Unit *ptr ){
