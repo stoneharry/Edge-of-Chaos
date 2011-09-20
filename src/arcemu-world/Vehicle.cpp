@@ -285,7 +285,7 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 		Creature *c = static_cast< Creature* >( passenger );
 		if(owner->IsPlayer())
 		{
-			c->Despawn(0, 0);
+			c->Despawn(3000, 0);
 			return;
 		}
 		if( c->GetScript() != NULL )
