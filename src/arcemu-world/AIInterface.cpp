@@ -3623,7 +3623,7 @@ bool AIInterface::Move(float & x, float & y, float & z, float o /*= 0*/)
 	{
 		if(!CreatePath(x, y, z))
 		{
-			StopMovement(0); //old spline is probly still active on client, need to keep in sync
+			MoveEvadeReturn();
 			return false;
 		}
 	}

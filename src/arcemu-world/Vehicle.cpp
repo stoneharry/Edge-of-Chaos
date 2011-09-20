@@ -283,8 +283,13 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 
 	if( passenger->IsCreature() ){
 		Creature *c = static_cast< Creature* >( passenger );
-
-		if( c->GetScript() != NULL ){
+		if(owner->IsPlayer())
+		{
+			c->Despawn(0, 0);
+			return;
+		}
+		if( c->GetScript() != NULL )
+		{
 			c->GetScript()->OnExitVehicle();
 		}
 	}
