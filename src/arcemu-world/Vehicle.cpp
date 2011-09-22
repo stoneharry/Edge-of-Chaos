@@ -172,6 +172,7 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid ){
 		passenger->SetFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NOT_ATTACKABLE_2 );
 
 	passengercount++;
+	freeseats--;
 
 	// remove spellclick flag if full
 	if( !HasEmptySeat() ){
@@ -273,6 +274,7 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 	passenger->SetCurrentVehicle( NULL );
 	passenger->RemoveFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NOT_ATTACKABLE_2 );
 	passengercount--;
+	freeseats++;
 
 	if( HasEmptySeat() ){
 		if( owner->IsPlayer() )
@@ -473,6 +475,7 @@ void Vehicle::InstallAccessories(){
 		c->Load( cp, owner->GetPositionX(), owner->GetPositionY(), owner->GetPositionZ(), owner->GetOrientation() );
 		c->transporter_info.guid = owner->GetGUID();
 		c->transporter_info.seat = accessory->seat;
+		c->Phase( PHASE_SET, owner->GetPhase() );
 		c->PushToWorld( owner->GetMapMgr() );
 		
 		AddPassengerToSeat( c, accessory->seat );

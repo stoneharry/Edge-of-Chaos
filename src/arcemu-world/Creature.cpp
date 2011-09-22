@@ -1355,7 +1355,6 @@ bool Creature::Load(CreatureSpawn* spawn, uint32 mode, MapInfo* info)
 	{
 		GetAIInterface()->SetAllowedToEnterCombat(false);
 		GetAIInterface()->SetAIType(AITYPE_PASSIVE);
-		Root();
 	}
 
 	// load formation data
@@ -1437,7 +1436,9 @@ bool Creature::Load(CreatureSpawn* spawn, uint32 mode, MapInfo* info)
 		SetFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK );
 		setAItoUse( false );
 	}
-
+	if( proto->rooted != 0 )
+		Root();
+	
 	return true;
 }
 
@@ -1458,7 +1459,6 @@ void Creature::Load(CreatureProto* proto_, float x, float y, float z, float o)
 	{
 		GetAIInterface()->SetAllowedToEnterCombat(false);
 		GetAIInterface()->SetAIType(AITYPE_PASSIVE);
-		Root();
 	}
 
 	m_walkSpeed = m_base_walkSpeed = proto->walk_speed; //set speeds
@@ -1616,6 +1616,9 @@ void Creature::Load(CreatureProto* proto_, float x, float y, float z, float o)
 		SetFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK );
 		setAItoUse( false );
 	}
+	
+	if( proto->rooted != 0 )
+		Root();
 }
 
 void Creature::OnPushToWorld()

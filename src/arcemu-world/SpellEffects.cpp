@@ -2318,7 +2318,8 @@ void Spell::SpellEffectSummonVehicle( uint32 i, SummonPropertiesEntry *spe, Crea
 		return;
 
 	Creature *c = u_caster->GetMapMgr()->CreateCreature( proto->Id );
-	c->Load( proto,v.x, v.y, v.z, v.o );	
+	c->Load( proto,v.x, v.y, v.z, v.o );
+	c->Phase( PHASE_SET, u_caster->GetPhase() );	
 	c->SetCreatedBySpell( m_spellInfo->Id );
 	c->SetCreatedByGUID( u_caster->GetGUID() );
 	c->SetSummonedByGUID( u_caster->GetGUID() );

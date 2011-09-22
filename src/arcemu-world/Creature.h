@@ -173,6 +173,7 @@ struct CreatureProto
 	uint32 summonguard;
 	uint32 spelldataid;
 	uint32 vehicleid;
+	uint32 rooted;
 
 	/* AI Stuff */
 	bool m_canRangedAttack;
