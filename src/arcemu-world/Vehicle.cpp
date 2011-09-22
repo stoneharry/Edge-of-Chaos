@@ -23,6 +23,7 @@ Vehicle::Vehicle(){
 	owner = NULL;
 	vehicle_info = NULL;
 	passengercount = 0;
+	freeseats = 0;
 	std::fill( seats.begin(), seats.end(), reinterpret_cast< VehicleSeat* >( NULL ) );
 	installed_accessories.clear();
 }
@@ -82,13 +83,15 @@ void Vehicle::Load( Unit *owner, uint32 creature_entry, uint32 vehicleid ){
 		break;
 	}
 
+	for( uint32 i = 0; i < MAX_VEHICLE_SEATS; i++ )
+		if( ( seats[ i ] != NULL ) && seats[ i ]->Usable() && ( !seats[ i ]->HasPassenger() ) )
+			freeseats++;
 }
 
 bool Vehicle::HasEmptySeat(){
-	for( uint32 i = 0; i < MAX_VEHICLE_SEATS; i++ )
-		if( ( seats[ i ] != NULL ) && seats[ i ]->Usable() && ( !seats[ i ]->HasPassenger() ) )
-			return true;
-
+	if( freeseats > 0 )
+		return true;
+	else
 	return false;
 }
 

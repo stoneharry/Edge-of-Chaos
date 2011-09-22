@@ -472,6 +472,7 @@ private:
 	Unit *owner;
 	VehicleEntry *vehicle_info;
 	uint32 passengercount;
+	uint32 freeseats;
 };
 
 struct VehicleAccessoryEntry{
