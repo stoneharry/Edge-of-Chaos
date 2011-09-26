@@ -8227,7 +8227,7 @@ void Unit::HandleKnockback(Object* caster, float horizontal, float vertical)
 		angle = GetOrientation() + M_PI;
 
 	float destx, desty, destz;
-	if(GetPoint(angle, horizontal, destx, desty, destz, true))
+	if(GetPoint(angle, horizontal, destx, desty, destz))
 		GetAIInterface()->MoveKnockback(destx, desty, destz, horizontal, vertical);
 }
 
