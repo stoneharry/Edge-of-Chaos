@@ -2255,7 +2255,7 @@ void World::SendZoneUnderAttackMsg(uint32 areaid, uint8 team)
 
 bool World::IsTrialAccount(uint32 accountid)
 {
-	QueryResult * r = WorldDatabase.Query("select trial from `%s`.`accounts` where acct = %u", Config.MainConfig.GetStringDefault("Server", "LogonDatabaseName", "zlogon"), accountid);
+	QueryResult * r = WorldDatabase.Query("select trial from `%s`.`accounts` where acct = %u", Config.MainConfig.GetStringDefault("Server", "LogonDatabaseName", "zlogon").c_str(), accountid);
 	if(!r)
 		return false;
 

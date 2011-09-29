@@ -103,6 +103,7 @@ void WorldSession::HandleQuestgiverHelloOpcode(WorldPacket & recv_data)
 	if(qst_giver->GetCreatureInfo()->no_trial && sWorld.IsTrialAccount(GetAccountId()))
 	{
 		sChatHandler.RedSystemMessage(this, "You are prohibited to talk to %s on a trial account", qst_giver->GetCreatureInfo()->Name);
+		return;
 	}
 	/*if(qst_giver->GetAIInterface()) // NPC Stops moving for 3 minutes
 		qst_giver->GetAIInterface()->StopMovement(180000);*/

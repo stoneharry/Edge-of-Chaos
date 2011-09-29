@@ -740,10 +740,11 @@ bool Player::Create(WorldPacket & data)
 		SetTalentPoints(sWorld.DKStartTalentPoints); // Default is 0 in case you do not want to modify it
 	else
 		SetTalentPoints(0);
-	if(class_ != DEATHKNIGHT || sWorld.StartingLevel > 55)
+	uint32 start_level = (sWorld.IsTrialAccount(GetSession()->GetAccountId()) ? 19 : sWorld.StartingLevel);
+	if(class_ != DEATHKNIGHT || start_level > 55)
 	{
-		setLevel(sWorld.StartingLevel);
-		if(sWorld.StartingLevel >= 10 && class_ != DEATHKNIGHT)
+		setLevel(start_level);
+		if(start_level >= 10 && class_ != DEATHKNIGHT)
 			SetTalentPoints(sWorld.StartingLevel - 9);
 	}
 	else
