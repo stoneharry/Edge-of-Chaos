@@ -888,7 +888,12 @@ void LootRoll::PlayerRolled(Player* player, uint8 choice)
 {
 	if(m_NeedRolls.find(player->GetLowGUID()) != m_NeedRolls.end() || m_GreedRolls.find(player->GetLowGUID()) != m_GreedRolls.end())
 		return; // don't allow cheaters
-
+	ItemPrototype* itemProto = ItemPrototypeStorage.LookupEntry(_itemid);
+	if(itemProto && itemProto->no_trial && player && sWorld.IsTrialAccount(player->GetSession()->GetAccountId()))
+	{
+		sChatHandler.RedSystemMessage(player->GetSession(), "Forced to pass on item %s because it is prohibited for trial accounts.");
+		choice = 3;
+	}
 	int roll = RandomUInt(99) + 1;
 	// create packet
 	WorldPacket data(34);

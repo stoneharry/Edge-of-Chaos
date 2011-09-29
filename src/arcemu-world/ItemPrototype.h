@@ -661,7 +661,7 @@ struct ItemPrototype
 	uint32 ExistingDuration;
 	uint32 ItemLimitCategory;
 	uint32 HolidayId;
-
+	bool no_trial;
 	string lowercase_name;	// used in auctions
 	uint32 FoodType;		//pet food type
 	int32 ForcedPetId;

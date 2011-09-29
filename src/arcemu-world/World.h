@@ -635,6 +635,7 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 		uint32 m_bgSet_SOTA_MIN;
 		uint32 m_bgSet_SOTA_MAX;
 
+
 		// damage/hp/mp cap settings
 		struct
 		{
@@ -731,6 +732,8 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 		static float m_movementCompressThresholdCreatures;
 		static uint32 m_movementCompressRate;
 		static uint32 m_movementCompressInterval;
+
+		bool IsTrialAccount(uint32 accountid);
 		/*
 		 * Traffic meter stuff
 		 */
@@ -769,7 +772,6 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 		{
 			return perfcounter.GetCurrentRAMUsage();
 		}
-
 };
 
 #define sWorld World::getSingleton()

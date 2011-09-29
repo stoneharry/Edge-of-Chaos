@@ -416,6 +416,11 @@ void WorldSession::HandleGossipHelloOpcode(WorldPacket & recv_data)
 
 	if(qst_giver != NULL)
 	{
+		if(qst_giver->GetCreatureInfo()->no_trial && sWorld.IsTrialAccount(GetAccountId()))
+		{
+			sChatHandler.RedSystemMessage(this, "You may not interact with %s on a trial account.", qst_giver->GetCreatureInfo()->Name);
+			return;
+		}
 		//stop when talked to
 		if(qst_giver->GetAIInterface())
 			qst_giver->GetAIInterface()->StopMovement(30000);

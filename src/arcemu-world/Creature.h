@@ -108,7 +108,7 @@ struct CreatureInfo
 	uint8  Leader;
 	uint32 QuestItems[6];
 	uint32 waypointid;
-
+	bool no_trial;
 	std::string lowercase_name;
 	NpcMonsterSay* MonsterSay[NUM_MONSTER_SAY_EVENTS];
 

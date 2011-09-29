@@ -1481,7 +1481,6 @@ void World::Rehash(bool load)
 	m_limits.manaCap = (uint32)Config.MainConfig.GetIntDefault("Limits", "Mana", 80000);
 	m_limits.disconnect = Config.MainConfig.GetBoolDefault("Limits", "Disconnect", false);
 	m_limits.broadcast = Config.MainConfig.GetBoolDefault("Limits", "BroadcastGMs", true);
-
 	if(instance_DailyHeroicInstanceResetHour < 0)
 		instance_DailyHeroicInstanceResetHour = 0;
 	if(instance_DailyHeroicInstanceResetHour > 23)
@@ -2254,3 +2253,11 @@ void World::SendZoneUnderAttackMsg(uint32 areaid, uint8 team)
 	SendFactionMessage(&data, team);
 }
 
+bool World::IsTrialAccount(uint32 accountid)
+{
+	QueryResult * r = WorldDatabase.Query("select trial from `%s`.`accounts` where acct = %u", Config.MainConfig.GetStringDefault("Server", "LogonDatabaseName", "zlogon"), accountid);
+	if(!r)
+		return false;
+
+	return r->Fetch()[0].GetBool();
+}

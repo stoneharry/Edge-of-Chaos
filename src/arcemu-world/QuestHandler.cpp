@@ -100,7 +100,10 @@ void WorldSession::HandleQuestgiverHelloOpcode(WorldPacket & recv_data)
 		LOG_DEBUG("WORLD: Creature is not a questgiver.");
 		return;
 	}
-
+	if(qst_giver->GetCreatureInfo()->no_trial && sWorld.IsTrialAccount(GetAccountId()))
+	{
+		sChatHandler.RedSystemMessage(this, "You are prohibited to talk to %s on a trial account", qst_giver->GetCreatureInfo()->Name);
+	}
 	/*if(qst_giver->GetAIInterface()) // NPC Stops moving for 3 minutes
 		qst_giver->GetAIInterface()->StopMovement(180000);*/
 

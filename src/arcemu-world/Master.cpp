@@ -589,13 +589,6 @@ bool Master::CheckDBVersion()
 	uint32 WorldDBVersion = f->GetUInt32();
 
 	Log.Notice("Database", "World database version: %u", WorldDBVersion);
-	if(WorldDBVersion != REQUIRED_WORLD_DB_VERSION)
-	{
-		Log.Error("Database", "World database version doesn't match the required version which is %u.", REQUIRED_WORLD_DB_VERSION);
-		Log.Error("Database", "You need to apply the world update queries that start with a larger number than %u. Exiting.", WorldDBVersion);
-		delete wqr;
-		return false;
-	}
 
 	delete wqr;
 
@@ -610,14 +603,6 @@ bool Master::CheckDBVersion()
 	uint32 CharDBVersion = f->GetUInt32();
 
 	Log.Notice("Database", "Character database version: %u", CharDBVersion);
-	if(CharDBVersion != REQUIRED_CHAR_DB_VERSION)
-	{
-		Log.Error("Database", "Character database version doesn't match the required version which is %u.", REQUIRED_CHAR_DB_VERSION);
-		Log.Error("Database", "You need to apply the character update queries that start with a larger number than %u. Exiting.", CharDBVersion);
-		delete cqr;
-		return false;
-	}
-
 	delete cqr;
 
 	Log.Success("Database", "Database versions successfully validated.");

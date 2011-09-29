@@ -222,7 +222,7 @@ struct Quest
 	uint32 incompleteemote;
 	uint32 iscompletedbyspelleffect;
 	uint32 RewXPId;
-
+	bool no_trial;
 	/* this marks the end of the fields loaded from db - don't remove the comment please */
 
 	uint32 count_required_mob;

@@ -1961,23 +1961,14 @@ int8 ItemInterface::CanEquipItemInSlot2(int8 DstInvSlot, int8 slot, Item* item, 
 		for(uint32 count = 0; count < item->GetSocketsCount(); count++)
 		{
 			EnchantmentInstance* ei = item->GetEnchantment(SOCK_ENCHANTMENT_SLOT1 + count);
-			if(ei
-			        && ei->Enchantment->GemEntry //huh ? Gem without entry ?
-			  )
+			if(ei && ei->Enchantment->GemEntry) //huh ? Gem without entry ?
 			{
 				ItemPrototype* ip = ItemPrototypeStorage.LookupEntry(ei->Enchantment->GemEntry);
-
-				if(
-				    ip //maybe gem got removed from db due to update ?
-				)
+				
+				if(ip)//maybe gem got removed from db due to update ?
 				{
-					if(
-					    ip->Flags & ITEM_FLAG_UNIQUE_EQUIP
-					    &&  IsEquipped(ip->ItemId)
-					)
-					{
+					if(ip->Flags & ITEM_FLAG_UNIQUE_EQUIP &&  IsEquipped(ip->ItemId))
 						return INV_ERR_CANT_CARRY_MORE_OF_THIS;
-					}
 
 					if(ip->ItemLimitCategory > 0)
 					{
@@ -2081,6 +2072,15 @@ int8 ItemInterface::CanEquipItemInSlot(int8 DstInvSlot, int8 slot, ItemPrototype
 		// You are dead !
 		if(m_pOwner->getDeathState() != ALIVE)
 			return INV_ERR_YOU_ARE_DEAD;
+	}
+
+	if(slot <= EQUIPMENT_SLOT_END && proto->no_trial)
+	{
+		if(GetOwner() && sWorld.IsTrialAccount(GetOwner()->GetSession()->GetAccountId()))
+		{
+			sChatHandler.RedSystemMessage(GetOwner()->GetSession(), "Use of that item is prohibited for trial accounts.");
+			return INV_ERR_ITEM_LOCKED;
+		}			
 	}
 
 	switch(uint8(slot))//CURRENCYTOKEN_SLOT_ are over 128
@@ -2491,7 +2491,11 @@ int8 ItemInterface::CanReceiveItem(ItemPrototype* item, uint32 amount)
 	{
 		return INV_ERR_OK;
 	}
-
+	if(item->no_trial && GetOwner() && sWorld.IsTrialAccount(GetOwner()->GetSession()->GetAccountId()))
+	{
+		sChatHandler.RedSystemMessage(GetOwner()->GetSession(), "It is prohibited for trial accounts to have item %s.", item->Name1);
+		return INV_ERR_ITEM_LOCKED;
+	}
 	if(item->Unique)
 	{
 		uint32 count = GetItemCount(item->ItemId, true);

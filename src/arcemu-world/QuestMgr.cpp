@@ -128,6 +128,14 @@ uint32 QuestMgr::CalcQuestStatus(Object* quest_giver, Player* plr, Quest* qst, u
 
 	qle = plr->GetQuestLogForEntry(qst->id);
 
+	if(qst)
+	{
+		if(qst->no_trial && sWorld.IsTrialAccount(plr->GetSession()->GetAccountId()))
+		{
+			return QMGR_QUEST_NOT_AVAILABLE;
+		}
+	}
+
 	if(!qle)
 	{
 		if(type & QUESTGIVER_QUEST_START)
@@ -286,6 +294,14 @@ uint32 QuestMgr::ActiveQuestsCount(Object* quest_giver, Player* plr)
 
 	for(itr = q_begin; itr != q_end; ++itr)
 	{
+		if((*itr)->qst)
+		{
+			if((*itr)->qst->no_trial && sWorld.IsTrialAccount(plr->GetSession()->GetAccountId()))
+			{
+				sChatHandler.RedSystemMessageToPlr(plr, "Skipping quest %s because trial accounts cannot complete it", (*itr)->qst->title);
+				continue;
+			}
+		}
 		if(CalcQuestStatus(quest_giver, plr, *itr) >= QMGR_QUEST_CHAT)
 		{
 			if(tmp_map.find((*itr)->qst->id) == tmp_map.end())
@@ -633,6 +649,14 @@ void QuestMgr::BuildQuestList(WorldPacket* data, Object* qst_giver, Player* plr,
 		{
 			if(tmp_map.find((*it)->qst->id) == tmp_map.end())
 			{
+				if((*it)->qst)
+				{
+					if((*it)->qst->no_trial && sWorld.IsTrialAccount(plr->GetSession()->GetAccountId()))
+					{
+						sChatHandler.RedSystemMessageToPlr(plr, "Skipping quest %s because it is prohibited for trial accounts", (*it)->qst->title);
+						continue;
+					}
+				}
 				tmp_map.insert(std::map<uint32, uint8>::value_type((*it)->qst->id, 1));
 				LocalizedQuest* lq = (language > 0) ? sLocalizationMgr.GetLocalizedQuest((*it)->qst->id, language) : NULL;
 
@@ -659,7 +683,7 @@ void QuestMgr::BuildQuestList(WorldPacket* data, Object* qst_giver, Player* plr,
 				}
 				*data << int32((*it)->qst->questlevel);
 				*data << uint32((*it)->qst->quest_flags);
-				*data << uint8(0);   // According to MANGOS: "changes icon: blue question or yellow exclamation"
+				*data << uint8((*it)->qst->is_repeatable);   // According to MANGOS: "changes icon: blue question or yellow exclamation"
 
 				if(lq)
 					*data << lq->Title;

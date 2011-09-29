@@ -22,9 +22,9 @@
 
 /** Table formats converted to strings
  */
-const char * gItemPrototypeFormat						= "uuuusuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuffuffuuuuuuuuuufuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuusuuuuuuuuuuuuuuuuuuuuuuuuuuuuu";
+const char * gItemPrototypeFormat						= "uuuusuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuffuffuuuuuuuuuufuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuusuuuuuuuuuuuuuuuuuuuuuuuuuuuuub";
 const char * gItemNameFormat							= "usu";
-const char * gCreatureNameFormat						= "usssuuuuuuuuuuffcuuuuuuu";
+const char * gCreatureNameFormat						= "usssuuuuuuuuuuffcuuuuuuub";
 const char * gGameObjectNameFormat						= "uuussssuuuuuuuuuuuuuuuuuuuuuuuufuuuuuu";
 const char * gCreatureProtoFormat						= "uuuuuuufuuuffuuffuuuuuuuuffsuuufffuuuuuuuuuuuuuuuuu";
 const char * gDisplayBoundingFormat						= "ufffffff";
@@ -32,7 +32,7 @@ const char * gVendorRestrictionEntryFormat				= "uuuuuuuu";
 const char * gAreaTriggerFormat							= "ucuusffffuu";
 const char * gItemPageFormat							= "usu";
 const char * gNpcTextFormat								= "ufssuuuuuuufssuuuuuuufssuuuuuuufssuuuuuuufssuuuuuuufssuuuuuuufssuuuuuuufssuuuuuuu";
-const char * gQuestFormat								= "uuuuuuuuuuuuuuuuuuussssssssssuuuuuuuuuuuuiiiiuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuiiiiiiuiuuuuuuuuuuuusuuuusuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu";
+const char * gQuestFormat								= "uuuuuuuuuuuuuuuuuuussssssssssuuuuuuuuuuuuiiiiuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuiiiiiiuiuuuuuuuuuuuusuuuusuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuub";
 //const char * gSpellExtraFormat							= "uuuu";
 const char* gGraveyardFormat							= "uffffuuuux";
 const char* gTeleportCoordFormat						= "uxufffx";
