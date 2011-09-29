@@ -2081,6 +2081,10 @@ void Creature::Die(Unit* pAttacker, uint32 damage, uint32 spellid)
 		GetVehicleComponent()->EjectAllPassengers();
 	}
 
+	// Creature falls off vehicle on death
+	if( ( currentvehicle != NULL ) )
+		currentvehicle->EjectPassenger( this );
+	
 	//general hook for die
 	if(!sHookInterface.OnPreUnitDie(pAttacker, this))
 		return;
