@@ -3700,9 +3700,12 @@ void Player::OnPushToWorld()
 
 	if(m_FirstLogin)
 	{
+		if(sWorld.IsTrialAccount(GetSession()->GetAccountId()))
+			startlevel = 19;
+		else
+			startlevel = sWorld.StartingLevel;
 		if(class_ == DEATHKNIGHT)
 			startlevel = static_cast<uint8>(max(55, sWorld.StartingLevel));
-		else startlevel = static_cast<uint8>(sWorld.StartingLevel);
 
 		sHookInterface.OnFirstEnterWorld(this);
 		LevelInfo* Info = objmgr.GetLevelInfo(getRace(), getClass(), startlevel);
