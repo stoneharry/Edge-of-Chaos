@@ -1049,7 +1049,8 @@ void WorldSession::FullLogin(Player* plr)
 		plr->AddToWorld();
 
 	objmgr.AddPlayer(_player);
-	_player->BroadcastMessage("%sDue to your account being a trial, your access to content is limited.", MSG_COLOR_RED);
+	if (sWorld.IsTrialAccount(_player->GetSession()->GetAccountId()))
+		_player->BroadcastMessage("%sDue to your account being a trial, your access to content is limited.", MSG_COLOR_RED);
 }
 
 bool ChatHandler::HandleRenameCommand(const char* args, WorldSession* m_session)
