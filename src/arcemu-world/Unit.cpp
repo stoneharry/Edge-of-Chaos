@@ -18,9 +18,9 @@
  *
  */
 
-// Last edited by:	$Author: dfighter1985 $
-// revision:		$Rev: 4573 $
-// date:		$Date: 2011-09-17 15:53:29 -0400 (Sat, 17 Sep 2011) $
+// Last edited by:	$Author: jackpoz $
+// revision:		$Rev: 4616 $
+// date:		$Date: 2011-10-02 13:08:12 -0400 (Sun, 02 Oct 2011) $
 
 
 #include "StdAfx.h"
@@ -3845,6 +3845,7 @@ void Unit::Strike(Unit* pVictim, uint32 weapon_damage_type, SpellEntry* ability,
 					else
 						hit_status |= HITSTATUS_BLOCK;
 				}
+				CALL_SCRIPT_EVENT(this, OnHit)(pVictim, realdamage);
 			}
 			break;
 	}
