@@ -407,6 +407,7 @@ bool World::SetInitialWorldSettings()
 	Storage_LoadAdditionalTables();
 
 	MAKE_TASK(ObjectMgr, LoadPlayerCreateInfo);
+	MAKE_TASK(ObjectMgr, LoadTrialCreateInfo);
 	MAKE_TASK(ObjectMgr, LoadPlayersInfo);
 	tl.wait();
 
