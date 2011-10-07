@@ -401,6 +401,7 @@ class SERVER_DECL ObjectMgr : public Singleton < ObjectMgr >, public EventableOb
 		typedef HM_NAMESPACE::hash_map<uint32, CorpseData*>                 CorpseCollectorMap;
 		typedef HM_NAMESPACE::hash_map<uint32, PlayerInfo*>                 PlayerNameMap;
 		typedef HM_NAMESPACE::hash_map<uint32, PlayerCreateInfo*>           PlayerCreateInfoMap;
+		typedef HM_NAMESPACE::hash_map<uint32, PlayerCreateInfo*>           TrialCreateInfoMap;
 		typedef HM_NAMESPACE::hash_map<uint32, Guild*>                      GuildMap;
 		typedef HM_NAMESPACE::hash_map<uint32, skilllinespell*>             SLMap;
 		typedef HM_NAMESPACE::hash_map<uint32, std::vector<CreatureItem>*>  VendorMap;
@@ -474,7 +475,8 @@ class SERVER_DECL ObjectMgr : public Singleton < ObjectMgr >, public EventableOb
 		PlayerInfo* GetPlayerInfoByName(const char* name);
 		void RenamePlayerInfo(PlayerInfo* pn, const char* oldname, const char* newname);
 		void DeletePlayerInfo(uint32 guid);
-		PlayerCreateInfo* GetPlayerCreateInfo(uint8 race, uint8 class_) const;
+		PlayerCreateInfo* GetPlayerCreateInfo(uint8 race, uint8 class_, bool Trial) const;
+		PlayerCreateInfo* GetTrialCreateInfo(uint8 race, uint8 class_) const;
 
 		// Guild
 		void AddGuild(Guild* pGuild);
@@ -536,6 +538,7 @@ class SERVER_DECL ObjectMgr : public Singleton < ObjectMgr >, public EventableOb
 		void LoadQuests();
 		void LoadPlayersInfo();
 		void LoadPlayerCreateInfo();
+		void LoadTrialCreateInfo();
 		void LoadGuilds();
 		Corpse* LoadCorpse(uint32 guid);
 		void LoadCorpses(MapMgr* mgr);
@@ -773,6 +776,7 @@ class SERVER_DECL ObjectMgr : public Singleton < ObjectMgr >, public EventableOb
 
 		// Map of all starting infos needed for player creation
 		PlayerCreateInfoMap mPlayerCreateInfo;
+		TrialCreateInfoMap mTrialCreateInfo;
 
 		// DK: Map of all Guild's
 		GuildMap mGuild;

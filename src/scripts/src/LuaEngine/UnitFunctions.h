@@ -6236,5 +6236,17 @@ class LuaUnit
 
 			return 1;
 		}
+
+		static int IsTrial( lua_State *L, Unit *ptr )
+		{
+			TEST_PLAYER_RET();
+
+			if( TO_PLAYER(ptr)->IsTrial() )
+				lua_pushboolean( L, 1 );
+			else
+				lua_pushboolean( L, 0 );
+
+			return 1;
+		}
 };
 #endif

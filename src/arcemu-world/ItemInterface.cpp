@@ -2076,7 +2076,7 @@ int8 ItemInterface::CanEquipItemInSlot(int8 DstInvSlot, int8 slot, ItemPrototype
 
 	if(slot <= EQUIPMENT_SLOT_END && proto->no_trial)
 	{
-		if(GetOwner() && sWorld.IsTrialAccount(GetOwner()->GetSession()->GetAccountId()))
+		if(GetOwner() && GetOwner()->IsTrial())
 		{
 			sChatHandler.RedSystemMessage(GetOwner()->GetSession(), "Use of that item is prohibited for trial accounts.");
 			return INV_ERR_ITEM_LOCKED;
@@ -2491,7 +2491,7 @@ int8 ItemInterface::CanReceiveItem(ItemPrototype* item, uint32 amount)
 	{
 		return INV_ERR_OK;
 	}
-	if(item->no_trial && GetOwner() && sWorld.IsTrialAccount(GetOwner()->GetSession()->GetAccountId()))
+	if(item->no_trial && GetOwner() && GetOwner()->IsTrial())
 	{
 		sChatHandler.RedSystemMessage(GetOwner()->GetSession(), "It is prohibited for trial accounts to have item %s.", item->Name1);
 		return INV_ERR_ITEM_LOCKED;

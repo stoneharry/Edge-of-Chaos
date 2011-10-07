@@ -130,7 +130,7 @@ uint32 QuestMgr::CalcQuestStatus(Object* quest_giver, Player* plr, Quest* qst, u
 
 	if(qst)
 	{
-		if(qst->no_trial && sWorld.IsTrialAccount(plr->GetSession()->GetAccountId()))
+		if(qst->no_trial && plr->IsTrial())
 		{
 			return QMGR_QUEST_NOT_AVAILABLE;
 		}
@@ -296,7 +296,7 @@ uint32 QuestMgr::ActiveQuestsCount(Object* quest_giver, Player* plr)
 	{
 		if((*itr)->qst)
 		{
-			if((*itr)->qst->no_trial && sWorld.IsTrialAccount(plr->GetSession()->GetAccountId()))
+			if((*itr)->qst->no_trial && plr->IsTrial())
 			{
 				sChatHandler.RedSystemMessageToPlr(plr, "Skipping quest %s because trial accounts cannot complete it", (*itr)->qst->title);
 				continue;
@@ -651,7 +651,7 @@ void QuestMgr::BuildQuestList(WorldPacket* data, Object* qst_giver, Player* plr,
 			{
 				if((*it)->qst)
 				{
-					if((*it)->qst->no_trial && sWorld.IsTrialAccount(plr->GetSession()->GetAccountId()))
+					if((*it)->qst->no_trial && plr->IsTrial())
 					{
 						sChatHandler.RedSystemMessageToPlr(plr, "Skipping quest %s because it is prohibited for trial accounts", (*it)->qst->title);
 						continue;

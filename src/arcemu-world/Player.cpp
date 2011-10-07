@@ -650,7 +650,7 @@ bool Player::Create(WorldPacket & data)
 	data >> race >> class_ >> gender >> skin >> face;
 	data >> hairStyle >> hairColor >> facialHair >> outfitId;
 
-	info = objmgr.GetPlayerCreateInfo(race, class_);
+	info = objmgr.GetPlayerCreateInfo(race, class_, m_session->IsTrial());
 	if(!info)
 	{
 		// info not found... disconnect
@@ -740,7 +740,7 @@ bool Player::Create(WorldPacket & data)
 		SetTalentPoints(sWorld.DKStartTalentPoints); // Default is 0 in case you do not want to modify it
 	else
 		SetTalentPoints(0);
-	uint32 start_level = (sWorld.IsTrialAccount(GetSession()->GetAccountId()) ? 19 : sWorld.StartingLevel);
+	uint32 start_level = (IsTrial() ? 19 : sWorld.StartingLevel);
 	if(class_ != DEATHKNIGHT || start_level > 55)
 	{
 		setLevel(start_level);
@@ -2799,7 +2799,7 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 	SetPowerType(static_cast<uint8>(myClass->power_type));
 
 	// obtain player create info
-	info = objmgr.GetPlayerCreateInfo(getRace(), getClass());
+	info = objmgr.GetPlayerCreateInfo(getRace(), getClass(), IsTrial());
 	if(!info)
 	{
 		LOG_ERROR("player guid %u has no playerCreateInfo!", (unsigned int)GetLowGUID());
@@ -3700,7 +3700,7 @@ void Player::OnPushToWorld()
 
 	if(m_FirstLogin)
 	{
-		if(sWorld.IsTrialAccount(GetSession()->GetAccountId()))
+		if(IsTrial())
 			startlevel = 19;
 		else
 			startlevel = sWorld.StartingLevel;
@@ -6322,7 +6322,7 @@ void Player::AreaExploredOrEventHappens(uint32 questId)
 
 void Player::Reset_Spells()
 {
-	PlayerCreateInfo* info = objmgr.GetPlayerCreateInfo(getRace(), getClass());
+	PlayerCreateInfo* info = objmgr.GetPlayerCreateInfo(getRace(), getClass(), IsTrial());
 	ARCEMU_ASSERT(info != NULL);
 
 	std::list<uint32> spelllist;
@@ -12123,7 +12123,7 @@ void Player::SendTriggerMovie(uint32 movieID)
 uint32 Player::GetInitialFactionId()
 {
 
-	PlayerCreateInfo* pci = objmgr.GetPlayerCreateInfo(getRace(), getClass());
+	PlayerCreateInfo* pci = objmgr.GetPlayerCreateInfo(getRace(), getClass(), IsTrial());
 	if(pci)
 		return pci->factiontemplate;
 	else

@@ -198,7 +198,7 @@ bool ChatHandler::HandleStartCommand(const char* args, WorldSession* m_session)
 	PlayerCreateInfo* info = NULL;
 	for(uint8 i = 1; i <= 11; i++)
 	{
-		info = objmgr.GetPlayerCreateInfo((raceid ? raceid : i), (classid ? classid : i));
+		info = objmgr.GetPlayerCreateInfo((raceid ? raceid : i), (classid ? classid : i), m_plyr->IsTrial());
 		if(info != NULL)
 			break;
 	}

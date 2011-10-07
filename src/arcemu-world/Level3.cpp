@@ -2530,7 +2530,7 @@ bool ChatHandler::HandleResetSkillsCommand(const char* args, WorldSession* m_ses
 	plr->_RemoveAllSkills();
 
 	// Load skills from create info.
-	PlayerCreateInfo* info = objmgr.GetPlayerCreateInfo(plr->getRace(), plr->getClass());
+	PlayerCreateInfo* info = objmgr.GetPlayerCreateInfo(plr->getRace(), plr->getClass(), plr->IsTrial());
 	if(!info) return true;
 
 	for(std::list<CreateInfo_SkillStruct>::iterator ss = info->skills.begin(); ss != info->skills.end(); ss++)

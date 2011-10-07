@@ -60,6 +60,13 @@ ObjectMgr::~ObjectMgr()
 	}
 	mPlayerCreateInfo.clear();
 
+	Log.Notice("ObjectMgr", "Deleting TrialCreateInfo...");
+	for(TrialCreateInfoMap::iterator i = mTrialCreateInfo.begin(); i != mTrialCreateInfo.end(); ++ i)
+	{
+		delete i->second;
+	}
+	mTrialCreateInfo.clear();
+
 	Log.Notice("ObjectMgr", "Deleting Guilds...");
 	for(GuildMap::iterator i = mGuild.begin(); i != mGuild.end(); ++i)
 	{
@@ -680,6 +687,137 @@ void ObjectMgr::LoadPlayerCreateInfo()
 	GenerateLevelUpInfo();
 }
 
+void ObjectMgr::LoadTrialCreateInfo()
+{
+	QueryResult* result = WorldDatabase.Query("SELECT * FROM trialcreateinfo");
+
+	if(!result)
+	{
+		Log.Error("MySQL", "Query failed: SELECT * FROM trialcreateinfo");
+		return;
+	}
+	if(result->GetFieldCount() != 25)
+	{
+		Log.Error("MySQL", "Wrong field count in table trialcreateinfo (got %lu, need 25)", result->GetFieldCount());
+		delete result;
+		return;
+	}
+
+	PlayerCreateInfo* pPlayerCreateInfo;
+
+	do
+	{
+		Field* fields = result->Fetch();
+		pPlayerCreateInfo = new PlayerCreateInfo;
+
+		pPlayerCreateInfo->index = fields[0].GetUInt8();
+		pPlayerCreateInfo->race = fields[1].GetUInt8();
+		pPlayerCreateInfo->factiontemplate = fields[2].GetUInt32();
+		pPlayerCreateInfo->class_ = fields[3].GetUInt8();
+		pPlayerCreateInfo->mapId = fields[4].GetUInt32();
+		pPlayerCreateInfo->zoneId = fields[5].GetUInt32();
+		pPlayerCreateInfo->positionX = fields[6].GetFloat();
+		pPlayerCreateInfo->positionY = fields[7].GetFloat();
+		pPlayerCreateInfo->positionZ = fields[8].GetFloat();
+		pPlayerCreateInfo->displayId = fields[9].GetUInt16();
+		pPlayerCreateInfo->strength = fields[10].GetUInt8();
+		pPlayerCreateInfo->ability = fields[11].GetUInt8();
+		pPlayerCreateInfo->stamina = fields[12].GetUInt8();
+		pPlayerCreateInfo->intellect = fields[13].GetUInt8();
+		pPlayerCreateInfo->spirit = fields[14].GetUInt8();
+		pPlayerCreateInfo->health = fields[15].GetUInt32();
+		pPlayerCreateInfo->mana = fields[16].GetUInt32();
+		pPlayerCreateInfo->rage = fields[17].GetUInt32();
+		pPlayerCreateInfo->focus = fields[18].GetUInt32();
+		pPlayerCreateInfo->energy = fields[19].GetUInt32();
+		pPlayerCreateInfo->attackpower = fields[20].GetUInt32();
+		pPlayerCreateInfo->mindmg = fields[21].GetFloat();
+		pPlayerCreateInfo->maxdmg = fields[22].GetFloat();
+		pPlayerCreateInfo->introid = fields[23].GetUInt32();
+
+		string taxiMaskStr = fields[24].GetString();
+		vector<string> tokens = StrSplit(taxiMaskStr, " ");
+
+		memset(pPlayerCreateInfo->taximask, 0, sizeof(pPlayerCreateInfo->taximask));
+		int index;
+		vector<string>::iterator iter;
+		for(iter = tokens.begin(), index = 0; (index < 12) && (iter != tokens.end()); ++iter, ++index)
+		{
+			pPlayerCreateInfo->taximask[index] = atol((*iter).c_str());
+		}
+
+		QueryResult* sk_sql = WorldDatabase.Query("SELECT * FROM trialcreateinfo_skills WHERE indexid=%u", pPlayerCreateInfo->index);
+
+		if(sk_sql)
+		{
+			do
+			{
+				Field* fields2 = sk_sql->Fetch();
+				CreateInfo_SkillStruct tsk;
+				tsk.skillid = fields2[1].GetUInt32();
+				tsk.currentval = fields2[2].GetUInt32();
+				tsk.maxval = fields2[3].GetUInt32();
+				pPlayerCreateInfo->skills.push_back(tsk);
+			}
+			while(sk_sql->NextRow());
+			delete sk_sql;
+		}
+		QueryResult* sp_sql = WorldDatabase.Query("SELECT * FROM trialcreateinfo_spells WHERE indexid=%u", pPlayerCreateInfo->index);
+
+		if(sp_sql)
+		{
+			do
+			{
+				pPlayerCreateInfo->spell_list.insert(sp_sql->Fetch()[1].GetUInt32());
+			}
+			while(sp_sql->NextRow());
+			delete sp_sql;
+		}
+
+		QueryResult* items_sql = WorldDatabase.Query("SELECT * FROM trialcreateinfo_items WHERE indexid=%u", pPlayerCreateInfo->index);
+
+		if(items_sql)
+		{
+			do
+			{
+				Field* fields2 = items_sql->Fetch();
+				CreateInfo_ItemStruct itm;
+				itm.protoid = fields2[1].GetUInt32();
+				itm.slot = fields2[2].GetUInt8();
+				itm.amount = fields2[3].GetUInt32();
+				pPlayerCreateInfo->items.push_back(itm);
+			}
+			while(items_sql->NextRow());
+			delete items_sql;
+		}
+
+		QueryResult* bars_sql = WorldDatabase.Query("SELECT * FROM trialcreateinfo_bars WHERE class=%u", pPlayerCreateInfo->class_);
+
+		if(bars_sql)
+		{
+			do
+			{
+				Field* fields2 = bars_sql->Fetch();
+				CreateInfo_ActionBarStruct bar;
+				bar.button = fields2[2].GetUInt32();
+				bar.action = fields2[3].GetUInt32();
+				bar.type = fields2[4].GetUInt32();
+				bar.misc = fields2[5].GetUInt32();
+				pPlayerCreateInfo->actionbars.push_back(bar);
+			}
+			while(bars_sql->NextRow());
+			delete bars_sql;
+		}
+
+		mTrialCreateInfo[pPlayerCreateInfo->index] = pPlayerCreateInfo;
+	}
+	while(result->NextRow());
+
+	delete result;
+
+	Log.Success("ObjectMgr", "%u trial create infos loaded.", mPlayerCreateInfo.size());
+}
+
 // DK:LoadGuilds()
 void ObjectMgr::LoadGuilds()
 {
@@ -1173,10 +1311,23 @@ Player* ObjectMgr::GetPlayer(uint32 guid)
 	return rv;
 }
 
-PlayerCreateInfo* ObjectMgr::GetPlayerCreateInfo(uint8 race, uint8 class_) const
+PlayerCreateInfo* ObjectMgr::GetPlayerCreateInfo(uint8 race, uint8 class_, bool Trial) const
 {
+	if(Trial)
+		return GetTrialCreateInfo(race, class_);
 	PlayerCreateInfoMap::const_iterator itr;
 	for(itr = mPlayerCreateInfo.begin(); itr != mPlayerCreateInfo.end(); itr++)
+	{
+		if((itr->second->race == race) && (itr->second->class_ == class_))
+			return itr->second;
+	}
+	return NULL;
+}
+
+PlayerCreateInfo* ObjectMgr::GetTrialCreateInfo(uint8 race, uint8 class_) const
+{
+	TrialCreateInfoMap::const_iterator itr;
+	for(itr = mTrialCreateInfo.begin(); itr != mTrialCreateInfo.end(); itr++)
 	{
 		if((itr->second->race == race) && (itr->second->class_ == class_))
 			return itr->second;

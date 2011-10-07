@@ -2561,6 +2561,8 @@ class SERVER_DECL Player : public Unit
 		bool CanTrainAt(Trainer*);
 
 		Object* GetPlayerOwner() { return this; };
+
+		bool IsTrial() { return m_session->IsTrial(); }
 };
 
 class SkillIterator

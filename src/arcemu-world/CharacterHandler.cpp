@@ -1049,7 +1049,7 @@ void WorldSession::FullLogin(Player* plr)
 		plr->AddToWorld();
 
 	objmgr.AddPlayer(_player);
-	if (sWorld.IsTrialAccount(_player->GetSession()->GetAccountId()))
+	if (IsTrial())
 		_player->BroadcastMessage("%sDue to your account being a trial, your access to content is limited.", MSG_COLOR_RED);
 }
 

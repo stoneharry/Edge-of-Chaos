@@ -827,6 +827,8 @@ class SERVER_DECL WorldSession
 		uint32 client_build;
 		uint32 instanceId;
 		uint8 _updatecount;
+
+		bool TrialAccount;
 	public:
 		MovementInfo* GetMovementInfo() { return &movement_info; }
 		const MovementInfo* GetMovementInfo() const { return &movement_info; }
@@ -840,6 +842,7 @@ class SERVER_DECL WorldSession
 		bool item_info_sent;
 		bool SendAllItemsIfCan();
 		void SendItemQueryAndNameInfo(uint32 itemid);
+		bool IsTrial() { return TrialAccount; }
 };
 
 typedef std::set<WorldSession*> SessionSet;
