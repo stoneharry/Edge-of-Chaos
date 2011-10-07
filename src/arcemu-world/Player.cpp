@@ -4480,7 +4480,15 @@ void Player::RepopRequestedPlayer()
 {
 	sEventMgr.RemoveEvents(this, EVENT_PLAYER_CHECKFORCHEATS); // cebernic:-> Remove this first
 	sEventMgr.RemoveEvents(this, EVENT_PLAYER_FORCED_RESURRECT);   //in case somebody resurrected us before this event happened
-
+	if(InInstance())
+	{
+		MapInfo* map = WorldMapInfoStorage.LookupEntry(GetMapId());
+		if(map && map->repopmapid)
+		{
+			ExitInstanceReleaseSpirit(map->repopmapid, LocationVector(map->repopx, map->repopy, map->repopz));
+			return;
+		}
+	}
 	if(myCorpseInstanceId != 0)
 	{
 		// Cebernic: wOOo dead+dead = undead ? :D just resurrect player
@@ -4537,16 +4545,6 @@ void Player::RepopRequestedPlayer()
 			else
 			{
 				RepopAtGraveyard(pMapinfo->repopx, pMapinfo->repopy, pMapinfo->repopz, pMapinfo->repopmapid);
-			}
-			switch(pMapinfo->mapid)
-			{
-				case 533: // Naxx
-				case 550: // The Eye
-				case 552: // The Arcatraz
-				case 553: // The Botanica
-				case 554: // The Mechanar
-					ResurrectPlayer();
-					return;
 			}
 
 		}
@@ -5645,13 +5643,19 @@ bool Player::CanSee(Object* obj) // * Invisibility & Stealth Detection - Partha 
 	if (obj == this)
 	   return true;
 
-	if (!(m_phase & obj->m_phase)) //What you can't see, you can't see, no need to check things further.
-		return false;
 
 	uint32 object_type = obj->GetTypeId();
 
 	if(getDeathState() == CORPSE) // we are dead and we have released our spirit
 	{
+		if(obj->IsCreature())
+		{
+			Creature *uObj = TO_CREATURE(obj);
+
+			return uObj->IsSpiritHealer(); // we can't see any NPCs except spirit-healers
+		}
+		if (!(m_phase & obj->m_phase))
+			return false;
 		if(obj->IsPlayer())
 		{
 			Player *pObj = TO< Player* >(obj);
@@ -5677,13 +5681,6 @@ bool Player::CanSee(Object* obj) // * Invisibility & Stealth Detection - Partha 
 		if(m_deathVision) // if we have arena death-vision we can see everything
 			return true;
 
-		if(obj->IsCreature())
-		{
-			Creature *uObj = TO_CREATURE(obj);
-
-			return uObj->IsSpiritHealer(); // we can't see any NPCs except spirit-healers
-		}
-
 		return false;
 	}
 	//------------------------------------------------------------------
@@ -5692,6 +5689,9 @@ bool Player::CanSee(Object* obj) // * Invisibility & Stealth Detection - Partha 
 	{
 		case TYPEID_PLAYER:
 			{
+				if (!(m_phase & obj->m_phase))
+					return false;
+
 				Player *pObj = TO< Player* >(obj);
 
 				if(pObj->m_invisible) // Invisibility - Detection of Players
@@ -5733,6 +5733,9 @@ bool Player::CanSee(Object* obj) // * Invisibility & Stealth Detection - Partha 
 
 		case TYPEID_UNIT:
 			{
+				if (!(m_phase & obj->m_phase))
+					return false;
+
 				Unit *uObj = TO< Unit* >(obj);
 
 				if( uObj->IsSpiritHealer()) // can't see spirit-healers when alive
@@ -5755,6 +5758,8 @@ bool Player::CanSee(Object* obj) // * Invisibility & Stealth Detection - Partha 
 
 		case TYPEID_GAMEOBJECT:
 			{
+				if (!(m_phase & obj->m_phase))
+					return false;
 				GameObject *gObj = TO< GameObject* >(obj);
 
 				if(gObj->invisible) // Invisibility - Detection of GameObjects
@@ -13899,4 +13904,52 @@ void Player::SendAurasForTarget(Unit* target)
 		}
 	}
 	SendPacket(&data);
+}
+
+bool Player::InInstance()
+{
+	MapInfo* map = WorldMapInfoStorage.LookupEntry(GetMapId());
+	if(map)
+	{
+		switch(map->type)
+		{
+			case INSTANCE_RAID:
+			case INSTANCE_NONRAID:
+			case INSTANCE_MULTIMODE:
+			{
+				return true;
+			}break;
+		}
+	}
+	return false;
+}
+
+void Player::ExitInstanceReleaseSpirit(uint32 mapid, const LocationVector & v)
+{
+	WorldPacket data(41);
+	data.SetOpcode(SMSG_TRANSFER_PENDING);
+	data << mapid;
+	SendPacket(&data);
+
+	//Dismount before teleport and before being removed from world,
+	//otherwise we may spawn the active pet while not being in world.
+	Dismount();
+	m_instanceId = 0;
+
+	if(IsInWorld())
+		RemoveFromWorld();
+
+	data.Initialize(SMSG_NEW_WORLD);
+
+	data << uint32(mapid);
+	data << v;
+	data << float(v.o);
+	m_session->SendPacket(&data);
+	SetMapId(mapid);
+	SetPlayerStatus(TRANSFER_PENDING);
+	m_sentTeleportPosition = v;
+	SetPosition(v);
+	SpeedCheatReset();
+	z_axisposition = 0.0f;
+	RepopAtGraveyard(GetPositionX(), GetPositionY(), GetPositionZ(), GetMapId());
 }

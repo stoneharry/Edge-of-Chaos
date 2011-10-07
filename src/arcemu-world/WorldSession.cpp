@@ -332,8 +332,7 @@ void WorldSession::LogoutPlayer(bool Save)
 		{
 			Guild* pGuild = _player->m_playerInfo->guild;
 			if(pGuild != NULL)
-				pGuild->LogGuildEvent(GUILD_EVENT_HASGONEOFFLINE, 1,
-				                      _player->GetName());
+				pGuild->LogGuildEvent(GUILD_EVENT_HASGONEOFFLINE, 1, _player->GetName());
 		}
 
 		_player->GetItemInterface()->EmptyBuyBack();
@@ -392,10 +391,7 @@ void WorldSession::LogoutPlayer(bool Save)
 					ss << "uiconfig" << ui << "=\"";
 					if(sAccountData[ui].data)
 					{
-						CharacterDatabase.EscapeLongString(sAccountData[ui].
-						                                   data,
-						                                   sAccountData[ui].sz,
-						                                   ss);
+						CharacterDatabase.EscapeLongString(sAccountData[ui]. data, sAccountData[ui].sz, ss);
 						// ss.write(sAccountData[ui].data,sAccountData[ui].sz);
 					}
 					ss << "\"";
