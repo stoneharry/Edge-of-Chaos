@@ -4480,16 +4480,7 @@ void Player::RepopRequestedPlayer()
 {
 	sEventMgr.RemoveEvents(this, EVENT_PLAYER_CHECKFORCHEATS); // cebernic:-> Remove this first
 	sEventMgr.RemoveEvents(this, EVENT_PLAYER_FORCED_RESURRECT);   //in case somebody resurrected us before this event happened
-	if(InInstance())
-	{
-		MapInfo* map = WorldMapInfoStorage.LookupEntry(GetMapId());
-		if(map && map->repopmapid)
-		{
-			ExitInstanceReleaseSpirit(map->repopmapid, LocationVector(map->repopx, map->repopy, map->repopz));
-			return;
-		}
-	}
-	if(myCorpseInstanceId != 0)
+	/*if(myCorpseInstanceId != 0)
 	{
 		// Cebernic: wOOo dead+dead = undead ? :D just resurrect player
 		Corpse* myCorpse = objmgr.GetCorpseByOwner(GetLowGUID());
@@ -4498,7 +4489,7 @@ void Player::RepopRequestedPlayer()
 		ResurrectPlayer();
 		RepopAtGraveyard(GetPositionX(), GetPositionY(), GetPositionZ(), GetMapId());
 		return;
-	}
+	}*/
 
 
 	if(m_CurrentTransporter != NULL)
@@ -4531,6 +4522,16 @@ void Player::RepopRequestedPlayer()
 
 	BuildPlayerRepop();
 
+
+	if(InInstance())
+	{
+		MapInfo* map = WorldMapInfoStorage.LookupEntry(GetMapId());
+		if(map && map->repopmapid)
+		{
+			ExitInstanceReleaseSpirit(map->repopmapid, LocationVector(map->repopx, map->repopy, map->repopz), (map->repopmapid == GetMapId()));
+			return;
+		}
+	}
 
 	// Cebernic: don't do this.
 	if(!m_bg || (m_bg && m_bg->HasStarted()))
@@ -13924,7 +13925,7 @@ bool Player::InInstance()
 	return false;
 }
 
-void Player::ExitInstanceReleaseSpirit(uint32 mapid, const LocationVector & v)
+void Player::ExitInstanceReleaseSpirit(uint32 mapid, const LocationVector & v, bool instance)
 {
 	WorldPacket data(41);
 	data.SetOpcode(SMSG_TRANSFER_PENDING);
@@ -13934,7 +13935,8 @@ void Player::ExitInstanceReleaseSpirit(uint32 mapid, const LocationVector & v)
 	//Dismount before teleport and before being removed from world,
 	//otherwise we may spawn the active pet while not being in world.
 	Dismount();
-	m_instanceId = 0;
+	if(!instance)
+		m_instanceId = 0;
 
 	if(IsInWorld())
 		RemoveFromWorld();

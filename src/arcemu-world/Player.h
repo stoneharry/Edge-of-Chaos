@@ -1791,7 +1791,7 @@ class SERVER_DECL Player : public Unit
 
 		void _Relocate(uint32 mapid, const LocationVector & v, bool sendpending, bool force_new_world, uint32 instance_id);
 
-		void ExitInstanceReleaseSpirit(uint32 mapid, const LocationVector & v);
+		void ExitInstanceReleaseSpirit(uint32 mapid, const LocationVector & v, bool instance);
 
 		void AddItemsToWorld();
 		void RemoveItemsFromWorld();
