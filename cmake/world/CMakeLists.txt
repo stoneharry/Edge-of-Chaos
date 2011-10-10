@@ -161,7 +161,8 @@ SET(sources
 	Rogue.cpp
 	Shaman.cpp
 	Warlock.cpp
-	Warrior.cpp )
+	Warrior.cpp 
+	IsleOfConquest.cpp )
 
 SET( headers
 	AchievementMgr.h
@@ -191,6 +192,7 @@ SET( headers
 	Creature.h
 	DatabaseCleaner.h
 	DayWatcherThread.h
+	DBC/DBCStores.h
 	DeathKnight.h
 	Definitions.h
 	Druid.h
@@ -209,6 +211,7 @@ SET( headers
 	HonorHandler.h
 	Hunter.h
 	IEventListener.h
+	IsleOfConquest.h
 	Item.h
 	ItemInterface.h
 	ItemPrototype.h
@@ -258,6 +261,7 @@ SET( headers
 	StdAfx.h
 	StrandOfTheAncient.h
 	Entities/Summons/Summon.h
+	SummonHandler.h
 	TaxiMgr.h
 	TerrainMgr.h
 	Entities/Summons/TotemSummon.h

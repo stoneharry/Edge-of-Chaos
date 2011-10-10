@@ -28,7 +28,7 @@
 #define ROUND_LENGTH 600 //in secs
 
 // Is this number importing or just an ID?
-#define EVENT_SOTA_TIMER 0x57283dd
+#define WORLDSTATE_SOTA_TIMER 0x57283dd
 
 enum Gate
 {

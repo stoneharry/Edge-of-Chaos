@@ -35,8 +35,27 @@ const static uint32 BGMapIds[ BATTLEGROUND_NUM_TYPES ] =
 	566,	// EOTS
 	0,
 	607,	// SOTA
+	0, 
+	0,
+	0, //Unused Start
 	0,
 	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0, //Unused End
+	628,
 };
 
 const static CreateBattlegroundFunc BGCFuncs[BATTLEGROUND_NUM_TYPES] =
@@ -53,6 +72,25 @@ const static CreateBattlegroundFunc BGCFuncs[BATTLEGROUND_NUM_TYPES] =
 	&StrandOfTheAncient::Create,	// SOTA
 	NULL,
 	NULL,
+	NULL, //Unused Start
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL, //Unused End
+	&IsleOfConquest::Create,
 };
 
 CBattlegroundManager::CBattlegroundManager()
@@ -234,8 +272,10 @@ uint8 GetBattlegroundCaption(BattleGroundTypes bgType)
 			return 43;
 		case BATTLEGROUND_EYE_OF_THE_STORM:
 			return 44;
-		case BATTLEGROUND_STRAND_OF_THE_ANCIENT:
+		case BATTLEGROUND_STRAND_OF_THE_ANCIENTS:
 			return 34;
+		case BATTLEGROUND_ISLE_OF_CONQUEST:
+			return 83;
 		default:
 			return 45;
 	}
@@ -859,7 +899,7 @@ uint32 CBattlegroundManager::GetMinimumPlayers(uint32 dbcIndex)
 			return 3;
 		case BATTLEGROUND_ARENA_5V5:
 			return 5;
-		case BATTLEGROUND_STRAND_OF_THE_ANCIENT:
+		case BATTLEGROUND_STRAND_OF_THE_ANCIENTS:
 			return Config.MainConfig.GetIntDefault("Battleground", "SOTA_MIN", 1);
 		default:
 			return 1;
@@ -885,7 +925,7 @@ uint32 CBattlegroundManager::GetMaximumPlayers(uint32 dbcIndex)
 			return 3;
 		case BATTLEGROUND_ARENA_5V5:
 			return 5;
-		case BATTLEGROUND_STRAND_OF_THE_ANCIENT:
+		case BATTLEGROUND_STRAND_OF_THE_ANCIENTS:
 			return Config.MainConfig.GetIntDefault("Battleground", "SOTA_MAX", 1);
 		default:
 			return 1;
@@ -1280,7 +1320,7 @@ CBattleground* CBattlegroundManager::CreateInstance(uint32 Type, uint32 LevelGro
 		case BATTLEGROUND_EYE_OF_THE_STORM:
 			n = 2;
 			break;
-		case BATTLEGROUND_STRAND_OF_THE_ANCIENT:
+		case BATTLEGROUND_STRAND_OF_THE_ANCIENTS:
 			n = 3;
 			break;
 		default:
@@ -1375,6 +1415,20 @@ GameObject* CBattleground::SpawnGameObject(uint32 entry, uint32 MapId , float x,
 	go->SetScale(scale);
 	go->SetUInt32Value(GAMEOBJECT_FLAGS, flags);
 	go->SetPosition(x, y, z, o);
+	go->SetInstanceID(m_mapMgr->GetInstanceID());
+
+	return go;
+}
+
+GameObject* CBattleground::SpawnGameObject(uint32 entry,float x, float y, float z, float o, uint32 flags, uint32 faction, float scale)
+{
+	GameObject* go = m_mapMgr->CreateGameObject(entry);
+	if(go == NULL || !go->CreateFromProto(entry, m_mapMgr->GetMapId(), x, y, z, o, 0.0f, 0.0f, 0.0f, 0.0f))
+		return NULL;
+
+	go->SetUInt32Value(GAMEOBJECT_FACTION,faction);
+	go->SetFloatValue(OBJECT_FIELD_SCALE_X,scale);
+	go->SetUInt32Value(GAMEOBJECT_FLAGS, flags);
 	go->SetInstanceID(m_mapMgr->GetInstanceID());
 
 	return go;

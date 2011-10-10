@@ -1274,14 +1274,6 @@ void Spell::cast(bool check)
 			// special case battleground additional actions
 			if(p_caster->m_bg)
 			{
-				// SOTA Gameobject spells
-				if(p_caster->m_bg->GetType() == BATTLEGROUND_STRAND_OF_THE_ANCIENT)
-				{
-					StrandOfTheAncient* sota = (StrandOfTheAncient*)p_caster->m_bg;
-					// Transporter platforms
-					if(GetProto()->Id == 54640)
-						sota->OnPlatformTeleport(p_caster);
-				}
 				// warsong gulch & eye of the storm flag pickup check
 				// also includes check for trying to cast stealth/etc while you have the flag
 				switch(GetProto()->Id)
@@ -1338,6 +1330,23 @@ void Spell::cast(bool check)
 						if(p_caster->m_bg->GetType() == BATTLEGROUND_EYE_OF_THE_STORM)
 
 							p_caster->RemoveAura(34976);	// drop the flag
+						break;
+					case 54640:
+						if(p_caster->m_bg->GetType() == BATTLEGROUND_STRAND_OF_THE_ANCIENTS)
+						{
+							StrandOfTheAncient* sota = (StrandOfTheAncient*)p_caster->m_bg;
+							sota->OnPlatformTeleport(p_caster); // Transporter platforms
+						}
+						break;
+					case 66548:
+						if(p_caster->m_bg->GetType() == BATTLEGROUND_ISLE_OF_CONQUEST)
+						{
+							if(!p_caster->HasAura(66548))
+							{
+								IsleOfConquest* ioc = (IsleOfConquest*)p_caster->m_bg;
+								ioc->OnPlatformTeleport(p_caster); // Transporter platforms
+							}
+						}
 						break;
 				}
 			}

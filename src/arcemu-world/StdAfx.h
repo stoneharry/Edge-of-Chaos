@@ -235,6 +235,7 @@ template< class T, class U > T TO(U u) { return static_cast< T >(u); }
 #include "Mage.h"
 #include "Hunter.h"
 #include "Shaman.h"
+#include "IsleOfConquest.h"
 
 #endif
 
