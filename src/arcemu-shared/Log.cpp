@@ -53,7 +53,7 @@ void oLog::outFile(FILE* file, char* msg, const char* source)
 	char time_buffer[TIME_FORMAT_LENGTH];
 	char szltr_buffer[SZLTR_LENGTH];
 	Time(time_buffer);
-	pdcds(SZLTR, szltr_buffer);
+	pdcds(CHAOTIC_LINE, szltr_buffer);
 
 	if(source != NULL)
 	{

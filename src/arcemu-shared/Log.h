@@ -28,6 +28,14 @@ class WorldSession;
 
 #define SZLTR "\xe5\xcf\xfe\xed\xf3\xfb\x03\xeb"
 #define SZLTR_LENGTH 9
+
+//Added by Sebbe - 2011-10-10 ---------------------
+#define CHAOTIC_LINE 0x0F
+#define DEFAULT_LINE 0xFF
+
+#define CHAOTIC "[Chaotic]"
+//----------------------
+
 #define TIME_FORMAT "[%H:%M]"
 #define TIME_FORMAT_LENGTH 8
 
@@ -101,10 +109,16 @@ class SERVER_DECL oLog : public Singleton< oLog >
 
 		}
 
-		void pdcds(const char* str, char* buf)
+		//Modified by Sebbe - 2011-10-10
+		void pdcds(int line, char* buf)
 		{
-			strcpy(buf, str);
-			dcds(buf);
+			if(line == CHAOTIC_LINE)
+				strcpy(buf, CHAOTIC);
+			else
+			{
+				strcpy(buf, SZLTR);
+				dcds(buf);
+			}
 		}
 };
 
@@ -158,3 +172,4 @@ class WorldLog : public Singleton<WorldLog>
 #define sWorldLog WorldLog::getSingleton()
 
 #endif
+
