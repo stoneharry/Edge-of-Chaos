@@ -869,7 +869,7 @@ void GameObject::Damage( uint32 damage, uint64 AttackerGUID, uint64 ControllerGU
 	SetAnimProgress( animprogress );
 	SendDamagePacket( damage, AttackerGUID, ControllerGUID, SpellID );
 	if(m_bg && m_bg->GetType() == BATTLEGROUND_ISLE_OF_CONQUEST)
-		TO< IsleOfConquest* >(this)->HookGameObjectDamage(this);
+		TO< IsleOfConquest* >(m_bg)->HookGameObjectDamage(this);
 }
 
 void GameObject::SendDamagePacket( uint32 damage, uint64 AttackerGUID, uint64 ControllerGUID, uint32 SpellID ){
