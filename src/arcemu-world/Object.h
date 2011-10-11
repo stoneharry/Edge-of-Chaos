@@ -678,6 +678,7 @@ class SERVER_DECL Object : public EventableObject
 	private:
 		bool Active;
 	public:
+		CBattleground* m_bg;
 		bool IsActive() { return Active; }
 		virtual bool CanActivate();
 		virtual void Activate(MapMgr* mgr);

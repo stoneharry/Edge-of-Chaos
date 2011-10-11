@@ -387,7 +387,6 @@ class SERVER_DECL GameObject : public Object
 		//
 		////////////////////////////////////////////////////////////////////////////////////////////////////////
 		uint32 GetMaxHP(){ return maxhitpoints; }
-		CBattleground* m_bg;
 	protected:
 
 		bool m_summonedGo;

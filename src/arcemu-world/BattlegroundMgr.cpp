@@ -1442,6 +1442,7 @@ Creature* CBattleground::SpawnCreature(uint32 entry, float x, float y, float z, 
 
 	c->Load(cp, x, y, z, o);
 	c->PushToWorld(m_mapMgr);
+	c->m_bg = this;
 	return c;
 }
 

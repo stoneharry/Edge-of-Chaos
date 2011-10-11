@@ -215,7 +215,7 @@ IsleOfConquest::IsleOfConquest(MapMgr * mgr, uint32 id, uint32 lgroup, uint32 t)
 	//m_bonusHonor = HonorHandler::CalculateHonorPointsFormula(lgroup*10,lgroup*10);
 
 	/*memset(m_nodes, 0, sizeof(m_nodes));*/
-
+	m_zoneid = 4710;
 }
 
 IsleOfConquest::~IsleOfConquest()

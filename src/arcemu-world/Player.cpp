@@ -78,7 +78,6 @@ Player::Player(uint32 guid)
 	m_UnderwaterState(0),
 	m_AllowAreaTriggerPort(true),
 // Battleground
-	m_bg(NULL),
 	m_bgEntryPointMap(0),
 	m_bgEntryPointX(0),
 	m_bgEntryPointY(0),

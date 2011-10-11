@@ -56,7 +56,6 @@ GameObject::GameObject(uint64 guid)
 	m_overrides = 0;
 	hitpoints = 0;
 	maxhitpoints = 0;
-	m_bg = NULL;
 }
 
 GameObject::~GameObject()
