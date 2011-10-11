@@ -56,6 +56,7 @@ GameObject::GameObject(uint64 guid)
 	m_overrides = 0;
 	hitpoints = 0;
 	maxhitpoints = 0;
+	m_bg = NULL;
 }
 
 GameObject::~GameObject()
@@ -867,6 +868,8 @@ void GameObject::Damage( uint32 damage, uint64 AttackerGUID, uint64 ControllerGU
 	uint8 animprogress = static_cast< uint8 >( Arcemu::round( hitpoints/ float( maxhitpoints ) ) * 255 );
 	SetAnimProgress( animprogress );
 	SendDamagePacket( damage, AttackerGUID, ControllerGUID, SpellID );
+	if(m_bg && m_bg->GetType() == BATTLEGROUND_ISLE_OF_CONQUEST)
+		TO< IsleOfConquest* >(this)->HookGameObjectDamage(this);
 }
 
 void GameObject::SendDamagePacket( uint32 damage, uint64 AttackerGUID, uint64 ControllerGUID, uint32 SpellID ){

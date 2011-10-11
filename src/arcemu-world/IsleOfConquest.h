@@ -169,6 +169,7 @@ public:
 	void Respawn();
 	void AddReinforcements(uint32 teamId, uint32 amt);
 	void RemoveReinforcements(uint32 teamId, uint32 amt);
+	void HookGameObjectDamage(GameObject* go);
 	LocationVector GetStartingCoords(uint32 Team);
 
 	static CBattleground* Create(MapMgr* m, uint32 i, uint32 l, uint32 t) { return new IsleOfConquest(m, i, l, t); }

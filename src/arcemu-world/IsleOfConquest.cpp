@@ -660,9 +660,10 @@ void IsleOfConquest::OnCreate()
 	{
 		m_desgates[x] = SpawnGameObject(gatesIds[x], iocGatesLocation[x][0],  iocGatesLocation[x][1], iocGatesLocation[x][2], iocGatesLocation[x][3], 0, 1, 1.0f);
 		m_desgates[x]->PushToWorld(m_mapMgr);
+		m_desgates[x]->bannerslot = x;
 		m_ogates[x] = SpawnGameObject(IOC_DYNAMIC_DOOR_A, iocGatesLocation[x][0],  iocGatesLocation[x][1], iocGatesLocation[x][2], iocGatesLocation[x][3], 0, 1, 1.0f);
 		m_ogates[x]->SetUInt32Value(GAMEOBJECT_FLAGS, 32);
-		m_ogates[x]->SetUInt32Value(GAMEOBJECT_DYNAMIC, 4294901760);
+		//m_ogates[x]->SetUInt32Value(GAMEOBJECT_DYNAMIC, 4294901760);
 		m_ogates[x]->SetUInt32Value(GAMEOBJECT_FACTION, 1375);
 		m_ogates[x]->SetUInt32Value(GAMEOBJECT_BYTES_1, 4278190081);
 		m_ogates[x]->PushToWorld(m_mapMgr);
@@ -672,6 +673,7 @@ void IsleOfConquest::OnCreate()
 	{
 		m_desgates[x] = SpawnGameObject(gatesIds[x], iocGatesLocation[x][0],  iocGatesLocation[x][1], iocGatesLocation[x][2], iocGatesLocation[x][3], 0, 2, 1.0f);
 		m_desgates[x]->PushToWorld(m_mapMgr);
+		m_desgates[x]->bannerslot = x;
 		m_ogates[x] = SpawnGameObject(IOC_DYNAMIC_DOOR_H, iocGatesLocation[x][0],  iocGatesLocation[x][1], iocGatesLocation[x][2], iocGatesLocation[x][3], 0, 2, 1.0f);
 		m_ogates[x]->SetUInt32Value(GAMEOBJECT_FLAGS, 32);
 		m_ogates[x]->SetUInt32Value(GAMEOBJECT_DYNAMIC, 4294901760);
@@ -784,7 +786,7 @@ void IsleOfConquest::HookOnUnitKill(Player* plr, Unit* pVictim)
 		RemoveReinforcements( 0, IOC_NUM_REINFORCEMENTS );	// Horde Win
 		//GiveHonorToTeam(HORDE, m_bonusHonor * 4);
 	}
-	else if(pVictim->GetEntry() == 34922)	// Overlord Agmar (not sure this is the right general)
+	else if(pVictim->GetEntry() == 34922)	// Overlord Agmar
 	{
 		Herald("The Scarshield Legion General is dead!");
 		RemoveReinforcements( 1, IOC_NUM_REINFORCEMENTS );	// Alliance Win
@@ -814,7 +816,7 @@ void IsleOfConquest::Herald(const char *format, ...)
 	data << uint32(msglen+1);
 	data << msgbuf;
 	data << uint8(0x00);
-	//m_mapMgr->SendPacketToPlayers(ZONE_MASK_ALL, FACTION_MASK_ALL, &data);
+	DistributePacketToAll(&data);
 }
 
 void IsleOfConquest::Finish(uint32 losingTeam)
@@ -825,32 +827,20 @@ void IsleOfConquest::Finish(uint32 losingTeam)
 	sEventMgr.RemoveEvents(this);
 	sEventMgr.AddEvent(TO< CBattleground* >(this), &CBattleground::Close, EVENT_BATTLEGROUND_CLOSE, 120000, 1,0);
 
-	/* add the marks of honor to all players */
-	SpellEntry * winner_spell = dbcSpell.LookupEntry(24955);
-	SpellEntry * loser_spell = dbcSpell.LookupEntry(24954);
 	for(uint32 i = 0; i < 2; i++)
 	{
 		for(set<Player*  >::iterator itr = m_players[i].begin(); itr != m_players[i].end(); itr++)
 		{
 			(*itr)->Root();
 
-			if( (*itr)->HasFlag(PLAYER_FLAGS, PLAYER_FLAG_AFK) )
-				continue;
-
+			//Todo Give Honor here
 			if(i == losingTeam)
 			{
-				(*itr)->CastSpell((*itr), loser_spell, true);
+				
 			}
 			else
 			{
-				(*itr)->CastSpell((*itr), winner_spell, true);
-				uint32 diff = abs((int32)(m_reinforcements[i] - m_reinforcements[i ? 0 : 1]));
-				//(*itr)->GetAchievementInterface()->HandleAchievementCriteriaWinBattleground( m_mapMgr->GetMapId(), diff, ((uint32)UNIXTIME - m_startTime) / 1000, TO_CBATTLEGROUND(this));
 			}
-		}
-		if (m_LiveCaptain[i])
-		{
-			//GiveHonorToTeam(i, m_bonusHonor * 2);
 		}
 	}
 
@@ -859,4 +849,70 @@ void IsleOfConquest::Finish(uint32 losingTeam)
 
 void IsleOfConquest::HookOnFlagDrop(Player * plr)
 {
+}
+
+void IsleOfConquest::HookGameObjectDamage(GameObject*go)
+{
+	switch(go->bannerslot)
+	{
+		case 1: // alliance west
+		{
+			if(go->HasFlags(GAMEOBJECT_FLAG_DESTROYED))
+			{
+				SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "Alliance Keep's West Gate has been destroyed!");
+				SetWorldState(4327, 0);
+				SetWorldState(4325, 1);
+			}
+		}break;
+
+		case 2: // alliance front
+		{
+			if(go->HasFlags(GAMEOBJECT_FLAG_DESTROYED))
+			{
+				SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "Alliance Keep's Front Gate has been destroyed!");
+				SetWorldState(4328, 0);
+				SetWorldState(4324, 1);
+			}
+		}break;
+
+		case 3: // alliance east
+		{
+			if(go->HasFlags(GAMEOBJECT_FLAG_DESTROYED))
+			{
+				SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "Alliance Keep's East Gate has been destroyed!");
+				SetWorldState(4326, 0);
+				SetWorldState(4323, 1);
+			}
+		}break;
+
+		case 4: // horde front
+		{
+			if(go->HasFlags(GAMEOBJECT_FLAG_DESTROYED))
+			{
+				SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "Horde Keep's Front Gate has been destroyed!");
+				SetWorldState(4317, 0);
+				SetWorldState(4322, 1);
+			}
+		}break;
+
+		case 5: // horde west
+		{
+			if(go->HasFlags(GAMEOBJECT_FLAG_DESTROYED))
+			{
+				SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "Horde Keep's West Gate has been destroyed!");
+				SetWorldState(4318, 0);
+				SetWorldState(4321, 1);
+			}
+		}break;
+
+		case 6: // horde east
+		{
+			if(go->HasFlags(GAMEOBJECT_FLAG_DESTROYED))
+			{
+				SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "Alliance Keep's West Gate has been destroyed!");
+				SetWorldState(4319, 0);
+				SetWorldState(4320, 1);
+			}
+		}break;
+	}
 }
