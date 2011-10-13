@@ -2338,7 +2338,7 @@ void Creature::BuildPetSpellList(WorldPacket & data)
 		uint8 count = 0;
 		#define MAKE_ACTION_BUTTON(A,T) uint32(uint32(A) | (uint32(T) << 24))
 		// Send the actionbar
-		for (uint32 i = 0; i < 6; i++)
+		for (uint32 i = 0; i < 8; i++)
 		{
 			uint32 spellId = proto->AISpells[i];
 			if (!spellId)
@@ -2357,15 +2357,15 @@ void Creature::BuildPetSpellList(WorldPacket & data)
 				data << uint32(MAKE_ACTION_BUTTON(spellId,i+8));
 				++count;
 			}
-			for(uint8 i = 6; i < 10; i++)
+			for(uint8 i = 8; i < 10; i++)
 			{
 				data << uint16(0) << uint8(0) << uint8(i+8);
 			}
 
 			data << count;
 			data << uint8(0);
-			return;
 		}
+		return;
 	}
 	std::vector< uint32 >::iterator itr = proto->castable_spells.begin();
 

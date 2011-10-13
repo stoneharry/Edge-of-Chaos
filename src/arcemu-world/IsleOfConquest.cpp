@@ -515,8 +515,11 @@ void IsleOfConquest::AssaultControlPoint(Player* pPlayer, uint32 Id)
 				}
 			}
 			m_resurrectMap.erase( itr );
-			m_spiritGuides[Id]->Despawn( 0, 0 );
-			m_spiritGuides[Id] = NULL;
+			if(m_spiritGuides[Id] && m_spiritGuides[Id]->IsInWorld())
+			{
+				m_spiritGuides[Id]->Despawn( 0, 0 );
+				m_spiritGuides[Id] = NULL;
+			}
 		}
 
 		// reset the world states
