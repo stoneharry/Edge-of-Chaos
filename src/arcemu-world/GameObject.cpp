@@ -56,6 +56,7 @@ GameObject::GameObject(uint64 guid)
 	m_overrides = 0;
 	hitpoints = 0;
 	maxhitpoints = 0;
+	m_bg = NULL;
 }
 
 GameObject::~GameObject()
@@ -843,7 +844,7 @@ void GameObject::Damage( uint32 damage, uint64 AttackerGUID, uint64 ControllerGU
 		
 		SetFlags( GAMEOBJECT_FLAG_DESTROYED );
 		SetFlags( GetFlags() & ~GAMEOBJECT_FLAG_DAMAGED );
-		SetDisplayId( pInfo->sound9); // destroyed display id
+		SetDisplayId(GetDisplayIdForState(DESTRUCTIBLE_DESTROYED)); // destroyed display id
 
 		CALL_GO_SCRIPT_EVENT( this, OnDestroyed)();
 	
@@ -857,7 +858,7 @@ void GameObject::Damage( uint32 damage, uint64 AttackerGUID, uint64 ControllerGU
 			// Are we below the intact-damaged transition treshold?
 			if( hitpoints <= ( maxhitpoints - pInfo->SpellFocus ) ){
 				SetFlags( GAMEOBJECT_FLAG_DAMAGED );
-				SetDisplayId( pInfo->sound4 ); // damaged display id
+				SetDisplayId( GetDisplayIdForState(DESTRUCTIBLE_DAMAGED) ); // damaged display id
 			}
 		}
 
@@ -884,7 +885,35 @@ void GameObject::SendDamagePacket( uint32 damage, uint64 AttackerGUID, uint64 Co
 
 void GameObject::Rebuild(){
 	SetFlags( GetFlags() & uint32( ~( GAMEOBJECT_FLAG_DAMAGED | GAMEOBJECT_FLAG_DESTROYED ) ) );
-	SetDisplayId( pInfo->DisplayID );
+	SetDisplayId(GetDisplayIdForState(DESTRUCTIBLE_REBUILD));
 	maxhitpoints = pInfo->SpellFocus + pInfo->sound5;
 	hitpoints = maxhitpoints;
+}
+
+uint32 GameObject::GetDisplayIdForState(uint32 state)
+{
+	if(state != DESTRUCTIBLE_NORMAL)
+	{
+		DestructibleModelDataEntry * model = dbcDestructibleModelDataEntry.LookupEntry(pInfo->Unknown9);
+		if(model)
+			return model->GetDisplayId(state);
+	}
+	switch(state)
+	{
+		case DESTRUCTIBLE_NORMAL:
+		case DESTRUCTIBLE_REBUILD: //Not contained in any database data
+		case DESTRUCTIBLE_SMOKE: //Not contained in any database data
+		{
+			return pInfo->DisplayID;
+		}break;
+		case DESTRUCTIBLE_DAMAGED:
+		{
+			return pInfo->sound4;
+		}break;
+		case DESTRUCTIBLE_DESTROYED:
+		{
+			return pInfo->sound9;
+		}break;
+	}
+	return 0;
 }

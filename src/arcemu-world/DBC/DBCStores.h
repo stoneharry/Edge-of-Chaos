@@ -1624,6 +1624,52 @@ struct VehicleSeatEntry{
 	}
 };
 
+struct DestructibleModelDataEntry
+{
+    uint32  Id;
+    //uint32  DamagedUnk1;
+    //uint32  DamagedUnk2;
+    uint32  DamagedDisplayId;
+    //uint32  DamagedUnk3;
+    //uint32  DestroyedUnk1;
+    //uint32  DestroyedUnk2;
+    uint32  DestroyedDisplayId;
+    //uint32  DestroyedUnk3;
+    //uint32  RebuildingUnk1;
+    //uint32  RebuildingUnk2;
+    uint32  RebuildingDisplayId;
+    //uint32  RebuildingUnk3;
+    //uint32  SmokeUnk1;
+    //uint32  SmokeUnk2;
+    uint32  SmokeDisplayId;
+    //uint32  SmokeUnk3;
+    //uint32  Unk4;
+    //uint32  Unk5;
+	uint32 GetDisplayId(uint8 state)
+	{
+		switch(state)
+		{
+			case 1:
+			{
+				return DamagedDisplayId;
+			}break;
+			case 2:
+			{
+				return DestroyedDisplayId;
+			}break;
+			case 3:
+			{
+				return RebuildingDisplayId;
+			}break;
+			case 4:
+			{
+				return SmokeDisplayId;
+			}break;
+		}
+		return 0;
+	}
+};
+
 
 #pragma pack(pop)
 
@@ -2012,6 +2058,7 @@ extern SERVER_DECL DBCStorage< NameGenEntry > dbcNameGen;
 extern SERVER_DECL DBCStorage< LFGDungeonEntry > dbcLFGDungeon;
 extern SERVER_DECL DBCStorage< VehicleEntry > dbcVehicle;
 extern SERVER_DECL DBCStorage< VehicleSeatEntry > dbcVehicleSeat;
+extern SERVER_DECL DBCStorage< DestructibleModelDataEntry > dbcDestructibleModelDataEntry;
 
 bool LoadDBCs();
 

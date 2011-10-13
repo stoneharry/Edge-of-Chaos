@@ -1677,6 +1677,7 @@ class SERVER_DECL Player : public Unit
 		void Reset_Spells();
 		void Reset_Talents();
 		// Battlegrounds xD
+		CBattleground* m_bg;
 		CBattleground* m_pendingBattleground;
 		uint32 m_bgEntryPointMap;
 		float m_bgEntryPointX;

@@ -65,7 +65,6 @@ enum IOCvehicles
 #define IOC_FLAGPOLE 	191311
 #define IOC_DYNAMIC_DOOR_A		195703
 #define IOC_DYNAMIC_DOOR_H		195491
-
 #define BG_SCORE_IOC_BASE_ASSAULTED			0
 #define BG_SCORE_IOC_BASE_DEFENDED			1
 
@@ -190,6 +189,10 @@ public:
 	uint32 GetNameID() { return 83; }
 	GameObject* m_ioccontrolPoints[IOC_NUM_CONTROL_POINTS];
 	GameObject* m_ioccontrolPointAuras[IOC_NUM_CONTROL_POINTS];
+
+	void ApplyCaptureBonus(uint32 Id, uint32 team);
+	void ApplyBonus(uint32 Id, Unit * u);
+	void CreateVehicle(uint8 team, uint32 entry, float x, float y, float z, float o);
 protected:
 	list< GameObject* > m_gates;
 	uint32 m_reinforcements[2];
@@ -211,11 +214,12 @@ protected:
 	int32 m_basesOwnedBy[IOC_NUM_CONTROL_POINTS];
 	int32 m_basesAssaultedBy[IOC_NUM_CONTROL_POINTS];
 	bool m_flagIsVirgin[IOC_NUM_CONTROL_POINTS];
+	std::map<Creature*, uint8> m_vehicles;
 };
 
 enum GENERAL_IOC_DEFINES
 {
-	IOC_NUM_REINFORCEMENTS				= 600,		// Amount of reinforcements we start off with
+	IOC_NUM_REINFORCEMENTS				= 1200,		// Amount of reinforcements we start off with
 	IOC_SCORE_WARNING					= 530,		// Dunno what this should be ;p
 	IOC_ADD_POINTS_ON_CONTROLLED_MINE	= 1,		// Points to give the team who controls (a) mine(s)
 	IOC_REINFORCEMENT_ADD_INTERVAL		= 45000,	// The interval (in milliseconds) that points from mines are awarded

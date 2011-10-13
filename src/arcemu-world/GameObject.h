@@ -162,6 +162,15 @@ enum GAMEOBJECT_TYPES
     GAMEOBJECT_TYPE_TRAPDOOR				= 35
 };
 
+enum DestructibleState
+{
+	DESTRUCTIBLE_NORMAL = 0,
+	DESTRUCTIBLE_DAMAGED,
+	DESTRUCTIBLE_DESTROYED,
+	DESTRUCTIBLE_REBUILD,
+	DESTRUCTIBLE_SMOKE
+};
+
 #define CALL_GO_SCRIPT_EVENT(obj, func) if(obj->IsGameObject() && TO< GameObject* >(obj)->GetScript() != NULL) TO< GameObject* >(obj)->GetScript()->func
 
 class SERVER_DECL GameObject : public Object
@@ -387,6 +396,9 @@ class SERVER_DECL GameObject : public Object
 		//
 		////////////////////////////////////////////////////////////////////////////////////////////////////////
 		uint32 GetMaxHP(){ return maxhitpoints; }
+		CBattleground* m_bg;
+
+		uint32 GetDisplayIdForState(uint32 state);
 	protected:
 
 		bool m_summonedGo;

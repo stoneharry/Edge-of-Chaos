@@ -212,6 +212,7 @@ IsleOfConquest::IsleOfConquest(MapMgr * mgr, uint32 id, uint32 lgroup, uint32 t)
 	m_reinforcements[1] = IOC_NUM_REINFORCEMENTS;
 	m_LiveCaptain[0] = true;
 	m_LiveCaptain[1] = true;
+	m_vehicles.clear();
 	//m_bonusHonor = HonorHandler::CalculateHonorPointsFormula(lgroup*10,lgroup*10);
 
 	/*memset(m_nodes, 0, sizeof(m_nodes));*/
@@ -536,6 +537,7 @@ void IsleOfConquest::AssaultControlPoint(Player* pPlayer, uint32 Id)
 		SendChatMessage(Team ?  CHAT_MSG_BG_EVENT_HORDE :  CHAT_MSG_BG_EVENT_ALLIANCE, pPlayer->GetGUID(), "$N has defended the %s!", ControlPointNames[Id]);
 		m_basesAssaultedBy[Id] = Team;
 		CaptureControlPoint( Id, Team );
+		pPlayer->m_bgScore.MiscData[BG_SCORE_IOC_BASE_DEFENDED]++;
 		return;
 	}
 
@@ -585,6 +587,7 @@ void IsleOfConquest::AssaultControlPoint(Player* pPlayer, uint32 Id)
 
 void IsleOfConquest::HookOnAreaTrigger(Player* plr, uint32 id)
 {
+
 }
 
 void IsleOfConquest::HookOnPlayerDeath(Player* plr)
@@ -621,6 +624,9 @@ void IsleOfConquest::OnAddPlayer(Player* plr)
 {
 	if(!m_started)
 		plr->CastSpell(plr, BG_PREPARATION, true);
+	plr->m_bgScore.MiscData[BG_SCORE_IOC_BASE_DEFENDED] = 0;
+	plr->m_bgScore.MiscData[BG_SCORE_IOC_BASE_ASSAULTED] = 0;
+	UpdatePvPData();
 }
 
 void IsleOfConquest::OnRemovePlayer(Player* plr)
@@ -694,8 +700,8 @@ void IsleOfConquest::OnCreate()
 	SpawnControlPoint(IOC_CONTROL_POINT_DOCKS,			IOC_SPAWN_TYPE_NEUTRAL);
 	SpawnControlPoint(IOC_CONTROL_POINT_AIRSHIPHANGAR,	IOC_SPAWN_TYPE_NEUTRAL);
 	SpawnControlPoint(IOC_CONTROL_POINT_SIEGEWORKSHOP,	IOC_SPAWN_TYPE_NEUTRAL);
-	SpawnControlPoint(IOC_CONTROL_POINT_ALLIANCE_KEEP,	IOC_SPAWN_TYPE_NEUTRAL);
-	SpawnControlPoint(IOC_CONTROL_POINT_HORDE_KEEP,		IOC_SPAWN_TYPE_NEUTRAL);
+	SpawnControlPoint(IOC_CONTROL_POINT_ALLIANCE_KEEP,	IOC_SPAWN_TYPE_ALLIANCE_CONTROLLED);
+	SpawnControlPoint(IOC_CONTROL_POINT_HORDE_KEEP,		IOC_SPAWN_TYPE_HORDE_CONTROLLED);
 }
 
 void IsleOfConquest::HookOnPlayerKill(Player* plr, Player* pVictim)
@@ -914,5 +920,23 @@ void IsleOfConquest::HookGameObjectDamage(GameObject*go)
 				SetWorldState(4320, 1);
 			}
 		}break;
+	}
+}
+
+void IsleOfConquest::ApplyCaptureBonus(uint32 Id, uint32 team) //todo make this loop and apply bonuses that haven't been aplied.
+{
+
+}
+
+void IsleOfConquest::ApplyBonus(uint32 Id, Unit * u)
+{
+}
+
+void IsleOfConquest::CreateVehicle(uint8 team, uint32 entry, float x, float y, float z, float o)
+{
+	Creature * c = SpawnCreature(entry, x, y, z, o);
+	if(c)
+	{
+		m_vehicles.insert(make_pair(c, team));
 	}
 }

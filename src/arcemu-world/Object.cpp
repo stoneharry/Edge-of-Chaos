@@ -70,7 +70,6 @@ Object::Object() : m_position(0, 0, 0, 0), m_spawnLocation(0, 0, 0, 0)
 	m_sameFactsInRange.clear();
 
 	Active = false;
-	m_bg = NULL;
 }
 
 Object::~Object()

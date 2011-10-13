@@ -237,6 +237,7 @@ Creature::Creature(uint64 guid)
 	m_healthfromspell = 0;
 	m_speedFromHaste = 0;
 	m_Creature_type = 0;
+	m_bg = NULL;
 }
 
 
@@ -2332,7 +2333,40 @@ void Creature::BuildPetSpellList(WorldPacket & data)
 		data << uint32( 0x101 );
 
 	
+	if(IsVehicle())
+	{
+		uint8 count = 0;
+		#define MAKE_ACTION_BUTTON(A,T) uint32(uint32(A) | (uint32(T) << 24))
+		// Send the actionbar
+		for (uint32 i = 0; i < 6; i++)
+		{
+			uint32 spellId = proto->AISpells[i];
+			if (!spellId)
+				continue;
 
+			SpellEntry const *spellInfo = dbcSpell.LookupEntryForced( spellId );
+			if (!spellInfo)
+				continue;
+			if(spellInfo->Attributes & ATTRIBUTES_PASSIVE)
+			{
+				CastSpell(GetGUID(), spellId, true);
+				data << uint16(0) << uint8(0) << uint8(i+8);
+			}
+			else
+			{
+				data << uint32(MAKE_ACTION_BUTTON(spellId,i+8));
+				++count;
+			}
+			for(uint8 i = 6; i < 10; i++)
+			{
+				data << uint16(0) << uint8(0) << uint8(i+8);
+			}
+
+			data << count;
+			data << uint8(0);
+			return;
+		}
+	}
 	std::vector< uint32 >::iterator itr = proto->castable_spells.begin();
 
 	// Send the actionbar

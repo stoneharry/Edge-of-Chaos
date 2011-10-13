@@ -723,7 +723,7 @@ class SERVER_DECL Creature : public Unit
 
 		uint32 GetType() { return m_Creature_type; }
 		void SetType(uint32 t) { m_Creature_type = t; }
-
+		CBattleground* m_bg;
 	protected:
 		CreatureAIScript* _myScriptClass;
 		bool m_limbostate;

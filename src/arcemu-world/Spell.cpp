@@ -1341,7 +1341,7 @@ void Spell::cast(bool check)
 					case 66548:
 						if(p_caster->m_bg->GetType() == BATTLEGROUND_ISLE_OF_CONQUEST)
 						{
-							if(!p_caster->HasAura(66548))
+							if(!p_caster->HasAura(66550))
 							{
 								IsleOfConquest* ioc = (IsleOfConquest*)p_caster->m_bg;
 								ioc->OnPlatformTeleport(p_caster); // Transporter platforms
