@@ -1341,13 +1341,14 @@ void Spell::cast(bool check)
 					case 66548:
 						if(p_caster->m_bg->GetType() == BATTLEGROUND_ISLE_OF_CONQUEST)
 						{
-							if(!p_caster->HasAura(66550))
+							if(!p_caster->m_bg->HasStarted() || p_caster->HasAura(66550))
+								p_caster->BroadcastMessage("You may not use the teleporter right now."); //do not know proper error message.
+							else
 							{
 								IsleOfConquest* ioc = (IsleOfConquest*)p_caster->m_bg;
 								ioc->OnPlatformTeleport(p_caster); // Transporter platforms
 							}
-						}
-						break;
+						}break;
 				}
 			}
 		}
