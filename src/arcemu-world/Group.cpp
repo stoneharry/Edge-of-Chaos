@@ -930,9 +930,7 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, uint32 Flags, bool Distribut
 		*data << uint16(pPlayer->getLevel());
 
 	if(Flags & GROUP_UPDATE_FLAG_ZONEID)
-	{
 		*data << uint16(pPlayer->GetAreaID());
-	}
 
 	if(Flags & GROUP_UPDATE_FLAG_POSITION)
 	{
@@ -940,9 +938,10 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, uint32 Flags, bool Distribut
 		pPlayer->m_last_group_position = pPlayer->GetPosition();
 	}
 
-	if( Flags & GROUP_UPDATE_FLAG_VEHICLE_SEAT ){
-		if( pPlayer->GetCurrentVehicle() != NULL )
-			*data << uint32( pPlayer->GetCurrentVehicle()->GetSeatEntryForPassenger( pPlayer ) );
+	if( Flags & GROUP_UPDATE_FLAG_VEHICLE_SEAT )
+	{
+		if( Vehicle *v =  pPlayer->GetCurrentVehicle())
+			*data << uint32(v->GetVehicleInfo()->seatID[v->GetSeatEntryForPassenger( pPlayer )]);
 	}
 
 	if(Flags & GROUP_UPDATE_TYPE_FULL_REQUEST_REPLY)
