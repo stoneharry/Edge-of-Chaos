@@ -13955,3 +13955,13 @@ void Player::ExitInstanceReleaseSpirit(uint32 mapid, const LocationVector & v, b
 	z_axisposition = 0.0f;
 	RepopAtGraveyard(GetPositionX(), GetPositionY(), GetPositionZ(), GetMapId());
 }
+
+void Player::AddHonor(uint32 amount)
+{
+	HonorHandler::AddHonorPointsToPlayer(this, amount);
+	if(m_bg)
+	{
+		m_bgScore.BonusHonor += amount;
+		m_bg->UpdatePvPData();
+	}
+}

@@ -2314,6 +2314,8 @@ class SERVER_DECL Player : public Unit
 			return 0;
 		}
 		bool confirm_item_send;
+
+		void AddHonor(uint32 amount);
 	protected:
 		LocationVector m_summonPos;
 		uint32 m_summonInstanceId;

@@ -193,6 +193,7 @@ public:
 	void ApplyCaptureBonus(uint32 Id, uint32 team);
 	void ApplyBonus(uint32 Id, Unit * u);
 	void CreateVehicle(uint8 team, uint32 entry, float x, float y, float z, float o);
+	void AddHonorToTeam(uint32 amount, uint8 team);
 protected:
 	list< GameObject* > m_gates;
 	uint32 m_reinforcements[2];

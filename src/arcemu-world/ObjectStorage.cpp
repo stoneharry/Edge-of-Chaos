@@ -122,7 +122,7 @@ void ObjectMgr::LoadExtraCreatureProtoStuff()
 			}
 
 			// process creature spells from creaturespelldata.dbc
-			if( cn->spelldataid != 0 ){
+			if( cn->spelldataid != 0 && cn->vehicleid == 0){
 				CreatureSpellDataEntry* spe = dbcCreatureSpellData.LookupEntry( cn->spelldataid );
 				for( uint32 i = 0; i < 3; i++ ){
 					if( spe->Spells[ i ] == 0 )
