@@ -12877,7 +12877,7 @@ void Player::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint32
 	if(pVictim->GetHealth() <= damage)
 	{
 
-		if(pVictim->isTrainingDummy())
+		if(pVictim->isTrainingDummy() || pVictim->IsCreature() && TO_CREATURE(pVictim)->CantDie())
 		{
 			pVictim->SetHealth(1);
 			return;

@@ -174,6 +174,7 @@ struct CreatureProto
 	uint32 spelldataid;
 	uint32 vehicleid;
 	uint32 rooted;
+	bool   cantdie;
 
 	/* AI Stuff */
 	bool m_canRangedAttack;
@@ -675,6 +676,11 @@ class SERVER_DECL Creature : public Unit
 				return true;
 			else
 				return false;
+		}
+
+		bool CantDie()
+		{
+			return GetProto()->cantdie;
 		}
 
 		void FormationLinkUp(uint32 SqlId);

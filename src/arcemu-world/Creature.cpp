@@ -2033,7 +2033,7 @@ void Creature::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint
 
 	if(pVictim->GetHealth() <= damage)
 	{
-		if(pVictim->isTrainingDummy())
+		if(pVictim->isTrainingDummy() || pVictim->IsCreature() && TO_CREATURE(pVictim)->CantDie())
 		{
 			pVictim->SetHealth(1);
 			return;
