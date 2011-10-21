@@ -217,6 +217,11 @@ IsleOfConquest::IsleOfConquest(MapMgr * mgr, uint32 id, uint32 lgroup, uint32 t)
 
 	/*memset(m_nodes, 0, sizeof(m_nodes));*/
 	m_zoneid = 4710;
+	for(int i = 0; i < 6; i++)
+	{
+		ActiveBonuses[0][i] = false;
+		ActiveBonuses[1][i] = false;
+	}
 }
 
 IsleOfConquest::~IsleOfConquest()
@@ -947,4 +952,76 @@ void IsleOfConquest::AddHonorToTeam(uint32 amount, uint8 team)
 	{
 		(*itr)->AddHonor(amount);
 	}
+}
+
+void IsleOfConquest::BuildVehicleSpellList(Creature *c, WorldPacket & data)
+{
+	#define MAKE_ACTION_BUTTON(A,T) uint32(uint32(A) | (uint32(T) << 24))
+	if(c == NULL || !c->IsInWorld())
+	{
+		sLog.outError("IOC attempted to build a vehicle spell list for a nonexistant/not in world creature.");
+		return;
+	}
+	uint32 spellcount = 0;
+	Unit * controller = c->GetMapMgrUnit(c->GetCharmedByGUID());
+	if(controller == NULL || !controller->IsInWorld())
+	{
+		sLog.outError("IOC attempted to build a vehicle spell list for a nonexistant/not in world controller.");
+		return;
+	}
+	c->SetFaction(controller->GetFaction());
+	switch(c->GetEntry())
+	{
+		case KEEP_CANNON:
+		case CATAPULT:
+		case DEMOLISHER:
+		{
+			spellcount = 2;
+		}break;
+
+		case FLAME_TURRET_A:
+		case FLAME_TURRET_H:
+		{
+			spellcount = 1;
+		}break;
+
+		case SIEGE_ENGINE_A:
+		case SIEGE_ENGINE_H:
+		{
+			spellcount = 2;
+		}break;
+
+		case SIEGE_TURRET_A:
+		case SIEGE_TURRET_H:
+		{
+			spellcount = 2;
+		}break;
+		default:
+		{
+			sLog.outError("Unhandled vehicle attempting to build spell list. Entry: %u");
+			return;
+		}
+	}
+	data << uint64(c->GetGUID());
+	data << uint16(0);
+	data << uint32(0);
+	data << uint32( 0x101 );
+	uint8 count = 0;
+	for (uint32 i = 0; i < 10; i++)
+	{
+		uint32 spellId = c->GetProto()->AISpells[i];
+
+		SpellEntry const *spellInfo = dbcSpell.LookupEntryForced( spellId );
+		if (!spellInfo || spellInfo->Id == 1 /*|| i > spellcount*/)
+		{
+			data << uint16(0) << uint8(0) << uint8(i+8);
+		}
+		else
+		{
+			data << uint32(MAKE_ACTION_BUTTON(spellId,i+8));
+			++count;
+		}
+	}
+	data << count; // spells count
+	data << uint8(0);
 }

@@ -2323,7 +2323,12 @@ void Creature::HandleMonsterSayEvent(MONSTER_SAY_EVENTS Event)
 
 void Creature::BuildPetSpellList(WorldPacket & data)
 {
-
+	if(m_bg && m_bg->GetType() == BATTLEGROUND_ISLE_OF_CONQUEST)
+	{
+		IsleOfConquest* ioc = (IsleOfConquest*)m_bg;
+		ioc->BuildVehicleSpellList(this, data);
+		return;
+	}
 	data << uint64(GetGUID());
 	data << uint16(0);
 	data << uint32(0);

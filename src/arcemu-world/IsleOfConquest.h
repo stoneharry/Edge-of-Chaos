@@ -194,6 +194,7 @@ public:
 	void ApplyBonus(uint32 Id, Unit * u);
 	void CreateVehicle(uint8 team, uint32 entry, float x, float y, float z, float o);
 	void AddHonorToTeam(uint32 amount, uint8 team);
+	void BuildVehicleSpellList(Creature *c, WorldPacket & data);
 protected:
 	list< GameObject* > m_gates;
 	uint32 m_reinforcements[2];
@@ -216,6 +217,7 @@ protected:
 	int32 m_basesAssaultedBy[IOC_NUM_CONTROL_POINTS];
 	bool m_flagIsVirgin[IOC_NUM_CONTROL_POINTS];
 	std::map<Creature*, uint8> m_vehicles;
+	bool ActiveBonuses[1][6];
 };
 
 enum GENERAL_IOC_DEFINES
