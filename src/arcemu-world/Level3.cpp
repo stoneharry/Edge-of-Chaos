@@ -2812,7 +2812,7 @@ bool ChatHandler::HandleCreatureSpawnCommand(const char* args, WorldSession* m_s
 	p->SaveToDB();
 
 	sGMLog.writefromsession(m_session, "spawned a %s at %u %f %f %f", info->Name, m_session->GetPlayer()->GetMapId(), sp->x, sp->y, sp->z);
-
+	p->m_bg = m_session->GetPlayer()->m_bg;
 	return true;
 }
 
