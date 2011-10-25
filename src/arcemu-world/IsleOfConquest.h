@@ -191,7 +191,7 @@ public:
 	GameObject* m_ioccontrolPointAuras[IOC_NUM_CONTROL_POINTS];
 
 	void ApplyCaptureBonus(uint32 Id, uint32 team);
-	void ApplyBonus(uint32 Id, Unit * u);
+	void RemoveCaptureBonus(uint32 Id, uint32 team);
 	void CreateVehicle(uint8 team, uint32 entry, float x, float y, float z, float o);
 	void AddHonorToTeam(uint32 amount, uint8 team);
 	void BuildVehicleSpellList(Creature *c, WorldPacket & data);

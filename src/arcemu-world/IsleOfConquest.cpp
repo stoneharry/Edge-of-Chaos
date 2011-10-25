@@ -574,7 +574,7 @@ void IsleOfConquest::AssaultControlPoint(Player* pPlayer, uint32 Id)
 	// update players info
 	pPlayer->m_bgScore.MiscData[BG_SCORE_IOC_BASE_ASSAULTED]++;
 	UpdatePvPData();
-
+	ApplyCaptureBonus(Id, Team);
 	if(Id == 5)
 	{
 		if(m_salesman != NULL)
@@ -761,7 +761,8 @@ void IsleOfConquest::OnStart()
 	PlaySoundToAll(SOUND_BATTLEGROUND_BEGIN);
 
 	m_started = true;
-
+	sEventMgr.AddEvent(this, IsleOfConquest::AddReinforcements, (uint32)0, (uint32)200, EVENT_IOC_RESOURCES_UPDATE_TEAM_0, 60000, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT); 
+	sEventMgr.AddEvent(this, IsleOfConquest::AddReinforcements, (uint32)1, (uint32)200, EVENT_IOC_RESOURCES_UPDATE_TEAM_0, 60000, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT); 
 }
 
 void IsleOfConquest::HookGenerateLoot(Player* plr, Object* pCorpse)
@@ -930,11 +931,39 @@ void IsleOfConquest::HookGameObjectDamage(GameObject*go)
 
 void IsleOfConquest::ApplyCaptureBonus(uint32 Id, uint32 team) //todo make this loop and apply bonuses that haven't been aplied.
 {
-
+	ActiveBonuses[team][Id] = true;
+	switch(Id)
+	{
+		case 5:
+		{
+			SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "%s's resources now come by air, reinforcement gain time cut in half!", team ? "Horde" : "Alliance");
+			sEventMgr.ModifyEventTime(this, EVENT_IOC_RESOURCES_UPDATE_TEAM_0 + team, 30000);
+		}break;
+		case 3:
+		{
+			SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "The %s have broken through the dock blockade! Demolisher's rams have been repaired!", team ? "Horde" : "Alliance");
+			sEventMgr.ModifyEventTime(this, EVENT_IOC_RESOURCES_UPDATE_TEAM_0 + team, 60000);
+		}break;
+	}
 }
 
-void IsleOfConquest::ApplyBonus(uint32 Id, Unit * u)
+void IsleOfConquest::RemoveCaptureBonus(uint32 Id, uint32 team)
 {
+	ActiveBonuses[team][Id] = false;
+	switch(Id)
+	{
+		case 4:
+		{
+			SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "%s's resources no longer come by air, reinforcement gain time is now normal!", team ? "Horde" : "Alliance");
+			sEventMgr.ModifyEventTime(this, EVENT_IOC_RESOURCES_UPDATE_TEAM_0 + team, 60000);
+		}break;
+		case 3:
+		{
+			SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "The dock has been blocked by %s demolishers rams no longer function!", team ? "Horde" : "Alliance");
+			sEventMgr.ModifyEventTime(this, EVENT_IOC_RESOURCES_UPDATE_TEAM_0 + team, 60000);
+		}break;
+
+	}
 }
 
 void IsleOfConquest::CreateVehicle(uint8 team, uint32 entry, float x, float y, float z, float o)
@@ -974,9 +1003,13 @@ void IsleOfConquest::BuildVehicleSpellList(Creature *c, WorldPacket & data)
 	{
 		case KEEP_CANNON:
 		case CATAPULT:
-		case DEMOLISHER:
 		{
 			spellcount = 2;
+		}break;
+
+		case DEMOLISHER:
+		{
+			spellcount = ActiveBonuses[c->GetTeam()][5] ? 1 : 2;
 		}break;
 
 		case FLAME_TURRET_A:
@@ -1025,3 +1058,4 @@ void IsleOfConquest::BuildVehicleSpellList(Creature *c, WorldPacket & data)
 	data << count; // spells count
 	data << uint8(0);
 }
+
