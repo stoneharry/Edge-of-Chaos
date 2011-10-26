@@ -761,8 +761,8 @@ void IsleOfConquest::OnStart()
 	PlaySoundToAll(SOUND_BATTLEGROUND_BEGIN);
 
 	m_started = true;
-	sEventMgr.AddEvent(this, IsleOfConquest::AddReinforcements, (uint32)0, (uint32)200, EVENT_IOC_RESOURCES_UPDATE_TEAM_0, 60000, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT); 
-	sEventMgr.AddEvent(this, IsleOfConquest::AddReinforcements, (uint32)1, (uint32)200, EVENT_IOC_RESOURCES_UPDATE_TEAM_0, 60000, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT); 
+	sEventMgr.AddEvent(this, &IsleOfConquest::AddReinforcements, (uint32)0, (uint32)200, EVENT_IOC_RESOURCES_UPDATE_TEAM_0, 60000, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT); 
+	sEventMgr.AddEvent(this, &IsleOfConquest::AddReinforcements, (uint32)1, (uint32)200, EVENT_IOC_RESOURCES_UPDATE_TEAM_1, 60000, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT); 
 }
 
 void IsleOfConquest::HookGenerateLoot(Player* plr, Object* pCorpse)
