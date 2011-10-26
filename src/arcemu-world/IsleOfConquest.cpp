@@ -1036,16 +1036,16 @@ void IsleOfConquest::BuildVehicleSpellList(Creature *c, WorldPacket & data)
 		}
 	}
 	data << uint64(c->GetGUID());
-	data << uint16(0);
+	data << uint16(c->GetCreatureInfo()->Family);
 	data << uint32(0);
-	data << uint32( 0x101 );
+	data << uint32( 0x8000101 );
 	uint8 count = 0;
 	for (uint32 i = 0; i < 10; i++)
 	{
 		uint32 spellId = c->GetProto()->AISpells[i];
 
 		SpellEntry const *spellInfo = dbcSpell.LookupEntryForced( spellId );
-		if (!spellInfo || spellInfo->Id == 1 /*|| i > spellcount*/)
+		if (!spellInfo || spellInfo->Id == 1 || i > spellcount)
 		{
 			data << uint16(0) << uint8(0) << uint8(i+8);
 		}
