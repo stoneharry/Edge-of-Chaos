@@ -43,9 +43,12 @@
 #define BUILDTYPE "Release"
 #endif
 
+<<<<<<< HEAD
 #define REQUIRED_WORLD_DB_VERSION 4630
 #define REQUIRED_CHAR_DB_VERSION 4479
 
+=======
+>>>>>>> e13fd4bdf09af40d0c408de69a4c1ac3d0f3e5a2
 #define DEFAULT_LOOP_TIME 0 /* 0 milliseconds - instant */
 #define DEFAULT_LOG_LEVEL 0
 #define DEFAULT_PLAYER_LIMIT 100

@@ -969,6 +969,8 @@ class SERVER_DECL Unit : public Object
 		virtual void RemoveFromWorld(bool free_guid);
 		virtual void OnPushToWorld();
 
+		virtual void Deactivate(MapMgr* mgr);
+
 		virtual bool IsPvPFlagged() = 0;
 		virtual void SetPvPFlag() = 0;
 		virtual void RemovePvPFlag() = 0;

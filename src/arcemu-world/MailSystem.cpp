@@ -155,7 +155,7 @@ bool MailMessage::AddMessageDataToPacket(WorldPacket & data)
 	data << uint32(0);
 	data << uint32(stationery);
 	data << uint32(money);		// money
-	data << uint32(0x10);           // "checked" flag
+	data << uint32(checked_flag);           // "checked" flag
 	data << float((expire_time - uint32(UNIXTIME)) / 86400.0f);
 	data << uint32(0);	// mail template
 	data << subject;
@@ -230,8 +230,7 @@ void MailSystem::SaveMessageToSQL(MailMessage* message)
 	   << message->stationery << ","
 	   << message->expire_time << ","
 	   << message->delivery_time << ","
-	   << message->copy_made << ","
-	   << message->read_flag << ","
+	   << message->checked_flag << ","
 	   << message->deleted_flag << ");";
 
 	CharacterDatabase.ExecuteNA(ss.str().c_str());
@@ -407,10 +406,9 @@ void WorldSession::HandleSendMail(WorldPacket & recv_data)
 	else
 		msg.expire_time = 0;
 
-	msg.copy_made = false;
-	msg.read_flag = false;
 	msg.deleted_flag = false;
 	msg.message_type = 0;
+	msg.checked_flag = msg.body.empty() ? MAIL_CHECK_MASK_COPIED : MAIL_CHECK_MASK_HAS_BODY;
 
 	// Great, all our info is filled in. Now we can add it to the other players mailbox.
 	sMailSystem.DeliverMessage(player->guid, &msg);
@@ -432,14 +430,19 @@ void WorldSession::HandleMarkAsRead(WorldPacket & recv_data)
 	if(message == 0) return;
 
 	// mark the message as read
-	message->read_flag = 1;
+	message->checked_flag |= MAIL_CHECK_MASK_READ;
 
 	// mail now has a 30 day expiry time
 	if(!sMailSystem.MailOption(MAIL_FLAG_NO_EXPIRY))
 		message->expire_time = (uint32)UNIXTIME + (TIME_DAY * 30);
 
 	// update it in sql
+<<<<<<< HEAD
 	CharacterDatabase.WaitExecute("UPDATE mailbox SET read_flag = 1, expiry_time = %u WHERE message_id = %u", message->message_id, message->expire_time);
+=======
+	CharacterDatabase.WaitExecute("UPDATE mailbox SET checked_flag = %u, expiry_time = %u WHERE message_id = %u",
+		message->checked_flag, message->expire_time, message->message_id);
+>>>>>>> e13fd4bdf09af40d0c408de69a4c1ac3d0f3e5a2
 }
 
 void WorldSession::HandleMailDelete(WorldPacket & recv_data)
@@ -462,22 +465,7 @@ void WorldSession::HandleMailDelete(WorldPacket & recv_data)
 		return;
 	}
 
-	if(message->copy_made)
-	{
-		// we have the message as a copy on the item. we can't delete it or this item
-		// will no longer function.
-
-		// deleted_flag prevents it from being shown in the mail list.
-		message->deleted_flag = 1;
-
-		// update in sql
-		CharacterDatabase.WaitExecute("UPDATE mailbox SET deleted_flag = 1 WHERE message_id = %u", message_id);
-	}
-	else
-	{
-		// delete the message, there are no other references to it.
-		_player->m_mailBox.DeleteMessage(message_id, true);
-	}
+	_player->m_mailBox.DeleteMessage(message_id, true);
 
 	data << uint32(MAIL_OK);
 	SendPacket(&data);
@@ -585,7 +573,7 @@ void WorldSession::HandleTakeItem(WorldPacket & recv_data)
 		_player->ModGold(-(int32)message->cod);
 		string subject = "COD Payment: ";
 		subject += message->subject;
-		sMailSystem.SendAutomatedMessage(NORMAL, message->player_guid, message->sender_guid, subject, "", message->cod, 0, 0, MAIL_STATIONERY_TEST1);
+		sMailSystem.SendAutomatedMessage(NORMAL, message->player_guid, message->sender_guid, subject, "", message->cod, 0, 0, MAIL_STATIONERY_TEST1, MAIL_CHECK_MASK_COD_PAYMENT);
 
 		message->cod = 0;
 		CharacterDatabase.Execute("UPDATE mailbox SET cod = 0 WHERE message_id = %u", message->message_id);
@@ -668,10 +656,8 @@ void WorldSession::HandleReturnToSender(WorldPacket & recv_data)
 	message.player_guid = message.sender_guid;
 	message.sender_guid = _player->GetGUID();
 
-	// turn off the read flag
-	message.read_flag = false;
 	message.deleted_flag = false;
-	message.copy_made = false;
+	message.checked_flag = MAIL_CHECK_MASK_RETURNED;
 
 	// null out the cod charges. (the sender doesn't want to have to pay for his own item
 	// that he got nothing for.. :p)
@@ -723,15 +709,11 @@ void WorldSession::HandleMailCreateTextItem(WorldPacket & recv_data)
 	if(pItem == NULL)
 		return;
 
-	//pItem->SetTextId(message_id);
+	pItem->SetFlag( ITEM_FIELD_FLAGS, ITEM_FLAG_WRAP_GIFT ); // the flag is probably misnamed
+	pItem->SetText( message->body );
+
 	if(_player->GetItemInterface()->AddItemToFreeSlot(pItem))
 	{
-		// mail now has an item after it
-		message->copy_made = true;
-
-		// update in sql
-		CharacterDatabase.WaitExecute("UPDATE mailbox SET copy_made = 1 WHERE message_id = %u", message_id);
-
 		data << uint32(MAIL_OK);
 		SendPacket(&data);
 	}
@@ -748,18 +730,15 @@ void WorldSession::HandleItemTextQuery(WorldPacket & recv_data)
 	uint64 itemGuid;
 	recv_data >> itemGuid;
 
-	string body = "Internal Error";
-
-	//TODO: Store text in database even after we deleted the mail and access it by item GUID (low guid)
 	Item* pItem = _player->GetItemInterface()->GetItemByGUID(itemGuid);
-	WorldPacket data(SMSG_ITEM_TEXT_QUERY_RESPONSE, body.length() + 9);
+	WorldPacket data(SMSG_ITEM_TEXT_QUERY_RESPONSE, pItem->GetText().size() + 9 );
 	if(!pItem)
 		data << uint8(1);
 	else
 	{
 		data << uint8(0);
 		data << uint64(itemGuid);
-		data << body;
+		data << pItem->GetText();
 	}
 
 	SendPacket(&data);
@@ -773,7 +752,10 @@ void Mailbox::FillTimePacket(WorldPacket & data)
 
 	for(; iter != Messages.end(); ++iter)
 	{
-		if(iter->second.deleted_flag == 0 && iter->second.read_flag == 0 && (uint32)UNIXTIME >= iter->second.delivery_time)
+		if(iter->second.checked_flag & MAIL_CHECK_MASK_READ)
+			continue;
+
+		if(iter->second.deleted_flag == 0  && (uint32)UNIXTIME >= iter->second.delivery_time)
 		{
 			// unread message, w00t.
 			++c;
@@ -835,7 +817,11 @@ void MailSystem::RemoveMessageIfDeleted(uint32 message_id, Player* plr)
 }
 
 void MailSystem::SendAutomatedMessage(uint32 type, uint64 sender, uint64 receiver, string subject, string body,
+<<<<<<< HEAD
                                       uint32 money, uint32 cod, uint64 item_guid, uint32 stationery, uint32 deliverdelay)
+=======
+                                      uint32 money, uint32 cod, vector<uint64> &item_guids, uint32 stationery, MailCheckMask checked, uint32 deliverdelay)
+>>>>>>> e13fd4bdf09af40d0c408de69a4c1ac3d0f3e5a2
 {
 	// This is for sending automated messages, for example from an auction house.
 	MailMessage msg;
@@ -852,14 +838,26 @@ void MailSystem::SendAutomatedMessage(uint32 type, uint64 sender, uint64 receive
 	msg.stationery = stationery;
 	msg.delivery_time = (uint32)UNIXTIME + deliverdelay;
 	msg.expire_time = 0;
-	msg.read_flag = false;
-	msg.copy_made = false;
 	msg.deleted_flag = false;
+	msg.checked_flag = checked;
 
 	// Send the message.
 	DeliverMessage(receiver, &msg);
 }
 
+<<<<<<< HEAD
+=======
+//overload to keep backward compatibility (passing just 1 item guid instead of a vector)
+void MailSystem::SendAutomatedMessage(uint32 type, uint64 sender, uint64 receiver, string subject, string body, uint32 money,
+                                      uint32 cod, uint64 item_guid, uint32 stationery, MailCheckMask checked, uint32 deliverdelay)
+{
+	vector<uint64> item_guids;
+	if(item_guid != 0)
+		item_guids.push_back(item_guid);
+	SendAutomatedMessage(type, sender, receiver, subject, body, money, cod, item_guids, stationery, checked, deliverdelay);
+}
+
+>>>>>>> e13fd4bdf09af40d0c408de69a4c1ac3d0f3e5a2
 void Mailbox::Load(QueryResult* result)
 {
 	if(!result)
@@ -914,8 +912,7 @@ void Mailbox::Load(QueryResult* result)
 		msg.stationery = fields[i++].GetUInt32();
 		msg.expire_time = fields[i++].GetUInt32();
 		msg.delivery_time = fields[i++].GetUInt32();
-		msg.copy_made = fields[i++].GetBool();
-		msg.read_flag = fields[i++].GetBool();
+		msg.checked_flag = fields[i++].GetUInt32();
 		msg.deleted_flag = fields[i++].GetBool();
 
 		// Add to the mailbox

@@ -1394,6 +1394,38 @@ void QuestMgr::OnQuestFinished(Player* plr, Quest* qst, Object* qst_giver, uint3
 				plr->AddToFinishedQuests((*iter));
 		}
 	}
+<<<<<<< HEAD
+=======
+
+	if( qst->MailTemplateId != 0 )
+	{
+		MailTemplateEntry * mail = dbcMailTemplateEntry.LookupEntryForced( qst->MailTemplateId );
+		if( mail != NULL )
+		{
+			int mailType = NORMAL;
+			uint64 itemGuid = 0;
+			if(qst_giver->IsCreature())
+				mailType = CREATURE;
+			else if(qst_giver->IsGameObject())
+				mailType = GAMEOBJECT;
+
+			if( qst->MailSendItem != 0 )
+			{
+				// the way it's done in World::PollMailboxInsertQueue
+				Item * pItem = objmgr.CreateItem(qst->MailSendItem, NULL);
+				if(pItem != NULL)
+				{
+					pItem->SetStackCount(1);
+					pItem->SaveToDB(0, 0, true, NULL);
+					itemGuid = pItem->GetGUID();
+					pItem->DeleteMe();
+				}
+			}
+
+			sMailSystem.SendAutomatedMessage( mailType, qst_giver->GetGUID(), plr->GetGUID(), mail->subject, mail->content, 0, 0, itemGuid, MAIL_STATIONERY_TEST1, MAIL_CHECK_MASK_HAS_BODY, qst->MailDelaySecs);
+		}
+	}
+>>>>>>> e13fd4bdf09af40d0c408de69a4c1ac3d0f3e5a2
 }
 
 /////////////////////////////////////

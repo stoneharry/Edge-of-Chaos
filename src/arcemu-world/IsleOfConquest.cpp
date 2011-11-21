@@ -457,6 +457,7 @@ void IsleOfConquest::CaptureControlPoint(uint32 Id, uint32 Team)
 	SetWorldState(AssaultFields[Id][Team], 0);
 	SetWorldState(OwnedFields[Id][Team], 1);
 	AddHonorToTeam(5, Team);
+	ApplyCaptureBonus(Id, Team);
 	if(Id == 5)
 		Updateworkshop(Team);
 }
@@ -574,7 +575,6 @@ void IsleOfConquest::AssaultControlPoint(Player* pPlayer, uint32 Id)
 	// update players info
 	pPlayer->m_bgScore.MiscData[BG_SCORE_IOC_BASE_ASSAULTED]++;
 	UpdatePvPData();
-	ApplyCaptureBonus(Id, Team);
 	if(Id == 5)
 	{
 		if(m_salesman != NULL)
@@ -667,7 +667,7 @@ void IsleOfConquest::OnCreate()
 		m_ogates[x] = SpawnGameObject(IOC_DYNAMIC_DOOR_A, iocGatesLocation[x][0],  iocGatesLocation[x][1], iocGatesLocation[x][2], iocGatesLocation[x][3], 0, 1, 1.0f);
 		m_ogates[x]->SetUInt32Value(GAMEOBJECT_FLAGS, 32);
 		m_ogates[x]->SetUInt32Value(GAMEOBJECT_DYNAMIC, 4294901760);
-		m_ogates[x]->SetUInt32Value(GAMEOBJECT_FACTION, 1375);
+		m_ogates[x]->SetUInt32Value(GAMEOBJECT_FACTION, 1);
 		m_ogates[x]->SetUInt32Value(GAMEOBJECT_BYTES_1, 4278190081);
 		m_ogates[x]->PushToWorld(m_mapMgr);
 	}
@@ -680,7 +680,7 @@ void IsleOfConquest::OnCreate()
 		m_ogates[x] = SpawnGameObject(IOC_DYNAMIC_DOOR_H, iocGatesLocation[x][0],  iocGatesLocation[x][1], iocGatesLocation[x][2], iocGatesLocation[x][3], 0, 2, 1.0f);
 		m_ogates[x]->SetUInt32Value(GAMEOBJECT_FLAGS, 32);
 		m_ogates[x]->SetUInt32Value(GAMEOBJECT_DYNAMIC, 4294901760);
-		m_ogates[x]->SetUInt32Value(GAMEOBJECT_FACTION, 1375);
+		m_ogates[x]->SetUInt32Value(GAMEOBJECT_FACTION, 5);
 		m_ogates[x]->SetUInt32Value(GAMEOBJECT_BYTES_1, 4278190081);
 		m_ogates[x]->PushToWorld(m_mapMgr);
 	}
@@ -717,11 +717,7 @@ void IsleOfConquest::HookOnHK(Player* plr)
 
 void IsleOfConquest::AddReinforcements(uint32 teamId, uint32 amt)
 {
-	if( ((int32)( m_reinforcements[teamId] + amt )) > IOC_NUM_REINFORCEMENTS )
-		m_reinforcements[teamId] = IOC_NUM_REINFORCEMENTS;
-	else
-		m_reinforcements[teamId] += amt;
-
+	m_reinforcements[teamId] += amt;
 	SetWorldState(WORLDSTATE_IOC_ALLIANCE_SCORE + teamId, m_reinforcements[teamId]);
 }
 
@@ -792,13 +788,13 @@ void IsleOfConquest::HookOnUnitKill(Player* plr, Unit* pVictim)
 	if(pVictim->GetEntry() == 34924)	// High Commander Halford Wyrmbane
 	{
 		Herald("The 7th Legion General is dead!");
-		RemoveReinforcements( 0, IOC_NUM_REINFORCEMENTS );	// Horde Win
+		RemoveReinforcements( 0, m_reinforcements[0] );	// Horde Win
 		Finish(0);
 	}
 	else if(pVictim->GetEntry() == 34922)	// Overlord Agmar
 	{
 		Herald("The Scarshield Legion General is dead!");
-		RemoveReinforcements( 1, IOC_NUM_REINFORCEMENTS );	// Alliance Win
+		RemoveReinforcements( 1, m_reinforcements[1] );	// Alliance Win
 		Finish(1);
 	}
 }
@@ -859,35 +855,36 @@ void IsleOfConquest::HookOnFlagDrop(Player * plr)
 
 void IsleOfConquest::HookGameObjectDamage(GameObject*go)
 {
+	go->SetUInt32Value(GAMEOBJECT_DYNAMIC, 0);
 	switch(go->bannerslot)
 	{
-		case 1: // alliance west
+		case 1:
 		{
 			if(go->HasFlags(GAMEOBJECT_FLAG_DESTROYED))
 			{
-				SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "Alliance Keep's West Gate has been destroyed!");
+				SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "Alliance Keep's Front Gate has been destroyed!");
 				SetWorldState(4327, 0);
 				SetWorldState(4325, 1);
 				AddHonorToTeam(10, 1);
 			}
 		}break;
 
-		case 2: // alliance front
+		case 2: 
 		{
 			if(go->HasFlags(GAMEOBJECT_FLAG_DESTROYED))
 			{
-				SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "Alliance Keep's Front Gate has been destroyed!");
+				SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "Alliance Keep's East Gate has been destroyed!");
 				SetWorldState(4328, 0);
 				SetWorldState(4324, 1);
 				AddHonorToTeam(10, 1);
 			}
 		}break;
 
-		case 3: // alliance east
+		case 3:
 		{
 			if(go->HasFlags(GAMEOBJECT_FLAG_DESTROYED))
 			{
-				SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "Alliance Keep's East Gate has been destroyed!");
+				SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "Alliance Keep's West Gate has been destroyed!");
 				SetWorldState(4326, 0);
 				SetWorldState(4323, 1);
 				AddHonorToTeam(10, 1);
@@ -934,15 +931,14 @@ void IsleOfConquest::ApplyCaptureBonus(uint32 Id, uint32 team) //todo make this 
 	ActiveBonuses[team][Id] = true;
 	switch(Id)
 	{
-		case 5:
+		case IOC_CONTROL_POINT_AIRSHIPHANGAR:
 		{
 			SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "%s's resources now come by air, reinforcement gain time cut in half!", team ? "Horde" : "Alliance");
 			sEventMgr.ModifyEventTime(this, EVENT_IOC_RESOURCES_UPDATE_TEAM_0 + team, 30000);
 		}break;
-		case 3:
+		case IOC_CONTROL_POINT_DOCKS:
 		{
 			SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "The %s have broken through the dock blockade! Demolisher's rams have been repaired!", team ? "Horde" : "Alliance");
-			sEventMgr.ModifyEventTime(this, EVENT_IOC_RESOURCES_UPDATE_TEAM_0 + team, 60000);
 		}break;
 	}
 }
@@ -952,15 +948,14 @@ void IsleOfConquest::RemoveCaptureBonus(uint32 Id, uint32 team)
 	ActiveBonuses[team][Id] = false;
 	switch(Id)
 	{
-		case 4:
+		case IOC_CONTROL_POINT_AIRSHIPHANGAR:
 		{
 			SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "%s's resources no longer come by air, reinforcement gain time is now normal!", team ? "Horde" : "Alliance");
 			sEventMgr.ModifyEventTime(this, EVENT_IOC_RESOURCES_UPDATE_TEAM_0 + team, 60000);
 		}break;
-		case 3:
+		case IOC_CONTROL_POINT_DOCKS:
 		{
 			SendChatMessage(CHAT_MSG_BG_EVENT_NEUTRAL, 0, "The dock has been blocked by %s demolishers rams no longer function!", team ? "Horde" : "Alliance");
-			sEventMgr.ModifyEventTime(this, EVENT_IOC_RESOURCES_UPDATE_TEAM_0 + team, 60000);
 		}break;
 
 	}
@@ -1045,7 +1040,7 @@ void IsleOfConquest::BuildVehicleSpellList(Creature *c, WorldPacket & data)
 		uint32 spellId = c->GetProto()->AISpells[i];
 
 		SpellEntry const *spellInfo = dbcSpell.LookupEntryForced( spellId );
-		if (!spellInfo || spellInfo->Id == 1 || i > spellcount)
+		if (!spellInfo || spellInfo->Id == 1 || i >= spellcount)
 		{
 			data << uint16(0) << uint8(0) << uint8(i+8);
 		}

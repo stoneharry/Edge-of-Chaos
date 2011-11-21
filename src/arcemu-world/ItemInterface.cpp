@@ -961,11 +961,6 @@ uint32 ItemInterface::GetItemCount(uint32 itemid, bool IncBank)
 //-------------------------------------------------------------------//
 uint32 ItemInterface::RemoveItemAmt(uint32 id, uint32 amt)
 {
-	//this code returns shit return value is fucked
-	if(GetItemCount(id) < amt)
-	{
-		return 0;
-	}
 	uint32 i;
 
 	for(i = EQUIPMENT_SLOT_START; i < INVENTORY_SLOT_ITEM_END; i++)
@@ -2847,7 +2842,7 @@ void ItemInterface::BuildInventoryChangeError(Item* SrcItem, Item* DstItem, uint
 
 	data << uint8(0);
 
-	if(Error == INV_ERR_YOU_MUST_REACH_LEVEL_N)
+	if( ( Error == INV_ERR_YOU_MUST_REACH_LEVEL_N ) || ( Error == INV_ERR_PURCHASE_LEVEL_TOO_LOW ) )
 	{
 		if(SrcItem)
 		{

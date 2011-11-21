@@ -2037,7 +2037,11 @@ class SERVER_DECL Spell : public EventableObject
 							this->Dur = 0;
 						c_dur = this->Dur;
 					}
+<<<<<<< HEAD
 					if(sd->Duration1 >= 0 && !c_dur)
+=======
+					if(!c_dur)
+>>>>>>> e13fd4bdf09af40d0c408de69a4c1ac3d0f3e5a2
 					{
 						this->Dur = sd->Duration1;
 					}
