@@ -26,13 +26,13 @@ const char * gItemPrototypeFormat						= "uuuusuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu
 const char * gItemNameFormat							= "usu";
 const char * gCreatureNameFormat						= "usssuuuuuuuuuuffcuuuuuuub";
 const char * gGameObjectNameFormat						= "uuussssuuuuuuuuuuuuuuuuuuuuuuuufuuuuuu";
-const char * gCreatureProtoFormat						= "uuuuuuufuuuffuuffuuuuuuuuffsuuufffuuuuuuuuuuuuuuuuub";
+const char * gCreatureProtoFormat						= "uuuuuuufuuuffuuffuuuuuuuuffsuuufffuuuuuuuuuuuuuuuuuu";
 const char * gDisplayBoundingFormat						= "ufffffff";
 const char * gVendorRestrictionEntryFormat				= "uuuuuuuu";
 const char * gAreaTriggerFormat							= "ucuusffffuu";
 const char * gItemPageFormat							= "usu";
 const char * gNpcTextFormat								= "ufssuuuuuuufssuuuuuuufssuuuuuuufssuuuuuuufssuuuuuuufssuuuuuuufssuuuuuuufssuuuuuuu";
-const char * gQuestFormat								= "uuuuuuuuuuuuuuuuuuussssssssssuuuuuuuuuuuuiiiiuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuiiiiiiuiuuuuuuuuuuuusuuuusuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuub";
+const char * gQuestFormat								= "uuuuuuuuuuuuuuuuuuussssssssssuuuuuuuuuuuuiiiiuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuiiiiiiuiuuuuuuuuuuuuuuusuuuusuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuub";
 //const char * gSpellExtraFormat							= "uuuu";
 const char* gGraveyardFormat							= "uffffuuuux";
 const char* gTeleportCoordFormat						= "uxufffx";
@@ -122,7 +122,7 @@ void ObjectMgr::LoadExtraCreatureProtoStuff()
 			}
 
 			// process creature spells from creaturespelldata.dbc
-			if( cn->spelldataid != 0 && cn->vehicleid == 0){
+			if( cn->spelldataid != 0 ){
 				CreatureSpellDataEntry* spe = dbcCreatureSpellData.LookupEntry( cn->spelldataid );
 				for( uint32 i = 0; i < 3; i++ ){
 					if( spe->Spells[ i ] == 0 )
@@ -558,7 +558,7 @@ void Storage_FillTaskList(TaskList & tl)
 	make_task(WorldStringTableStorage, WorldStringTable, HashMapStorageContainer, "worldstring_tables", gWorldStringTableFormat);
 	make_task(WorldBroadCastStorage, WorldBroadCast, HashMapStorageContainer, "worldbroadcast", gWorldBroadCastFormat);
 	make_task(BGMasterStorage, BGMaster, HashMapStorageContainer, "battlemasters", gBattleMasterFormat);
-	make_task(SpellClickSpellStorage, SpellClickSpell, HashMapStorageContainer, "SpellClickSpells", gSpellClickSpellsFormat);
+	make_task(SpellClickSpellStorage, SpellClickSpell, HashMapStorageContainer, "spellclickspells", gSpellClickSpellsFormat);
 	make_task(TotemDisplayIdStorage, TotemDisplayIdEntry, HashMapStorageContainer, "totemdisplayids", gTotemDisplayIDsFormat);
 }
 

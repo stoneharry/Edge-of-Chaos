@@ -61,6 +61,31 @@ struct FactionDBC;
 
 typedef HM_NAMESPACE::hash_map<uint32, uint64> UniqueAuraTargetMap;
 
+////////////////////////////////////////////////////////////////
+//class AuraCondition
+//  Checks for conditions specified in subclasses on Auras.
+//  When calling operator() it tells if the conditions are met.
+//
+////////////////////////////////////////////////////////////////
+class SERVER_DECL AuraCondition{
+public:
+	virtual bool operator()( Aura *aura ){
+		return true;
+	}
+};
+
+///////////////////////////////////////////////////////////////
+//class AuraAction
+//  Performs the actions specified in subclasses on the Aura,
+//  when calling operator().
+//
+///////////////////////////////////////////////////////////////
+class SERVER_DECL AuraAction{
+public:
+	virtual void operator()( Aura *aura ){}
+};
+
+
 #pragma pack(push, 1)
 struct DisplayBounding
 {
@@ -1091,6 +1116,23 @@ class SERVER_DECL Unit : public Object
 		bool RemoveAuraByNameHash(uint32 namehash);//required to remove weaker instances of a spell
 		bool RemoveAuras(uint32* SpellIds);
 		bool RemoveAurasByHeal();
+
+		////////////////////////////////////////////////////////////////////////////////////////
+		//bool AuraActionIf( AuraAction *a, AuraCondition *c )
+		//  Performs the specified action on the auras that meet the specified condition
+		//
+		//Parameter(s)
+		//  AuraAction *action        -  The action to perform
+		//  AuraCondition *condition  -  The condition that the aura(s) need to meet
+		//
+		//Return Value
+		//  Returns true if at least one action was performed.
+		//  Returns false otherwise.
+		//
+		////////////////////////////////////////////////////////////////////////////////////////
+		bool AuraActionIf( AuraAction *action, AuraCondition *condition );
+
+
 		void RemoveAurasByInterruptFlag(uint32 flag);
 		void RemoveAurasByInterruptFlagButSkip(uint32 flag, uint32 skip);
 		void RemoveAurasByBuffType(uint32 buff_type, const uint64 & guid, uint32 skip);
@@ -1632,6 +1674,7 @@ class SERVER_DECL Unit : public Object
 		//! returns: aura stack count
 		uint8 m_auraStackCount[MAX_NEGATIVE_VISUAL_AURAS_END];
 
+		void SendFullAuraUpdate();
 		void SendAuraUpdate(uint32 AuraSlot, bool remove);
 		uint32 ModVisualAuraStackCount(Aura* aur, int32 count);
 		uint8 FindVisualSlot(uint32 SpellId, bool IsPos);
@@ -1948,6 +1991,12 @@ class SERVER_DECL Unit : public Object
 		bool InParty(Unit* u);
 		bool InRaid(Unit* u);
 		const CombatStatusHandler* getcombatstatus() const { return &CombatStatus; }
+
+		bool m_noFallDamage;
+		float z_axisposition;
+		int32 m_safeFall;
+		
+		void SendEnvironmentalDamageLog( uint64 guid, uint8 type, uint32 damage );
 };
 
 

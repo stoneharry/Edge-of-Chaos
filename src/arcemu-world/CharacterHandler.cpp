@@ -19,7 +19,7 @@
  */
 
 #include "StdAfx.h"
-#include "svn_revision.h"
+#include "git_version.h"
 
 LoginErrorCode VerifyName(const char* name, size_t nlen)
 {
@@ -558,6 +558,7 @@ uint8 WorldSession::DeleteCharacter(uint32 guid)
 		CharacterDatabase.Execute("DELETE FROM character_achievement_progress WHERE guid = '%u'", (uint32)guid);
 		CharacterDatabase.Execute("DELETE FROM playerspells WHERE GUID = '%u'", guid);
 		CharacterDatabase.Execute("DELETE FROM playerdeletedspells WHERE GUID = '%u'", guid);
+		CharacterDatabase.Execute("DELETE FROM playerreputations WHERE guid = '%u'", guid);
 		CharacterDatabase.Execute("DELETE FROM playerskills WHERE GUID = '%u'", guid);
 
 		/* remove player info */
@@ -933,9 +934,9 @@ void WorldSession::FullLogin(Player* plr)
 
 	if(plr->m_FirstLogin)
 	{
-		//uint32 introid = plr->info->introid;
+		uint32 introid = plr->info->introid;
 
-		//OutPacket(SMSG_TRIGGER_CINEMATIC, 4, &introid);
+		OutPacket(SMSG_TRIGGER_CINEMATIC, 4, &introid);
 
 		if(sWorld.m_AdditionalFun)    //cebernic: tells people who 's newbie :D
 		{
@@ -1000,29 +1001,17 @@ void WorldSession::FullLogin(Player* plr)
 	}
 #endif
 
-/*
-#ifdef WIN32
-	_player->BroadcastMessage("Server: %sArcEmu %s - %s-Windows-%s", MSG_COLOR_WHITE, BUILD_TAG, CONFIG, ARCH);
-#else
-	_player->BroadcastMessage("Server: %sArcEmu %s - %s-%s", MSG_COLOR_WHITE, BUILD_TAG, PLATFORM_TEXT, ARCH);
-#endif*/
+
 
 	// Revision
 	_player->BroadcastMessage("ChaoticUnited Emulator : Revision: %sN/A", MSG_COLOR_CYAN);
 	// Bugs
-	/*
-	_player->BroadcastMessage("Bugs: %s%s", MSG_COLOR_SEXHOTPINK, BUGTRACKER);
-	// Recruiting message
-	_player->BroadcastMessage(RECRUITING);
-	// Shows Online players, and connection peak
-	_player->BroadcastMessage("Online Players: %s%u |rPeak: %s%u|r Accepted Connections: %s%u",
-	                          MSG_COLOR_SEXGREEN, sWorld.GetSessionCount(), MSG_COLOR_SEXBLUE, sWorld.PeakSessionCount, MSG_COLOR_SEXBLUE, sWorld.mAcceptedConnections);
 
 	// Shows Server uptime
-	_player->BroadcastMessage("Server Uptime: |r%s", sWorld.GetUptimeString().c_str());
+	//_player->BroadcastMessage("Server Uptime: |r%s", sWorld.GetUptimeString().c_str());
 
 	// server Message Of The Day
-	SendMOTD();*/
+	SendMOTD();
 
 	//Set current RestState
 	if(plr->m_isResting)
@@ -1051,6 +1040,7 @@ void WorldSession::FullLogin(Player* plr)
 	objmgr.AddPlayer(_player);
 	if (IsTrial())
 		_player->BroadcastMessage("%sDue to your account being a trial, your access to content is limited.", MSG_COLOR_RED);
+
 }
 
 bool ChatHandler::HandleRenameCommand(const char* args, WorldSession* m_session)

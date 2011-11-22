@@ -152,8 +152,8 @@ bool isAttackable(Object* objA, Object* objB, bool CheckStealth)
 		/// we cannot attack shealthed units. Maybe checked in other places too ?
 		/// !! warning, this presumes that objA is attacking ObjB
 		/// Capt: Added the possibility to disregard this (regarding the spell class)
-		//if(TO< Unit* >(objB)->IsStealth() && CheckStealth)
-			//return false;
+		if(TO< Unit* >(objB)->IsStealth() && CheckStealth)
+			return false;
 	}
 
 	if((objA->GetPlayerOwner() != NULL) && (objB->GetPlayerOwner() != NULL))

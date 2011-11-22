@@ -174,8 +174,7 @@ struct CreatureProto
 	uint32 spelldataid;
 	uint32 vehicleid;
 	uint32 rooted;
-	bool   cantdie;
-
+	uint32 CustomFlags;
 	/* AI Stuff */
 	bool m_canRangedAttack;
 	bool m_canFlee;
@@ -246,6 +245,12 @@ enum CreatureFlag1
     CREATURE_FLAG1_FIGHT_MOUNTED 	= 0x00800,
     CREATURE_FLAG1_ENGINEERLOOT 	= 0x08000,
     CREATURE_FLAG1_EXOTIC			= 0x10000,
+};
+
+enum CustomFlags
+{
+	CREATURE_CUSTOMFLAG_CANTDIE = 0x1,
+	CREATURE_CUSTOMFLAG_IMMUNE_TO_CREATURE_DAMAGE = 0x2
 };
 
 enum FAMILY
@@ -680,7 +685,12 @@ class SERVER_DECL Creature : public Unit
 
 		bool CantDie()
 		{
-			return GetProto()->cantdie;
+			return (GetProto()->CustomFlags & CREATURE_CUSTOMFLAG_CANTDIE);
+		}
+
+		bool IsImmuneToCreatureDamage()
+		{
+			return (GetProto()->CustomFlags & CREATURE_CUSTOMFLAG_IMMUNE_TO_CREATURE_DAMAGE);
 		}
 
 		void FormationLinkUp(uint32 SqlId);

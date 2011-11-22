@@ -804,7 +804,7 @@ struct SpellEntry
 	float  OTspell_coef_override;           //!!! CUSTOM, overrides any spell coefficient calculation and use this value in HOT&DOT
 	float  ap_coef;
 	float  ap_dot_coef;
-	int    ai_target_type;
+ 	int    ai_target_type;
 
 	bool   self_cast_only;
 	bool   apply_on_shapeshift_change;
@@ -1407,6 +1407,17 @@ struct QuestXP
 	//unk                                                   // 10
 };
 
+struct MailTemplateEntry
+{
+	uint32      ID;				// 0
+	char*       subject;		// 1
+	//float		unused1[15]		// 2-16
+	//uint32	flags1			// 17 name flags, unused
+	char*       content;		// 18
+	//float		unused2[15]		// 19-34
+	//uint32	flags2			// 35 name flags, unused
+};
+
 struct WMOAreaTableEntry
 {
 	uint32 id; // 0
@@ -1624,6 +1635,7 @@ struct VehicleSeatEntry{
 	}
 };
 
+
 struct DestructibleModelDataEntry
 {
     uint32  Id;
@@ -1669,7 +1681,6 @@ struct DestructibleModelDataEntry
 		return 0;
 	}
 };
-
 
 #pragma pack(pop)
 
@@ -2052,6 +2063,7 @@ extern SERVER_DECL DBCStorage<ScalingStatDistributionEntry> dbcScalingStatDistri
 extern SERVER_DECL DBCStorage<ScalingStatValuesEntry> dbcScalingStatValues;
 extern SERVER_DECL DBCStorage<ItemLimitCategoryEntry> dbcItemLimitCategory;
 extern SERVER_DECL DBCStorage< QuestXP > dbcQuestXP;
+extern SERVER_DECL DBCStorage<MailTemplateEntry> dbcMailTemplateEntry;
 extern SERVER_DECL DBCStorage<WMOAreaTableEntry> dbcWMOAreaTable;
 extern SERVER_DECL DBCStorage< SummonPropertiesEntry > dbcSummonProperties;
 extern SERVER_DECL DBCStorage< NameGenEntry > dbcNameGen;

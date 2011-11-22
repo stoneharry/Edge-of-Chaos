@@ -406,7 +406,7 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 		void SendLocalizedWorldText(bool wide, const char* format, ...);
 
 		void SendZoneUnderAttackMsg(uint32 areaid, uint8 team);
-
+		bool IsTrialAccount(uint32 accountid);
 		ARCEMU_INLINE void SetStartTime(uint32 val) { m_StartTime = val; }
 		ARCEMU_INLINE uint32 GetUptime(void) { return (uint32)UNIXTIME - m_StartTime; }
 		ARCEMU_INLINE uint32 GetStartTime(void) { return m_StartTime; }
@@ -623,17 +623,21 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 		int instance_DailyHeroicInstanceResetHour;
 		bool instance_CheckTriggerPrerequsites;
 
-		// battleground set
-		uint32 m_bgSet_AV_MIN;
-		uint32 m_bgSet_AV_MAX;
-		uint32 m_bgSet_AB_MIN;
-		uint32 m_bgSet_AB_MAX;
-		uint32 m_bgSet_WS_MIN;
-		uint32 m_bgSet_WS_MAX;
-		uint32 m_bgSet_EOS_MIN;
-		uint32 m_bgSet_EOS_MAX;
-		uint32 m_bgSet_SOTA_MIN;
-		uint32 m_bgSet_SOTA_MAX;
+		// battleground settings
+		struct BGSettings{
+			uint32 AV_MIN;
+			uint32 AV_MAX;
+			uint32 AB_MIN;
+			uint32 AB_MAX;
+			uint32 WSG_MIN;
+			uint32 WSG_MAX;
+			uint32 EOTS_MIN;
+			uint32 EOTS_MAX;
+			uint32 SOTA_MIN;
+			uint32 SOTA_MAX;
+			uint32 IOC_MIN;
+			uint32 IOC_MAX;
+		}bgsettings;
 
 
 		// damage/hp/mp cap settings
@@ -732,8 +736,6 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 		static float m_movementCompressThresholdCreatures;
 		static uint32 m_movementCompressRate;
 		static uint32 m_movementCompressInterval;
-
-		bool IsTrialAccount(uint32 accountid);
 		/*
 		 * Traffic meter stuff
 		 */
@@ -772,6 +774,7 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 		{
 			return perfcounter.GetCurrentRAMUsage();
 		}
+
 };
 
 #define sWorld World::getSingleton()

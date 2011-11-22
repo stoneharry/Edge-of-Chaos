@@ -30,6 +30,7 @@ enum GO_STATE{
 enum GO_FLAGS{
 	GAMEOBJECT_FLAG_NONSELECTABLE  = 0x1,
 	GAMEOBJECT_FLAG_LOCKED         = 0x2,
+	GAMEOBJECT_FLAG_UNTARGETABLE   = 0x4,
 	GAMEOBJECT_FLAG_DAMAGED        = 0x200,
 	GAMEOBJECT_FLAG_DESTROYED      = 0x400
 };
@@ -323,6 +324,7 @@ class SERVER_DECL GameObject : public Object
 		
 		void SetFlags( uint32 flags ){ SetUInt32Value( GAMEOBJECT_FLAGS, flags ); }		
 		uint32 GetFlags(){ return GetUInt32Value( GAMEOBJECT_FLAGS ); }
+		void RemoveFlags( uint32 flags ){ RemoveFlag( GAMEOBJECT_FLAGS, flags ); }
 		
 		bool HasFlags( uint32 flags ){
 			if( HasFlag( GAMEOBJECT_FLAGS, flags ) != 0 )
@@ -396,8 +398,8 @@ class SERVER_DECL GameObject : public Object
 		//
 		////////////////////////////////////////////////////////////////////////////////////////////////////////
 		uint32 GetMaxHP(){ return maxhitpoints; }
-		CBattleground* m_bg;
 
+		CBattleground* m_bg;
 		uint32 GetDisplayIdForState(uint32 state);
 	protected:
 
@@ -431,6 +433,7 @@ class SERVER_DECL GameObject : public Object
 		
 		uint32 hitpoints;
 		uint32 maxhitpoints;
+
 };
 
 #endif

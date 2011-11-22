@@ -778,7 +778,7 @@ Aura::Aura(SpellEntry* proto, int32 duration, Object* caster, Unit* target, bool
 
 	if(!IsPassive())
 	{
-		timeleft = (uint32)UNIXTIME;
+		expirytime = (uint32)UNIXTIME;
 	}
 
 	m_visualSlot = 0xFF;
@@ -2664,7 +2664,7 @@ void Aura::SpellAuraDamageShield(bool apply)
 	}
 	else
 	{
-		for(std::list<struct DamageProc>::iterator i = m_target->m_damageShields.begin(); i != m_target->m_damageShields.end(); i++)
+		for(std::list<struct DamageProc>::iterator i = m_target->m_damageShields.begin(); i != m_target->m_damageShields.end(); ++i)
 		{
 			if(i->owner == this)
 			{
@@ -4065,7 +4065,7 @@ void Aura::SpellAuraProcTriggerDamage(bool apply)
 	}
 	else
 	{
-		for(std::list<struct DamageProc>::iterator i = m_target->m_damageShields.begin(); i != m_target->m_damageShields.end(); i++)
+		for(std::list<struct DamageProc>::iterator i = m_target->m_damageShields.begin(); i != m_target->m_damageShields.end(); ++i)
 		{
 			if(i->owner == this)
 			{
@@ -8708,8 +8708,13 @@ void Aura::SpellAuraCallStabledPet(bool apply)
 
 void Aura::ResetDuration()
 {
-	timeleft = static_cast<uint32>(UNIXTIME);
+	expirytime = static_cast< uint32 >( UNIXTIME );
 	sEventMgr.ModifyEventTimeLeft(this, EVENT_AURA_REMOVE, GetDuration());
+}
+
+void Aura::Refresh(){
+	ResetDuration();
+	m_target->SendAuraUpdate( m_auraSlot, false );
 }
 
 bool Aura::DotCanCrit()

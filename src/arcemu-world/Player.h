@@ -63,8 +63,11 @@ class SpeedCheatDetector;
 #endif
 #define LOGIN_CIENT_SEND_DELAY 1000 //we have this delay of sending auras to other players so client will have time to create object first
 
-#define TEAM_ALLIANCE 0
-#define TEAM_HORDE 1
+enum PlayerTeams{
+	TEAM_ALLIANCE = 0,
+	TEAM_HORDE    = 1,
+	MAX_PLAYER_TEAMS
+};
 
 //====================================================================
 //  Inventory
@@ -84,6 +87,7 @@ enum Classes
     MAGE = 8,
     WARLOCK = 9,
     DRUID = 11,
+	MAX_PLAYER_CLASSES
 };
 
 enum Races
@@ -526,98 +530,6 @@ struct LoginAura
 	uint32 charges;
 };
 
-// Dodge ( class base ) - UNUSED, Warrior, Paladin, Hunter, Rogue, Priest, Death Knight(taken from pala), Shaman, Mage, Warlock, UNUSED, Druid
-const float baseDodge[12] = { 0.0f, 0.7580f, 0.6520f, -5.4500f, -0.5900f, 3.1830f, 0.6520f, 1.6750f, 3.4575f, 2.0350f, 0.0f, -1.8720f };
-
-// Dodge ( class ratio ) - UNUSED, Warrior, Paladin, Hunter, Rogue, Priest, Death Knight(taken from pala), Shaman, Mage, Warlock, UNUSED, Druid
-// TODO: get proper ratios for all levels, we only have values for level 70 currently
-const float dodgeRatio[PLAYER_LEVEL_CAP][12] =
-{
-	{0.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 0.000000f , 5.000000f , } , // Level 1
-	{0.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 0.000000f , 5.000000f , } , // Level 2
-	{0.000000f , 5.157590f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 5.000000f , 0.000000f , 5.000000f , } , // Level 3
-	{0.000000f , 6.017188f , 5.014323f , 5.014323f , 5.000000f , 5.014323f , 5.014323f , 5.014323f , 5.014323f , 5.014323f , 0.000000f , 5.000000f , } , // Level 4
-	{0.000000f , 6.793599f , 5.661333f , 5.661333f , 5.000000f , 5.661333f , 5.661333f , 5.661333f , 5.661333f , 5.661333f , 0.000000f , 5.000000f , } , // Level 5
-	{0.000000f , 7.508715f , 6.257262f , 6.257262f , 5.005810f , 6.257262f , 6.257262f , 6.257262f , 6.257262f , 6.257262f , 0.000000f , 5.000000f , } , // Level 6
-	{0.000000f , 8.176156f , 6.813463f , 6.813463f , 5.450771f , 6.813463f , 6.813463f , 6.813463f , 6.813463f , 6.813463f , 0.000000f , 5.000000f , } , // Level 7
-	{0.000000f , 8.805091f , 7.337576f , 7.337576f , 5.870061f , 7.337576f , 7.337576f , 7.337576f , 7.337576f , 7.337576f , 0.000000f , 5.000000f , } , // Level 8
-	{0.000000f , 9.402047f , 7.835039f , 7.835039f , 6.268031f , 7.835039f , 7.835039f , 7.835039f , 7.835039f , 7.835039f , 0.000000f , 5.000000f , } , // Level 9
-	{0.000000f , 9.971868f , 8.309890f , 8.309890f , 6.647912f , 8.309890f , 8.309890f , 8.309890f , 8.309890f , 8.309890f , 0.000000f , 5.000000f , } , // Level 10
-	{0.000000f , 10.518271f , 8.765226f , 8.765226f , 7.012181f , 8.765226f , 8.765226f , 8.765226f , 8.765226f , 8.765226f , 0.000000f , 5.156022f , } , // Level 11
-	{0.000000f , 11.044185f , 9.203487f , 9.203487f , 7.362790f , 9.203487f , 9.203487f , 9.203487f , 9.203487f , 9.203487f , 0.000000f , 5.413823f , } , // Level 12
-	{0.000000f , 11.551964f , 9.626636f , 9.626636f , 7.701309f , 9.626636f , 9.626636f , 9.626636f , 9.626636f , 9.626636f , 0.000000f , 5.662734f , } , // Level 13
-	{0.000000f , 12.043536f , 10.036280f , 10.036280f , 8.029024f , 10.036280f , 10.036280f , 10.036280f , 10.036280f , 10.036280f , 0.000000f , 5.903701f , } , // Level 14
-	{0.000000f , 12.520508f , 10.433757f , 10.433757f , 8.347005f , 10.433757f , 10.433757f , 10.433757f , 10.433757f , 10.433757f , 0.000000f , 6.137511f , } , // Level 15
-	{0.000000f , 12.984231f , 10.820192f , 10.820192f , 8.656154f , 10.820192f , 10.820192f , 10.820192f , 10.820192f , 10.820192f , 0.000000f , 6.364827f , } , // Level 16
-	{0.000000f , 13.435856f , 11.196547f , 11.196547f , 8.957237f , 11.196547f , 11.196547f , 11.196547f , 11.196547f , 11.196547f , 0.000000f , 6.586212f , } , // Level 17
-	{0.000000f , 13.876376f , 11.563647f , 11.563647f , 9.250917f , 11.563647f , 11.563647f , 11.563647f , 11.563647f , 11.563647f , 0.000000f , 6.802153f , } , // Level 18
-	{0.000000f , 14.306651f , 11.922209f , 11.922209f , 9.537767f , 11.922209f , 11.922209f , 11.922209f , 11.922209f , 11.922209f , 0.000000f , 7.013073f , } , // Level 19
-	{0.000000f , 14.727435f , 12.272863f , 12.272863f , 9.818290f , 12.272863f , 12.272863f , 12.272863f , 12.272863f , 12.272863f , 0.000000f , 7.219340f , } , // Level 20
-	{0.000000f , 15.139391f , 12.616159f , 12.616159f , 10.092928f , 12.616159f , 12.616159f , 12.616159f , 12.616159f , 12.616159f , 0.000000f , 7.421279f , } , // Level 21
-	{0.000000f , 15.543108f , 12.952590f , 12.952590f , 10.362072f , 12.952590f , 12.952590f , 12.952590f , 12.952590f , 12.952590f , 0.000000f , 7.619180f , } , // Level 22
-	{0.000000f , 15.939111f , 13.282593f , 13.282593f , 10.626074f , 13.282593f , 13.282593f , 13.282593f , 13.282593f , 13.282593f , 0.000000f , 7.813299f , } , // Level 23
-	{0.000000f , 16.327870f , 13.606558f , 13.606558f , 10.885247f , 13.606558f , 13.606558f , 13.606558f , 13.606558f , 13.606558f , 0.000000f , 8.003867f , } , // Level 24
-	{0.000000f , 16.709808f , 13.924840f , 13.924840f , 11.139872f , 13.924840f , 13.924840f , 13.924840f , 13.924840f , 13.924840f , 0.000000f , 8.191092f , } , // Level 25
-	{0.000000f , 17.085310f , 14.237758f , 14.237758f , 11.390207f , 14.237758f , 14.237758f , 14.237758f , 14.237758f , 14.237758f , 0.000000f , 8.375162f , } , // Level 26
-	{0.000000f , 17.454722f , 14.545602f , 14.545602f , 11.636481f , 14.545602f , 14.545602f , 14.545602f , 14.545602f , 14.545602f , 0.000000f , 8.556246f , } , // Level 27
-	{0.000000f , 17.818362f , 14.848635f , 14.848635f , 11.878908f , 14.848635f , 14.848635f , 14.848635f , 14.848635f , 14.848635f , 0.000000f , 8.734502f , } , // Level 28
-	{0.000000f , 18.176520f , 15.147100f , 15.147100f , 12.117680f , 15.147100f , 15.147100f , 15.147100f , 15.147100f , 15.147100f , 0.000000f , 8.910069f , } , // Level 29
-	{0.000000f , 18.529462f , 15.441218f , 15.441218f , 12.352975f , 15.441218f , 15.441218f , 15.441218f , 15.441218f , 15.441218f , 0.000000f , 9.083081f , } , // Level 30
-	{0.000000f , 18.877433f , 15.731194f , 15.731194f , 12.584955f , 15.731194f , 15.731194f , 15.731194f , 15.731194f , 15.731194f , 0.000000f , 9.253655f , } , // Level 31
-	{0.000000f , 19.220659f , 16.017216f , 16.017216f , 12.813773f , 16.017216f , 16.017216f , 16.017216f , 16.017216f , 16.017216f , 0.000000f , 9.421903f , } , // Level 32
-	{0.000000f , 19.559349f , 16.299458f , 16.299458f , 13.039566f , 16.299458f , 16.299458f , 16.299458f , 16.299458f , 16.299458f , 0.000000f , 9.587928f , } , // Level 33
-	{0.000000f , 19.893697f , 16.578081f , 16.578081f , 13.262465f , 16.578081f , 16.578081f , 16.578081f , 16.578081f , 16.578081f , 0.000000f , 9.751824f , } , // Level 34
-	{0.000000f , 20.223883f , 16.853236f , 16.853236f , 13.482589f , 16.853236f , 16.853236f , 16.853236f , 16.853236f , 16.853236f , 0.000000f , 9.913680f , } , // Level 35
-	{0.000000f , 20.550075f , 17.125062f , 17.125062f , 13.700050f , 17.125062f , 17.125062f , 17.125062f , 17.125062f , 17.125062f , 0.000000f , 10.073578f , } , // Level 36
-	{0.000000f , 20.872429f , 17.393691f , 17.393691f , 13.914953f , 17.393691f , 17.393691f , 17.393691f , 17.393691f , 17.393691f , 0.000000f , 10.231595f , } , // Level 37
-	{0.000000f , 21.191092f , 17.659243f , 17.659243f , 14.127395f , 17.659243f , 17.659243f , 17.659243f , 17.659243f , 17.659243f , 0.000000f , 10.387803f , } , // Level 38
-	{0.000000f , 21.506201f , 17.921834f , 17.921834f , 14.337467f , 17.921834f , 17.921834f , 17.921834f , 17.921834f , 17.921834f , 0.000000f , 10.542268f , } , // Level 39
-	{0.000000f , 21.817885f , 18.181571f , 18.181571f , 14.545257f , 18.181571f , 18.181571f , 18.181571f , 18.181571f , 18.181571f , 0.000000f , 10.695055f , } , // Level 40
-	{0.000000f , 22.126265f , 18.438554f , 18.438554f , 14.750843f , 18.438554f , 18.438554f , 18.438554f , 18.438554f , 18.438554f , 0.000000f , 10.846221f , } , // Level 41
-	{0.000000f , 22.431455f , 18.692879f , 18.692879f , 14.954303f , 18.692879f , 18.692879f , 18.692879f , 18.692879f , 18.692879f , 0.000000f , 10.995824f , } , // Level 42
-	{0.000000f , 22.733562f , 18.944635f , 18.944635f , 15.155708f , 18.944635f , 18.944635f , 18.944635f , 18.944635f , 18.944635f , 0.000000f , 11.143916f , } , // Level 43
-	{0.000000f , 23.032688f , 19.193907f , 19.193907f , 15.355125f , 19.193907f , 19.193907f , 19.193907f , 19.193907f , 19.193907f , 0.000000f , 11.290547f , } , // Level 44
-	{0.000000f , 23.328928f , 19.440774f , 19.440774f , 15.552619f , 19.440774f , 19.440774f , 19.440774f , 19.440774f , 19.440774f , 0.000000f , 11.435763f , } , // Level 45
-	{0.000000f , 23.622374f , 19.685312f , 19.685312f , 15.748249f , 19.685312f , 19.685312f , 19.685312f , 19.685312f , 19.685312f , 0.000000f , 11.579609f , } , // Level 46
-	{0.000000f , 23.913111f , 19.927592f , 19.927592f , 15.942074f , 19.927592f , 19.927592f , 19.927592f , 19.927592f , 19.927592f , 0.000000f , 11.722127f , } , // Level 47
-	{0.000000f , 24.201221f , 20.167684f , 20.167684f , 16.134147f , 20.167684f , 20.167684f , 20.167684f , 20.167684f , 20.167684f , 0.000000f , 11.863358f , } , // Level 48
-	{0.000000f , 24.486781f , 20.405651f , 20.405651f , 16.324520f , 20.405651f , 20.405651f , 20.405651f , 20.405651f , 20.405651f , 0.000000f , 12.003338f , } , // Level 49
-	{0.000000f , 24.769865f , 20.641554f , 20.641554f , 16.513243f , 20.641554f , 20.641554f , 20.641554f , 20.641554f , 20.641554f , 0.000000f , 12.142105f , } , // Level 50
-	{0.000000f , 25.050543f , 20.875453f , 20.875453f , 16.700362f , 20.875453f , 20.875453f , 20.875453f , 20.875453f , 20.875453f , 0.000000f , 12.279693f , } , // Level 51
-	{0.000000f , 25.328883f , 21.107402f , 21.107402f , 16.885922f , 21.107402f , 21.107402f , 21.107402f , 21.107402f , 21.107402f , 0.000000f , 12.416134f , } , // Level 52
-	{0.000000f , 25.604947f , 21.337456f , 21.337456f , 17.069964f , 21.337456f , 21.337456f , 21.337456f , 21.337456f , 21.337456f , 0.000000f , 12.551460f , } , // Level 53
-	{0.000000f , 25.878796f , 21.565664f , 21.565664f , 17.252531f , 21.565664f , 21.565664f , 21.565664f , 21.565664f , 21.565664f , 0.000000f , 12.685700f , } , // Level 54
-	{0.000000f , 26.150490f , 21.792075f , 21.792075f , 17.433660f , 21.792075f , 21.792075f , 21.792075f , 21.792075f , 21.792075f , 0.000000f , 12.818883f , } , // Level 55
-	{0.000000f , 26.420082f , 22.016735f , 22.016735f , 17.613388f , 22.016735f , 22.016735f , 22.016735f , 22.016735f , 22.016735f , 0.000000f , 12.951036f , } , // Level 56
-	{0.000000f , 26.687628f , 22.239690f , 22.239690f , 17.791752f , 22.239690f , 22.239690f , 22.239690f , 22.239690f , 22.239690f , 0.000000f , 13.082186f , } , // Level 57
-	{0.000000f , 26.953176f , 22.460980f , 22.460980f , 17.968784f , 22.460980f , 22.460980f , 22.460980f , 22.460980f , 22.460980f , 0.000000f , 13.212357f , } , // Level 58
-	{0.000000f , 27.216777f , 22.680647f , 22.680647f , 18.144518f , 22.680647f , 22.680647f , 22.680647f , 22.680647f , 22.680647f , 0.000000f , 13.341573f , } , // Level 59
-	{0.000000f , 27.478477f , 22.898731f , 22.898731f , 18.318984f , 22.898731f , 22.898731f , 22.898731f , 22.898731f , 22.898731f , 0.000000f , 13.469858f , } , // Level 60
-	{0.000000f , 27.738320f , 23.115267f , 23.115267f , 18.492214f , 23.115267f , 23.115267f , 23.115267f , 23.115267f , 23.115267f , 0.000000f , 13.597232f , } , // Level 61
-	{0.000000f , 27.996351f , 23.330293f , 23.330293f , 18.664234f , 23.330293f , 23.330293f , 23.330293f , 23.330293f , 23.330293f , 0.000000f , 13.723718f , } , // Level 62
-	{0.000000f , 28.252611f , 23.543842f , 23.543842f , 18.835074f , 23.543842f , 23.543842f , 23.543842f , 23.543842f , 23.543842f , 0.000000f , 13.849336f , } , // Level 63
-	{0.000000f , 28.507139f , 23.755949f , 23.755949f , 19.004759f , 23.755949f , 23.755949f , 23.755949f , 23.755949f , 23.755949f , 0.000000f , 13.974104f , } , // Level 64
-	{0.000000f , 28.759974f , 23.966645f , 23.966645f , 19.173316f , 23.966645f , 23.966645f , 23.966645f , 23.966645f , 23.966645f , 0.000000f , 14.098043f , } , // Level 65
-	{0.000000f , 29.011153f , 24.175960f , 24.175960f , 19.340768f , 24.175960f , 24.175960f , 24.175960f , 24.175960f , 24.175960f , 0.000000f , 14.221170f , } , // Level 66
-	{0.000000f , 29.260711f , 24.383926f , 24.383926f , 19.507141f , 24.383926f , 24.383926f , 24.383926f , 24.383926f , 24.383926f , 0.000000f , 14.343503f , } , // Level 67
-	{0.000000f , 29.508683f , 24.590569f , 24.590569f , 19.672455f , 24.590569f , 24.590569f , 24.590569f , 24.590569f , 24.590569f , 0.000000f , 14.465058f , } , // Level 68
-	{0.000000f , 29.755102f , 24.795918f , 24.795918f , 19.836735f , 24.795918f , 24.795918f , 24.795918f , 24.795918f , 24.795918f , 0.000000f , 14.585852f , } , // Level 69
-	{0.000000f , 30.000000f , 25.000000f , 25.000000f , 20.000000f , 25.000000f , 25.000000f , 25.000000f , 25.000000f , 25.000000f , 0.000000f , 14.705900f , } , // Level 70
-//bulk values to avoid crashes
-#if PLAYER_LEVEL_CAP==80
-	{0.000000f , 30.200000f , 25.200000f , 25.200000f , 20.100000f , 25.200000f , 25.200000f , 25.200000f , 25.200000f , 25.200000f , 0.000000f , 14.805900f , } , // Level 71
-	{0.000000f , 30.400000f , 25.400000f , 25.400000f , 20.200000f , 25.400000f , 25.400000f , 25.400000f , 25.400000f , 25.400000f , 0.000000f , 14.905900f , } , // Level 72
-	{0.000000f , 30.600000f , 25.600000f , 25.600000f , 20.300000f , 25.600000f , 25.600000f , 25.600000f , 25.600000f , 25.600000f , 0.000000f , 15.005900f , } , // Level 73
-	{0.000000f , 30.800000f , 25.800000f , 25.800000f , 20.400000f , 25.800000f , 25.800000f , 25.800000f , 25.800000f , 25.800000f , 0.000000f , 15.105900f , } , // Level 74
-	{0.000000f , 31.000000f , 26.000000f , 26.000000f , 20.500000f , 26.000000f , 26.000000f , 26.000000f , 26.000000f , 26.000000f , 0.000000f , 15.205900f , } , // Level 75
-	{0.000000f , 31.200000f , 26.200000f , 26.200000f , 20.700000f , 26.200000f , 26.200000f , 26.200000f , 26.200000f , 26.200000f , 0.000000f , 15.305900f , } , // Level 76
-	{0.000000f , 31.400000f , 26.400000f , 26.400000f , 20.800000f , 26.400000f , 26.400000f , 26.400000f , 26.400000f , 26.400000f , 0.000000f , 15.405900f , } , // Level 77
-	{0.000000f , 31.600000f , 26.600000f , 26.600000f , 21.000000f , 26.600000f , 26.600000f , 26.600000f , 26.600000f , 26.600000f , 0.000000f , 15.505900f , } , // Level 78
-	{0.000000f , 31.800000f , 26.800000f , 26.800000f , 21.100000f , 26.800000f , 26.800000f , 26.800000f , 26.800000f , 26.800000f , 0.000000f , 15.605900f , } , // Level 79
-	{0.000000f , 32.000000f , 27.000000f , 27.000000f , 22.200000f , 27.000000f , 27.000000f , 27.000000f , 27.000000f , 27.000000f , 0.000000f , 15.705900f , } , // Level 80
-#endif
-};
-
 struct FactionReputation
 {
 	int32 standing;
@@ -830,16 +742,29 @@ struct PlayerCooldown
 	uint32 SpellId;
 };
 
-struct PlayerSpec
-{
-	std::map<uint32, uint8> talents;	// map of <talentId, talentRank>
-	uint16 glyphs[GLYPHS_COUNT];
-	ActionButton mActions[PLAYER_ACTION_BUTTON_COUNT];
-	uint32 m_customTalentPointOverride;
+class PlayerSpec{
+public:
+	PlayerSpec(){
+		tp = 0;
+	}
 
-	uint32 GetFreePoints(Player* Pl);
+	void SetTP( uint32 points ){ tp = points; }
+
+	uint32 GetTP() const{ return tp; }
+
+	void Reset(){
+		tp += talents.size();
+		talents.clear();
+	}
 
 	void AddTalent(uint32 talentid, uint8 rankid);
+
+	std::map<uint32, uint8> talents;
+	uint16 glyphs[GLYPHS_COUNT];
+	ActionButton mActions[PLAYER_ACTION_BUTTON_COUNT];
+	
+private:
+	uint32 tp;
 };
 
 //====================================================================
@@ -861,8 +786,6 @@ typedef std::map<uint32, OnHitSpell >               StrikeSpellDmgMap;
 typedef std::map<uint32, PlayerSkill>				SkillMap;
 typedef std::set<Player**>							ReferenceSet;
 typedef std::map<uint32, PlayerCooldown>			PlayerCooldownMap;
-
-//#define OPTIMIZED_PLAYER_SAVING
 
 class SERVER_DECL Player : public Unit
 {
@@ -1491,7 +1414,6 @@ class SERVER_DECL Player : public Unit
 		void DestroyForPlayer(Player* target) const;
 		void SetTalentHearthOfWildPCT(int value) {hearth_of_wild_pct = value;}
 		void EventTalentHearthOfWildChange(bool apply);
-		void GiveTalent(uint32 numtalents);
 
 		std::list<LoginAura> loginauras;
 
@@ -1509,6 +1431,9 @@ class SERVER_DECL Player : public Unit
 
 		bool LoadDeletedSpells(QueryResult* result);
 		bool SaveDeletedSpells(bool NewCharacter, QueryBuffer* buf);
+
+		bool LoadReputations( QueryResult *result );
+		bool SaveReputations( bool NewCharacter, QueryBuffer *buf );
 
 		bool LoadSkills(QueryResult* result);
 		bool SaveSkills(bool NewCharacter, QueryBuffer* buf);
@@ -1634,9 +1559,7 @@ class SERVER_DECL Player : public Unit
 		void AddCalculatedRestXP(uint32 seconds);
 		void ApplyPlayerRestState(bool apply);
 		void UpdateRestState();
-		bool m_noFallDamage;
-		float z_axisposition;
-		int32 m_safeFall;
+
 		// Gossip
 		GossipMenu* CurrentGossipMenu;
 		void CleanupGossipMenu();
@@ -1676,6 +1599,7 @@ class SERVER_DECL Player : public Unit
 		void SendInitialLogonPackets();
 		void Reset_Spells();
 		void Reset_Talents();
+		void Reset_AllTalents();
 		// Battlegrounds xD
 		CBattleground* m_bg;
 		CBattleground* m_pendingBattleground;
@@ -1790,9 +1714,28 @@ class SERVER_DECL Player : public Unit
 		uint64 m_GM_SelectedGO;
 
 		void _Relocate(uint32 mapid, const LocationVector & v, bool sendpending, bool force_new_world, uint32 instance_id);
-
 		void ExitInstanceReleaseSpirit(uint32 mapid, const LocationVector & v, bool instance);
+		bool InInstance();
+		int hp_regen_items;
+		int block_from_items;
 
+		void SendAurasForTarget(Unit* target);
+		uint8 GetChatTag() const
+		{
+			uint8 tag = 0;
+			if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_DEVELOPER))
+				tag |= 10;
+			if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM))
+				tag |= 4;
+			else if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_DND))
+				tag |= 3;
+			else if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_AFK))
+				tag |= 1;
+			return tag;
+		}
+		bool confirm_item_send;
+		bool IsTrial() { return m_session->IsTrial(); }
+		void AddHonor(uint32 amount);
 		void AddItemsToWorld();
 		void RemoveItemsFromWorld();
 		void UpdateKnownCurrencies(uint32 itemId, bool apply);
@@ -2063,9 +2006,31 @@ class SERVER_DECL Player : public Unit
 		uint32 GetXp() { return GetUInt32Value(PLAYER_XP); }
 		void SetNextLevelXp(uint32 xp) { SetUInt32Value(PLAYER_NEXT_LEVEL_XP, xp); }
 
-		void SetTalentPoints(uint32 amt) { SetUInt32Value(PLAYER_CHARACTER_POINTS1, amt); }
-		void ModTalentPoints(int32 amt) { ModUnsigned32Value(PLAYER_CHARACTER_POINTS1, amt); }
-		uint32 GetTalentPoints() { return GetUInt32Value(PLAYER_CHARACTER_POINTS1); }
+		void SetTalentPointsForAllSpec( uint32 amt ){
+			m_specs[ 0 ].SetTP( amt );
+			m_specs[ 1 ].SetTP( amt );
+			SetUInt32Value( PLAYER_CHARACTER_POINTS1, amt );
+			smsg_TalentsInfo( false );
+		}
+
+		void AddTalentPointsToAllSpec( uint32 amt ){
+			m_specs[ 0 ].SetTP( m_specs[ 0 ].GetTP() + amt );
+			m_specs[ 1 ].SetTP( m_specs[ 1 ].GetTP() + amt );
+			SetUInt32Value( PLAYER_CHARACTER_POINTS1, GetUInt32Value( PLAYER_CHARACTER_POINTS1 ) + amt );
+			smsg_TalentsInfo( false );
+		}
+
+		void SetCurrentTalentPoints( uint32 points ){
+			m_specs[ m_talentActiveSpec ].SetTP( points );
+			SetUInt32Value( PLAYER_CHARACTER_POINTS1, points );
+			smsg_TalentsInfo( false );
+		}
+
+		uint32 GetCurrentTalentPoints(){
+			uint32 points = GetUInt32Value( PLAYER_CHARACTER_POINTS1 );
+			Arcemu::Util::ArcemuAssert( points == m_specs[ m_talentActiveSpec ].GetTP() );
+			return points;
+		}
 
 		void SetPrimaryProfessionPoints(uint32 amt) { SetUInt32Value(PLAYER_CHARACTER_POINTS2, amt); }
 		void ModPrimaryProfessionPoints(int32 amt) { ModUnsigned32Value(PLAYER_CHARACTER_POINTS2, amt); }
@@ -2106,7 +2071,6 @@ class SERVER_DECL Player : public Unit
 		//! PvP Toggle (called on /pvp)
 		void PvPToggle();
 
-		bool InInstance();
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// void HandleSpellLoot( uint32 itemid )
 		//  Generates loot for the spell loot item (clams for example) , then adds the generated loot to the Player
@@ -2215,7 +2179,7 @@ class SERVER_DECL Player : public Unit
 			m_lastRunSpeed = m_runSpeed;
 			m_lastRunBackSpeed = m_backWalkSpeed;
 			m_lastSwimSpeed = m_swimSpeed;
-			m_lastRunBackSpeed = m_backSwimSpeed;
+			m_lastBackSwimSpeed = m_backSwimSpeed;
 			m_lastFlySpeed = m_flySpeed;
 		}
 
@@ -2232,26 +2196,6 @@ class SERVER_DECL Player : public Unit
 		LocationVector m_last_group_position;
 		int32 m_rap_mod_pct;
 		void SummonRequest(uint32 Requestor, uint32 ZoneID, uint32 MapID, uint32 InstanceID, const LocationVector & Position);
-#ifdef OPTIMIZED_PLAYER_SAVING
-		void save_LevelXP();
-		void save_Skills();
-		void save_ExploreData();
-		void save_Gold();
-		void save_Misc();
-		void save_PositionHP();
-		void save_BindPosition();
-		void save_Honor();
-		void save_EntryPoint();
-		void save_Taxi();
-		void save_Transporter();
-		void save_Spells();
-		void save_Actions();
-		void save_Reputation();
-		void save_Auras();
-		void save_InstanceType();
-		void save_Zone();
-		void save_PVP();
-#endif
 
 		bool m_deathVision;
 		SpellEntry* last_heal_spell;
@@ -2267,7 +2211,6 @@ class SERVER_DECL Player : public Unit
 		/************************************************************************/
 		void SendLevelupInfo(uint32 level, uint32 Hp, uint32 Mana, uint32 Stat0, uint32 Stat1, uint32 Stat2, uint32 Stat3, uint32 Stat4);
 		void SendLogXPGain(uint64 guid, uint32 NormalXP, uint32 RestedXP, bool type);
-		void SendEnvironmentalDamageLog(const uint64 & guid, uint8 type, uint32 damage);
 		void SendWorldStateUpdate(uint32 WorldState, uint32 Value);
 		void SendCastResult(uint32 SpellId, uint8 ErrorMessage, uint8 MultiCast, uint32 Extra);
 		void Gossip_SendPOI(float X, float Y, uint32 Icon, uint32 Flags, uint32 Data, const char* Name);
@@ -2298,24 +2241,6 @@ class SERVER_DECL Player : public Unit
 		void CopyAndSendDelayedPacket(WorldPacket* data);
 		void PartLFGChannel();
 		SpeedCheatDetector*	SDetector;
-
-		int hp_regen_items;
-		int block_from_items;
-
-		void SendAurasForTarget(Unit* target);
-		uint8 GetChatTag() const
-		{
-			if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM))
-				return 4;
-			else if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_DND))
-				return 3;
-			else if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_AFK))
-				return 1;
-			return 0;
-		}
-		bool confirm_item_send;
-
-		void AddHonor(uint32 amount);
 	protected:
 		LocationVector m_summonPos;
 		uint32 m_summonInstanceId;
@@ -2517,6 +2442,7 @@ class SERVER_DECL Player : public Unit
 		PlayerInfo* m_playerInfo;
 		uint32 m_RaidDifficulty;
 		bool m_XpGain;
+		bool resettalents;
 		std::list< Item* > m_GarbageItems;
 
 		void RemoveGarbageItems();
@@ -2566,8 +2492,6 @@ class SERVER_DECL Player : public Unit
 		bool CanTrainAt(Trainer*);
 
 		Object* GetPlayerOwner() { return this; };
-
-		bool IsTrial() { return m_session->IsTrial(); }
 };
 
 class SkillIterator

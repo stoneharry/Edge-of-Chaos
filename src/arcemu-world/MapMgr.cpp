@@ -780,8 +780,8 @@ void MapMgr::ChangeObjectLocation(Object* obj)
 	{
 		endX = cellX + 5 <= _sizeX ? cellX + 6 : (_sizeX - 1);
 		endY = cellY + 5 <= _sizeY ? cellY + 6 : (_sizeY - 1);
-		startX = cellX - 5 > 0 ? cellX - 6 : 0;
-		startY = cellY - 5 > 0 ? cellY - 6 : 0;
+		startX = cellX > 5 ? cellX - 6 : 0;
+		startY = cellY > 5 ? cellY - 6 : 0;
 	}
 
 	for(posX = startX; posX <= endX; ++posX)
@@ -798,11 +798,11 @@ void MapMgr::ChangeObjectLocation(Object* obj)
 		delete buf;
 }
 
-void MapMgr::UpdateInRangeSet( Object *obj, Player *plObj, MapCell* cell, ByteBuffer ** buf )
+void MapMgr::UpdateInRangeSet(Object* obj, Player* plObj, MapCell* cell, ByteBuffer** buf)
 {
-	#define CHECK_BUF if(!*buf) *buf = new ByteBuffer(2500)
+#define CHECK_BUF if(!*buf) *buf = new ByteBuffer(2500)
 
-	if( cell == NULL )
+	if(cell == NULL)
 		return;
 
 	Object* curObj;
@@ -812,62 +812,58 @@ void MapMgr::UpdateInRangeSet( Object *obj, Player *plObj, MapCell* cell, ByteBu
 	bool cansee, isvisible;
 
 	ObjectSet::iterator iter = cell->Begin();
-	while( iter != cell->End() )
+	while(iter != cell->End())
 	{
 		curObj = *iter;
 		++iter;
 
-		if( curObj == NULL )
+		if(curObj == NULL)
 			continue;
 
-		if( curObj->IsPlayer() && obj->IsPlayer() && plObj != NULL && plObj->transporter_info.guid && plObj->transporter_info.guid == TO< Player* >( curObj )->transporter_info.guid )
+		if(curObj->IsPlayer() && obj->IsPlayer() && plObj != NULL && plObj->transporter_info.guid && plObj->transporter_info.guid == TO< Player* >(curObj)->transporter_info.guid)
 			fRange = 0.0f; // unlimited distance for people on same boat
-		else if( curObj->GetTypeFromGUID() == HIGHGUID_TYPE_TRANSPORTER )
+		else if(curObj->GetTypeFromGUID() == HIGHGUID_TYPE_TRANSPORTER)
 			fRange = 0.0f; // unlimited distance for transporters (only up to 2 cells +/- anyway.)
 
 		//If the object announcing its position is a transport, or other special object, then deleting it from visible objects should be avoided. - By: VLack
-		else if( obj->IsGameObject() && (TO< GameObject* >(obj)->GetOverrides() & GAMEOBJECT_INFVIS) && obj->GetMapId() == curObj->GetMapId() )
+		else if(obj->IsGameObject() && (TO< GameObject* >(obj)->GetOverrides() & GAMEOBJECT_INFVIS) && obj->GetMapId() == curObj->GetMapId())
 			fRange = 0.0f;
 		//If the object we're checking for possible removal is a transport or other special object, and we are players on the same map, don't remove it, and add it whenever possible...
-		else if( plObj && curObj->IsGameObject() && (TO< GameObject* >(curObj)->GetOverrides() & GAMEOBJECT_INFVIS) && obj->GetMapId() == curObj->GetMapId() )
+		else if(plObj && curObj->IsGameObject() && (TO< GameObject* >(curObj)->GetOverrides() & GAMEOBJECT_INFVIS) && obj->GetMapId() == curObj->GetMapId())
 			fRange = 0.0f;
 		else
 			fRange = m_UpdateDistance; // normal distance
 
-		if ( curObj != obj && ( curObj->GetDistance2dSq( obj ) <= fRange || fRange == 0.0f ) )
+		if(curObj != obj && (curObj->GetDistance2dSq(obj) <= fRange || fRange == 0.0f))
 		{
-			if( !obj->IsInRangeSet( curObj ) )
+			if(!obj->IsInRangeSet(curObj))
 			{
 				// Object in range, add to set
-				obj->AddInRangeObject( curObj );
-				curObj->AddInRangeObject( obj );
+				obj->AddInRangeObject(curObj);
+				curObj->AddInRangeObject(obj);
 
-				if( curObj->IsPlayer() )
+				if(curObj->IsPlayer())
 				{
-					plObj2 = TO< Player* >( curObj );
+					plObj2 = TO< Player* >(curObj);
 
-					if( plObj2->CanSee( obj ) && !plObj2->IsVisible( obj->GetGUID() ) )
+					if(plObj2->CanSee(obj) && !plObj2->IsVisible(obj->GetGUID()))
 					{
 						CHECK_BUF;
 						count = obj->BuildCreateUpdateBlockForPlayer(*buf, plObj2);
 						plObj2->PushCreationData(*buf, count);
 						plObj2->AddVisibleObject(obj->GetGUID());
-						if(obj->IsUnit())
-							plObj2->SendAurasForTarget(TO_UNIT(obj));
 						(*buf)->clear();
 					}
 				}
 
-				if( plObj != NULL )
+				if(plObj != NULL)
 				{
-					if( plObj->CanSee( curObj ) && !plObj->IsVisible( curObj->GetGUID() ) )
+					if(plObj->CanSee(curObj) && !plObj->IsVisible(curObj->GetGUID()))
 					{
 						CHECK_BUF;
-						count = curObj->BuildCreateUpdateBlockForPlayer( *buf, plObj );
-						plObj->PushCreationData( *buf, count );
-						plObj->AddVisibleObject( curObj->GetGUID() );
-						if(curObj->IsUnit())
-							plObj->SendAurasForTarget(TO_UNIT(curObj));
+						count = curObj->BuildCreateUpdateBlockForPlayer(*buf, plObj);
+						plObj->PushCreationData(*buf, count);
+						plObj->AddVisibleObject(curObj->GetGUID());
 						(*buf)->clear();
 					}
 				}
@@ -875,15 +871,15 @@ void MapMgr::UpdateInRangeSet( Object *obj, Player *plObj, MapCell* cell, ByteBu
 			else
 			{
 				// Check visibility
-				if( curObj->IsPlayer() )
+				if(curObj->IsPlayer())
 				{
-					plObj2 = TO< Player* >( curObj );
+					plObj2 = TO< Player* >(curObj);
 					cansee = plObj2->CanSee(obj);
-					isvisible = plObj2->IsVisible( obj->GetGUID() );
+					isvisible = plObj2->IsVisible(obj->GetGUID());
 					if(!cansee && isvisible)
 					{
 						plObj2->PushOutOfRange(obj->GetNewGUID());
-						plObj2->RemoveVisibleObject( obj->GetGUID() );
+						plObj2->RemoveVisibleObject(obj->GetGUID());
 					}
 					else if(cansee && !isvisible)
 					{
@@ -891,29 +887,25 @@ void MapMgr::UpdateInRangeSet( Object *obj, Player *plObj, MapCell* cell, ByteBu
 						count = obj->BuildCreateUpdateBlockForPlayer(*buf, plObj2);
 						plObj2->PushCreationData(*buf, count);
 						plObj2->AddVisibleObject(obj->GetGUID());
-						if(curObj->IsUnit())
-							plObj2->SendAurasForTarget(TO_UNIT(curObj));
 						(*buf)->clear();
 					}
 				}
 
-				if( plObj != NULL )
+				if(plObj != NULL)
 				{
-					cansee = plObj->CanSee( curObj );
-					isvisible = plObj->IsVisible( curObj->GetGUID() );
+					cansee = plObj->CanSee(curObj);
+					isvisible = plObj->IsVisible(curObj->GetGUID());
 					if(!cansee && isvisible)
 					{
-						plObj->PushOutOfRange( curObj->GetNewGUID() );
-						plObj->RemoveVisibleObject( curObj->GetGUID() );
+						plObj->PushOutOfRange(curObj->GetNewGUID());
+						plObj->RemoveVisibleObject(curObj->GetGUID());
 					}
 					else if(cansee && !isvisible)
 					{
 						CHECK_BUF;
-						count = curObj->BuildCreateUpdateBlockForPlayer( *buf, plObj );
-						plObj->PushCreationData( *buf, count );
-						plObj->AddVisibleObject( curObj->GetGUID() );
-						if(curObj->IsUnit())
-							plObj->SendAurasForTarget(TO_UNIT(curObj));
+						count = curObj->BuildCreateUpdateBlockForPlayer(*buf, plObj);
+						plObj->PushCreationData(*buf, count);
+						plObj->AddVisibleObject(curObj->GetGUID());
 						(*buf)->clear();
 					}
 				}
@@ -1065,13 +1057,13 @@ void MapMgr::LoadAllCells()
 	}
 }
 
-void MapMgr::UpdateCellActivity(uint32 x, uint32 y, int radius)
+void MapMgr::UpdateCellActivity(uint32 x, uint32 y, uint32 radius)
 {
 	CellSpawns* sp;
 	uint32 endX = (x + radius) <= _sizeX ? x + radius : (_sizeX - 1);
 	uint32 endY = (y + radius) <= _sizeY ? y + radius : (_sizeY - 1);
-	uint32 startX = x - radius > 0 ? x - radius : 0;
-	uint32 startY = y - radius > 0 ? y - radius : 0;
+	uint32 startX = x > radius ? x - radius : 0;
+	uint32 startY = y > radius ? y - radius : 0;
 	uint32 posX, posY;
 
 	MapCell* objCell;
@@ -1664,8 +1656,8 @@ void MapMgr::SendChatMessageToCellPlayers(Object* obj, WorldPacket* packet, uint
 	uint32 cellY = GetPosY(obj->GetPositionY());
 	uint32 endX = ((cellX + cell_radius) <= _sizeX) ? cellX + cell_radius : (_sizeX - 1);
 	uint32 endY = ((cellY + cell_radius) <= _sizeY) ? cellY + cell_radius : (_sizeY - 1);
-	uint32 startX = (cellX - cell_radius) > 0 ? cellX - cell_radius : 0;
-	uint32 startY = (cellY - cell_radius) > 0 ? cellY - cell_radius : 0;
+	uint32 startX = cellX > cell_radius ? cellX - cell_radius : 0;
+	uint32 startY = cellY > cell_radius ? cellY - cell_radius : 0;
 
 	uint32 posX, posY;
 	MapCell* cell;

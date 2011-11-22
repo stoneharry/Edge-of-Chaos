@@ -175,7 +175,7 @@ void WorldSession::HandleActivateTaxiOpcode(WorldPacket & recv_data)
 	}
 
 	// Check for gold
-	newmoney = (GetPlayer()->GetGold() - 0);
+	newmoney = (GetPlayer()->GetGold() - taxipath->GetPrice());
 	if(newmoney < 0)
 	{
 		data << uint32(3);
@@ -316,16 +316,16 @@ void WorldSession::HandleMultipleActivateTaxiOpcode(WorldPacket & recvPacket)
 		return;
 	}
 
-	uint32 totalcost = 0;
+	uint32 totalcost = taxipath->GetPrice();
 	for(uint32 i = 2; i < nodecount; ++i)
 	{
 		TaxiPath* np = sTaxiMgr.GetTaxiPath(pathes[i - 1], pathes[i]);
 		if(!np) return;
-		totalcost += 0;
+		totalcost += np->GetPrice();
 	}
 
 	// Check for gold
-	newmoney = (GetPlayer()->GetGold() - 0);
+	newmoney = (GetPlayer()->GetGold() - totalcost);
 	if(newmoney < 0)
 	{
 		data << uint32(3);

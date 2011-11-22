@@ -855,7 +855,7 @@ void Spell::SpellEffectTeleportUnits(uint32 i)    // Teleport Units
 
 	if(m_spellInfo->EffectCustomFlag == 0)
 	{
-		//LOG_ERROR("Spell %u ( %s ) has a teleport effect, but has no teleport flag.", spellId, m_spellInfo->Name);
+		LOG_ERROR("Spell %u ( %s ) has a teleport effect, but has no teleport flag.", spellId, m_spellInfo->Name);
 		return;
 	}
 
@@ -951,7 +951,11 @@ void Spell::SpellEffectTeleportUnits(uint32 i)    // Teleport Units
 		return;
 	}
 
-	LOG_ERROR("Unhandled Teleport effect %u for Spell %u ( %s ).", i, m_spellInfo->Id, m_spellInfo->Name);
+	// For those special teleport spells
+	if(sScriptMgr.CallScriptedDummySpell(m_spellInfo->Id, i, this))
+		return;
+
+	//LOG_ERROR("Unhandled Teleport effect %u for Spell %u ( %s ).", i, m_spellInfo->Id, m_spellInfo->Name);
 }
 
 void Spell::SpellEffectApplyAura(uint32 i)  // Apply Aura
@@ -1163,12 +1167,7 @@ void Spell::SpellEffectEnvironmentalDamage(uint32 i)
 	}
 	//this is GO, not unit
 	m_caster->SpellNonMeleeDamageLog(playerTarget, GetProto()->Id, damage, pSpellId == 0);
-
-	WorldPacket data(SMSG_ENVIRONMENTALDAMAGELOG, 13);
-	data << playerTarget->GetGUID();
-	data << uint8(DAMAGE_FIRE);
-	data << uint32(damage);
-	playerTarget->SendMessageToSet(&data, true);
+	playerTarget->SendEnvironmentalDamageLog( playerTarget->GetGUID(), DAMAGE_FIRE, damage );
 }
 
 void Spell::SpellEffectPowerDrain(uint32 i)  // Power Drain
@@ -2319,7 +2318,7 @@ void Spell::SpellEffectSummonVehicle( uint32 i, SummonPropertiesEntry *spe, Crea
 
 	Creature *c = u_caster->GetMapMgr()->CreateCreature( proto->Id );
 	c->Load( proto,v.x, v.y, v.z, v.o );
-	c->Phase( PHASE_SET, u_caster->GetPhase() );	
+	c->Phase( PHASE_SET, u_caster->GetPhase() );
 	c->SetCreatedBySpell( m_spellInfo->Id );
 	c->SetCreatedByGUID( u_caster->GetGUID() );
 	c->SetSummonedByGUID( u_caster->GetGUID() );
@@ -2516,8 +2515,8 @@ void Spell::SpellEffectTriggerMissile(uint32 i) // Trigger Missile
 
 		if(sqrt(r) > spellRadius) continue;
 
-		//if(!isAttackable(m_caster, *itr))//Fix Me: only enemy targets?
-			//continue;
+		if(!isAttackable(m_caster, *itr))//Fix Me: only enemy targets?
+			continue;
 
 		Spell* sp = sSpellFactoryMgr.NewSpell(m_caster, spInfo, true, NULL);
 		SpellCastTargets tgt;
@@ -2689,6 +2688,16 @@ void Spell::SpellEffectOpenLock(uint32 i) // Open Lock
 				gameObjTarget->EventCloseDoor();
 			}
 			break;
+
+		case LOCKTYPE_QUICK_OPEN:
+			if( gameObjTarget == NULL )
+				return;
+
+			if( ( p_caster != NULL ) && ( p_caster->m_bg != NULL ) )
+				p_caster->m_bg->HookQuickLockOpen( gameObjTarget, p_caster, this );
+
+			// there is no break here on purpose
+
 		default://not profession
 			{
 				if(!gameObjTarget)
@@ -3000,7 +3009,7 @@ void Spell::SpellEffectDispel(uint32 i) // Dispel
 		data << GetProto()->Id;
 		data << uint8(0);				// unused
 		data << uint32(dispelledSpells.size());
-		for(std::list< uint32 >::iterator itr = dispelledSpells.begin(); itr != dispelledSpells.end(); itr++)
+		for(std::list< uint32 >::iterator itr = dispelledSpells.begin(); itr != dispelledSpells.end(); ++itr)
 		{
 			data << uint32(*itr);		// dispelled spell id
 			data << uint8(0);			// 0 = dispelled, else cleansed
@@ -5018,7 +5027,7 @@ void Spell::SpellEffectSpellSteal(uint32 i)
 		data << GetProto()->Id;
 		data << uint8(0);				// unused
 		data << uint32(stealedSpells.size());
-		for(std::list< uint32 >::iterator itr = stealedSpells.begin(); itr != stealedSpells.end(); itr++)
+		for(std::list< uint32 >::iterator itr = stealedSpells.begin(); itr != stealedSpells.end(); ++itr)
 		{
 			data << uint32(*itr);		// stealed spell id
 			data << uint8(1);			// 0 = dispelled, else cleansed
@@ -5397,7 +5406,7 @@ void Spell::SpellEffectDurabilityDamage(uint32 i)
 							uint32 olddur = pItem->GetDurability();
 							uint32 newdur = (olddur) - (damage);
 
-							if(newdur < 0)
+							if(static_cast<int32>(newdur) < 0)
 								newdur = 0;
 
 							if(newdur > maxdur)
@@ -5413,7 +5422,7 @@ void Spell::SpellEffectDurabilityDamage(uint32 i)
 					uint32 olddur = pItem->GetDurability();
 					uint32 newdur = (olddur) - (damage);
 
-					if(newdur < 0)
+					if(static_cast<int32>(newdur) < 0)
 						newdur = 0;
 
 					if(newdur > maxdur)
@@ -5442,7 +5451,7 @@ void Spell::SpellEffectDurabilityDamage(uint32 i)
 		uint32 olddur = pItem->GetDurability();
 		uint32 newdur = (olddur) - (damage);
 
-		if(newdur < 0)
+		if(static_cast<int32>(newdur) < 0)
 			newdur = 0;
 
 		if(newdur > maxdur)
@@ -5490,7 +5499,7 @@ void Spell::SpellEffectDurabilityDamagePCT(uint32 i)
 							uint32 olddur = pItem->GetDurability();
 							uint32 newdur = (olddur - (uint32)(maxdur * (damage / 100.0)));
 
-							if(newdur < 0)
+							if(static_cast<int32>(newdur) < 0)
 								newdur = 0;
 
 							if(newdur > maxdur)
@@ -5506,7 +5515,7 @@ void Spell::SpellEffectDurabilityDamagePCT(uint32 i)
 					uint32 olddur = pItem->GetDurability();
 					uint32 newdur = (olddur - (uint32)(maxdur * (damage / 100.0)));
 
-					if(newdur < 0)
+					if(static_cast<int32>(newdur) < 0)
 						newdur = 0;
 
 					if(newdur > maxdur)
@@ -5538,7 +5547,7 @@ void Spell::SpellEffectDurabilityDamagePCT(uint32 i)
 		uint32 olddur = pItem->GetDurability();
 		uint32 newdur = (olddur - (uint32)(maxdur * (damage / 100.0)));
 
-		if(newdur < 0)
+		if(static_cast<int32>(newdur) < 0)
 			newdur = 0;
 
 		if(newdur > maxdur)

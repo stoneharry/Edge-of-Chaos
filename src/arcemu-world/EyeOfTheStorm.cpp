@@ -874,37 +874,18 @@ bool EyeOfTheStorm::GivePoints(uint32 team, uint32 points)
 		sEventMgr.RemoveEvents(this);
 		sEventMgr.AddEvent(TO< CBattleground* >(this), &CBattleground::Close, EVENT_BATTLEGROUND_CLOSE, 120000, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 
-		/* add the marks of honor to all players */
-		uint32 lostHonorToAdd = 25;
-		uint32 winHonorToAdd = 75;
 		m_mainLock.Acquire();
 
-		for(uint32 i = 0; i < 2; ++i)
-		{
-			for(set<Player*>::iterator itr = m_players[i].begin(); itr != m_players[i].end(); ++itr)
-			{
+		AddHonorToTeam( m_winningteam, 75 );
 
-				Player* p = *itr;
+		CastSpellOnTeam( m_winningteam, 43477 );
+		CastSpellOnTeam( m_winningteam, 69156 );
 
-				p->Root();
+		if( m_winningteam == TEAM_ALLIANCE )
+			AddHonorToTeam( TEAM_HORDE, 25 );
+		else
+			AddHonorToTeam( TEAM_ALLIANCE, 25 );
 
-				if(i == m_winningteam)
-				{
-					p->m_bgScore.BonusHonor += winHonorToAdd;
-					HonorHandler::AddHonorPointsToPlayer(p, winHonorToAdd);
-					Item* item = objmgr.CreateItem(29024 , p);
-					if(i && p->GetQuestLogForEntry(11341))
-						p->GetQuestLogForEntry(11341)->SendQuestComplete();
-					else if(p->GetQuestLogForEntry(11337))
-						p->GetQuestLogForEntry(11337)->SendQuestComplete();
-				}
-				else
-				{
-					p->m_bgScore.BonusHonor += lostHonorToAdd;
-					HonorHandler::AddHonorPointsToPlayer(p, winHonorToAdd);
-				}
-			}
-		}
 		m_mainLock.Release();
 		SetWorldState(WORLDSTATE_EOTS_ALLIANCE_VICTORYPOINTS + team, m_points[team]);
 		UpdatePvPData();

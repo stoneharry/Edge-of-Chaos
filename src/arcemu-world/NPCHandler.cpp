@@ -596,8 +596,6 @@ void WorldSession::HandleBinderActivateOpcode(WorldPacket & recv_data)
 	SendInnkeeperBind(pC);
 }
 
-#define BIND_SPELL_ID 3286
-
 void WorldSession::SendInnkeeperBind(Creature* pCreature)
 {
 	WorldPacket data(45);
@@ -617,10 +615,8 @@ void WorldSession::SendInnkeeperBind(Creature* pCreature)
 	_player->bHasBindDialogOpen = false;
 	OutPacket(SMSG_GOSSIP_COMPLETE, 0, NULL);
 
-	pCreature->CastSpell(_player->GetGUID(), BIND_SPELL_ID, true);
+	pCreature->CastSpell(_player->GetGUID(), 3286, true);
 }
-
-#undef BIND_SPELL_ID
 
 void WorldSession::SendSpiritHealerRequest(Creature* pCreature)
 {

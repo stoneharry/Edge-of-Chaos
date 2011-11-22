@@ -557,7 +557,7 @@ void QuestMgr::BuildRequestItems(WorldPacket* data, Quest* qst, Object* qst_give
 void QuestMgr::BuildQuestComplete(Player* plr, Quest* qst)
 {
 	uint32 xp ;
-	uint32 currtalentpoints = plr->GetTalentPoints();
+	uint32 currtalentpoints = plr->GetCurrentTalentPoints();
 	uint32 rewardtalents = qst->rewardtalents;
 	uint32 playerlevel = plr->getLevel();
 
@@ -571,8 +571,8 @@ void QuestMgr::BuildQuestComplete(Player* plr, Quest* qst)
 		plr->GiveXP(xp, 0, false);
 	}
 
-	if(currtalentpoints <= playerlevel - 9 - rewardtalents)
-		plr->GiveTalent(rewardtalents);
+	if( currtalentpoints <= ( playerlevel - 9 - rewardtalents ) )
+		plr->AddTalentPointsToAllSpec( rewardtalents );
 
 	// Reward title
 	if(qst->rewardtitleid > 0)
@@ -1394,8 +1394,6 @@ void QuestMgr::OnQuestFinished(Player* plr, Quest* qst, Object* qst_giver, uint3
 				plr->AddToFinishedQuests((*iter));
 		}
 	}
-<<<<<<< HEAD
-=======
 
 	if( qst->MailTemplateId != 0 )
 	{
@@ -1425,7 +1423,6 @@ void QuestMgr::OnQuestFinished(Player* plr, Quest* qst, Object* qst_giver, uint3
 			sMailSystem.SendAutomatedMessage( mailType, qst_giver->GetGUID(), plr->GetGUID(), mail->subject, mail->content, 0, 0, itemGuid, MAIL_STATIONERY_TEST1, MAIL_CHECK_MASK_HAS_BODY, qst->MailDelaySecs);
 		}
 	}
->>>>>>> e13fd4bdf09af40d0c408de69a4c1ac3d0f3e5a2
 }
 
 /////////////////////////////////////

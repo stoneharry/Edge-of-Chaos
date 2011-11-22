@@ -217,7 +217,6 @@ Creature::Creature(uint64 guid)
 	original_emotestate = 0;
 	mTrainer = 0;
 	m_spawn = 0;
-	spawnid = 0;
 	auctionHouse = 0;
 	SetAttackPowerMultiplier(0.0f);
 	SetRangedAttackPowerMultiplier(0.0f);
@@ -417,28 +416,28 @@ void Creature::CreateWayPoint(uint32 WayPointID, uint32 mapid, float x, float y,
 void Creature::generateLoot()
 {
 
-	if( isCritter()  )
+	if(isCritter())
 		return;
 
-	if ( !loot.items.empty() )
+	if(!loot.items.empty())
 		return;
 
-	if( m_mapMgr != NULL )
-		lootmgr.FillCreatureLoot( &loot, GetEntry(), m_mapMgr->iInstanceMode );
+	if(m_mapMgr != NULL)
+		lootmgr.FillCreatureLoot(&loot, GetEntry(), m_mapMgr->iInstanceMode);
 	else
-		lootmgr.FillCreatureLoot( &loot, GetEntry(), 0 );
+		lootmgr.FillCreatureLoot(&loot, GetEntry(), 0);
 
 	loot.gold = proto->money;
 
 	// Master Looting Ninja Checker
-	if( sWorld.antiMasterLootNinja )
+	if(sWorld.antiMasterLootNinja)
 	{
-		Player *looter = objmgr.GetPlayer((uint32)this->TaggerGuid);
-		if( looter && looter->GetGroup() && looter->GetGroup()->GetMethod() == PARTY_LOOT_MASTER )
+		Player* looter = objmgr.GetPlayer((uint32)this->TaggerGuid);
+		if(looter && looter->GetGroup() && looter->GetGroup()->GetMethod() == PARTY_LOOT_MASTER)
 		{
 			uint16 lootThreshold = looter->GetGroup()->GetThreshold();
 
-			for(vector<__LootItem>::iterator itr = loot.items.begin(); itr != loot.items.end(); itr++)
+			for(vector<__LootItem>::iterator itr = loot.items.begin(); itr != loot.items.end(); ++itr)
 			{
 				if(itr->item.itemproto->Quality < lootThreshold)
 					continue;
@@ -476,13 +475,13 @@ void Creature::generateLoot()
 		/* Get 24 random bits. We use the low order bits, because we're
 		 * too lazy to check how many random bits the system actually
 		 * returned. */
-		random_bits = rand () & 0x00ffffff;
+		random_bits = rand() & 0x00ffffff;
 
 		gold_fp = 0.0;
-		while (random_bits != 0)
+		while(random_bits != 0)
 		{
 			/* If last bit is one .. */
-			if ((random_bits & 0x01) == 1)
+			if((random_bits & 0x01) == 1)
 				/* .. increase loot by 1/12th of expected value */
 				gold_fp += chunk_size;
 
@@ -499,7 +498,7 @@ void Creature::generateLoot()
 		 * least one chunk_size here to prevent this from happening. In
 		 * case you're interested, the probability is around 2.98e-8.
 		 */
-		if (gold_fp < chunk_size)
+		if(gold_fp < chunk_size)
 			gold_fp = chunk_size;
 
 		/* Convert the floating point gold value to an integer again
@@ -714,16 +713,16 @@ void Creature::setDeathState(DeathState s)
 void Creature::AddToWorld()
 {
 	// force set faction
-	if(m_faction == 0 || m_factionDBC == 0)
+	if(m_faction == NULL || m_factionDBC == NULL)
 		_setFaction();
 
-	if(creature_info == 0)
+	if(creature_info == NULL)
 		creature_info = CreatureNameStorage.LookupEntry(GetEntry());
 
-	if(creature_info == 0)
+	if(creature_info == NULL)
 		return;
 
-	if(m_faction == 0 || m_factionDBC == 0)
+	if(m_faction == NULL || m_factionDBC == NULL)
 		return;
 
 	Object::AddToWorld();
@@ -732,16 +731,16 @@ void Creature::AddToWorld()
 void Creature::AddToWorld(MapMgr* pMapMgr)
 {
 	// force set faction
-	if(m_faction == 0 || m_factionDBC == 0)
+	if(m_faction == NULL || m_factionDBC == NULL)
 		_setFaction();
 
-	if(creature_info == 0)
+	if(creature_info == NULL)
 		creature_info = CreatureNameStorage.LookupEntry(GetEntry());
 
-	if(creature_info == 0)
+	if(creature_info == NULL)
 		return;
 
-	if(m_faction == 0 || m_factionDBC == 0)
+	if(m_faction == NULL || m_factionDBC == NULL)
 		return;
 
 	Object::AddToWorld(pMapMgr);
@@ -749,10 +748,10 @@ void Creature::AddToWorld(MapMgr* pMapMgr)
 
 bool Creature::CanAddToWorld()
 {
-	if(m_factionDBC == 0 || m_faction == 0)
+	if(m_factionDBC == NULL || m_faction == NULL)
 		_setFaction();
 
-	if(creature_info == 0 || m_faction == 0 || m_factionDBC == 0 || proto == 0)
+	if(creature_info == NULL || m_faction == NULL || m_factionDBC == NULL || proto == NULL)
 		return false;
 
 	return true;
@@ -946,7 +945,7 @@ void Creature::CalcStat(uint32 type)
 				//Health
 				uint32 hp = GetBaseHealth();
 				uint32 stat_bonus = GetUInt32Value(UNIT_FIELD_POSSTAT2) - GetUInt32Value(UNIT_FIELD_NEGSTAT2);
-				if(stat_bonus < 0) stat_bonus = 0;
+				if(static_cast<int32>(stat_bonus) < 0) stat_bonus = 0;
 
 				uint32 bonus = stat_bonus * 10 + m_healthfromspell;
 				uint32 res = hp + bonus;
@@ -963,7 +962,7 @@ void Creature::CalcStat(uint32 type)
 				{
 					uint32 mana = GetBaseMana();
 					uint32 stat_bonus = (GetUInt32Value(UNIT_FIELD_POSSTAT3) - GetUInt32Value(UNIT_FIELD_NEGSTAT3));
-					if(stat_bonus < 0) stat_bonus = 0;
+					if(static_cast<int32>(stat_bonus) < 0) stat_bonus = 0;
 
 					uint32 bonus = stat_bonus * 15;
 					uint32 res = mana + bonus;
@@ -1434,9 +1433,10 @@ bool Creature::Load(CreatureSpawn* spawn, uint32 mode, MapInfo* info)
 		SetFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK );
 		setAItoUse( false );
 	}
+
 	if( proto->rooted != 0 )
 		Root();
-	
+
 	return true;
 }
 
@@ -1614,7 +1614,7 @@ void Creature::Load(CreatureProto* proto_, float x, float y, float z, float o)
 		SetFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_SPELLCLICK );
 		setAItoUse( false );
 	}
-	
+
 	if( proto->rooted != 0 )
 		Root();
 }
@@ -2043,13 +2043,16 @@ void Creature::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint
 	}
 	else
 	{
-		pVictim->TakeDamage(this, damage, spellId, no_remove_auras);
+		if(!(pVictim->IsCreature() && !IsPet() && TO_CREATURE(pVictim)->IsImmuneToCreatureDamage()))
+			pVictim->TakeDamage(this, damage, spellId, no_remove_auras);
 	}
 }
 
 
 void Creature::TakeDamage(Unit* pAttacker, uint32 damage, uint32 spellid, bool no_remove_auras)
 {
+	if(pAttacker->IsCreature() && !pAttacker->IsPet() && IsImmuneToCreatureDamage())
+		return;
 	if(!no_remove_auras)
 	{
 		//zack 2007 04 24 : root should not remove self (and also other unknown spells)
@@ -2082,7 +2085,7 @@ void Creature::Die(Unit* pAttacker, uint32 damage, uint32 spellid)
 	// Creature falls off vehicle on death
 	if( ( currentvehicle != NULL ) )
 		currentvehicle->EjectPassenger( this );
-	
+
 	//general hook for die
 	if(!sHookInterface.OnPreUnitDie(pAttacker, this))
 		return;
@@ -2182,6 +2185,9 @@ void Creature::Die(Unit* pAttacker, uint32 damage, uint32 spellid)
 		if(charmer != NULL)
 			charmer->UnPossess();
 	}
+
+	if( m_mapMgr->m_battleground != NULL )
+		m_mapMgr->m_battleground->HookOnUnitDied( this );
 }
 
 void Creature::SendChatMessage(uint8 type, uint32 lang, const char* msg, uint32 delay)
@@ -2330,33 +2336,35 @@ void Creature::BuildPetSpellList(WorldPacket & data)
 		return;
 	}
 	data << uint64(GetGUID());
-	data << uint16(0);
+	data << uint16( creature_info->Family );
 	data << uint32(0);
+
 	if( !IsVehicle() )
 		data << uint32(0);
 	else
-		data << uint32( 0x101 );
+		data << uint32( 0x8000101 );	
 
 	std::vector< uint32 >::iterator itr = proto->castable_spells.begin();
 
 	// Send the actionbar
-	for(uint32 i = 1; i < 10; ++i)
+	for(uint32 i = 0; i < 10; ++i)
 	{
 		if(itr != proto->castable_spells.end())
 		{
-			data << uint16(*itr);
-			data << uint16(DEFAULT_SPELL_STATE);
+			uint32 spell = *itr;
+			data << uint32( Arcemu::Util::MAKE_UNIT_ACTION_BUTTON( spell, i + 8 ) );
 			++itr;
 		}
 		else
 		{
-			data << uint16(0);
-			data << uint8(0);
-			data << uint8(i + 8);
+			data << uint16( 0 );
+			data << uint8( 0 );
+			data << uint8( i + 8 );
 		}
 	}
 
 	data << uint8(0);
+	// cooldowns
 	data << uint8(0);
 }
 

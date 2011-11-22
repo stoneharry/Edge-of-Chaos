@@ -4493,17 +4493,16 @@ class LuaUnit
 			uint32 itemid = luaL_checkint(L, 1);
 			uint32 mincount = luaL_checkint(L, 2);
 			uint32 maxcount = luaL_checkint(L, 3);
-			uint32 ffa_loot = luaL_checkint(L, 4);
-			bool perm = ((luaL_optint(L, 5, 0) == 1) ? true : false);
+			bool perm = ((luaL_optint(L, 4, 0) == 1) ? true : false);
 			if(perm)
 			{
 				float chance = CHECK_FLOAT(L, 6);
 				QueryResult* result = WorldDatabase.Query("SELECT * FROM loot_creatures WHERE entryid = %u, itemid = %u", ptr->GetEntry(), itemid);
 				if(!result)
-					WorldDatabase.Execute("REPLACE INTO loot_creatures VALUES (%u, %u, %f, 0, 0, 0, %u, %u, %u)", ptr->GetEntry(), itemid, chance, mincount, maxcount, ffa_loot);
+					WorldDatabase.Execute("REPLACE INTO loot_creatures VALUES (%u, %u, %f, 0, 0, 0, %u, %u)", ptr->GetEntry(), itemid, chance, mincount, maxcount);
 				delete result;
 			}
-			lootmgr.AddLoot(&ptr->loot, itemid, mincount, maxcount, ffa_loot);
+			lootmgr.AddLoot(&ptr->loot, itemid, mincount, maxcount);
 			return 0;
 		}
 
@@ -5431,16 +5430,16 @@ class LuaUnit
 
 		static int SetTalentPoints(lua_State* L, Unit* ptr)
 		{
-			TEST_PLAYER()
-			uint32 spec = luaL_checkint(L, 1); //0 or 1
-			uint32 points = luaL_checkint(L, 2);
-			TO_PLAYER(ptr)->m_specs[spec].m_customTalentPointOverride = points;
+			//TEST_PLAYER()
+			//uint32 spec = luaL_checkint(L, 1); //0 or 1
+			//uint32 points = luaL_checkint(L, 2);
+			//TO_PLAYER(ptr)->m_specs[spec].m_customTalentPointOverride = points;
 			return 0;
 		}
 
 		static int GetTalentPoints(lua_State* L, Unit* ptr)
 		{
-			TEST_PLAYER()
+			/*TEST_PLAYER()
 			uint32 spec = luaL_checkint(L, 1); //0 or 1
 			PlayerSpec plrSpec = TO_PLAYER(ptr)->m_specs[spec];
 			uint32 Lvl = TO_PLAYER(ptr)->getLevel();
@@ -5451,7 +5450,7 @@ class LuaUnit
 				for(std::map<uint32, uint8>::iterator itr = plrSpec.talents.begin(); itr != plrSpec.talents.end(); ++itr)
 					FreePoints -= (itr->second + 1);
 			}
-			lua_pushnumber(L, FreePoints);
+			lua_pushnumber(L, FreePoints);*/
 			return 1;
 		}
 

@@ -57,11 +57,9 @@ enum BattleGroundTypes
     BATTLEGROUND_ARENA_3V3			= 5,
     BATTLEGROUND_ARENA_5V5			= 6,
     BATTLEGROUND_EYE_OF_THE_STORM		= 7,
-	BATTLEGROUND_STRAND_OF_THE_ANCIENTS		= 9,
-	BATTLEGROUND_DALARAN_SEWER				= 10,
-	BATTLEGROUND_RING_OF_VALOR				= 11,
-	BATTLEGROUND_ISLE_OF_CONQUEST			= 30,
-	BATTLEGROUND_RANDOM						= 32,
+    BATTLEGROUND_STRAND_OF_THE_ANCIENT	= 9,
+    BATTLEGROUND_ISLE_OF_CONQUEST           = 30,
+    BATTLEGROUND_RANDOM                     = 32,
     BATTLEGROUND_NUM_TYPES			= 33, //Based on BattlemasterList.dbc, make the storage arrays big enough! On 3.1.3 the last one was 11 The Ring of Valor, so 12 was enough here, but on 3.2.0 there is 32 All Battlegrounds!
 };
 
@@ -107,6 +105,16 @@ struct BGScore
 	uint32 DamageDone;
 	uint32 HealingDone;
 	uint32 MiscData[5];
+
+	BGScore(){
+		KillingBlows = 0;
+		HonorableKills = 0;
+		Deaths = 0;
+		BonusHonor = 0;
+		DamageDone = 0;
+		HealingDone = 0;
+		std::fill( &MiscData[ 0 ], &MiscData[ 5 ], 0 );
+	}
 };
 
 #define BG_SCORE_AB_BASES_ASSAULTED 0
@@ -121,6 +129,8 @@ struct BGScore
 #define BG_SCORE_WSG_FLAGS_RETURNED 1
 #define BG_SCORE_SOTA_DEMOLISHERS_DESTROYED 0
 #define BG_SCORE_SOTA_GATES_DESTROYED 1
+#define BG_SCORE_IOC_BASES_ASSAULTED 0
+#define BG_SCORE_IOC_BASES_DEFENDED 1
 
 #define SOUND_BATTLEGROUND_BEGIN			0xD6F
 #define SOUND_HORDE_SCORES				8213
@@ -131,7 +141,6 @@ struct BGScore
 #define SOUND_HORDE_RETURNED				8192	// huh?
 #define SOUND_HORDEWINS					8454
 #define SOUND_ALLIANCEWINS				8455
-#define SOUND_FLAGSRESET				8232
 #define SOUND_HORDE_BGALMOSTEND				0x2108
 #define SOUND_ALLIANCE_BGALMOSTEND			0x2109
 
@@ -171,7 +180,7 @@ static inline uint32 GetFieldCount(uint32 BGType)
 			return 5;
 		case BATTLEGROUND_ARATHI_BASIN:
 		case BATTLEGROUND_WARSONG_GULCH:
-		case BATTLEGROUND_STRAND_OF_THE_ANCIENTS:
+		case BATTLEGROUND_STRAND_OF_THE_ANCIENT:
 		case BATTLEGROUND_ISLE_OF_CONQUEST:
 			return 2;
 		case BATTLEGROUND_EYE_OF_THE_STORM:
@@ -321,11 +330,18 @@ class SERVER_DECL CBattleground : public EventableObject
 		bool m_isWeekend;
 
 	public:
+		void AddHonorToTeam( uint32 team, uint32 amount );
+
+		void CastSpellOnTeam( uint32 team, uint32 spell );
+
+		void RemoveAuraFromTeam( uint32 team, uint32 aura );
 
 		void SendChatMessage(uint32 Type, uint64 Guid, const char* Format, ...);
 
 		/* Hook Functions */
 		virtual void HookOnPlayerDeath(Player* plr) = 0;
+
+		virtual void HookOnPlayerResurrect( Player *player ){}
 
 		/* Repopping - different battlegrounds have different ways of handling this */
 		virtual bool HookHandleRepop(Player* plr) = 0;
@@ -353,6 +369,8 @@ class SERVER_DECL CBattleground : public EventableObject
 
 		/* On Unit Killing */
 		virtual void HookOnUnitKill(Player* plr, Unit* pVictim) = 0;
+
+		virtual void HookOnUnitDied( Unit *victim ){}
 
 		/* Retrieval Functions */
 		ARCEMU_INLINE uint32 GetId() { return m_id; }
@@ -412,7 +430,9 @@ class SERVER_DECL CBattleground : public EventableObject
 
 		GameObject* SpawnGameObject(uint32 entry, uint32 MapId , float x, float y, float z, float o, uint32 flags, uint32 faction, float scale);
 		GameObject* SpawnGameObject(uint32 entry,float x, float y, float z, float o, uint32 flags, uint32 faction, float scale);
-		Creature* SpawnCreature(uint32 entry, float x, float y, float z, float o);
+		GameObject* SpawnGameObject( uint32 entry, LocationVector &v, uint32 flags, uint32 faction, float scale );
+		Creature* SpawnCreature(uint32 entry, float x, float y, float z, float o, uint32 faction = 0 );
+		Creature* SpawnCreature( uint32 entry, LocationVector &v, uint32 faction = 0 );
 		void UpdatePvPData();
 
 		ARCEMU_INLINE uint32 GetStartTime() { return m_startTime; }
@@ -432,6 +452,7 @@ class SERVER_DECL CBattleground : public EventableObject
 
 		void SetWorldState(uint32 Index, uint32 Value);
 		Creature* SpawnSpiritGuide(float x, float y, float z, float o, uint32 horde);
+		Creature* SpawnSpiritGuide( LocationVector &v, uint32 faction );
 
 		ARCEMU_INLINE uint32 GetLastResurrect() { return m_lastResurrect; }
 		void AddSpiritGuide(Creature* pCreature);
@@ -442,6 +463,7 @@ class SERVER_DECL CBattleground : public EventableObject
 		virtual bool CanPlayerJoin(Player* plr, uint32 type);
 		virtual bool CreateCorpse(Player* plr) { return true; }
 		virtual bool HookSlowLockOpen(GameObject* pGo, Player* pPlayer, Spell* pSpell) { return false; }
+		virtual bool HookQuickLockOpen( GameObject *go, Player *player, Spell *spell ){ return false; }
 
 		void BuildPvPUpdateDataPacket(WorldPacket* data);
 		virtual uint8 Rated() { return 0; }

@@ -1274,6 +1274,14 @@ void Spell::cast(bool check)
 			// special case battleground additional actions
 			if(p_caster->m_bg)
 			{
+				// SOTA Gameobject spells
+				if(p_caster->m_bg->GetType() == BATTLEGROUND_STRAND_OF_THE_ANCIENT)
+				{
+					StrandOfTheAncient* sota = (StrandOfTheAncient*)p_caster->m_bg;
+					// Transporter platforms
+					if(GetProto()->Id == 54640)
+						sota->OnPlatformTeleport(p_caster);
+				}
 				// warsong gulch & eye of the storm flag pickup check
 				// also includes check for trying to cast stealth/etc while you have the flag
 				switch(GetProto()->Id)
@@ -1331,24 +1339,6 @@ void Spell::cast(bool check)
 
 							p_caster->RemoveAura(34976);	// drop the flag
 						break;
-					case 54640:
-						if(p_caster->m_bg->GetType() == BATTLEGROUND_STRAND_OF_THE_ANCIENTS)
-						{
-							StrandOfTheAncient* sota = (StrandOfTheAncient*)p_caster->m_bg;
-							sota->OnPlatformTeleport(p_caster); // Transporter platforms
-						}
-						break;
-					case 66548:
-						if(p_caster->m_bg->GetType() == BATTLEGROUND_ISLE_OF_CONQUEST)
-						{
-							if(!p_caster->m_bg->HasStarted() || p_caster->HasAura(66550))
-								p_caster->BroadcastMessage("You may not use the teleporter right now."); //do not know proper error message.
-							else
-							{
-								IsleOfConquest* ioc = (IsleOfConquest*)p_caster->m_bg;
-								ioc->OnPlatformTeleport(p_caster); // Transporter platforms
-							}
-						}break;
 				}
 			}
 		}
@@ -2052,10 +2042,10 @@ void Spell::SendSpellGo()
 		if(GetProto()->Effect[x])
 		{
 			bool add = true;
-			for(i = m_targetUnits[x].begin(); i != m_targetUnits[x].end(); i++)
+			for(i = m_targetUnits[x].begin(); i != m_targetUnits[x].end(); ++i)
 			{
 				add = true;
-				for(j = UniqueTargets.begin(); j != UniqueTargets.end(); j++)
+				for(j = UniqueTargets.begin(); j != UniqueTargets.end(); ++j)
 				{
 					if((*j) == (*i))
 					{
@@ -2235,7 +2225,7 @@ void Spell::writeSpellMissedTargets(WorldPacket* data)
 	SpellTargetsList::iterator i;
 	if(u_caster && u_caster->isAlive())
 	{
-		for(i = ModeratedTargets.begin(); i != ModeratedTargets.end(); i++)
+		for(i = ModeratedTargets.begin(); i != ModeratedTargets.end(); ++i)
 		{
 			*data << (*i).TargetGuid;       // uint64
 			*data << (*i).TargetModType;    // uint8
@@ -2250,7 +2240,7 @@ void Spell::writeSpellMissedTargets(WorldPacket* data)
 		}
 	}
 	else
-		for(i = ModeratedTargets.begin(); i != ModeratedTargets.end(); i++)
+		for(i = ModeratedTargets.begin(); i != ModeratedTargets.end(); ++i)
 		{
 			*data << (*i).TargetGuid;       // uint64
 			*data << (*i).TargetModType;    // uint8
@@ -2387,14 +2377,11 @@ void Spell::SendChannelStart(uint32 duration)
 
 void Spell::SendResurrectRequest(Player* target)
 {
-	const char* sentName = m_caster->IsCreature() ? TO_CREATURE(m_caster)->GetCreatureInfo()->Name : m_caster->IsGameObject() ? TO_GAMEOBJECT(m_caster)->GetInfo()->Name : "";
-    WorldPacket data(SMSG_RESURRECT_REQUEST, (8+4+strlen(sentName)+1+1+1));
-    data << uint64(m_caster->GetGUID());
-    data << uint32(strlen(sentName) + 1);
-    data << sentName;
-    data << uint8(0);
-    data << uint8(m_caster->GetTypeId() == TYPEID_PLAYER ? 0 : 1);
-    target->GetSession()->SendPacket(&data);
+	WorldPacket data(SMSG_RESURRECT_REQUEST, 13);
+	data << m_caster->GetGUID();
+	data << uint32(0) << uint8(0);
+
+	target->GetSession()->SendPacket(&data);
 	target->m_resurrecter = m_caster->GetGUID();
 }
 
@@ -2804,7 +2791,7 @@ void Spell::HandleEffects(uint64 guid, uint32 i)
 	if(m_spellInfo->EffectImplicitTargetB[i] != 0)
 		TargetType |= GetTargetType(m_spellInfo->EffectImplicitTargetB[i], i);
 
-	if (u_caster != NULL && unitTarget != NULL && unitTarget->IsCreature() && TargetType & SPELL_TARGET_REQUIRE_ATTACKABLE && CanAggro(GetProto()))
+	if(u_caster != NULL && unitTarget != NULL && unitTarget->IsCreature() && TargetType & SPELL_TARGET_REQUIRE_ATTACKABLE && !(m_spellInfo->AttributesEx & ATTRIBUTESEX_NO_INITIAL_AGGRO))
 	{
 		unitTarget->GetAIInterface()->AttackReaction(u_caster, 1, 0);
 		unitTarget->GetAIInterface()->HandleEvent(EVENT_HOSTILEACTION, u_caster, 0);
@@ -2988,7 +2975,6 @@ void Spell::HandleAddAura(uint64 guid)
 		for(int i = 0; i < (charges - 1); ++i)
 		{
 			Aura* staur = sSpellFactoryMgr.NewAura(aur->GetSpellProto(), aur->GetDuration(), aur->GetCaster(), aur->GetTarget(), m_triggeredSpell, i_caster);
-			staur->AssignModifiers(aur);
 			Target->AddAura(staur);
 		}
 		if(!(aur->GetSpellProto()->procFlags & PROC_REMOVEONUSE))
@@ -3083,6 +3069,9 @@ bool Spell::IsSeal()
 uint8 Spell::CanCast(bool tolerate)
 {
 	uint32 i;
+
+	if( ( p_caster != NULL ) && p_caster->moving && ( m_spellInfo->InterruptFlags & CAST_INTERRUPT_ON_MOVEMENT ) )
+		return SPELL_FAILED_MOVING;
 
 	if(p_caster != NULL && HasCustomFlag(CUSTOM_FLAG_SPELL_REQUIRES_COMBAT) && !p_caster->CombatStatus.IsInCombat())
 		return SPELL_FAILED_SPELL_UNAVAILABLE;
@@ -4786,12 +4775,6 @@ int32 Spell::DoCalculateEffect(uint32 i, Unit* target, int32 value)
 				}
 				break;
 			}
-		case SPELL_HASH_SEAL_OF_LIGHT:
-			{
-				if(p_caster != NULL)
-					value = (p_caster->GetAP() + p_caster->GetPosDamageDoneMod(SCHOOL_HOLY)) * 15 / 100;
-				break;
-			}
 		case SPELL_HASH_SEAL_OF_RIGHTEOUSNESS:
 			{
 				if(p_caster != NULL)
@@ -4838,12 +4821,6 @@ int32 Spell::DoCalculateEffect(uint32 i, Unit* target, int32 value)
 			{
 				if(p_caster != NULL)
 					value += (p_caster->GetAP() * 14 + p_caster->GetPosDamageDoneMod(SCHOOL_HOLY) * 22) / 100;
-				break;
-			}
-		case SPELL_HASH_JUDGEMENT_OF_COMMAND:
-			{
-				if(p_caster != NULL)
-					value += (p_caster->GetAP() * 8 + p_caster->GetPosDamageDoneMod(SCHOOL_HOLY) * 13) / 100;
 				break;
 			}
 		case SPELL_HASH_ENVENOM:
@@ -5400,7 +5377,7 @@ void Spell::SafeAddTarget(TargetsList* tgt, uint64 guid)
 
 void Spell::SafeAddMissedTarget(uint64 guid)
 {
-	for(SpellTargetsList::iterator i = ModeratedTargets.begin(); i != ModeratedTargets.end(); i++)
+	for(SpellTargetsList::iterator i = ModeratedTargets.begin(); i != ModeratedTargets.end(); ++i)
 		if((*i).TargetGuid == guid)
 		{
 			//LOG_DEBUG("[SPELL] Something goes wrong in spell target system");
@@ -5414,7 +5391,7 @@ void Spell::SafeAddMissedTarget(uint64 guid)
 
 void Spell::SafeAddModeratedTarget(uint64 guid, uint16 type)
 {
-	for(SpellTargetsList::iterator i = ModeratedTargets.begin(); i != ModeratedTargets.end(); i++)
+	for(SpellTargetsList::iterator i = ModeratedTargets.begin(); i != ModeratedTargets.end(); ++i)
 		if((*i).TargetGuid == guid)
 		{
 			//LOG_DEBUG("[SPELL] Something goes wrong in spell target system");
@@ -5442,7 +5419,7 @@ bool Spell::Reflect(Unit* refunit)
 			return false;
 	}
 
-	for(std::list<struct ReflectSpellSchool*>::iterator i = refunit->m_reflectSpellSchool.begin(); i != refunit->m_reflectSpellSchool.end(); i++)
+	for(std::list<struct ReflectSpellSchool*>::iterator i = refunit->m_reflectSpellSchool.begin(); i != refunit->m_reflectSpellSchool.end(); ++i)
 	{
 		if((*i)->school == -1 || (*i)->school == (int32)GetProto()->School)
 		{

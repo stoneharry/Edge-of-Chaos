@@ -351,6 +351,7 @@ void LootMgr::LoadLootTables(const char* szTableName, LootStore* LootTable)
 	delete result;
 }
 
+
 void LootMgr::PushLoot(StoreLootList* list, Loot* loot, uint32 type)
 {
 	uint32 i;

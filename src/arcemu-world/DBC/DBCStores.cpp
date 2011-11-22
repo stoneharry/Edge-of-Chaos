@@ -84,6 +84,7 @@ SERVER_DECL DBCStorage<gtFloat> dbcSpellCrit;
 SERVER_DECL DBCStorage<gtFloat> dbcSpellCritBase;
 SERVER_DECL DBCStorage<SpellShapeshiftForm> dbcSpellShapeshiftForm;
 SERVER_DECL DBCStorage<QuestXP> dbcQuestXP;
+SERVER_DECL DBCStorage<MailTemplateEntry> dbcMailTemplateEntry;
 SERVER_DECL DBCStorage<WMOAreaTableEntry> dbcWMOAreaTable;
 SERVER_DECL DBCStorage< SummonPropertiesEntry > dbcSummonProperties;
 SERVER_DECL DBCStorage< NameGenEntry > dbcNameGen;
@@ -339,6 +340,7 @@ const char* scalingstatvaluesformat = "uuuuuuuuuuuuuuuuuuxxxxxx";
 const char* itemlimitcategoryformat = "usxxxxxxxxxxxxxxxxuu";
 const char* spellshapeshiftformformat = "uxxxxxxxxxxxxxxxxxxuuxuuuxxuuuuuuuu";
 const char* questxpformat = "uxuuuuuuuux";
+const char* mailTemplateEntryFormat="nsxxxxxxxxxxxxxxxxsxxxxxxxxxxxxxxxx";
 const char* wmoareaformat = "uiiixxxxxuuxxxxxxxxxxxxxxxxx";
 const char* summonpropertiesformat = "uuuuuu";
 const char* namegenentryformat = "usuu";
@@ -420,6 +422,7 @@ bool LoadDBCs()
 	LOAD_DBC("DBC/ScalingStatValues.dbc", scalingstatvaluesformat, true, dbcScalingStatValues, false);
 	LOAD_DBC("DBC/ItemLimitCategory.dbc", itemlimitcategoryformat, true, dbcItemLimitCategory, true);
 	LOAD_DBC("DBC/QuestXP.dbc", questxpformat, true, dbcQuestXP, false);
+	LOAD_DBC("DBC/MailTemplate.dbc", mailTemplateEntryFormat, true, dbcMailTemplateEntry, true);
 	LOAD_DBC("DBC/WMOAreaTable.dbc", wmoareaformat, true, dbcWMOAreaTable, false);
 	LOAD_DBC("DBC/SummonProperties.dbc", summonpropertiesformat, true, dbcSummonProperties, false);
 	LOAD_DBC("DBC/NameGen.dbc", namegenentryformat, true, dbcNameGen, true);
@@ -427,6 +430,5 @@ bool LoadDBCs()
 	LOAD_DBC( "DBC/Vehicle.dbc", VehicleEntryfmt, true, dbcVehicle, true );
 	LOAD_DBC( "DBC/VehicleSeat.dbc", VehicleSeatEntryfmt, true, dbcVehicleSeat, false );
 	LOAD_DBC( "DBC/DestructibleModelData.dbc", DestructibleModelDataFormat, true, dbcDestructibleModelDataEntry, false);
-
 	return true;
 }

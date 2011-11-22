@@ -18,9 +18,9 @@
  *
  */
 
-// Last edited by:	$Author: jackpoz $
-// revision:		$Rev: 4616 $
-// date:		$Date: 2011-10-02 13:08:12 -0400 (Sun, 02 Oct 2011) $
+// Last edited by:	$Author$
+// revision:		$Rev$
+// date:		$Date$
 
 
 #include "StdAfx.h"
@@ -403,6 +403,10 @@ Unit::Unit()
 
 	vehicle = NULL;
 	currentvehicle = NULL;
+
+	m_noFallDamage = false;
+	z_axisposition = 0.0f;
+	m_safeFall     = 0;
 }
 
 Unit::~Unit()
@@ -697,7 +701,7 @@ Unit::~Unit()
 	}
 
 	// reflects not created by auras need to be deleted manually
-	for(std::list<struct ReflectSpellSchool*>::iterator i = m_reflectSpellSchool.begin(); i != m_reflectSpellSchool.end(); i++)
+	for(std::list<struct ReflectSpellSchool*>::iterator i = m_reflectSpellSchool.begin(); i != m_reflectSpellSchool.end(); ++i)
 		delete *i;
 	m_reflectSpellSchool.clear();
 
@@ -931,8 +935,7 @@ void Unit::GiveGroupXP(Unit* pVictim, Player* PlayerInGroup)
 				xp_mod = 1.3f;
 			else if(active_player_count == 5)
 				xp_mod = 1.4f;
-			else xp_mod = 1; //in case we have only 2 members ;)*/
-			xp_mod = 2;
+			else*/ xp_mod = 2; //in case we have only 2 members ;)
 		}
 		else if(pGroup->GetGroupType() == GROUP_TYPE_RAID)
 			xp_mod = 0.5f;
@@ -4805,6 +4808,24 @@ bool Unit::RemoveAurasByHeal()
 	return res;
 }
 
+bool Unit::AuraActionIf( AuraAction *action, AuraCondition *condition ){
+	bool done = false;
+
+	for( uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; i++ ){
+		Aura *aura = m_auras[ i ];
+
+		if( aura == NULL )
+			continue;
+
+		if( (*condition)( aura ) ){
+			(*action)( aura );
+			done = true;
+		}
+	}
+
+	return done;
+}
+
 void Unit::ClearAllAreaAuraTargets()
 {
 	for(uint32 x = MAX_TOTAL_AURAS_START; x < MAX_TOTAL_AURAS_END; x++)
@@ -5264,28 +5285,6 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 	summaryPCTmod += pVictim->DamageTakenPctMod[school];
 	summaryPCTmod += caster->DamageDoneModPCT[school];	// BURLEX FIX ME
 	summaryPCTmod += pVictim->ModDamageTakenByMechPCT[spellInfo->MechanicsType];
-
-	//Seals of Blood and Martyr
-	if( caster->IsPlayer() )
-	{
-		if( spellInfo->Id == 31893 || spellInfo->Id == 53719 )
-		{
-			int32 selfdamage = float2int32((( bonus_damage * summaryPCTmod) + bonus_damage ) * 0.1f);
-			if( caster->GetHealth() - selfdamage < 0 )
-				caster->SetHealth( 1);
-			else
-				caster->ModHealth(-selfdamage);
-		}
-		else if( spellInfo->Id == 31898 || spellInfo->Id == 53726 )
-		{
-			int32 selfdamage = float2int32((( bonus_damage * summaryPCTmod) + bonus_damage ) * 0.33f);
-			if( caster->GetHealth() - selfdamage < 0 )
-				caster->SetHealth( 1);
-			else
-				caster->ModHealth(-selfdamage);
-		}
-	}
-
 	int32 res = (int32)((base_dmg+bonus_damage)*summaryPCTmod + bonus_damage);
 	if( res < 0 )
 		res = 0;
@@ -5639,23 +5638,12 @@ void Unit::UpdateSpeed()
 {
 	if(GetMount() == 0)
 	{
-		if(IsPlayer())
-			m_runSpeed = m_base_runSpeed * (1.0f + ((float)m_speedModifier) / 100.0f);
-		else
-			m_runSpeed = m_base_runSpeed * (1.0f + ((float)m_speedModifier) / 100.0f);
+		m_runSpeed = m_base_runSpeed * (1.0f + ((float)m_speedModifier) / 100.0f);
 	}
 	else
 	{
-		if(IsPlayer())
-		{
-			m_runSpeed = m_base_runSpeed * (1.0f + ((float)m_mountedspeedModifier) / 100.0f);
-			m_runSpeed += (m_speedModifier < 0) ? (m_base_runSpeed * ((float)m_speedModifier) / 100.0f) : 0;
-		}
-		else
-		{
-			m_runSpeed = m_base_runSpeed * (1.0f + ((float)m_mountedspeedModifier) / 100.0f);
-			m_runSpeed += (m_speedModifier < 0) ? (m_base_runSpeed * ((float)m_speedModifier) / 100.0f) : 0;
-		}
+		m_runSpeed = m_base_runSpeed * (1.0f + ((float)m_mountedspeedModifier) / 100.0f);
+		m_runSpeed += (m_speedModifier < 0) ? (m_base_runSpeed * ((float)m_speedModifier) / 100.0f) : 0;
 	}
 
 
@@ -5825,35 +5813,34 @@ void Unit::PlaySpellVisual(uint64 target, uint32 spellVisual)
 
 void Unit::Root()
 {
-	this->m_special_state |= UNIT_STATE_ROOT;
+	m_special_state |= UNIT_STATE_ROOT;
 
-	if(IsPlayer())
-	{
-		TO< Player* >(this)->SetMovement(MOVE_ROOT, 1);
-	}
-	else
-	{
+	if( !IsPlayer() ){
 		m_aiInterface->m_canMove = false;
 		m_aiInterface->StopMovement(1);
 	}
 
 	m_rooted = 1;
+
+	WorldPacket data( SMSG_FORCE_MOVE_ROOT, 12 );
+	data << GetNewGUID();
+	data << uint32( 1 );
+	SendMessageToSet( &data, true, false );
 }
 
 void Unit::Unroot()
 {
-	this->m_special_state &= ~UNIT_STATE_ROOT;
-
-	if(IsPlayer())
-	{
-		TO< Player* >(this)->SetMovement(MOVE_UNROOT, 5);
-	}
-	else
-	{
+	m_special_state &= ~UNIT_STATE_ROOT;
+		
+	if( !IsPlayer() )
 		m_aiInterface->m_canMove = true;
-	}
 
 	m_rooted = 0;
+
+	WorldPacket data( SMSG_FORCE_MOVE_UNROOT, 12 );
+	data << GetNewGUID();
+	data << uint32( 5 );
+	SendMessageToSet( &data, true, false );
 }
 
 void Unit::RemoveAurasByBuffType(uint32 buff_type, const uint64 & guid, uint32 skip)
@@ -6000,6 +5987,8 @@ void Unit::OnPushToWorld()
 
 	if( GetVehicleComponent() != NULL )
 		GetVehicleComponent()->InstallAccessories();
+
+	z_axisposition = 0.0f;
 }
 
 //! Remove Unit from world
@@ -6201,6 +6190,56 @@ bool Unit::IsPoisoned()
 			return true;
 
 	return false;
+}
+
+void Unit::SendFullAuraUpdate()
+{
+
+	WorldPacket data(SMSG_AURA_UPDATE_ALL, 200);
+
+	data << WoWGuid(GetNewGUID());
+
+	uint32 Updates = 0;
+
+	for(uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i)
+	{
+		Aura* aur = m_auras[ i ];
+
+		if(aur != NULL)
+		{
+			uint8 Flags = uint8(aur->GetAuraFlags());
+
+			Flags = (AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3);
+
+			if(aur->IsPositive())
+				Flags |= AFLAG_CANCELLABLE;
+			else
+				Flags |= AFLAG_NEGATIVE;
+
+			if(aur->GetDuration() != 0)
+				Flags |= AFLAG_DURATION;
+
+			data << uint8(aur->m_visualSlot);
+			data << uint32(aur->GetSpellId());
+			data << uint8(Flags);
+			data << uint8(getLevel());
+			data << uint8(m_auraStackCount[ aur->m_visualSlot ]);
+
+			if((Flags & AFLAG_NOT_CASTER) == 0)
+				data << WoWGuid(aur->GetCasterGUID());
+
+			if(Flags & AFLAG_DURATION)
+			{
+				data << uint32(aur->GetDuration());
+				data << uint32(aur->GetTimeLeft());
+			}
+
+			++Updates;
+		}
+	}
+	SendMessageToSet(&data, true);
+
+	LOG_DEBUG("Full Aura Update: GUID: "I64FMT" - Updates: %u", GetGUID(), Updates);
 }
 
 void Unit::SendAuraUpdate(uint32 AuraSlot, bool remove)
@@ -6457,7 +6496,6 @@ void Unit::UpdateVisibility()
 		}
 	}
 }
-
 void Unit::EventHealthChangeSinceLastUpdate()
 {
 	int pct = GetHealthPct();
@@ -7549,7 +7587,7 @@ void Unit::EventChill(Unit* proc_target, bool is_victim)
 void Unit::RemoveExtraStrikeTarget(SpellEntry* spell_info)
 {
 	ExtraStrike* es;
-	for(std::list<ExtraStrike*>::iterator i = m_extraStrikeTargets.begin(); i != m_extraStrikeTargets.end(); i++)
+	for(std::list<ExtraStrike*>::iterator i = m_extraStrikeTargets.begin(); i != m_extraStrikeTargets.end(); ++i)
 	{
 		es = *i;
 		if(spell_info == es->spell_info)
@@ -7564,7 +7602,7 @@ void Unit::RemoveExtraStrikeTarget(SpellEntry* spell_info)
 
 void Unit::AddExtraStrikeTarget(SpellEntry* spell_info, uint32 charges)
 {
-	for(std::list<ExtraStrike*>::iterator i = m_extraStrikeTargets.begin(); i != m_extraStrikeTargets.end(); i++)
+	for(std::list<ExtraStrike*>::iterator i = m_extraStrikeTargets.begin(); i != m_extraStrikeTargets.end(); ++i)
 	{
 		//a pointer check or id check ...should be the same
 		if(spell_info == (*i)->spell_info)
@@ -8337,3 +8375,13 @@ Unit* Unit::GetVehicleBase(){
 	return NULL;
 }
 
+void Unit::SendEnvironmentalDamageLog( uint64 guid, uint8 type, uint32 damage ){
+	WorldPacket data( SMSG_ENVIRONMENTALDAMAGELOG, 20 );
+	
+	data << uint64( guid );
+	data << uint8( type );
+	data << uint32( damage );
+	data << uint64( 0 );
+
+	SendMessageToSet( &data, true, false );
+}

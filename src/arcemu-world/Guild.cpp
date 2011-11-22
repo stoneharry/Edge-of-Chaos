@@ -1052,7 +1052,7 @@ void Guild::GuildChat(const char* szMessage, WorldSession* pClient, uint32 iType
 	}
 
 	WorldPacket* data = sChatHandler.FillMessageData(CHAT_MSG_GUILD, ((int32)iType) == CHAT_MSG_ADDON ? -1 : LANG_UNIVERSAL, szMessage,
-	                    pClient->GetPlayer()->GetGUID(), pClient->GetPlayer()->GetChatTag());
+	                    pClient->GetPlayer()->GetGUID(),  pClient->GetPlayer()->GetChatTag());
 
 	m_lock.Acquire();
 	for(GuildMemberMap::iterator itr = m_members.begin(); itr != m_members.end(); ++itr)
@@ -1229,16 +1229,6 @@ void Guild::SendGuildRoster(WorldSession* pClient)
 
 	pClient->SendPacket(&data);
 }
-
-void Guild::SendGuildRosterToAll()
-{
-	GuildMemberMap::iterator itr;
-	for(itr = m_members.begin(); itr != m_members.end(); ++itr)
-	{
-		if(itr->second->pPlayer->m_loggedInPlayer)
-			SendGuildRoster(itr->second->pPlayer->m_loggedInPlayer->GetSession());
-	}
-}	
 
 void Guild::SendGuildQuery(WorldSession* pClient)
 {
@@ -1661,4 +1651,14 @@ void Guild::SendGuildInfo(WorldSession* pClient)
 	data << uint32(m_members.size());
 
 	pClient->SendPacket(&data);
+}
+
+void Guild::SendGuildRosterToAll()
+{
+	GuildMemberMap::iterator itr;
+	for(itr = m_members.begin(); itr != m_members.end(); ++itr)
+	{
+		if(itr->second->pPlayer->m_loggedInPlayer)
+			SendGuildRoster(itr->second->pPlayer->m_loggedInPlayer->GetSession());
+	}
 }

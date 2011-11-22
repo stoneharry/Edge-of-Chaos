@@ -257,9 +257,8 @@ void WorldSession::HandleSendMail(WorldPacket & recv_data)
 	recv_data >> msg.subject >> msg.body >> msg.stationery;
 	recv_data >> unk2 >> itemcount;
 
-	if(itemcount > 12 || msg.body.find("%") != string::npos || msg.subject.find("%") != string::npos)
+	if(itemcount > MAIL_MAX_ITEM_SLOT || msg.body.find("%") != string::npos || msg.subject.find("%") != string::npos)
 	{
-		//SystemMessage("Sorry, Ascent does not support sending multiple items at this time. (don't want to lose your item do you) Remove some items, and try again.");
 		SendMailError(MAIL_ERR_INTERNAL_ERROR);
 		return;
 	}
@@ -437,12 +436,8 @@ void WorldSession::HandleMarkAsRead(WorldPacket & recv_data)
 		message->expire_time = (uint32)UNIXTIME + (TIME_DAY * 30);
 
 	// update it in sql
-<<<<<<< HEAD
-	CharacterDatabase.WaitExecute("UPDATE mailbox SET read_flag = 1, expiry_time = %u WHERE message_id = %u", message->message_id, message->expire_time);
-=======
 	CharacterDatabase.WaitExecute("UPDATE mailbox SET checked_flag = %u, expiry_time = %u WHERE message_id = %u",
 		message->checked_flag, message->expire_time, message->message_id);
->>>>>>> e13fd4bdf09af40d0c408de69a4c1ac3d0f3e5a2
 }
 
 void WorldSession::HandleMailDelete(WorldPacket & recv_data)
@@ -817,11 +812,7 @@ void MailSystem::RemoveMessageIfDeleted(uint32 message_id, Player* plr)
 }
 
 void MailSystem::SendAutomatedMessage(uint32 type, uint64 sender, uint64 receiver, string subject, string body,
-<<<<<<< HEAD
-                                      uint32 money, uint32 cod, uint64 item_guid, uint32 stationery, uint32 deliverdelay)
-=======
                                       uint32 money, uint32 cod, vector<uint64> &item_guids, uint32 stationery, MailCheckMask checked, uint32 deliverdelay)
->>>>>>> e13fd4bdf09af40d0c408de69a4c1ac3d0f3e5a2
 {
 	// This is for sending automated messages, for example from an auction house.
 	MailMessage msg;
@@ -832,8 +823,8 @@ void MailSystem::SendAutomatedMessage(uint32 type, uint64 sender, uint64 receive
 	msg.body = body;
 	msg.money = money;
 	msg.cod = cod;
-	if(Arcemu::Util::GUID_LOPART(item_guid) != 0)
-		msg.items.push_back(Arcemu::Util::GUID_LOPART(item_guid));
+	for(vector<uint64>::iterator itr = item_guids.begin(); itr != item_guids.end(); ++itr)
+		msg.items.push_back(Arcemu::Util::GUID_LOPART(*itr));
 
 	msg.stationery = stationery;
 	msg.delivery_time = (uint32)UNIXTIME + deliverdelay;
@@ -845,8 +836,6 @@ void MailSystem::SendAutomatedMessage(uint32 type, uint64 sender, uint64 receive
 	DeliverMessage(receiver, &msg);
 }
 
-<<<<<<< HEAD
-=======
 //overload to keep backward compatibility (passing just 1 item guid instead of a vector)
 void MailSystem::SendAutomatedMessage(uint32 type, uint64 sender, uint64 receiver, string subject, string body, uint32 money,
                                       uint32 cod, uint64 item_guid, uint32 stationery, MailCheckMask checked, uint32 deliverdelay)
@@ -857,7 +846,6 @@ void MailSystem::SendAutomatedMessage(uint32 type, uint64 sender, uint64 receive
 	SendAutomatedMessage(type, sender, receiver, subject, body, money, cod, item_guids, stationery, checked, deliverdelay);
 }
 
->>>>>>> e13fd4bdf09af40d0c408de69a4c1ac3d0f3e5a2
 void Mailbox::Load(QueryResult* result)
 {
 	if(!result)

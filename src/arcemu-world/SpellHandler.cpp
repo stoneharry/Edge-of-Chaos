@@ -241,6 +241,7 @@ void WorldSession::HandleUseItemOpcode(WorldPacket & recvPacket)
 #ifdef ENABLE_ACHIEVEMENTS
 	_player->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_USE_ITEM, itemProto->ItemId, 0, 0);
 #endif
+
 }
 
 void WorldSession::HandleSpellClick(WorldPacket & recvPacket)

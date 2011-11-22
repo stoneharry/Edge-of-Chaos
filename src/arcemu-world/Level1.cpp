@@ -1008,9 +1008,9 @@ bool ChatHandler::HandleModifyTPsCommand(const char* args, WorldSession* m_sessi
 		SystemMessage(m_session, "Enter two amounts to modify your target's both specs to (enter 0 to that spec at default).");
 		return true;
 	}
-
-	Pl->m_specs[SPEC_PRIMARY].m_customTalentPointOverride = TP1;
-	Pl->m_specs[SPEC_SECONDARY].m_customTalentPointOverride = TP2;
+ 
+	Pl->m_specs[SPEC_PRIMARY].SetTP( TP1 );
+	Pl->m_specs[SPEC_SECONDARY].SetTP( TP2 );
 	Pl->smsg_TalentsInfo(false);
 	return true;
 }

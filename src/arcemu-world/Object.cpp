@@ -356,6 +356,7 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags, uint32 flags2,
 			if( static_cast< Unit* >( this )->HasAuraWithName( SPELL_AURA_ENABLE_FLIGHT ) )
 				flags2 |= ( MOVEFLAG_NO_COLLISION | MOVEFLAG_AIR_SWIMMING );
 		}
+
 	}
 
 	*data << (uint16)flags;
@@ -384,6 +385,11 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags, uint32 flags2,
 		else if(uThis != NULL && transporter_info.guid != 0 && uThis->transporter_info.guid != 0)
 			flags2 |= MOVEFLAG_TRANSPORT; //0x200
 
+		if( ( pThis != NULL ) && pThis->isRooted() )
+			flags2 |= MOVEFLAG_ROOTED;
+		else if( ( uThis != NULL ) && uThis->isRooted() )
+			flags2 |= MOVEFLAG_ROOTED;
+
 		if(uThis != NULL)
 		{
 			//		 Don't know what this is, but I've only seen it applied to spirit healers.
@@ -402,7 +408,7 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags, uint32 flags2,
 			if(uThis->GetAIInterface()->IsFlying())
 				flags2 |= MOVEFLAG_NO_COLLISION; //0x400 Zack : Teribus the Cursed had flag 400 instead of 800 and he is flying all the time
 			if(uThis->GetAIInterface()->onGameobject)
-				flags2 |= MOVEFLAG_FLYING;
+				flags2 |= MOVEFLAG_ROOTED;
 			if(uThis->GetProto()->extra_a9_flags)
 			{
 //do not send shit we can't honor
@@ -1060,20 +1066,6 @@ void Object::SetUInt32Value(const uint32 index, const uint32 value)
 				pGroup->HandleUpdateFieldChange(index, TO< Player* >(this));
 		}
 
-#ifdef OPTIMIZED_PLAYER_SAVING
-		switch(index)
-		{
-			case UNIT_FIELD_LEVEL:
-			case PLAYER_XP:
-				TO< Player* >(this)->save_LevelXP();
-				break;
-
-			case PLAYER_FIELD_COINAGE:
-				TO< Player* >(this)->save_Gold();
-				break;
-		}
-#endif
-
 		switch(index)
 		{
 			case UNIT_FIELD_POWER1:
@@ -1133,20 +1125,6 @@ void Object::ModUnsigned32Value(uint32 index, int32 mod)
 
 	if(IsPlayer())
 	{
-#ifdef OPTIMIZED_PLAYER_SAVING
-		switch(index)
-		{
-			case UNIT_FIELD_LEVEL:
-			case PLAYER_XP:
-				TO< Player* >(this)->save_LevelXP();
-				break;
-
-			case PLAYER_FIELD_COINAGE:
-				TO< Player* >(this)->save_Gold();
-				break;
-		}
-#endif
-
 		switch(index)
 		{
 			case UNIT_FIELD_POWER1:
@@ -1192,23 +1170,6 @@ void Object::ModSignedInt32Value(uint32 index, int32 value)
 			m_mapMgr->ObjectUpdated(this);
 			m_objectUpdated = true;
 		}
-	}
-
-	if(IsPlayer())
-	{
-#ifdef OPTIMIZED_PLAYER_SAVING
-		switch(index)
-		{
-			case UNIT_FIELD_LEVEL:
-			case PLAYER_XP:
-				TO< Player* >(this)->save_LevelXP();
-				break;
-
-			case PLAYER_FIELD_COINAGE:
-				TO< Player* >(this)->save_Gold();
-				break;
-		}
-#endif
 	}
 }
 

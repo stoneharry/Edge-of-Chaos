@@ -54,7 +54,7 @@ struct TrainerSpell;
 * Worldsocket related
 **********************************************************************************/
 #define WORLDSOCKET_TIMEOUT		 120
-#define PLAYER_LOGOUT_DELAY (10*1000) // 20 seconds should be more than enough to gank ya.
+#define PLAYER_LOGOUT_DELAY (10*1000) // 10 seconds should be more than enough to gank ya.
 
 #define NOTIFICATION_MESSAGE_NO_PERMISSION "You do not have permission to perform that function."
 //#define CHECK_PACKET_SIZE(x, y) if(y > 0 && x.size() < y) { _socket->Disconnect(); return; }
@@ -77,7 +77,7 @@ enum MovementFlags
     MOVEFLAG_WALK						= 0x100,		//verified
     MOVEFLAG_TRANSPORT					= 0x200,
     MOVEFLAG_NO_COLLISION				= 0x400,
-    MOVEFLAG_FLYING	    				= 0x800,		//verified
+    MOVEFLAG_ROOTED	    				= 0x800,		//verified
     MOVEFLAG_REDIRECTED					= 0x1000,		//Unconfirmed
     MOVEFLAG_FALLING					= 0x2000,       //verified
     MOVEFLAG_FALLING_FAR				= 0x4000,		//verified
@@ -827,8 +827,6 @@ class SERVER_DECL WorldSession
 		uint32 client_build;
 		uint32 instanceId;
 		uint8 _updatecount;
-
-		bool TrialAccount;
 	public:
 		MovementInfo* GetMovementInfo() { return &movement_info; }
 		const MovementInfo* GetMovementInfo() const { return &movement_info; }
@@ -839,6 +837,7 @@ class SERVER_DECL WorldSession
 		uint32 language;
 		WorldPacket* BuildQuestQueryResponse(Quest* qst);
 		uint32 m_muted;
+		bool TrialAccount;
 		bool item_info_sent;
 		bool SendAllItemsIfCan();
 		void SendItemQueryAndNameInfo(uint32 itemid);

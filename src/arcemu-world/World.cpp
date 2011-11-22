@@ -881,7 +881,7 @@ uint32 World::GetNonGmSessionCount()
 	uint32 total = (uint32)m_sessions.size();
 
 	SessionMap::const_iterator itr = m_sessions.begin();
-	for(; itr != m_sessions.end(); itr++)
+	for(; itr != m_sessions.end(); ++itr)
 	{
 		if((itr->second)->HasGMPermissions())
 			total--;
@@ -1020,7 +1020,7 @@ void World::SaveAllPlayers()
 	// Servers started and obviously running. lets save all players.
 	uint32 mt;
 	objmgr._playerslock.AcquireReadLock();
-	for(itr = objmgr._players.begin(); itr != objmgr._players.end(); itr++)
+	for(itr = objmgr._players.begin(); itr != objmgr._players.end(); ++itr)
 	{
 		if(itr->second->GetSession())
 		{
@@ -1074,7 +1074,7 @@ void World::GetStats(uint32* GMCount, float* AverageLatency)
 	int avg = 0;
 	PlayerStorageMap::const_iterator itr;
 	objmgr._playerslock.AcquireReadLock();
-	for(itr = objmgr._players.begin(); itr != objmgr._players.end(); itr++)
+	for(itr = objmgr._players.begin(); itr != objmgr._players.end(); ++itr)
 	{
 		if(itr->second->GetSession())
 		{
@@ -1230,13 +1230,8 @@ void World::Rehash(bool load)
 {
 	if(load)
 	{
-#ifdef WIN32
-		Config.MainConfig.SetSource("configs/world.conf", true);
-		Config.OptionalConfig.SetSource("configs/optional.conf", true);
-#else
-		Config.MainConfig.SetSource((char*)CONFDIR "/world.conf", true);
-		Config.OptionalConfig.SetSource((char*)CONFDIR "/optional.conf", true);
-#endif
+		Config.MainConfig.SetSource(CONFDIR "/world.conf", true);
+		Config.OptionalConfig.SetSource(CONFDIR "/optional.conf", true);
 	}
 	if(!ChannelMgr::getSingletonPtr())
 		new ChannelMgr;
@@ -1462,21 +1457,23 @@ void World::Rehash(bool load)
 	// cebernic: wanna no attunement xD?
 	instance_CheckTriggerPrerequsites = Config.MainConfig.GetBoolDefault("InstanceHandling", "CheckTriggerPrerequsites", true);
 
-	m_bgSet_AV_MIN = Config.MainConfig.GetIntDefault("Battleground", "AV_MIN", 10);
-	m_bgSet_AV_MAX = Config.MainConfig.GetIntDefault("Battleground", "AV_MAX", 40);
+	bgsettings.AV_MIN = Config.MainConfig.GetIntDefault("Battleground", "AV_MIN", 10);
+	bgsettings.AV_MAX = Config.MainConfig.GetIntDefault("Battleground", "AV_MAX", 40);
 
-	m_bgSet_WS_MIN = Config.MainConfig.GetIntDefault("Battleground", "WS_MIN", 2);
-	m_bgSet_WS_MAX = Config.MainConfig.GetIntDefault("Battleground", "WS_MAX", 10);
+	bgsettings.AB_MIN = Config.MainConfig.GetIntDefault("Battleground", "AB_MIN", 4);
+	bgsettings.AB_MAX = Config.MainConfig.GetIntDefault("Battleground", "AB_MAX", 15);
 
-	m_bgSet_AB_MIN = Config.MainConfig.GetIntDefault("Battleground", "AB_MIN", 4);
-	m_bgSet_AB_MAX = Config.MainConfig.GetIntDefault("Battleground", "AB_MAX", 15);
+	bgsettings.WSG_MIN = Config.MainConfig.GetIntDefault("Battleground", "WSG_MIN", 2);
+	bgsettings.WSG_MAX = Config.MainConfig.GetIntDefault("Battleground", "WSG_MAX", 10);
 
-	m_bgSet_EOS_MIN = Config.MainConfig.GetIntDefault("Battleground", "EOS_MIN", 4);
-	m_bgSet_EOS_MAX = Config.MainConfig.GetIntDefault("Battleground", "EOS_MAX", 15);
+	bgsettings.EOTS_MIN = Config.MainConfig.GetIntDefault("Battleground", "EOTS_MIN", 4);
+	bgsettings.EOTS_MAX = Config.MainConfig.GetIntDefault("Battleground", "EOTS_MAX", 15);
 
-	m_bgSet_SOTA_MIN = Config.MainConfig.GetIntDefault("Battleground", "SOTA_MIN", 10);
-	m_bgSet_SOTA_MAX = Config.MainConfig.GetIntDefault("Battleground", "SOTA_MAX", 15);
+	bgsettings.SOTA_MIN = Config.MainConfig.GetIntDefault("Battleground", "SOTA_MIN", 10);
+	bgsettings.SOTA_MAX = Config.MainConfig.GetIntDefault("Battleground", "SOTA_MAX", 15);
 
+	bgsettings.IOC_MIN = Config.MainConfig.GetIntDefault("Battleground", "IOC_MIN", 10);
+	bgsettings.IOC_MAX = Config.MainConfig.GetIntDefault("Battleground", "IOC_MAX", 15);
 
 	// damage/hp/mp cap settings
 	m_limits.enable = Config.MainConfig.GetBoolDefault("Limits", "Enable", true);
@@ -1486,6 +1483,7 @@ void World::Rehash(bool load)
 	m_limits.manaCap = (uint32)Config.MainConfig.GetIntDefault("Limits", "Mana", 80000);
 	m_limits.disconnect = Config.MainConfig.GetBoolDefault("Limits", "Disconnect", false);
 	m_limits.broadcast = Config.MainConfig.GetBoolDefault("Limits", "BroadcastGMs", true);
+
 	if(instance_DailyHeroicInstanceResetHour < 0)
 		instance_DailyHeroicInstanceResetHour = 0;
 	if(instance_DailyHeroicInstanceResetHour > 23)
@@ -1802,7 +1800,6 @@ void World::PollMailboxInsertQueue(DatabaseConnection* con)
 {
 	QueryResult* result;
 	Field* f;
-	Item* pItem;
 	uint32 itemid;
 	uint32 stackcount;
 
@@ -1813,27 +1810,30 @@ void World::PollMailboxInsertQueue(DatabaseConnection* con)
 		do
 		{
 			f = result->Fetch();
-			itemid = f[6].GetUInt32();
-			stackcount = f[7].GetUInt32();
+			vector<uint64> itemGuids;
 
-			if(itemid != 0)
+			int fieldCounter = 6;
+			for(int itemSlot = 0; itemSlot < MAIL_MAX_ITEM_SLOT; itemSlot++)
 			{
-				pItem = objmgr.CreateItem(itemid, NULL);
+				itemid = f[fieldCounter++].GetUInt32();
+				stackcount = f[fieldCounter++].GetUInt32();
+
+				if(itemid == 0)
+					break;
+
+				Item* pItem = objmgr.CreateItem(itemid, NULL);
 				if(pItem != NULL)
 				{
 					pItem->SetStackCount(stackcount);
 					pItem->SaveToDB(0, 0, true, NULL);
+					itemGuids.push_back(pItem->GetGUID());
+					pItem->DeleteMe();
 				}
 			}
-			else
-				pItem = NULL;
 
 			Log.Notice("MailboxQueue", "Sending message to %u (item: %u)...", f[1].GetUInt32(), itemid);
 			sMailSystem.SendAutomatedMessage(0, f[0].GetUInt64(), f[1].GetUInt64(), f[2].GetString(), f[3].GetString(), f[5].GetUInt32(),
-			                                 0, pItem ? pItem->GetGUID() : 0, f[4].GetUInt32());
-
-			if(pItem != NULL)
-				pItem->DeleteMe();
+			                                 0, itemGuids, f[4].GetUInt32());
 
 		}
 		while(result->NextRow());

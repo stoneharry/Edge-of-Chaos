@@ -389,6 +389,21 @@ public:
 	/////////////////////////////////////////////////////////////////////////
 	void MovePassengers( float x, float y, float z, float o );
 
+
+	/////////////////////////////////////////////////////////////////////////
+	//uint32 GetPassengerCount() const
+	//  Tells the number of passengers currently in the vehicle
+	//
+	//Parameter(s)
+	//  None
+	//
+	//Return Value
+	//  Returns the number of passengers.
+	//
+	//
+	/////////////////////////////////////////////////////////////////////////
+	uint32 GetPassengerCount() const;
+
 	
 	/////////////////////////////////////////////////////////////////////////
 	//Unit* GetOwner() const
@@ -464,7 +479,7 @@ public:
 	//
 	////////////////////////////////////////////////////////////////////////
 	bool HasAccessoryWithGUID( uint64 guid );
-	VehicleEntry * GetVehicleInfo() { return vehicle_info; }
+
 private:
 	std::tr1::array< VehicleSeat*, MAX_VEHICLE_SEATS > seats;
 	std::vector< uint64 > installed_accessories;

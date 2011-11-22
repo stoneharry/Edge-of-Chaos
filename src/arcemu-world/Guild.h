@@ -539,7 +539,6 @@ class SERVER_DECL Guild
 		/** Sends the guild information packet to the specified client.
 		 */
 		void SendGuildInfo(WorldSession* pClient);
-
 		void SendGuildRosterToAll();
 	protected:
 

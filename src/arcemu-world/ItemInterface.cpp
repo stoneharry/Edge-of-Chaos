@@ -18,9 +18,9 @@
  *
  */
 
-// Last edited by:	$Author: dfighter1985 $
-// revision:		$Rev: 4493 $
-// date:			$Date: 2011-08-23 14:55:08 -0400 (Tue, 23 Aug 2011) $
+// Last edited by:	$Author$
+// revision:		$Rev$
+// date:			$Date$
 
 
 #include "StdAfx.h"
@@ -108,14 +108,7 @@ void ItemInterface::m_DestroyForPlayer()
 					Item* pItem = TO< Container* >(m_pItems[i])->GetItem(static_cast<int16>(e));
 					if(pItem)
 					{
-						if(pItem->IsContainer())
-						{
-							m_pOwner->SendDestroyObject(pItem->GetGUID());
-						}
-						else
-						{
-							m_pOwner->SendDestroyObject(pItem->GetGUID());
-						}
+						m_pOwner->SendDestroyObject(pItem->GetGUID());
 					}
 				}
 				m_pOwner->SendDestroyObject(m_pItems[ i ]->GetGUID());
@@ -1956,14 +1949,23 @@ int8 ItemInterface::CanEquipItemInSlot2(int8 DstInvSlot, int8 slot, Item* item, 
 		for(uint32 count = 0; count < item->GetSocketsCount(); count++)
 		{
 			EnchantmentInstance* ei = item->GetEnchantment(SOCK_ENCHANTMENT_SLOT1 + count);
-			if(ei && ei->Enchantment->GemEntry) //huh ? Gem without entry ?
+			if(ei
+			        && ei->Enchantment->GemEntry //huh ? Gem without entry ?
+			  )
 			{
 				ItemPrototype* ip = ItemPrototypeStorage.LookupEntry(ei->Enchantment->GemEntry);
-				
-				if(ip)//maybe gem got removed from db due to update ?
+
+				if(
+				    ip //maybe gem got removed from db due to update ?
+				)
 				{
-					if(ip->Flags & ITEM_FLAG_UNIQUE_EQUIP &&  IsEquipped(ip->ItemId))
+					if(
+					    ip->Flags & ITEM_FLAG_UNIQUE_EQUIP
+					    &&  IsEquipped(ip->ItemId)
+					)
+					{
 						return INV_ERR_CANT_CARRY_MORE_OF_THIS;
+					}
 
 					if(ip->ItemLimitCategory > 0)
 					{
@@ -2486,11 +2488,13 @@ int8 ItemInterface::CanReceiveItem(ItemPrototype* item, uint32 amount)
 	{
 		return INV_ERR_OK;
 	}
+
 	if(item->no_trial && GetOwner() && GetOwner()->IsTrial())
 	{
 		sChatHandler.RedSystemMessage(GetOwner()->GetSession(), "It is prohibited for trial accounts to have item %s.", item->Name1);
 		return INV_ERR_ITEM_LOCKED;
 	}
+
 	if(item->Unique)
 	{
 		uint32 count = GetItemCount(item->ItemId, true);
@@ -2742,7 +2746,7 @@ Item* ItemInterface::GetItemByGUID(uint64 Guid)
 		{
 			if(m_pItems[i]->GetGUID() == Guid)
 			{
-				result.ContainerSlot = INVALID_BACKPACK_SLOT;//not a containerslot. In 1.8 client marked wrong slot like this
+				result.ContainerSlot = static_cast<int8>(INVALID_BACKPACK_SLOT);//not a containerslot. In 1.8 client marked wrong slot like this
 				result.Slot = static_cast<int8>(i);
 				return m_pItems[i];
 			}
@@ -2756,7 +2760,7 @@ Item* ItemInterface::GetItemByGUID(uint64 Guid)
 		{
 			if(m_pItems[i]->GetGUID() == Guid)
 			{
-				result.ContainerSlot = INVALID_BACKPACK_SLOT;
+				result.ContainerSlot = static_cast<int8>(INVALID_BACKPACK_SLOT);
 				result.Slot = static_cast<int8>(i);
 				return m_pItems[i];
 			}
@@ -2784,7 +2788,7 @@ Item* ItemInterface::GetItemByGUID(uint64 Guid)
 		{
 			if(m_pItems[i]->GetGUID() == Guid)
 			{
-				result.ContainerSlot = INVALID_BACKPACK_SLOT;
+				result.ContainerSlot = static_cast<int8>(INVALID_BACKPACK_SLOT);
 				result.Slot = static_cast<int8>(i);
 				return m_pItems[i];
 			}
@@ -2798,7 +2802,7 @@ Item* ItemInterface::GetItemByGUID(uint64 Guid)
 		{
 			if(m_pItems[i]->GetGUID() == Guid)
 			{
-				result.ContainerSlot = INVALID_BACKPACK_SLOT;
+				result.ContainerSlot = static_cast<int8>(INVALID_BACKPACK_SLOT);
 				result.Slot = static_cast<int8>(i);
 				return m_pItems[i];
 			}
@@ -2812,7 +2816,7 @@ Item* ItemInterface::GetItemByGUID(uint64 Guid)
 		{
 			if(m_pItems[i]->GetGUID() == Guid)
 			{
-				result.ContainerSlot = INVALID_BACKPACK_SLOT;
+				result.ContainerSlot = static_cast<int8>(INVALID_BACKPACK_SLOT);
 				result.Slot = static_cast<int8>(i);
 				return m_pItems[i];
 			}
@@ -2988,10 +2992,10 @@ void ItemInterface::RemoveBuyBackItem(uint32 index)
 void ItemInterface::SwapItemSlots(int8 srcslot, int8 dstslot)
 {
 	// srcslot and dstslot are int... NULL might not be an int depending on arch where it is compiled
-	if(srcslot >= MAX_INVENTORY_SLOT || srcslot < 0)
+	if(srcslot >= INVENTORY_KEYRING_END || srcslot < 0)
 		return;
 
-	if(dstslot >= MAX_INVENTORY_SLOT || dstslot < 0)
+	if(dstslot >= INVENTORY_KEYRING_END || dstslot < 0)
 		return;
 
 	Item* SrcItem = GetInventoryItem(srcslot);
@@ -4150,7 +4154,7 @@ bool ItemInterface::SwapItems(int8 DstInvSlot, int8 DstSlot, int8 SrcInvSlot, in
 				}
 			}
 
-			if(SrcSlot <  CURRENCYTOKEN_SLOT_END)
+			if(SrcSlot <  INVENTORY_KEYRING_END)
 			{
 				if((error = CanEquipItemInSlot2(SrcInvSlot, SrcSlot, DstItem)) != 0)
 				{
@@ -4195,7 +4199,7 @@ bool ItemInterface::SwapItems(int8 DstInvSlot, int8 DstSlot, int8 SrcInvSlot, in
 				}
 			}
 
-			if(DstSlot <  CURRENCYTOKEN_SLOT_END)
+			if(DstSlot <  INVENTORY_KEYRING_END)
 			{
 				if((error = CanEquipItemInSlot2(DstInvSlot, DstSlot, SrcItem)) != 0)
 				{
@@ -4346,4 +4350,3 @@ bool ItemInterface::SwapItems(int8 DstInvSlot, int8 DstSlot, int8 SrcInvSlot, in
 	else
 		return true;
 }
-

@@ -86,13 +86,14 @@ void Vehicle::Load( Unit *owner, uint32 creature_entry, uint32 vehicleid ){
 	for( uint32 i = 0; i < MAX_VEHICLE_SEATS; i++ )
 		if( ( seats[ i ] != NULL ) && seats[ i ]->Usable() && ( !seats[ i ]->HasPassenger() ) )
 			freeseats++;
+
 }
 
 bool Vehicle::HasEmptySeat(){
 	if( freeseats > 0 )
 		return true;
 	else
-	return false;
+		return false;
 }
 
 void Vehicle::AddPassenger( Unit *passenger ){
@@ -166,7 +167,7 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid ){
 
 			passenger->SetCharmedUnitGUID( owner->GetGUID() );
 			owner->SetCharmedByGUID( passenger->GetGUID() );
-			owner->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED_CREATURE | UNIT_FLAG_PVP_ATTACKABLE );
+			owner->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED_CREATURE );
 
 			WorldPacket spells( SMSG_PET_SPELLS, 100 );
 			owner->BuildPetSpellList( spells );
@@ -282,6 +283,7 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 	seats[ seatid ]->RemovePassenger();
 	passenger->SetCurrentVehicle( NULL );
 	passenger->RemoveFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NOT_ATTACKABLE_2 );
+
 	passengercount--;
 	freeseats++;
 
@@ -297,19 +299,19 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 
 	if( passenger->IsCreature() ){
 		Creature *c = static_cast< Creature* >( passenger );
-		if(owner->IsPlayer())
-		{
-			c->Despawn(3000, 0);
-			return;
-		}
-		if( c->GetScript() != NULL )
-		{
+
+		if( c->GetScript() != NULL ){
 			c->GetScript()->OnExitVehicle();
 		}
 	}
 	if( owner->IsCreature() ){
 		Creature *c = static_cast< Creature* >( owner );
 
+		if(owner->IsPlayer())
+		{
+			c->Despawn(1000, 0);
+			return;
+		}
 		if( c->GetScript() != NULL ){
 			if( passengercount == 0 )
 				c->GetScript()->OnLastPassengerLeft( passenger );
@@ -439,6 +441,25 @@ void Vehicle::MovePassengers( float x, float y, float z, float o ){
 }
 
 
+uint32 Vehicle::GetPassengerCount() const{
+	uint32 count = 0;
+
+	for( uint32 i = 0; i < MAX_VEHICLE_SEATS; i++ ){
+		if( ( seats[ i ] != NULL ) && ( seats[ i ]->GetPassengerGUID() != 0 ) ){
+			Unit *passenger = owner->GetMapMgrUnit( seats[ i ]->GetPassengerGUID() );
+			if( passenger == NULL )
+				continue;
+
+			if( passenger->GetVehicleComponent() == NULL )
+				count++;
+			else
+				count += passenger->GetVehicleComponent()->GetPassengerCount();
+		}
+	}
+
+	return count;
+}
+
 uint16 Vehicle::GetMoveFlags2() const{
 	uint16 flags2 = 0;
 
@@ -488,6 +509,7 @@ void Vehicle::InstallAccessories(){
 		c->transporter_info.guid = owner->GetGUID();
 		c->transporter_info.seat = accessory->seat;
 		c->Phase( PHASE_SET, owner->GetPhase() );
+		c->SetFaction( owner->GetFaction() );
 		c->PushToWorld( owner->GetMapMgr() );
 		
 		AddPassengerToSeat( c, accessory->seat );

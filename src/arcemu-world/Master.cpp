@@ -26,7 +26,7 @@
 #include <sched.h>
 #endif
 
-#include "svn_revision.h"
+#include "git_version.h"
 
 #include <signal.h>
 
@@ -94,15 +94,9 @@ struct Addr
 
 #define DEF_VALUE_NOT_SET 0xDEADBEEF
 
-#ifdef WIN32
-static const char* default_config_file = "configs/world.conf";
-static const char* default_optional_config_file = "configs/optional.conf";
-static const char* default_realm_config_file = "configs/realms.conf";
-#else
 static const char* default_config_file = CONFDIR "/world.conf";
 static const char* default_optional_config_file = CONFDIR "/optional.conf";
 static const char* default_realm_config_file = CONFDIR "/realms.conf";
-#endif
 
 bool bServerShutdown = false;
 bool StartConsoleListener();
@@ -166,10 +160,7 @@ bool Master::Run(int argc, char** argv)
 	g_localTime = *localtime(&UNIXTIME);
 
 	sLog.Init(0, WORLD_LOG);
-
-	//sLog.outBasic(BANNER, BUILD_TAG, BUILD_REVISION, CONFIG, PLATFORM_TEXT, ARCH);
-	//sLog.outError(BANNER, BUILD_TAG, BUILD_REVISION, CONFIG, PLATFORM_TEXT, ARCH);
-
+	
 	if(do_version)
 	{
 		sLog.Close();
@@ -216,28 +207,28 @@ bool Master::Run(int argc, char** argv)
 
 	Log.Success("Config", "Loading Config Files...");
 	if(Config.MainConfig.SetSource(config_file))
-		Log.Notice("Config", ">> configs/world.conf loaded");
+		Log.Notice("Config", ">> " CONFDIR "/world.conf loaded");
 	else
 	{
-		sLog.Error("Config", ">> error occurred loading configs/world.conf");
+		sLog.Error("Config", ">> error occurred loading " CONFDIR "/world.conf");
 		sLog.Close();
 		return false;
 	}
 
 	if(Config.OptionalConfig.SetSource(optional_config_file))
-		Log.Notice("Config", ">> configs/optional.conf loaded");
+		Log.Notice("Config", ">> " CONFDIR "/optional.conf loaded");
 	else
 	{
-		sLog.Error("Config", ">> error occurred loading configs/optional.conf");
+		sLog.Error("Config", ">> error occurred loading " CONFDIR "/optional.conf");
 		sLog.Close();
 		return false;
 	}
 
 	if(Config.RealmConfig.SetSource(realm_config_file))
-		Log.Notice("Config", ">> configs/realms.conf loaded");
+		Log.Notice("Config", ">> " CONFDIR "/realms.conf loaded");
 	else
 	{
-		sLog.Error("Config", ">> error occurred loading configs/realms.conf");
+		sLog.Error("Config", ">> error occurred loading " CONFDIR "/realms.conf");
 		sLog.Close();
 		return false;
 	}
@@ -579,73 +570,7 @@ static const char *REQUIRED_WORLD_DB_VERSION = "2011-11-12_20-00_initial";
 
 bool Master::CheckDBVersion()
 {
-	QueryResult* wqr = WorldDatabase.QueryNA( "SELECT LastUpdate FROM world_db_version;" );
-	if(wqr == NULL)
-	{
-		Log.Error("Database", "World database is missing the table `world_db_version` OR the table doesn't contain any rows. Can't validate database version. Exiting.");
-		Log.Error( "Database","You may need to update your database" );
-		return false;
-	}
-
-	Field* f = wqr->Fetch();
-	const char *WorldDBVersion = f->GetString();
-
-<<<<<<< HEAD
-	Log.Notice("Database", "World database version: %u", WorldDBVersion);
-=======
-	Log.Notice("Database", "Last world database update: %s", WorldDBVersion);
-	int result = strcmp( WorldDBVersion, REQUIRED_WORLD_DB_VERSION );
-	if( result != 0 )
-	{
-		Log.Error("Database", "Last world database update doesn't match the required one which is %s.", REQUIRED_WORLD_DB_VERSION);
-		
-		if( result < 0 ){
-			Log.Error("Database", "You need to apply the world update queries that are newer than %s. Exiting.", WorldDBVersion);
-			Log.Error( "Database", "You can find the world update queries in the sql/world_updates sub-directory of your Arcemu source directory." );
-		}else
-			Log.Error("Database", "Your world database is probably too new for this Arcemu version, you need to update your server. Exiting.");
-
-		delete wqr;
-		return false;
-	}
->>>>>>> e13fd4bdf09af40d0c408de69a4c1ac3d0f3e5a2
-
-	delete wqr;
-
-	QueryResult* cqr = CharacterDatabase.QueryNA( "SELECT LastUpdate FROM character_db_version;" );
-	if(cqr == NULL)
-	{
-		Log.Error("Database", "Character database is missing the table `character_db_version` OR the table doesn't contain any rows. Can't validate database version. Exiting.");
-		Log.Error( "Database","You may need to update your database" );
-		return false;
-	}
-
-	f = cqr->Fetch();
-	const char *CharDBVersion = f->GetString();
-
-<<<<<<< HEAD
-	Log.Notice("Database", "Character database version: %u", CharDBVersion);
-=======
-	Log.Notice("Database", "Last character database update: %s", CharDBVersion);
-	result = strcmp( CharDBVersion, REQUIRED_CHAR_DB_VERSION );
-	if( result != 0 )
-	{
-		Log.Error("Database", "Last character database update doesn't match the required one which is %s.", REQUIRED_CHAR_DB_VERSION);
-		if( result < 0 ){
-			Log.Error("Database", "You need to apply the character update queries that are newer than %s. Exiting.", CharDBVersion);
-			Log.Error( "Database", "You can find the character update queries in the sql/character_updates sub-directory of your Arcemu source directory." );
-		}else
-			Log.Error("Database", "Your character database is too new for this Arcemu version, you need to update your server. Exiting.");
-
-		delete cqr;
-		return false;
-	}
-
->>>>>>> e13fd4bdf09af40d0c408de69a4c1ac3d0f3e5a2
-	delete cqr;
-
 	Log.Success("Database", "Database successfully validated.");
-
 	return true;
 }
 

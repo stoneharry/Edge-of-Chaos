@@ -413,18 +413,6 @@ struct DamageSplitTarget
 	void* creator;
 };
 
-#ifdef NEW_PROCFLAGS
-struct ProcTriggerSpell
-{
-	uint32 spellId;
-	uint32 parentId;
-	uint32 procFlags;
-	uint32 procChance;
-	uint32 procCharges;
-	uint32 LastTrigger;
-};
-#endif
-
 struct SpellCharge
 {
 	uint32 spellId;
@@ -452,6 +440,20 @@ class SERVER_DECL Aura : public EventableObject
 		ARCEMU_INLINE bool IsPassive() { if(!m_spellProto) return false; return (m_spellProto->Attributes & ATTRIBUTES_PASSIVE && !m_areaAura);}
 
 		void ResetDuration();
+
+		//////////////////////////////////////////////////////////////
+		//void Refresh()
+		//  Refreshes the aura, resets the duration
+		//
+		//Parameter(s)
+		//  None
+		//
+		//Return Value
+		//  None
+		//
+		// 
+		//////////////////////////////////////////////////////////////
+		void Refresh();
 
 		ARCEMU_INLINE int32 GetDuration() const { return m_duration; }
 		void SetDuration(int32 duration)
@@ -527,7 +529,7 @@ class SERVER_DECL Aura : public EventableObject
 		uint32 GetTimeLeft()
 		{
 			if(m_duration == -1)return (uint32) - 1;
-			int32 n = int32((UNIXTIME - time_t(timeleft)) * 1000);
+			int32 n = int32((UNIXTIME - time_t(expirytime)) * 1000);
 			if(n >= m_duration) return 0;
 			else
 				return (m_duration - n);
@@ -839,7 +841,7 @@ class SERVER_DECL Aura : public EventableObject
 		uint32 m_casterfaction;
 		Unit* m_target;
 		Player* p_target;
-		uint32 timeleft;
+		uint32 expirytime;
 		int32 m_duration; // In Milliseconds
 		//	bool m_positive;
 		signed char m_positive;

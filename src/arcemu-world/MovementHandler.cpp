@@ -296,7 +296,7 @@ static MovementFlagName MoveFlagsToNames[] =
 	{ MOVEFLAG_WALK, "MOVEFLAG_WALK" },
 	{ MOVEFLAG_TRANSPORT, "MOVEFLAG_TRANSPORT" },
 	{ MOVEFLAG_NO_COLLISION, "MOVEFLAG_NO_COLLISION" },
-	{ MOVEFLAG_FLYING, "MOVEFLAG_FLYING" },
+	{ MOVEFLAG_ROOTED, "MOVEFLAG_FLYING" },
 	{ MOVEFLAG_REDIRECTED, "MOVEFLAG_REDIRECTED" },
 	{ MOVEFLAG_FALLING, "MOVEFLAG_FALLING" },
 	{ MOVEFLAG_FALLING_FAR, "MOVEFLAG_FALLING_FAR" },
@@ -748,7 +748,8 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 	}
 	else
 	{
-		mover->SetPosition(movement_info.x, movement_info.y, movement_info.z, movement_info.orientation);
+		if( !mover->isRooted() )
+			mover->SetPosition(movement_info.x, movement_info.y, movement_info.z, movement_info.orientation);
 	}
 }
 
