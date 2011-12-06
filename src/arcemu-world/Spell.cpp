@@ -1120,9 +1120,7 @@ void Spell::AddStartCooldown()
 
 void Spell::cast(bool check)
 {
-	if(duelSpell && (
-	            (p_caster != NULL && p_caster->GetDuelState() != DUEL_STATE_STARTED) ||
-	            (u_caster != NULL && u_caster->IsPet() && TO< Pet* >(u_caster)->GetPetOwner() && TO< Pet* >(u_caster)->GetPetOwner()->GetDuelState() != DUEL_STATE_STARTED)))
+	if(DuelSpellNoMoreValid())
 	{
 		// Can't cast that!
 		SendInterrupted(SPELL_FAILED_TARGET_FRIENDLY);
@@ -2680,7 +2678,8 @@ bool Spell::TakePower()
 
 void Spell::HandleEffects(uint64 guid, uint32 i)
 {
-	if(event_GetInstanceID() == WORLD_INSTANCE)
+	if(event_GetInstanceID() == WORLD_INSTANCE ||
+		DuelSpellNoMoreValid())
 	{
 		DecRef();
 		return;
@@ -4585,7 +4584,14 @@ exit:
 			value = float2int32(value * (float)(spell_pct_modifers / 100.0f)) + spell_flat_modifers;
 		}
 	}
-	value = objmgr.SetBonusDamageWithLimitsIfCan(GetProto()->Id, value);
+	if(QueryResult *q = WorldDatabase.Query("SELECT _limit, range_1, range_2 from spell_bonus_limit where entry = %u", GetProto()->Id))
+	{
+		Field *f = q->Fetch();
+		if(value > f[0].GetInt32())
+		{
+			value -= RandomUInt(f[1].GetUInt32(), f[2].GetUInt32());
+		}
+	}
 	return value;
 }
 

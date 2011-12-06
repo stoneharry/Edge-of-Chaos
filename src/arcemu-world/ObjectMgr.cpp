@@ -3684,20 +3684,6 @@ std::vector< VehicleAccessoryEntry* >* ObjectMgr::GetVehicleAccessories( uint32 
 		return itr->second;
 }
 
-int32 ObjectMgr::SetBonusDamageWithLimitsIfCan(uint32 spellid, int32 bonus)
-{
-	int32 res = bonus;
-	if(QueryResult *q = WorldDatabase.Query("SELECT _limit, range_1, range_2 from spell_bonus_limit where entry = %u", spellid))
-	{
-		Field *f = q->Fetch();
-		if(res > f[0].GetInt32())
-		{
-			res -= RandomUInt(f[1].GetUInt32(), f[2].GetUInt32());
-		}
-	}
-	return res;
-}
-
 void ObjectMgr::ReloadSpellCoef()
 {
 	QueryResult * resultx = WorldDatabase.Query("SELECT * FROM spell_coef_override");

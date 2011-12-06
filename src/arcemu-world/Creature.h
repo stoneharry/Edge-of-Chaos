@@ -607,7 +607,7 @@ class SERVER_DECL Creature : public Unit
 		void OnRespawn(MapMgr* m);
 
 		void BuildPetSpellList(WorldPacket & data);
-
+		bool HasLoot() { return (loot.gold > 0 || !loot.items.empty()); }
 	protected:
 		virtual void SafeDelete();//use DeleteMe() instead of SafeDelete() to avoid crashes like InWorld Creatures deleted.
 	public:

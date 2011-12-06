@@ -700,10 +700,10 @@ void Player::SendLootUpdate(Object* o)
 	ByteBuffer buf(500);
 
 	uint32 Flags = o->GetUInt32Value(UNIT_DYNAMIC_FLAGS);
-
 	Flags |= U_DYN_FLAG_LOOTABLE;
 	Flags |= U_DYN_FLAG_TAPPED_BY_PLAYER;
-
+	if(o->IsCreature() && !TO_CREATURE(o)->HasLoot())
+		Flags &= ~U_DYN_FLAG_LOOTABLE;
 	o->BuildFieldUpdatePacket(&buf, UNIT_DYNAMIC_FLAGS, Flags);
 
 	PushUpdateData(&buf, 1);

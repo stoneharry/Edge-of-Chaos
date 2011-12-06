@@ -598,7 +598,7 @@ void Object::_BuildValuesUpdate(ByteBuffer* data, UpdateMask* updateMask, Player
 		if(IsCreature())
 		{
 			Creature* pThis = TO< Creature* >(this);
-			if(pThis->IsTagged() && (pThis->loot.gold || pThis->loot.items.size()))
+			if(pThis->IsTagged() && pThis->HasLoot())
 			{
 				// Let's see if we're the tagger or not.
 				oldflags = m_uint32Values[UNIT_DYNAMIC_FLAGS];
@@ -613,7 +613,7 @@ void Object::_BuildValuesUpdate(ByteBuffer* data, UpdateMask* updateMask, Player
 					if(Flags & U_DYN_FLAG_TAGGED_BY_OTHER)
 						Flags &= ~oldFlags;
 
-					if(!(Flags & U_DYN_FLAG_LOOTABLE) && pThis->HasLootForPlayer(target))
+					if(!(Flags & U_DYN_FLAG_LOOTABLE) && pThis->HasLootForPlayer(target) && pThis->HasLoot())
 						Flags |= U_DYN_FLAG_LOOTABLE;
 				}
 				else

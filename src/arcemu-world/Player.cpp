@@ -4582,6 +4582,7 @@ void Player::KillPlayer()
 		SetPower(POWER_TYPE_RUNIC_POWER, 0);
 
 	summonhandler.RemoveAllSummons();
+	DismissActivePets();
 
 	// Player falls off vehicle on death
 	if( currentvehicle != NULL )
@@ -8100,6 +8101,15 @@ void Player::EndDuel(uint8 WinCondition)
 	// Call off pet
 	std::list<Pet*> summons = GetSummons();
 	for(std::list<Pet*>::iterator itr = summons.begin(); itr != summons.end(); ++itr)
+	{
+		(*itr)->CombatStatus.Vanished();
+		(*itr)->GetAIInterface()->SetUnitToFollow(this);
+		(*itr)->GetAIInterface()->HandleEvent(EVENT_FOLLOWOWNER, *itr, 0);
+		(*itr)->GetAIInterface()->WipeTargetList();
+	}
+
+	std::list<Pet*> duelingWithSummons = DuelingWith->GetSummons();
+	for(std::list<Pet*>::iterator itr = duelingWithSummons.begin(); itr != duelingWithSummons.end(); ++itr)
 	{
 		(*itr)->CombatStatus.Vanished();
 		(*itr)->GetAIInterface()->SetUnitToFollow(this);
