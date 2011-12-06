@@ -223,7 +223,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 
 				if(GetPlayer()->m_modlanguage >= 0)
 				{
-					data = sChatHandler.FillMessageData(CHAT_MSG_SAY, GetPlayer()->m_modlanguage,  msg.c_str(), _player->GetGUID(), _player->HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM) ? 4 : 0);
+					data = sChatHandler.FillMessageData(CHAT_MSG_SAY, GetPlayer()->m_modlanguage,  msg.c_str(), _player->GetGUID(), _player->GetChatTag());
 					GetPlayer()->SendMessageToSet(data, true);
 				}
 				else
@@ -234,7 +234,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 					if(lang == 0 && ! CanUseCommand('c') && ! sWorld.interfaction_chat)
 						return;
 
-					data = sChatHandler.FillMessageData(CHAT_MSG_SAY, lang, msg.c_str(), _player->GetGUID(), _player->HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM) ? 4 : 0);
+					data = sChatHandler.FillMessageData(CHAT_MSG_SAY, lang, msg.c_str(), _player->GetGUID(), _player->GetChatTag());
 
 					GetPlayer()->SendMessageToSet(data, true);
 				}
@@ -357,7 +357,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 					return;
 
 				if(lang == 0 && sWorld.interfaction_chat)
-					data = sChatHandler.FillMessageData(CHAT_MSG_YELL, (CanUseCommand('0') && lang != -1) ? LANG_UNIVERSAL : lang,  msg.c_str(), _player->GetGUID(), _player->HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM) ? 4 : 0);
+					data = sChatHandler.FillMessageData(CHAT_MSG_YELL, (CanUseCommand('0') && lang != -1) ? LANG_UNIVERSAL : lang,  msg.c_str(), _player->GetGUID(), _player->GetChatTag());
 
 				else if(lang == 0 && !CanUseCommand('c'))
 				{
@@ -367,9 +367,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 				}
 
 				else if(GetPlayer()->m_modlanguage >= 0)
-					data = sChatHandler.FillMessageData(CHAT_MSG_YELL, GetPlayer()->m_modlanguage,  msg.c_str(), _player->GetGUID(), _player->HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM) ? 4 : 0);
+					data = sChatHandler.FillMessageData(CHAT_MSG_YELL, GetPlayer()->m_modlanguage,  msg.c_str(), _player->GetGUID(), _player->GetChatTag());
 				else
-					data = sChatHandler.FillMessageData(CHAT_MSG_YELL, (CanUseCommand('c') && lang != -1) ? LANG_UNIVERSAL : lang,  msg.c_str(), _player->GetGUID(), _player->HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM) ? 4 : 0);
+					data = sChatHandler.FillMessageData(CHAT_MSG_YELL, (CanUseCommand('c') && lang != -1) ? LANG_UNIVERSAL : lang,  msg.c_str(), _player->GetGUID(), _player->GetChatTag());
 
 				_player->GetMapMgr()->SendChatMessageToCellPlayers(_player, data, 2, 1, lang, this);
 				delete data;
