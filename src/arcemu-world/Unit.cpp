@@ -5989,6 +5989,8 @@ void Unit::OnPushToWorld()
 		GetVehicleComponent()->InstallAccessories();
 
 	z_axisposition = 0.0f;
+	
+	UnitLoadMiDisplayInfo(this);
 }
 
 //! Remove Unit from world

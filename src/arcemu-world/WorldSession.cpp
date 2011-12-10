@@ -26,6 +26,8 @@
 
 OpcodeHandler WorldPacketHandlers[NUM_MSG_TYPES];
 
+extern stdext::hash_set<uint32> mirrorImagePacketHookSet;
+
 WorldSession::WorldSession(uint32 id, string Name, WorldSocket* sock):
 	m_loggingInPlayer(NULL),
 	m_currMsTime(getMSTime()),
@@ -1915,6 +1917,14 @@ void WorldSession::HandleMirrorImageOpcode(WorldPacket & recv_data)
 	if(Image == NULL)
 		return;					// ups no unit found with that GUID on the
 	// map. Spoofed packet?
+	
+	stdext::hash_set<uint32>::iterator iter = mirrorImagePacketHookSet.find(Image->GetEntry());
+	if (iter != mirrorImagePacketHookSet.end())
+	{
+		WorldPacket data = MirrorImagePacketHook(Image);
+		SendPacket(&data);
+		return;
+	}
 
 	if(Image->GetCreatedByGUID() == 0)
 		return;

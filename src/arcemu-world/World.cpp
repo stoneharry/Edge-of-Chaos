@@ -398,7 +398,8 @@ bool World::SetInitialWorldSettings()
 	// Fill the task list with jobs to do.
 	TaskList tl;
 	Storage_FillTaskList(tl);
-
+	LoadServerPlayedNPCFromDB(tl);
+	
 	// spawn worker threads (2 * number of cpus)
 	tl.spawn();
 
