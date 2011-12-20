@@ -1724,7 +1724,7 @@ class SERVER_DECL Player : public Unit
 		{
 			uint8 tag = 0;
 			if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_DEVELOPER))
-				tag |= 10;
+				tag |= 0x10;
 			if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM))
 				tag |= 4;
 			else if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_DND))

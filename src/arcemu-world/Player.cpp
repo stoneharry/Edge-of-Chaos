@@ -997,31 +997,6 @@ void Player::Update(uint32 p_time)
 			m_pvpTimer -= p_time;
 	}
 
-	if(sWorld.Collision)
-	{
-		if(mstime >= m_indoorCheckTimer)
-		{
-			if(CollideInterface.IsIndoor(m_mapId, m_position))
-			{
-				// this is duplicated check, but some mount auras comes w/o this flag set, maybe due to spellfixes.cpp line:663
-				Dismount();
-
-				for(uint32 x = MAX_POSITIVE_AURAS_EXTEDED_START; x < MAX_POSITIVE_AURAS_EXTEDED_END; x++)
-				{
-					if(m_auras[x] && m_auras[x]->GetSpellProto()->Attributes & ATTRIBUTES_ONLY_OUTDOORS)
-						RemoveAura(m_auras[x]);
-				}
-			}
-			m_indoorCheckTimer = mstime + COLLISION_INDOOR_CHECK_INTERVAL;
-		}
-
-		/*if( mstime >= m_flyhackCheckTimer )
-		{
-			_FlyhackCheck();
-			m_flyhackCheckTimer = mstime + 10000;
-		}*/
-	}
-
 	if(m_drunk > 0)
 	{
 		m_drunkTimer += p_time;
