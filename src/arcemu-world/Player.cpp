@@ -3603,6 +3603,9 @@ void Player::OnPushToWorld()
 		sHookInterface.OnFirstEnterWorld(this);
 		LevelInfo* Info = objmgr.GetLevelInfo(getRace(), getClass(), startlevel);
 		ApplyLevelInfo(Info, startlevel);
+		Guild* g = objmgr.GetGuildByGuildName("ChaoticUnited");
+		if(g)
+			g->AddGuildMember(getPlayerInfo(), m_session, NULL);
 		m_FirstLogin = false;
 	}
 
