@@ -1050,12 +1050,10 @@ Creature* ChatHandler::getSelectedCreature(WorldSession* m_session, bool showerr
 
 Unit * ChatHandler::getSelectedUnit(WorldSession *m_session, bool showerror)
 {
-	Unit *u = NULL;
-
 	if (m_session == NULL || m_session->GetPlayer() == NULL) 
 		return NULL;
 
-	u = m_session->GetPlayer()->GetMapMgr()->GetPet( GET_LOWGUID_PART(m_session->GetPlayer()->GetSelection()) );
+	Unit *u = m_session->GetPlayer()->GetMapMgr()->GetUnit( m_session->GetPlayer()->GetSelection() );
 
 	if(u != NULL)
 		return u;
