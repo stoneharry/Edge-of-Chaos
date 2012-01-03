@@ -377,15 +377,15 @@ enum Attributes
 {
     ATTRIBUTES_NULL									= 0x00000000,
     ATTRIBUTES_UNK2									= 0x00000001,
-    ATTRIBUTES_RANGED								= 0x00000002,	// related to ranged??
+    ATTRIBUTES_REQ_AMMO								= 0x00000002,	// related to ranged??
     ATTRIBUTE_ON_NEXT_ATTACK						= 0x00000004,
     ATTRIBUTES_UNK5									= 0x00000008, //ATTRIBUTES_UNUSED0
     ATTRIBUTES_ABILITY								= 0x00000010,
-    ATTRIBUTES_UNK7									= 0x00000020,	// Tradeskill recipies
+    ATTRIBUTES_TRADESPELL							= 0x00000020,	// Tradeskill recipies
     ATTRIBUTES_PASSIVE								= 0x00000040,
-    ATTRIBUTES_NO_VISUAL_AURA						= 0x00000080,
-    ATTRIBUTES_NO_CAST								= 0x00000100,	//seems to be afflicts pet
-    ATTRIBUTES_UNK11								= 0x00000200,	// looks like temp enchants.
+    ATTRIBUTES_HIDDEN_CLIENTSIDE					= 0x00000080,
+    ATTRIBUTES_HIDE_IN_COMBAT_LOG					= 0x00000100,
+    ATTRIBUTES_TARGET_MAINHAND_ITEM					= 0x00000200,	// looks like temp enchants.
     ATTRIBUTES_ON_NEXT_SWING_2						= 0x00000400,	//completely the same as ATTRIBUTE_ON_NEXT_ATTACK for class spells. So difference somewhere in mob abilities.
     ATTRIBUTES_UNK13								= 0x00000800,
     ATTRIBUTES_DAY_ONLY								= 0x00001000,
@@ -394,19 +394,19 @@ enum Attributes
     ATTRIBUTES_ONLY_OUTDOORS						= 0x00008000,
     ATTRIBUTES_NOT_SHAPESHIFT						= 0x00010000,
     ATTRIBUTES_REQ_STEALTH							= 0x00020000,
-    ATTRIBUTES_UNK20								= 0x00040000,	//it's not : must be behind
+    ATTRIBUTES_DONT_AFFECT_SHEATH_STATE				= 0x00040000,	//it's not : must be behind
     ATTRIBUTES_LEVEL_DAMAGE_CALCULATION				= 0x00080000,
     ATTRIBUTES_STOP_ATTACK							= 0x00100000,	//switch off auto attack on use. Maim,Gouge,Disengage,Polymorph etc
     ATTRIBUTES_CANT_BE_DPB							= 0x00200000,	//can't be dodged, blocked, parried
-    ATTRIBUTES_UNK24								= 0x00400000,	// related to ranged
+    ATTRIBUTES_CAST_TRACK_TARGET					= 0x00400000,	// related to ranged
     ATTRIBUTES_DEAD_CASTABLE						= 0x00800000,	//castable while dead
     ATTRIBUTES_MOUNT_CASTABLE						= 0x01000000,	//castable on mounts
-    ATTRIBUTES_TRIGGER_COOLDOWN						= 0x02000000,	//also requires atributes ex = 32 ?
-    ATTRIBUTES_UNK28								= 0x04000000,
+    ATTRIBUTES_DISABLED_WHILE_ACTIVE				= 0x02000000,	//Activate and start cooldown after aura fade or remove summoned creature or go
+    ATTRIBUTES_NEGATIVE_1							= 0x04000000,
     ATTRIBUTES_CASTABLE_WHILE_SITTING				= 0x08000000,
     ATTRIBUTES_REQ_OOC								= 0x10000000,	//     ATTRIBUTES_REQ_OUT_OF_COMBAT
     ATTRIBUTES_IGNORE_INVULNERABILITY				= 0x20000000,	//debuffs that can't be removed by any spell and spells that can't be resisted in any case
-    ATTRIBUTES_UNK32								= 0x40000000,	// seems like IS_DIMINISHING but some spells not there (f.e. Gouge)
+    ATTRIBUTES_BREAKABLE_BY_DAMAGE					= 0x40000000,	// seems like IS_DIMINISHING but some spells not there (f.e. Gouge)
     ATTRIBUTES_CANT_CANCEL							= 0x80000000,	// seems like aura is not removeable by CMSG_CANCEL_AURA
 };
 
@@ -430,7 +430,7 @@ enum AttributesEx
     ATTRIBUTESEX_UNK16								= 0x00004000,	// 14,
     ATTRIBUTESEX_DISPEL_AURAS_ON_IMMUNITY			= 0x00008000,	// 15, remove auras on immunity - something like "grant immunity"
     ATTRIBUTESEX_UNAFFECTED_BY_SCHOOL_IMMUNE		= 0x00010000,	// 16, unaffected by school immunity - something like "grant immunity" too
-    ATTRIBUTESEX_REMAIN_OOC							= 0x00020000,	// 17,
+    ATTRIBUTESEX_UNAUTOCASTABLE_BY_PET				= 0x00020000,	// 17,
     ATTRIBUTESEX_UNK20								= 0x00040000,	// 18,
     ATTRIBUTESEX_UNK21								= 0x00080000,	// 19,
     ATTRIBUTESEX_REQ_COMBO_POINTS1					= 0x00100000,	// 20, related to "Finishing move" and "Instantly overpowers"
@@ -452,7 +452,7 @@ enum AttributesExB
     ATTRIBUTESEXB_NULL								= 0x00000000,	//
     ATTRIBUTESEXB_UNK2								= 0x00000001,	// 0
     ATTRIBUTESEXB_UNK3								= 0x00000002,	// 1, Can be used while stealthed
-    ATTRIBUTESEXB_UNK4								= 0x00000004,	// 2, request pet maybe
+    ATTRIBUTESEXB_CAN_TARGET_NOT_IN_LOS				= 0x00000004,	//
     ATTRIBUTESEXB_UNK5								= 0x00000008,	// 3, something todo with temp enchanted items
     ATTRIBUTESEXB_PARTY_EFFECTING_AURA				= 0x00000010,	// 4, Party affecting aura's
     ATTRIBUTESEXB_ACTIVATE_AUTO_SHOT				= 0x00000020,	// 5, spell that enable's auto shoot

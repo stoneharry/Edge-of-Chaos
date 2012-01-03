@@ -473,7 +473,7 @@ void Spell::FillAllTargetsInArea(uint32 i, float srcx, float srcy, float srcz, f
 		}
 		if(IsInrange(srcx, srcy, srcz, (*itr), r))
 		{
-			if(sWorld.Collision)
+			if(sWorld.Collision && !(GetProto()->AttributesExB & ATTRIBUTESEXB_CAN_TARGET_NOT_IN_LOS))
 			{
 				if(m_caster->GetMapId() == (*itr)->GetMapId() && !CollideInterface.CheckLOS(m_caster->GetMapId(), m_caster->GetPositionNC(), (*itr)->GetPositionNC()))
 					continue;
@@ -536,7 +536,7 @@ void Spell::FillAllFriendlyInArea(uint32 i, float srcx, float srcy, float srcz, 
 
 		if(IsInrange(srcx, srcy, srcz, (*itr), r))
 		{
-			if(sWorld.Collision)
+			if(sWorld.Collision && !(GetProto()->AttributesExB & ATTRIBUTESEXB_CAN_TARGET_NOT_IN_LOS))
 			{
 				if(m_caster->GetMapId() == (*itr)->GetMapId() && !CollideInterface.CheckLOS(m_caster->GetMapId(), m_caster->GetPositionNC(), (*itr)->GetPositionNC()))
 					continue;

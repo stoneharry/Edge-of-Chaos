@@ -12217,7 +12217,7 @@ void Player::SendPreventSchoolCast(uint32 SpellSchool, uint32 unTimeMs)
 		}
 
 		// Not send cooldown for this spells
-		if(spellInfo->Attributes & ATTRIBUTES_TRIGGER_COOLDOWN)
+		if(spellInfo->Attributes & ATTRIBUTES_DISABLED_WHILE_ACTIVE)
 			continue;
 
 		if(spellInfo->School == SpellSchool)

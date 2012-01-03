@@ -3131,11 +3131,7 @@ void Spell::SpellEffectAddHonor(uint32 i)
 {
 	if(!playerTarget) return;
 
-	uint32 val = GetProto()->EffectBasePoints[i];
-
-	if(GetProto()->AttributesExB & ATTRIBUTESEXB_UNK4) val /= 10;
-
-	val += 1;
+	uint32 val = GetProto()->EffectBasePoints[i] + 1;
 
 	HonorHandler::AddHonorPointsToPlayer(playerTarget, val);
 

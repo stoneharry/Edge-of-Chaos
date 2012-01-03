@@ -33,6 +33,8 @@
 
 uint32 Pet::GetAutoCastTypeForSpell(SpellEntry* ent)
 {
+	if(ent->AttributesEx & ATTRIBUTESEX_UNAUTOCASTABLE_BY_PET)
+		return AUTOCAST_EVENT_NONE;
 	switch(ent->NameHash)
 	{
 			/************************************************************************/
@@ -1229,7 +1231,7 @@ void Pet::AddSpell(SpellEntry* sp, bool learning, bool showLearnSpell)
 		}
 	}
 
-	if(showLearnSpell && m_Owner && m_Owner->GetSession() && !(sp->Attributes & ATTRIBUTES_NO_CAST))
+	if(showLearnSpell && m_Owner && m_Owner->GetSession())
 		m_Owner->GetSession()->OutPacket(SMSG_PET_LEARNED_SPELL, 2, &sp->Id);
 
 	if(IsInWorld())
