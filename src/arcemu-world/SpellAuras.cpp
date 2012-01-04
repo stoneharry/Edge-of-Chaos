@@ -749,7 +749,8 @@ Aura::Aura(SpellEntry* proto, int32 duration, Object* caster, Unit* target, bool
 	m_modcount = 0;
 	m_dynamicValue = 0;
 	m_areaAura = false;
-
+	if(m_spellProto->Attributes & ATTRIBUTES_NEGATIVE_1)
+		SetNegative(100);
 	if(m_spellProto->c_is_flags & SPELL_FLAG_IS_FORCEDDEBUFF)
 		SetNegative(100);
 	else if(m_spellProto->c_is_flags & SPELL_FLAG_IS_FORCEDBUFF)
@@ -761,25 +762,16 @@ Aura::Aura(SpellEntry* proto, int32 duration, Object* caster, Unit* target, bool
 			TO< Unit* >(caster)->RemoveAllAuraFromSelfType2(m_spellProto->BGR_one_buff_from_caster_on_self, m_spellProto->NameHash);
 
 		if(isAttackable(caster, target))
-		{
 			SetNegative();
-		}
 		else
 			SetPositive();
 
-		if(p_target && caster->IsPlayer())
-		{
-			if(p_target->DuelingWith == TO_PLAYER(caster))
-			{
-				m_castInDuel = true;
-			}
-		}
+		if(p_target && caster->IsPlayer() && p_target->DuelingWith == TO_PLAYER(caster))
+			m_castInDuel = true;
 	}
 
 	if(!IsPassive())
-	{
 		expirytime = (uint32)UNIXTIME;
-	}
 
 	m_visualSlot = 0xFF;
 	pSpellId = 0;

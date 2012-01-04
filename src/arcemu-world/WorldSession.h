@@ -545,6 +545,7 @@ class SERVER_DECL WorldSession
 		void HandleCancelAutoRepeatSpellOpcode(WorldPacket & recv_data);
 		void HandlePetCastSpell(WorldPacket & recvPacket);
 		void HandleCancelTotem(WorldPacket & recv_data);
+		void HandleUpdateProjectilePosition(WorldPacket & recv_data);
 
 		/// Skill opcodes (SkillHandler.spp)
 		//void HandleSkillLevelUpOpcode(WorldPacket& recvPacket);

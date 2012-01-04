@@ -1241,8 +1241,8 @@ enum Opcodes
     SMSG_UNKNOWN_1211                               = 0x4BB,	/// TODO: investigate, SMSG, calendar related
     SMSG_EQUIPMENT_SET_LIST                         = 0x4BC,	/// TODO: investigate, SMSG, equipment manager list?
     CMSG_EQUIPMENT_SET_SAVE                         = 0x4BD,	/// TODO: investigate, CMSG, lua: SaveEquipmentSet
-    CMSG_UNKNOWN_1214                               = 0x4BE,	/// TODO: investigate, CMSG, missle?
-    SMSG_UNKNOWN_1215                               = 0x4BF,	// TODO: investigate,/ SMSG, uint64, uint8, 3 x float
+    CMSG_UPDATE_PROJECTILE_POSITION                 = 0x4BE,	/// TODO: investigate, CMSG, missle?
+    SMSG_SET_PROJECTILE_POSITION                    = 0x4BF,	// TODO: investigate,/ SMSG, uint64, uint8, 3 x float
     SMSG_TALENTS_INFO                               = 0x4C0,	/// TODO: investigate, SMSG, talents related
     CMSG_LEARN_TALENTS_MULTIPLE                     = 0x4C1,	/// TODO: investigate, CMSG, lua: LearnPreviewTalents (for player?)
     CMSG_LEARN_PREVIEW_TALENTS_PET                  = 0x4C2,	/// TODO: investigate, CMSG, lua: LearnPreviewTalents (for pet?)

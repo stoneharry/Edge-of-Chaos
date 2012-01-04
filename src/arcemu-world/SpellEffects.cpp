@@ -167,7 +167,7 @@ pSpellEffect SpellEffectsHandler[TOTAL_SPELL_EFFECTS] =
 	&Spell::SpellEffectTriggerSpellWithValue,	//SPELL_EFFECT_TRIGGER_SPELL_WITH_VALUE - 142 // triggers some kind of "Put spell on target" thing... (dono for sure) http://www.thottbot.com/s40872 and http://www.thottbot.com/s33076
 	&Spell::SpellEffectApplyOwnerAA,			// Apply Aura on summon owner - 143 // Master -> demon effecting spell, http://www.thottbot.com/s25228 and http://www.thottbot.com/s35696
 	&Spell::SpellEffectNULL,					// unknown - 144
-	&Spell::SpellEffectNULL,					// unknown - 145
+	&Spell::SpellEffectJumpTarget,				// - 145
 	&Spell::SpellEffectActivateRunes,			// Activate Rune - 146
 	&Spell::SpellEffectNULL,					// Quest Fail - 147
 	&Spell::SpellEffectNULL,					// unknown - 148

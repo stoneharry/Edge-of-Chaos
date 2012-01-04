@@ -641,3 +641,26 @@ void WorldSession::HandleCancelTotem(WorldPacket & recv_data)
 
 	_player->summonhandler.RemoveSummonFromSlot(slot);
 }
+
+void WorldSession::HandleUpdateProjectilePosition(WorldPacket & recv_data)
+{
+    uint64 casterGuid;
+    uint32 spellId;
+    uint8 castCount;
+    float x, y, z;    // Position of missile hit
+
+    casterGuid = recv_data.unpackGUID();
+    recv_data >> spellId;
+    recv_data >> castCount;
+    recv_data >> x;
+    recv_data >> y;
+    recv_data >> z;
+
+    WorldPacket data(SMSG_SET_PROJECTILE_POSITION, 21);
+    data << uint64(casterGuid);
+    data << uint8(castCount);
+    data << float(x);
+    data << float(y);
+    data << float(z);
+    SendPacket(&data);
+}

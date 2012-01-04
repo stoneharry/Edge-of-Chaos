@@ -967,6 +967,8 @@ void WorldSession::InitPacketHandlerTable()
 	    &WorldSession::HandleUnlearnTalents;
 	WorldPacketHandlers[MSG_TALENT_WIPE_CONFIRM].handler =
 	    &WorldSession::HandleUnlearnTalents;
+	WorldPacketHandlers[CMSG_UPDATE_PROJECTILE_POSITION].handler =
+	    &WorldSession::HandleUpdateProjectilePosition;
 
 	// Combat / Duel
 	WorldPacketHandlers[CMSG_ATTACKSWING].handler =

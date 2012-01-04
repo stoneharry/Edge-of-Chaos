@@ -931,7 +931,7 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, uint32 Flags, bool Distribut
 
 	if( Flags & GROUP_UPDATE_FLAG_VEHICLE_SEAT ){
 		if( pPlayer->GetCurrentVehicle() != NULL )
-			*data << uint32( pPlayer->GetCurrentVehicle()->GetSeatEntryForPassenger( pPlayer ) );
+			*data << uint32( pPlayer->GetCurrentVehicle()->GetVehicleInfo()->seatID[pPlayer->transporter_info.seat] );
 	}
 
 	if(Flags & GROUP_UPDATE_TYPE_FULL_REQUEST_REPLY)

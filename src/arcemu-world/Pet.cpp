@@ -217,7 +217,7 @@ bool Pet::CreateAsSummon(uint32 entry, CreatureInfo* ci, Creature* created_from_
 		SetBoundingRadius(created_from_creature->GetBoundingRadius());
 		SetCombatReach(created_from_creature->GetCombatReach());
 
-		SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE  | UNIT_FLAG_COMBAT);   // why combat ??
+		SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);   // why combat ??
 		SetPower(POWER_TYPE_HAPPINESS, PET_HAPPINESS_UPDATE_VALUE >> 1);	//happiness
 		SetMaxPower(POWER_TYPE_HAPPINESS, 1000000);
 		SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, 0);
@@ -669,7 +669,7 @@ void Pet::LoadFromDB(Player* owner, PlayerPet* pi)
 	{
 		SetBoundingRadius(proto->BoundingRadius);
 		SetCombatReach(proto->CombatReach);
-		SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE  | UNIT_FLAG_COMBAT);   // why combat ??
+		SetUInt32Value(UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE);   // why combat ??
 		SetPower(POWER_TYPE_HAPPINESS, PET_HAPPINESS_UPDATE_VALUE >> 1);        //happiness
 		SetMaxPower(POWER_TYPE_HAPPINESS, 1000000);
 		SetUInt32Value(UNIT_FIELD_PETEXPERIENCE, mPi->xp);

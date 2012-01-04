@@ -5969,6 +5969,57 @@ void Spell::HandleModeratedEffects(uint64 guid)
 	DecRef();
 }
 
+void Spell::SpellEffectJumpTarget(uint32 i)
+{
+	if(u_caster == NULL)
+		return;
+	if(m_targets.m_targetMask & TARGET_FLAG_UNIT)
+	{
+		Object* uobj = m_caster->GetMapMgr()->_GetObject(m_targets.m_unitTarget);
+
+		if(uobj == NULL || !uobj->IsUnit())
+			return;
+		Unit* un = TO_UNIT(uobj);
+		float x, y, z;
+		float rad = unitTarget->GetBoundingRadius() - u_caster->GetBoundingRadius();
+
+		float dx = m_caster->GetPositionX() - unitTarget->GetPositionX();
+		float dy = m_caster->GetPositionY() - unitTarget->GetPositionY();
+		if(dx == 0.0f || dy == 0.0f)
+			return;
+		float alpha = atanf(dy / dx);
+		if(dx < 0)
+			alpha += M_PI_FLOAT;
+
+		x = rad * cosf(alpha) + unitTarget->GetPositionX();
+		y = rad * sinf(alpha) + unitTarget->GetPositionY();
+		z = unitTarget->GetPositionZ();
+		if(u_caster->GetAIInterface() != NULL)
+			u_caster->GetAIInterface()->MoveJump(x, y, z);
+	}
+	else if(m_targets.m_targetMask & (TARGET_FLAG_SOURCE_LOCATION | TARGET_FLAG_DEST_LOCATION))
+	{
+		float x, y, z;
+
+		//this can also jump to a point
+		if(m_targets.m_targetMask & TARGET_FLAG_SOURCE_LOCATION)
+		{
+			x = m_targets.m_srcX;
+			y = m_targets.m_srcY;
+			z = m_targets.m_srcZ;
+		}
+		if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+		{
+			x = m_targets.m_destX;
+			y = m_targets.m_destY;
+			z = m_targets.m_destZ;
+		}
+
+		if(u_caster->GetAIInterface() != NULL)
+			u_caster->GetAIInterface()->MoveJump(x, y, z);
+	}
+}
+
 void Spell::SpellEffectJumpBehindTarget(uint32 i)
 {
 	if(u_caster == NULL)

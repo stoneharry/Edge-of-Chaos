@@ -6649,13 +6649,33 @@ void CombatStatusHandler::UpdateFlag()
 		{
 			//printf(I64FMT" is now in combat.\n", m_Unit->GetGUID());
 			m_Unit->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_COMBAT);
-			if(!m_Unit->hasStateFlag(UF_ATTACKING)) m_Unit->addStateFlag(UF_ATTACKING);
+			if(m_Unit->IsPlayer())
+			{
+				std::list<Pet*> summons = TO_PLAYER(m_Unit)->GetSummons();
+				for(std::list<Pet*>::iterator itr = summons.begin(); itr != summons.end(); ++itr)
+				{
+					if((*itr)->GetPetOwner() == m_Unit)
+						(*itr)->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
+				}
+			}
+			if(!m_Unit->hasStateFlag(UF_ATTACKING)) 
+				m_Unit->addStateFlag(UF_ATTACKING);
 		}
 		else
 		{
 			//printf(I64FMT" is no longer in combat.\n", m_Unit->GetGUID());
 			m_Unit->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_COMBAT);
-			if(m_Unit->hasStateFlag(UF_ATTACKING)) m_Unit->clearStateFlag(UF_ATTACKING);
+			if(m_Unit->IsPlayer())
+			{
+				std::list<Pet*> summons = TO_PLAYER(m_Unit)->GetSummons();
+				for(std::list<Pet*>::iterator itr = summons.begin(); itr != summons.end(); ++itr)
+				{
+					if((*itr)->GetPetOwner() == m_Unit)
+						(*itr)->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PET_IN_COMBAT);
+				}
+			}
+			if(m_Unit->hasStateFlag(UF_ATTACKING)) 
+				m_Unit->clearStateFlag(UF_ATTACKING);
 
 			// remove any of our healers from combat too, if they are able to be.
 			ClearMyHealers();
@@ -8269,9 +8289,11 @@ void Unit::HandleKnockback(Object* caster, float horizontal, float vertical)
 	//This is in unit and not creature because players who are mind controlled must use this.
 	if(caster == NULL)
 		caster = this;
+	/* This seems to never go into the right direction ex: caster facing foward does knockback, victim goes backwards.
 	float angle = calcRadAngle(caster->GetPositionX(), caster->GetPositionY(), GetPositionX(), GetPositionY());
 	if(caster == this)
-		angle = GetOrientation() + M_PI;
+		angle = GetOrientation() + M_PI;*/
+	float angle = caster->GetOrientation();
 
 	float destx, desty, destz;
 	if(GetPoint(angle, horizontal, destx, desty, destz, true))

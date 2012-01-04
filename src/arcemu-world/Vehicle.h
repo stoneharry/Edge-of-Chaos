@@ -479,7 +479,7 @@ public:
 	//
 	////////////////////////////////////////////////////////////////////////
 	bool HasAccessoryWithGUID( uint64 guid );
-
+	VehicleEntry *GetVehicleInfo() { return vehicle_info; }
 private:
 	std::tr1::array< VehicleSeat*, MAX_VEHICLE_SEATS > seats;
 	std::vector< uint64 > installed_accessories;

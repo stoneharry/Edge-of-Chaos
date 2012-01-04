@@ -771,7 +771,7 @@ enum UnitFieldFlags // UNIT_FIELD_FLAGS #46 - these are client flags
     UNIT_FLAG_NOT_ATTACKABLE_9           = 0x00000100, // 9          256  changes attackable status
     UNIT_FLAG_UNKNOWN_10                 = 0x00000200, // 10         512  ? some NPCs have this
     UNIT_FLAG_LOOTING                    = 0x00000400, // 11        1024
-    UNIT_FLAG_SELF_RES                   = 0x00000800, // 12        2048  ? some NPCs have this
+    UNIT_FLAG_PET_IN_COMBAT              = 0x00000800, // 12        2048  ? some NPCs have this
     UNIT_FLAG_PVP                        = 0x00001000, // 13        4096  sets PvP flag
     UNIT_FLAG_SILENCED                   = 0x00002000, // 14        8192
     UNIT_FLAG_DEAD                       = 0x00004000, // 15       16384  used for special "dead" NPCs like Withered Corpses

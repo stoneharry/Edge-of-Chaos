@@ -918,7 +918,8 @@ void WorldSession::HandleSetSelectionOpcode(WorldPacket & recv_data)
 	uint64 guid;
 	recv_data >> guid;
 	_player->SetSelection(guid);
-
+	if(Unit *u = _player->GetMapMgrUnit(guid))
+		_player->SendAurasForTarget(u);
 	if(_player->m_comboPoints)
 		_player->UpdateComboPoints();
 
