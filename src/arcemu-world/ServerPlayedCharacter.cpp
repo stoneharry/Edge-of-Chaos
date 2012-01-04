@@ -43,7 +43,7 @@ void UnitLoadMiDisplayInfo(Unit* pUnit)
 WorldPacket MirrorImagePacketHook(Unit* pUnit)
 {
 	ServerPlayedCharacter* infoSpc = ServerPlayedNpcStorage.LookupEntry(pUnit->GetEntry());
-	Arcemu::Util::ARCEMU_ASSERT(infoSpc != 0);
+	ARCEMU_ASSERT(infoSpc != 0);
 
 	WorldPacket data(SMSG_MIRRORIMAGE_DATA, 68);
 	data << pUnit->GetGUID();
