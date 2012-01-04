@@ -461,6 +461,9 @@ class SERVER_DECL ChatHandler : public Singleton<ChatHandler>
 		bool HandleGORebuildCommand( const char *args, WorldSession *session );
 		bool HandleGOExport(const char* args, WorldSession* m_session);
 		bool HandleRemoveAurasCommand(const char* args, WorldSession* m_session);
+		bool HandleCastCommand(const char* args, WorldSession* m_session);
+		bool HandleCastBackCommand(const char* args, WorldSession* m_session);
+		bool HandleCastAOECommand(const char* args, WorldSession* m_session);
 		bool HandleParalyzeCommand(const char* args, WorldSession* m_session);
 		bool HandleUnParalyzeCommand(const char* args, WorldSession* m_session);
 		bool HandleSetMotdCommand(const char* args, WorldSession* m_session);

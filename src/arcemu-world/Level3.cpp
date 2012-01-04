@@ -1288,6 +1288,70 @@ bool ChatHandler::HandleRemoveAurasCommand(const char *args, WorldSession *m_ses
 	return true;
 }
 
+bool ChatHandler::HandleCastCommand(const char *args, WorldSession *m_session)
+{
+	Unit *u = getSelectedUnit(m_session, false);
+	if(!u) 
+		u = m_session->GetPlayer();
+	uint32 spell = 0;
+	uint32 triggered = 0;
+	if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+		return false;
+	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
+	if(!sp)
+	{
+		SystemMessage(m_session, "Invalid spell %u", spell);
+		return true;
+	}
+	m_session->GetPlayer()->CastSpell(u,sp, triggered > 1 ? true : false);
+	BlueSystemMessage(m_session, "Casted spell %u on %s.", spell, GetSelectedUnitName(u));
+	sGMLog.writefromsession(m_session, "Casted spell %u on %s.", spell, GetSelectedUnitName(u));
+	return true;
+}
+
+bool ChatHandler::HandleCastBackCommand(const char *args, WorldSession *m_session)
+{
+	Unit *u = getSelectedUnit(m_session, false);
+	if(!u) 
+		u = m_session->GetPlayer();
+	uint32 spell = 0;
+	uint32 triggered = 0;
+	if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+		return false;
+	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
+	if(!sp)
+	{
+		SystemMessage(m_session, "Invalid spell %u", spell);
+		return true;
+	}
+	u->CastSpell(m_session->GetPlayer(),sp, triggered > 1 ? true : false);
+	BlueSystemMessage(m_session, "Forcing %s to cast %u on you.", GetSelectedUnitName(u), spell);
+	sGMLog.writefromsession(m_session, "Forced %s to cast spell %u on self.", GetSelectedUnitName(u), spell);
+	return true;
+}
+
+bool ChatHandler::HandleCastAOECommand(const char *args, WorldSession *m_session)
+{
+	Unit *u = getSelectedUnit(m_session, false);
+	if(!u) 
+		u = m_session->GetPlayer();
+	uint32 spell = 0;
+	uint32 triggered = 0;
+	float x,y,z = 0.0f;
+	if( sscanf(args, "%u %f %f %f %u", &spell, &x, &y, &z, &triggered) != 5)
+		return false;
+	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
+	if(!sp)
+	{
+		SystemMessage(m_session, "Invalid spell %u", spell);
+		return true;
+	}
+	m_session->GetPlayer()->CastSpellAoF(x,y,z ,sp, triggered > 1 ? true : false);
+	BlueSystemMessage(m_session, "Casted aoe spell %u.", spell, GetSelectedUnitName(u));
+	sGMLog.writefromsession(m_session, "Casted aoe spell %u.", spell, GetSelectedUnitName(u));
+	return true;
+}
+
 bool ChatHandler::HandleRemoveRessurectionSickessAuraCommand(const char* args, WorldSession* m_session)
 {
 	Player* plr = getSelectedChar(m_session, true);
