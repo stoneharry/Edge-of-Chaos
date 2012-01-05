@@ -734,7 +734,10 @@ class SERVER_DECL WorldSession
 		uint8 TrainerGetSpellStatus(TrainerSpell* pSpell);
 		void SendMailError(uint32 error);
 
-		void HandleCharRenameOpcode(WorldPacket & recv_data);
+		//At Logins
+ 		void HandleCharRenameOpcode(WorldPacket & recv_data);
+		void HandleCharCustomizeLooksOpcode(WorldPacket& recv_data);
+
 		void HandlePartyMemberStatsOpcode(WorldPacket & recv_data);
 		void HandleSummonResponseOpcode(WorldPacket & recv_data);
 

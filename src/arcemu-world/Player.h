@@ -326,6 +326,23 @@ enum PlayerFlags
     PLAYER_FLAG_PVP					= 0x40000,
 };
 
+enum CustomizeFlags
+{
+	CHAR_CUSTOMIZE_FLAG_NONE            = 0x00000000,		// Implemented		* Allows normal login no customization needed
+	CHAR_CUSTOMIZE_FLAG_CUSTOMIZE       = 0x00000001,       // Implemented		* Allows name, gender, and looks to be customized
+	CHAR_CUSTOMIZE_FLAG_FACTION         = 0x00010000,       // Not Implemented	* Allows name, gender, race, faction, and looks to be customized
+	CHAR_CUSTOMIZE_FLAG_RACE            = 0x00100000        // Not Implemented	* Allows name, gender, race, and looks to be customized
+};
+
+enum LoginFlags
+{
+	LOGIN_NO_FLAG = 0,
+	LOGIN_FORCED_RENAME = 1,
+	LOGIN_CUSTOMIZE_FACTION = 2,
+	LOGIN_CUSTOMIZE_RACE = 4,
+	LOGIN_CUSTOMIZE_LOOKS = 8,
+};
+
 enum CharterTypes
 {
     CHARTER_TYPE_GUILD			= 0,
@@ -2124,7 +2141,41 @@ class SERVER_DECL Player : public Unit
 		Charter* m_charters[NUM_CHARTER_TYPES];
 		uint32 flying_aura;
 		bool resend_speed;
-		bool rename_pending;
+		/////////////////////////////////////////////////////////////////////////////////////////
+		//static void CharChange_Looks( uint64 GUID, uint8 gender, uint8 skin, uint8 face, uint8 hairStyle, uint8 hairColor, uint8 facialHair )
+		//  Updates database with characters new looks, gender, and name after character customization is called at login.
+		//
+		//Parameter(s)
+		//  uint64 GUID      -  GUID of the character to customized
+		//  uint8 gender	 -  New gender of the character customized
+		//	uint8 skin		 -	New skin colour of the character customized
+		//	uint8 face		 -	New face selection of the character customized
+		//	uint8 hairStyle	 -	New hair style selected for the character customized
+		//	uint8 hairColor	 -	New hair color selected for the character customized
+		//	uint8 facialHair -	New facial hair selected for the character customized
+		//
+		//Return Value
+		//  None
+		//
+		//
+		/////////////////////////////////////////////////////////////////////////////////////////
+		static void CharChange_Looks( uint64 GUID, uint8 gender, uint8 skin, uint8 face, uint8 hairStyle, uint8 hairColor, uint8 facialHair );
+
+		/////////////////////////////////////////////////////////////////////////////////////////
+		//static void CharChange_Language( uint64 GUID, uint8 race )
+		//  Updates the characters racial languages
+		//
+		//Parameter(s)
+		//  uint64 GUID      -  GUID of the character to customized
+		//  uint8 race		 -  New race to be usedd for racial language change
+		//
+		//Return Value
+		//  None
+		//
+		//
+		/////////////////////////////////////////////////////////////////////////////////////////
+		static void CharChange_Language( uint64 GUID, uint8 race );
+		uint32 login_flags;
 		uint32 iInstanceType;
 		void SetName(string & name) { m_name = name; }
 		// spell to (delay, last time)

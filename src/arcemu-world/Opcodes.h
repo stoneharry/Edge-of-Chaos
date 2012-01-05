@@ -1258,10 +1258,13 @@ enum Opcodes
     SMSG_UNKNOWN_1228								= 0x4CC,	//
     CMSG_EQUIPMENT_SET_USE							= 0x4D5,	// implemented
     SMSG_EQUIPMENT_SET_USE_RESULT					= 0x4D6,	// implemented
+	CMSG_CHAR_FACTION_CHANGE                        = 0x4D9,	// TODO: Not implemented
+	SMSG_CHAR_FACTION_CHANGE                        = 0x4DA,	// TODO: Not implemented
     MSG_SET_RAID_DIFFICULTY                         = 0x4EB,	// implemented
     CMSG_WORLD_STATE_UI_TIMER_UPDATE                = 0x4F6,	// implemented
     SMSG_WORLD_STATE_UI_TIMER_UPDATE                = 0x4F7,	// implemented
-    NUM_MSG_TYPES                                   = 0x4F8,	// max msg number
+	CMSG_CHAR_RACE_CHANGE                           = 0x4F8,	// TODO: Not implemented
+    NUM_MSG_TYPES                                   = 0x4F9,	// max msg number
 };
 
 enum FriendsResult

@@ -4584,14 +4584,7 @@ exit:
 			value = float2int32(value * (float)(spell_pct_modifers / 100.0f)) + spell_flat_modifers;
 		}
 	}
-	if(QueryResult *q = WorldDatabase.Query("SELECT _limit, range_1, range_2 from spell_bonus_limit where entry = %u", GetProto()->Id))
-	{
-		Field *f = q->Fetch();
-		if(value > f[0].GetInt32())
-		{
-			value -= RandomUInt(f[1].GetUInt32(), f[2].GetUInt32());
-		}
-	}
+	value = objmgr.ApplySpellDamageLimit(GetProto()->Id, value);
 	return value;
 }
 
@@ -4808,12 +4801,6 @@ int32 Spell::DoCalculateEffect(uint32 i, Unit* target, int32 value)
 			{
 				if(u_caster != NULL)
 					value = u_caster->GetBaseMana() * 2 / 100;
-				break;
-			}
-		case SPELL_HASH_JUDGEMENT:
-			{
-				if(p_caster != NULL)
-					value += (p_caster->GetAP() * 16 + p_caster->GetPosDamageDoneMod(SCHOOL_HOLY) * 25) / 100;
 				break;
 			}
 		case SPELL_HASH_JUDGEMENT_OF_RIGHTEOUSNESS:

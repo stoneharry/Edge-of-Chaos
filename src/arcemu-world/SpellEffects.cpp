@@ -497,8 +497,7 @@ void Spell::SpellEffectInstantKill(uint32 i)
 				Spell* sp = sSpellFactoryMgr.NewSpell(TO< Pet* >(u_caster)->GetPetOwner(), se, true, 0);
 				sp->prepare(&targets);
 				return;
-			}
-			break;
+			}break;
 		case SPELL_HASH_DEMONIC_SACRIFICE:
 			{
 				if(!p_caster || !unitTarget || !unitTarget->IsPet())
@@ -512,18 +511,8 @@ void Spell::SpellEffectInstantKill(uint32 i)
 				Spell* sp = sSpellFactoryMgr.NewSpell(p_caster, se, true, 0);
 				sp->prepare(&targets);
 				return;
-			}
-			break;
+			}break;
 
-		default:
-			{
-				// moar cheaters
-				if(!p_caster || (u_caster && u_caster->IsPet()))
-					return;
-
-				if(p_caster->GetSession()->GetPermissionCount() == 0)
-					return;
-			}
 	}
 	//instant kill effects don't have a log
 	//m_caster->SpellNonMeleeDamageLog(unitTarget, GetProto()->Id, unitTarget->GetHealth(), true);
@@ -801,7 +790,7 @@ void Spell::SpellEffectSchoolDMG(uint32 i) // dmg school
 
 	if(!dmg)
 		return;
-
+	dmg = objmgr.ApplySpellDamageLimit(GetProto()->Id, dmg);
 	if(GetProto()->speed > 0 && m_triggeredSpell == false)
 	{
 		m_caster->SpellNonMeleeDamageLog(unitTarget, GetProto()->Id, dmg, pSpellId == 0);

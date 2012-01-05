@@ -86,11 +86,11 @@ bool ChatHandler::HandleRenameAllCharacter(const char* args, WorldSession* m_ses
 				Player* pPlayer = objmgr.GetPlayer(uGuid);
 				if(pPlayer != NULL)
 				{
-					pPlayer->rename_pending = true;
+					pPlayer->login_flags = LOGIN_FORCED_RENAME;
 					pPlayer->GetSession()->SystemMessage("Your character has had a force rename set, you will be prompted to rename your character at next login in conformance with server rules.");
 				}
 
-				CharacterDatabase.WaitExecute("UPDATE characters SET forced_rename_pending = 1 WHERE guid = %u", uGuid);
+				CharacterDatabase.WaitExecute("UPDATE characters SET login_flags = %u WHERE guid = %u", (uint32)LOGIN_FORCED_RENAME, uGuid);
 				++uCount;
 			}
 
@@ -205,11 +205,25 @@ void WorldSession::CharacterEnumProc(QueryResult* result)
 				char_flags |= 0x00000400;	//Helm not displayed
 			if(flags & PLAYER_FLAG_NOCLOAK)
 				char_flags |= 0x00000800;	//Cloak not displayed
-			if(fields[16].GetUInt32() != 0)
+			uint32 login_flags = fields[16].GetUInt32();
+			if(login_flags == LOGIN_FORCED_RENAME)
 				char_flags |= 0x00004000;	//Character has to be renamed before logging in
 
 			data << uint32(char_flags);
-			data << uint32(0);				//Character recustomization flags
+			switch(login_flags)
+			{
+				case LOGIN_CUSTOMIZE_LOOKS:
+					data << uint32(CHAR_CUSTOMIZE_FLAG_CUSTOMIZE);  //Character recustomization flag
+					break;
+				case LOGIN_CUSTOMIZE_RACE:
+					data << uint32(CHAR_CUSTOMIZE_FLAG_RACE);	//Character recustomization + race flag
+					break;
+				case LOGIN_CUSTOMIZE_FACTION:
+					data << uint32(CHAR_CUSTOMIZE_FLAG_FACTION); //Character recustomization + race + faction flag
+					break;
+				default:
+					data << uint32(CHAR_CUSTOMIZE_FLAG_NONE);	//Character recustomization no flag set
+			}
 			data << uint8(0);				//Unknown 3.2.0
 
 			if(Class == WARLOCK || Class == HUNTER)
@@ -292,7 +306,7 @@ void WorldSession::CharacterEnumProc(QueryResult* result)
 void WorldSession::HandleCharEnumOpcode(WorldPacket & recv_data)
 {
 	AsyncQuery* q = new AsyncQuery(new SQLClassCallbackP1<World, uint32>(World::getSingletonPtr(), &World::CharacterEnumProc, GetAccountId()));
-	q->AddQuery("SELECT guid, level, race, class, gender, bytes, bytes2, name, positionX, positionY, positionZ, mapId, zoneId, banned, restState, deathstate, forced_rename_pending, player_flags, guild_data.guildid FROM characters LEFT JOIN guild_data ON characters.guid = guild_data.playerid WHERE acct=%u ORDER BY guid LIMIT 10", GetAccountId());
+	q->AddQuery("SELECT guid, level, race, class, gender, bytes, bytes2, name, positionX, positionY, positionZ, mapId, zoneId, banned, restState, deathstate, login_flags, player_flags, guild_data.guildid FROM characters LEFT JOIN guild_data ON characters.guid = guild_data.playerid WHERE acct=%u ORDER BY guid LIMIT 10", GetAccountId());
 	CharacterDatabase.QueueAsyncQuery(q);
 }
 
@@ -579,13 +593,15 @@ void WorldSession::HandleCharRenameOpcode(WorldPacket & recv_data)
 	PlayerInfo* pi = objmgr.GetPlayerInfo((uint32)guid);
 	if(pi == 0) return;
 
-	QueryResult* result = CharacterDatabase.Query("SELECT forced_rename_pending FROM characters WHERE guid = %u AND acct = %u",
+	QueryResult* result = CharacterDatabase.Query("SELECT login_flags FROM characters WHERE guid = %u AND acct = %u",
 	                      (uint32)guid, _accountId);
 	if(result == 0)
 	{
 		delete result;
 		return;
 	}
+	if(!result->Fetch()[0].GetUInt32() == LOGIN_FORCED_RENAME)
+		return;
 	delete result;
 
 	// Check name for rule violation.
@@ -631,8 +647,7 @@ void WorldSession::HandleCharRenameOpcode(WorldPacket & recv_data)
 	free(pi->name);
 	pi->name = strdup(name.c_str());
 	CharacterDatabase.WaitExecute("UPDATE characters SET name = '%s' WHERE guid = %u", name.c_str(), (uint32)guid);
-	CharacterDatabase.WaitExecute("UPDATE characters SET forced_rename_pending = 0 WHERE guid = %u", (uint32)guid);
-
+	CharacterDatabase.WaitExecute("UPDATE characters SET login_flags = %u WHERE guid = %u", (uint32)LOGIN_NO_FLAG, (uint32)guid);
 	data << uint8(E_RESPONSE_SUCCESS) << guid << name;
 	SendPacket(&data);
 }
@@ -655,7 +670,7 @@ void WorldSession::HandlePlayerLoginOpcode(WorldPacket & recv_data)
 	}
 
 	AsyncQuery* q = new AsyncQuery(new SQLClassCallbackP0<WorldSession>(this, &WorldSession::LoadPlayerFromDBProc));
-	q->AddQuery("SELECT guid,class FROM characters WHERE guid = %u AND forced_rename_pending = 0", playerGuid); // 0
+	q->AddQuery("SELECT guid,class FROM characters WHERE guid = %u AND login_flags = %u", playerGuid, (uint32)LOGIN_NO_FLAG ); // 0
 	CharacterDatabase.QueueAsyncQuery(q);
 }
 
@@ -1097,4 +1112,66 @@ bool ChatHandler::HandleRenameCommand(const char* args, WorldSession* m_session)
 	sGMLog.writefromsession(m_session, "renamed character %s (GUID: %u) to %s", name1, pi->guid, name2);
 	sPlrLog.writefromsession(m_session, "GM renamed character %s (GUID: %u) to %s", name1, pi->guid, name2);
 	return true;
+}
+
+void WorldSession::HandleCharCustomizeLooksOpcode(WorldPacket& recv_data)
+{
+    uint64 guid;
+    std::string newname;
+
+    recv_data >> guid;
+    recv_data >> newname;
+
+    uint8 gender, skin, face, hairStyle, hairColor, facialHair, race, faction;
+    recv_data >> gender >> skin >> hairColor >> hairStyle >> facialHair >> face >> race >> faction;
+
+	LoginErrorCode res = VerifyName( newname.c_str(), newname.length() );
+	if( res != E_CHAR_NAME_SUCCESS )
+	{
+        WorldPacket data(SMSG_CHAR_CUSTOMIZE, 1);
+        data << uint8(CHAR_NAME_NO_NAME);
+        SendPacket( &data );
+        return;
+    }
+
+	QueryResult * result2 = CharacterDatabase.Query("SELECT COUNT(*) FROM `banned_names` WHERE name = '%s'", CharacterDatabase.EscapeString(newname).c_str());
+    if(result2)
+    {
+		if(result2->Fetch()[0].GetUInt32() > 0)
+        {
+			WorldPacket data(SMSG_CHAR_CUSTOMIZE, 1);
+            data << uint8( E_CHAR_NAME_PROFANE );
+            SendPacket(&data);
+        }
+        delete result2;
+	}
+
+    PlayerInfo* info = objmgr.GetPlayerInfoByName( newname.c_str() );
+	if( info != NULL && info->guid != guid )
+    {
+        WorldPacket data(SMSG_CHAR_CUSTOMIZE, 1);
+        data << uint8(CHAR_CREATE_NAME_IN_USE);
+        SendPacket(&data);
+        return;
+    }
+
+	CharacterDatabase.EscapeString(newname).c_str();
+	CapitalizeString(newname);
+    
+    CharacterDatabase.WaitExecute("UPDATE `characters` set name = '%s' WHERE guid = '%u'", newname.c_str(), (uint32)guid);
+	CharacterDatabase.WaitExecute("UPDATE `characters` SET login_flags = %u WHERE guid = '%u'", (uint32)LOGIN_NO_FLAG, (uint32)guid);
+	
+	Player::CharChange_Looks(guid, gender, skin, face, hairStyle, hairColor, facialHair);    
+
+    WorldPacket data(SMSG_CHAR_CUSTOMIZE, 1+8+(newname.size()+1)+6);
+    data << uint8(E_RESPONSE_SUCCESS);
+    data << uint64(guid);
+    data << newname;
+    data << uint8(gender);
+    data << uint8(skin);
+    data << uint8(face);
+    data << uint8(hairStyle);
+    data << uint8(hairColor);
+    data << uint8(facialHair);
+    SendPacket(&data);
 }

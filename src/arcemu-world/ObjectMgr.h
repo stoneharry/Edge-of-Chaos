@@ -679,6 +679,7 @@ class SERVER_DECL ObjectMgr : public Singleton < ObjectMgr >, public EventableOb
 		std::vector< VehicleAccessoryEntry* >* GetVehicleAccessories( uint32 creature_entry );
 		void LoadWorldStateTemplates();
 		std::multimap< uint32, WorldState >* GetWorldStatesForMap( uint32 map ) const;
+		uint32 ApplySpellDamageLimit(uint32 spellid, int32 damage);
 
 		void ReloadSpellCoef();
 

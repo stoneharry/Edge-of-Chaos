@@ -339,7 +339,7 @@ Player::Player(uint32 guid)
 		m_arenaTeams[i] = NULL;
 	flying_aura = 0;
 	resend_speed = false;
-	rename_pending = false;
+	login_flags = LOGIN_NO_FLAG;
 	DualWield2H = false;
 	iInstanceType		= 0;
 	m_RaidDifficulty	= 0;
@@ -641,6 +641,64 @@ uint32 GetSpellForLanguage(uint32 SkillID)
 	}
 
 	return 0;
+}
+
+void Player::CharChange_Looks( uint64 GUID, uint8 gender, uint8 skin, uint8 face, uint8 hairStyle, uint8 hairColor, uint8 facialHair )
+{
+    QueryResult* result = CharacterDatabase.Query("SELECT bytes2 FROM `characters` WHERE guid = '%u'", (uint32)GUID);
+    if (!result)
+        return;
+
+    Field* fields = result->Fetch();
+
+    uint32 player_bytes2 = fields[0].GetUInt32();
+    player_bytes2 &= ~0xFF;
+    player_bytes2 |= facialHair;
+
+    CharacterDatabase.Execute("UPDATE `characters` SET gender = '%u', bytes = '%u', bytes2 = '%u' WHERE guid = '%u'", gender, skin | (face << 8) | (hairStyle << 16) | (hairColor << 24), player_bytes2, (uint32)GUID);
+
+    delete result;
+}
+
+//Begining of code for phase two of character customization (Race/Faction) Change.
+void Player::CharChange_Language( uint64 GUID, uint8 race )
+{
+	CharacterDatabase.Execute("DELETE FROM `playerspells` WHERE GUID = '%u' AND SpellID IN ('%u', '%u', '%u', '%u', '%u','%u', '%u', '%u', '%u', '%u');", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_ORCISH), GetSpellForLanguage(SKILL_LANG_TAURAHE), GetSpellForLanguage(SKILL_LANG_TROLL), GetSpellForLanguage(SKILL_LANG_GUTTERSPEAK), GetSpellForLanguage(SKILL_LANG_THALASSIAN), GetSpellForLanguage(SKILL_LANG_COMMON), GetSpellForLanguage(SKILL_LANG_DARNASSIAN), GetSpellForLanguage(SKILL_LANG_DRAENEI), GetSpellForLanguage(SKILL_LANG_DWARVEN), GetSpellForLanguage(SKILL_LANG_GNOMISH) );
+	switch ( race )
+	{
+		case RACE_DWARF:
+			CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_COMMON));
+            CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_DWARVEN));
+            break;
+        case RACE_DRAENEI:
+			CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_COMMON));
+            CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_DRAENEI));
+            break;
+        case RACE_GNOME:
+			CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_COMMON));
+            CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_GNOMISH));
+            break;
+        case RACE_NIGHTELF:
+			CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_COMMON));
+            CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_DARNASSIAN));
+            break;
+        case RACE_UNDEAD:
+			CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_ORCISH));
+            CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_GUTTERSPEAK));
+            break;
+        case RACE_TAUREN:
+			CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_ORCISH));
+            CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_TAURAHE));
+            break;
+        case RACE_TROLL:
+			CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_ORCISH));
+            CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_TROLL));
+            break;
+        case RACE_BLOODELF:
+			CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_ORCISH));
+            CharacterDatabase.Execute("INSERT INTO `playerspells` (GUID, SpellID) VALUES ('%u', '%u')", (uint32)GUID, GetSpellForLanguage(SKILL_LANG_THALASSIAN));
+            break;
+	}
 }
 
 ///====================================================================
@@ -2398,7 +2456,7 @@ void Player::SaveToDB(bool bNewCharacter /* =false */)
 
 	        << m_talentresettimes	   << ", "
 	        << m_FirstLogin			 << ", "
-	        << rename_pending
+	        << login_flags
 	        << "," << m_arenaPoints << ","
 	        << (uint32)m_StableSlotCount << ",";
 
@@ -2642,7 +2700,7 @@ bool Player::LoadFromDB(uint32 guid)
 {
 	AsyncQuery* q = new AsyncQuery(new SQLClassCallbackP0<Player>(this, &Player::LoadFromDBProc));
 
-	q->AddQuery("SELECT * FROM characters WHERE guid = %u AND forced_rename_pending = 0", guid); // 0
+	q->AddQuery("SELECT * FROM characters WHERE guid = %u AND login_flags = %u", guid, (uint32)LOGIN_NO_FLAG); // 0
 	q->AddQuery("SELECT * FROM tutorials WHERE playerId = %u", guid); // 1
 	q->AddQuery("SELECT cooldown_type, cooldown_misc, cooldown_expire_time, cooldown_spellid, cooldown_itemid FROM playercooldowns WHERE player_guid = %u", guid); // 2
 	q->AddQuery("SELECT * FROM questlog WHERE player_guid = %u", guid); // 3
@@ -2953,7 +3011,7 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 	m_deathState = (DeathState)get_next_field.GetUInt32();
 	m_talentresettimes = get_next_field.GetUInt32();
 	m_FirstLogin = get_next_field.GetBool();
-	rename_pending = get_next_field.GetBool();
+	login_flags = get_next_field.GetUInt32();
 	m_arenaPoints = get_next_field.GetUInt32();
 	if(m_arenaPoints > 5000) m_arenaPoints = 5000;
 	for(uint32 z = 0; z < NUM_CHARTER_TYPES; ++z)

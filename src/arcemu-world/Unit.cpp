@@ -2466,7 +2466,10 @@ uint32 Unit::HandleProc(uint32 flag, Unit* victim, SpellEntry* CastingSpell, boo
 			continue;
 		if(spellId == 22858 && isInBack(victim)) //retatliation needs target to be not in front. Can be cast by creatures too
 			continue;
-
+		for(uint32 e = 0; e >= 3; e++)
+		{
+			dmg_overwrite[e] = objmgr.ApplySpellDamageLimit(spellId, dmg_overwrite[e]);
+		}
 		spell_proc->CastSpell(victim, CastingSpell, dmg_overwrite);
 
 		if(origId == 39805)

@@ -548,6 +548,9 @@ class SERVER_DECL ChatHandler : public Singleton<ChatHandler>
 		bool HandleRenameCommand(const char* args, WorldSession* m_session);
 		bool HandleForceRenameCommand(const char* args, WorldSession* m_session);
 
+		//Customize
+		bool HandleCustomizeCommand(const char* args, WorldSession* m_session);
+
 		// Reputation
 		bool HandleGetStandingCommand(const char* args, WorldSession* m_session);
 		bool HandleSetStandingCommand(const char* args, WorldSession* m_session);

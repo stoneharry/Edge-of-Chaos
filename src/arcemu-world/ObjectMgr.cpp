@@ -494,8 +494,8 @@ void ObjectMgr::LoadPlayersInfo()
 				char temp[300];
 				snprintf(temp, 300, "%s__%X__", pn->name, pn->guid);
 				Log.Notice("ObjectMgr", "Renaming duplicate player %s to %s. (%u)", pn->name, temp, pn->guid);
-				CharacterDatabase.WaitExecute("UPDATE characters SET name = '%s', forced_rename_pending = 1 WHERE guid = %u",
-				                              CharacterDatabase.EscapeString(string(temp)).c_str(), pn->guid);
+				CharacterDatabase.WaitExecute("UPDATE characters SET name = '%s', login_flags = %u WHERE guid = %u",
+				                              CharacterDatabase.EscapeString(string(temp)).c_str(), (uint32)LOGIN_FORCED_RENAME, pn->guid);
 
 				free(pn->name);
 				pn->name = strdup(temp);
@@ -3759,4 +3759,21 @@ std::multimap< uint32, WorldState >* ObjectMgr::GetWorldStatesForMap( uint32 map
 		return NULL;
 	else
 		return itr->second;
+}
+
+uint32 ObjectMgr::ApplySpellDamageLimit(uint32 spellid, int32 damage)
+{
+	int32 dmg = damage;
+	if(QueryResult *q = WorldDatabase.Query("SELECT _limit, range_1, range_2 from spell_bonus_limit where entry = %u", spellid))
+	{
+		Field *f = q->Fetch();
+		if(dmg > f[0].GetInt32())
+		{
+			if(f[1].GetUInt32() != 0 && f[2].GetUInt32() != 0)
+				dmg = RandomUInt(f[1].GetUInt32(), f[2].GetUInt32());
+			else
+				dmg = f[0].GetUInt32();
+		}
+	}
+	return dmg;
 }

@@ -3009,11 +3009,11 @@ bool ChatHandler::HandleForceRenameCommand(const char* args, WorldSession* m_ses
 	Player* plr = objmgr.GetPlayer((uint32)pi->guid);
 	if(plr == 0)
 	{
-		CharacterDatabase.Execute("UPDATE characters SET forced_rename_pending = 1 WHERE guid = %u", (uint32)pi->guid);
+		CharacterDatabase.Execute("UPDATE characters SET login_flags = %u WHERE guid = %u", (uint32)LOGIN_FORCED_RENAME, (uint32)pi->guid);
 	}
 	else
 	{
-		plr->rename_pending = true;
+		plr->login_flags = LOGIN_FORCED_RENAME;
 		plr->SaveToDB(false);
 		BlueSystemMessageToPlr(plr, "%s forced your character to be renamed next logon.", m_session->GetPlayer()->GetName());
 	}
@@ -3021,6 +3021,36 @@ bool ChatHandler::HandleForceRenameCommand(const char* args, WorldSession* m_ses
 	CharacterDatabase.Execute("INSERT INTO banned_names VALUES('%s')", CharacterDatabase.EscapeString(string(pi->name)).c_str());
 	GreenSystemMessage(m_session, "Forcing %s to rename his character next logon.", args);
 	sGMLog.writefromsession(m_session, "forced %s to rename his charater (%u)", pi->name, pi->guid);
+	return true;
+}
+
+bool ChatHandler::HandleCustomizeCommand(const char* args, WorldSession* m_session)
+{
+	// prevent buffer overflow
+	if(strlen(args) > 100)
+		return false;
+	string tmp = string(args);
+	PlayerInfo* pi = objmgr.GetPlayerInfoByName(tmp.c_str());
+	if(pi == 0)
+	{
+		RedSystemMessage(m_session, "Player with that name not found.");
+		return true;
+	}
+
+	Player* plr = objmgr.GetPlayer((uint32)pi->guid);
+	if(plr == 0)
+	{
+		CharacterDatabase.Execute("UPDATE characters SET login_flags = %u WHERE guid = %u",(uint32)LOGIN_CUSTOMIZE_LOOKS, (uint32)pi->guid);
+	}
+	else
+	{
+		plr->login_flags |= LOGIN_CUSTOMIZE_LOOKS;
+		plr->SaveToDB(false);
+		BlueSystemMessageToPlr(plr, "%s flagged your character for customization at next login.", m_session->GetPlayer()->GetName());
+	}
+
+	GreenSystemMessage(m_session, "%s flagged to customize his character next logon.", args);
+	sGMLog.writefromsession(m_session, "flagged %s for customization for charater (%u)", pi->name, pi->guid);
 	return true;
 }
 
