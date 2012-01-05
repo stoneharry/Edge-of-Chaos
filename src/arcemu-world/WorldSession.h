@@ -258,7 +258,7 @@ class SERVER_DECL WorldSession
 			if(!permissioncount)
 				return false;
 
-			return (strchr(permissions, 'a') != NULL) ? true : false;
+			return true; //Any permissons at all should be able to bypass ques.
 		}
 
 		bool CanUseCommand(char cmdstr);

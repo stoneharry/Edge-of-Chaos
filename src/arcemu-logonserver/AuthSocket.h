@@ -65,7 +65,12 @@ public:
 	ARCEMU_INLINE time_t GetLastRecv() { return last_recv; }
 	bool removedFromSet;
 	ARCEMU_INLINE uint32 GetAccountID() { return m_account ? m_account->AccountId : 0; }
-
+	bool IsGMAccount() 
+	{
+		if(m_account->GMFlags[0] == 'a' && m_account->GMFlags[1] == 'z' || m_account->GMFlags != NULL)
+			return true;
+		return false;
+	}
 protected:
 
 	sAuthLogonChallenge_C m_challenge;
