@@ -7066,7 +7066,11 @@ void ApplyNormalFixes()
 		sp->EffectImplicitTargetB[0] = 0;
 		sp->Effect[0] = SPELL_EFFECT_DUMMY;
 	}
-
+	sp = CheckAndReturnSpellEntry(54485);
+	if(sp)
+	{
+		sp->AttributesExB = ATTRIBUTESEXB_CAN_TARGET_NOT_IN_LOS;
+	}
   /* Ritual of Summoning summons a GameObject that triggers an inexistant spell.
    * This will copy an existant Summon Player spell used for another Ritual Of Summoning
    * to the one taught by Warlock trainers.
