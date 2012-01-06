@@ -470,6 +470,7 @@ class SERVER_DECL ChatHandler : public Singleton<ChatHandler>
 		bool HandleAddItemSetCommand(const char* args, WorldSession* m_session);
 		bool HandleTriggerCommand(const char* args, WorldSession* m_session);
 		bool HandleModifyValueCommand(const char* args, WorldSession* m_session);
+		bool HandleModifyFloatValueCommand(const char* args, WorldSession* m_session);
 		bool HandleModifyBitCommand(const char* args, WorldSession* m_session);
 		bool HandleBattlegroundExitCommand(const char* args, WorldSession* m_session);
 		bool HandleExitInstanceCommand(const char* args, WorldSession* m_session);

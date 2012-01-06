@@ -895,6 +895,45 @@ bool ChatHandler::HandleDebugDumpCoordsCommmand(const char* args, WorldSession* 
 	return true;
 }
 
+bool ChatHandler::HandleModifyFloatValueCommand(const char* args,  WorldSession* m_session)
+{
+	Unit * obj = getSelectedUnit(m_session);
+	if(!obj)
+		obj = m_session->GetPlayer();
+
+	uint32 field = 0;
+	float value = 0.0f;
+	if( sscanf(args, "%u %f", &field, &value) != 2 )
+		return false;
+
+	if(field < 1 || field >= PLAYER_END)
+	{
+		SystemMessage(m_session, "Incorrect Field.");
+		return true;
+	}
+
+	float bvalue = obj->GetFloatValue(field);
+	obj->SetFloatValue(field, value);
+	if(obj->IsPlayer())
+		TO< Player* >(obj)->UpdateChances();
+
+	BlueSystemMessage(m_session, "Modified %s's field %u from %f to %f", GetSelectedUnitName(obj), field, bvalue, value);
+	return true;
+}
+
+bool ChatHandler::HandleDebugDumpCoordsCommmand(const char* args, WorldSession* m_session)
+{
+	Player* p = m_session->GetPlayer();
+	//char buffer[200] = {0};
+	FILE* f = fopen("C:\\script_dump.txt", "a");
+	if(!f) return true;
+
+	fprintf(f, "mob.CreateWaypoint(%f, %f, %f, %f, 0, 0, 0);\n", p->GetPositionX(), p->GetPositionY(), p->GetPositionZ(),
+	        p->GetOrientation());
+	fclose(f);
+	return true;
+}
+
 //As requested by WaRxHeAd for database development.
 //This should really only be available in special cases and NEVER on real servers... -DGM
 

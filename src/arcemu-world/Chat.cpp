@@ -236,6 +236,7 @@ void CommandTableStorage::Init()
 		{ "energy",          'm', NULL,                                   "Modifies energy points of selected target.",                      NULL, UNIT_FIELD_POWER4,                 UNIT_FIELD_MAXPOWER4, 1 },
 		{ "runicpower",      'm', NULL,                                   "Modifies runic power points of selected target.",                 NULL, UNIT_FIELD_POWER7,                 UNIT_FIELD_MAXPOWER7, 1 },
 		{ "level",           'm', &ChatHandler::HandleModifyLevelCommand, "Modifies the level of selected target.",                          NULL, 0,                                 0,                    0 },
+		{ "floatvalue",      'm', &ChatHandler::HandleModifyFloatValueCommand, "Modifies the specified update field to the specified value of the selected target.",                          NULL, 0,                                 0,                    0 },
 		{ "strength",        'm', NULL,                                   "Modifies the strength value of the selected target.",             NULL, UNIT_FIELD_STAT0,                  0,                    1 },
 		{ "agility",         'm', NULL,                                   "Modifies the agility value of the selected target.",              NULL, UNIT_FIELD_STAT1,                  0,                    1 },
 		{ "intelligence",    'm', NULL,                                   "Modifies the intelligence value of the selected target.",         NULL, UNIT_FIELD_STAT3,                  0,                    1 },
