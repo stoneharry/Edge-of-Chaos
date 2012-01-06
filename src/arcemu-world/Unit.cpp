@@ -3183,7 +3183,7 @@ void Unit::Strike(Unit* pVictim, uint32 weapon_damage_type, SpellEntry* ability,
 		Creature* c = TO< Creature* >(pVictim);
 
 		// mobs can dodge attacks from behind
-		if(weapon_damage_type != RANGED && pVictim->m_stunned <= 0)
+		if(!pVictim->isTrainingDummy() && weapon_damage_type != RANGED && pVictim->m_stunned <= 0)
 		{
 			dodge = pVictim->GetUInt32Value(UNIT_FIELD_AGILITY) / 14.5f;
 			dodge += pVictim->GetDodgeFromSpell();
@@ -3193,7 +3193,7 @@ void Unit::Strike(Unit* pVictim, uint32 weapon_damage_type, SpellEntry* ability,
 		{
 			// can parry attacks from the front
 			// TODO different bosses have different parry rates (db patch?)
-			if(!disarmed)    // TODO this is wrong
+			if(!pVictim->isTrainingDummy() && !disarmed)    // TODO this is wrong
 			{
 				parry = c->GetBaseParry();
 				parry += pVictim->GetParryFromSpell();
@@ -6525,10 +6525,8 @@ void Unit::EventHealthChangeSinceLastUpdate()
 int32 Unit::GetAP()
 {
 	int32 baseap = GetAttackPower() + GetAttackPowerMods();
-	float totalap = baseap * (GetFloatValue(UNIT_FIELD_ATTACK_POWER_MULTIPLIER) + 1);
-	if(totalap >= 0)
-		return float2int32(totalap);
-	return	0;
+	int32 totalap = float2int32(baseap * (GetFloatValue(UNIT_FIELD_ATTACK_POWER_MULTIPLIER) + 1));
+	return	totalap;
 }
 
 int32 Unit::GetRAP()

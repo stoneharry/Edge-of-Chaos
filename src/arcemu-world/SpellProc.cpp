@@ -62,7 +62,6 @@ void SpellProc::CastSpell(Unit* victim, SpellEntry* CastingSpell, int* dmg_overw
 
 	if(mOrigSpell != NULL)
 		spell->pSpellId = mOrigSpell->Id;
-
 	spell->prepare(&targets);
 }
 

@@ -1442,7 +1442,7 @@ void Spell::SpellEffectWeapondamageNoschool(uint32 i) // Weapon damage + (no Sch
 	if(!unitTarget || !u_caster)
 		return;
 
-	u_caster->Strike(unitTarget, (GetType() == SPELL_DMG_TYPE_RANGED ? RANGED : MELEE), GetProto(), damage, 0, 0, false, true);
+	u_caster->Strike(unitTarget, (GetType() == SPELL_DMG_TYPE_RANGED ? RANGED : MELEE), GetProto(), objmgr.ApplySpellDamageLimit(GetProto()->Id, damage), 0, 0, false, true);
 }
 
 void Spell::SpellEffectResurrect(uint32 i) // Resurrect (Flat)
@@ -2423,7 +2423,7 @@ void Spell::SpellEffectWeaponDmgPerc(uint32 i) // Weapon Percent damage
 	if(GetType() == SPELL_DMG_TYPE_MAGIC)
 	{
 		uint32 dmg = CalculateDamage(u_caster, unitTarget, MELEE, 0, GetProto()) * damage / 100;
-		u_caster->SpellNonMeleeDamageLog(unitTarget, GetProto()->Id, dmg, false, false, false);
+		u_caster->SpellNonMeleeDamageLog(unitTarget, GetProto()->Id, objmgr.ApplySpellDamageLimit(GetProto()->Id, dmg), false, false, false);
 	}
 	else
 	{
@@ -4828,7 +4828,7 @@ void Spell::SpellEffectDummyMelee(uint32 i)   // Normalized Weapon damage +
 		else
 			_type = MELEE;
 	}
-	u_caster->Strike(unitTarget, _type, GetProto(), damage, pct_dmg_mod, 0, false, true);
+	u_caster->Strike(unitTarget, _type, GetProto(), objmgr.ApplySpellDamageLimit(GetProto()->Id,damage), pct_dmg_mod, 0, false, true);
 }
 
 void Spell::SpellEffectStartTaxi(uint32 i)
@@ -4874,31 +4874,48 @@ void Spell::SpellEffectPlayerPull(uint32 i)
 	if(!unitTarget || !unitTarget->isAlive() || !unitTarget->IsPlayer())
 		return;
 
-	Player* p_target = TO< Player* >(unitTarget);
+	if(u_caster == NULL)
+		return;
+	if(m_targets.m_targetMask & TARGET_FLAG_UNIT)
+	{
+		float x, y, z;
+		float rad = unitTarget->GetBoundingRadius() - u_caster->GetBoundingRadius();
 
-	// calculate destination
-	float pullD = p_target->CalcDistance(m_caster) - p_target->GetBoundingRadius() - (u_caster ? u_caster->GetBoundingRadius() : 0) - 1.0f;
-	float pullO = p_target->calcRadAngle(p_target->GetPositionX(), p_target->GetPositionY(), m_caster->GetPositionX(), m_caster->GetPositionY());
-	float pullX = p_target->GetPositionX() + pullD * cosf(pullO);
-	float pullY = p_target->GetPositionY() + pullD * sinf(pullO);
-	float pullZ = m_caster->GetPositionZ() + 0.3f;
-	uint32 time = uint32(pullD * 42.0f);
+		float dx = m_caster->GetPositionX() - unitTarget->GetPositionX();
+		float dy = m_caster->GetPositionY() - unitTarget->GetPositionY();
+		if(dx == 0.0f || dy == 0.0f)
+			return;
+		float alpha = atanf(dy / dx);
+		if(dx < 0)
+			alpha += M_PI_FLOAT;
 
-	p_target->SetOrientation(pullO);
+		x = rad * cosf(alpha) + u_caster->GetPositionX();
+		y = rad * sinf(alpha) + u_caster->GetPositionY();
+		z = u_caster->GetPositionZ();
+		if(unitTarget->GetAIInterface() != NULL)
+			unitTarget->GetAIInterface()->MoveJump(x, y, z);
+	}
+	else if(m_targets.m_targetMask & (TARGET_FLAG_SOURCE_LOCATION | TARGET_FLAG_DEST_LOCATION))
+	{
+		float x, y, z;
 
-	WorldPacket data(SMSG_MONSTER_MOVE, 60);
-	data << p_target->GetNewGUID();
-	data << uint8(0);
-	data << p_target->GetPositionX() << p_target->GetPositionY() << p_target->GetPositionZ();
-	data << getMSTime();
-	data << uint8(4);
-	data << pullO;
-	data << uint32(0x00001000);
-	data << time;
-	data << uint32(1);
-	data << pullX << pullY << pullZ;
+		//this can also jump to a point
+		if(m_targets.m_targetMask & TARGET_FLAG_SOURCE_LOCATION)
+		{
+			x = m_targets.m_srcX;
+			y = m_targets.m_srcY;
+			z = m_targets.m_srcZ;
+		}
+		if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+		{
+			x = m_targets.m_destX;
+			y = m_targets.m_destY;
+			z = m_targets.m_destZ;
+		}
 
-	p_target->SendMessageToSet(&data, true);
+		if(unitTarget->GetAIInterface() != NULL)
+			unitTarget->GetAIInterface()->MoveJump(x, y, z);
+	}
 }
 
 void Spell::SpellEffectReduceThreatPercent(uint32 i)
