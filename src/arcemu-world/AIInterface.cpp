@@ -4468,7 +4468,7 @@ void AIInterface::EventForceRedirected(Unit* pUnit, uint32 misc1)
 		SetReturnPosition();
 }
 
-void AIInterface::MoveJump(float x, float y, float z, float o /*= 0*/)
+void AIInterface::MoveJump(float x, float y, float z, float o /*= 0*/, bool hugearc)
 {
 	m_splinePriority = SPLINE_PRIORITY_REDIRECTION;
 
@@ -4480,9 +4480,14 @@ void AIInterface::MoveJump(float x, float y, float z, float o /*= 0*/)
 	m_currentSplineFinalOrientation = o;
 
 	m_splinetrajectoryTime = 0;
-	m_splinetrajectoryVertical = 5; //we don't have values for this afaik
+	if(hugearc)
+		m_splinetrajectoryVertical = 15; //we don't have values for this afaik
+	else
+		m_splinetrajectoryVertical = 5;
 
 	SetRun();
+	if(hugearc)
+		m_runSpeed = 5;
 	m_runSpeed *= 3;
 
 	AddSpline(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ());

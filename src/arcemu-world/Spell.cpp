@@ -5982,7 +5982,7 @@ void Spell::SpellEffectJumpTarget(uint32 i)
 		y = rad * sinf(alpha) + unitTarget->GetPositionY();
 		z = unitTarget->GetPositionZ();
 		if(u_caster->GetAIInterface() != NULL)
-			u_caster->GetAIInterface()->MoveJump(x, y, z);
+			u_caster->GetAIInterface()->MoveJump(x, y, z, u_caster->GetOrientation(), GetProto()->Effect[i] == 145);
 	}
 	else if(m_targets.m_targetMask & (TARGET_FLAG_SOURCE_LOCATION | TARGET_FLAG_DEST_LOCATION))
 	{
@@ -6003,7 +6003,7 @@ void Spell::SpellEffectJumpTarget(uint32 i)
 		}
 
 		if(u_caster->GetAIInterface() != NULL)
-			u_caster->GetAIInterface()->MoveJump(x, y, z);
+			u_caster->GetAIInterface()->MoveJump(x, y, z, u_caster->GetOrientation(), GetProto()->Effect[i] == 145);
 	}
 }
 
