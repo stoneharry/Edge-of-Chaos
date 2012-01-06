@@ -3338,10 +3338,19 @@ bool ProtectingOurOwn(uint32 i, Spell* pSpell)
 
    return true;
 }
-
+bool IcyGrip(uint32 i, Spell * pSpell)
+{
+	if(pSpell->u_caster == NULL || pSpell->GetUnitTarget() == NULL)
+		return true;
+	pSpell->GetUnitTarget()->CastSpell(pSpell->u_caster, 70122, true);
+	return true;
+}
 void SetupQuestItems(ScriptMgr * mgr)
 {
 	mgr->register_dummy_spell(3607, &YennikuRelease);
+
+	mgr->register_script_effect(70117, &IcyGrip);
+
 	mgr->register_dummy_spell(4141, &ScrollOfMyzrael);
 	mgr->register_dummy_spell(8606, &SummonCyclonian);
 
