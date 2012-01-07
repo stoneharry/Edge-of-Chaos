@@ -97,6 +97,8 @@ void TaxiPath::SetPosForTime(float & x, float & y, float & z, uint32 time, uint3
 
 	while(itr != m_pathNodes.end())
 	{
+		if(itr->second == NULL)
+			continue;
 		if(itr->second->mapid != mapid)
 		{
 			itr++;
