@@ -872,8 +872,8 @@ void WorldSession::HandleCharterQuery(WorldPacket & recv_data)
 	}
 	else
 	{
-		data << uint32(80);                                 // 10 min level to sign an arena charter
-		data << uint32(80);									// 11 max level to sign an arena charter
+		data << uint32(19);                                 // 10 min level to sign an arena charter
+		data << uint32(19);									// 11 max level to sign an arena charter
 	}
 
 	data << uint32(0);                                      // 12

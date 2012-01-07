@@ -420,7 +420,7 @@ void WorldSession::HandleArenaTeamAddMemberOpcode(WorldPacket & recv_data)
 		return;
 	}
 
-	if(plr->getLevel() < PLAYER_ARENA_MIN_LEVEL)
+	if(plr->getLevel() < 19)
 	{
 		SystemMessage("Player must be level %u to join an arena team.", PLAYER_ARENA_MIN_LEVEL);
 		return;
