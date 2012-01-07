@@ -921,19 +921,6 @@ bool ChatHandler::HandleModifyFloatValueCommand(const char* args,  WorldSession*
 	return true;
 }
 
-bool ChatHandler::HandleDebugDumpCoordsCommmand(const char* args, WorldSession* m_session)
-{
-	Player* p = m_session->GetPlayer();
-	//char buffer[200] = {0};
-	FILE* f = fopen("C:\\script_dump.txt", "a");
-	if(!f) return true;
-
-	fprintf(f, "mob.CreateWaypoint(%f, %f, %f, %f, 0, 0, 0);\n", p->GetPositionX(), p->GetPositionY(), p->GetPositionZ(),
-	        p->GetOrientation());
-	fclose(f);
-	return true;
-}
-
 //As requested by WaRxHeAd for database development.
 //This should really only be available in special cases and NEVER on real servers... -DGM
 
