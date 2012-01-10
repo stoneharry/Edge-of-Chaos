@@ -12500,7 +12500,8 @@ void Player::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint32
 		return;
 	if(pVictim->IsSpiritHealer())
 		return;
-
+	if(spellId != NULL)
+		damage = objmgr.ApplySpellDamageLimit(spellId, damage);
 	if(this != pVictim)
 	{
 		if(!GetSession()->HasPermissions() && sWorld.m_limits.enable != 0)

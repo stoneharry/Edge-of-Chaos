@@ -195,6 +195,23 @@ uint32 MapMgr::GetTeamPlayersCount(uint32 teamId)
 }
 
 
+size_t MapMgr::GetPlayerCount(bool include_gms)
+{
+	uint32 result = m_PlayerStorage.size();
+	if(!include_gms)
+	{
+		result = 0;
+		PlayerStorageMap::iterator itr = m_PlayerStorage.begin();
+		for(; itr != m_PlayerStorage.end(); itr++)
+		{
+			Player* pPlayer = (itr->second);
+			if(!pPlayer->m_isGmInvisible)
+				result++;
+		}
+	}
+	return result;
+}
+
 void MapMgr::PushObject(Object* obj)
 {
 	/////////////

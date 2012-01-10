@@ -62,7 +62,7 @@ class FlametongueWeaponSpellProc : public SpellProc
 				if(sp != NULL && sp->NameHash == SPELL_HASH_FLAMETONGUE_WEAPON__PASSIVE_)
 				{
 					wp_speed = item->GetProto()->Delay;
-					damage = (sp->EffectBasePoints[0] + 1) * wp_speed / 100000;
+					damage = 0;
 				}
 			}
 		}
@@ -80,26 +80,6 @@ class FlametongueWeaponSpellProc : public SpellProc
 			if(mTarget->IsPlayer())
 				return true;
 			return false;
-		}
-
-		bool DoEffect(Unit* victim, SpellEntry* CastingSpell, uint32 flag, uint32 dmg, uint32 abs, int* dmg_overwrite, uint32 weapon_damage_type)
-		{
-			Item* item;
-
-			if(weapon_damage_type == OFFHAND)
-				item = TO_PLAYER(mTarget)->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_OFFHAND);
-			else
-				item = TO_PLAYER(mTarget)->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND);
-
-			if(item != NULL && item->GetGUID() == mItemGUID)
-			{
-				if(damage > 30)
-					damage = 30;
-				dmg_overwrite[0] = damage;
-				return false;
-			}
-
-			return true;
 		}
 
 	private:

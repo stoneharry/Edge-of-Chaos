@@ -7069,22 +7069,28 @@ void ApplyNormalFixes()
 	sp = CheckAndReturnSpellEntry(54485);
 	if(sp)
 	{
-		sp->AttributesExB = ATTRIBUTESEXB_CAN_TARGET_NOT_IN_LOS;
+		sp->AttributesExB |= ATTRIBUTESEXB_CAN_TARGET_NOT_IN_LOS;
 	}
   /* Ritual of Summoning summons a GameObject that triggers an inexistant spell.
    * This will copy an existant Summon Player spell used for another Ritual Of Summoning
    * to the one taught by Warlock trainers.
    */
-  sp = CheckAndReturnSpellEntry(7720);
-  if(sp)
-  {
-    const uint32 ritOfSummId = 62330;
-    CreateDummySpell(ritOfSummId);
-    SpellEntry * ritOfSumm = dbcSpell.LookupEntryForced(ritOfSummId);
-    if(ritOfSumm != NULL)
-    {
-      memcpy(ritOfSumm, sp, sizeof(SpellEntry));
-      ritOfSumm->Id = ritOfSummId;
-    }
-  }
+	sp = CheckAndReturnSpellEntry(7720);
+	if(sp)
+	{
+		const uint32 ritOfSummId = 62330;
+		CreateDummySpell(ritOfSummId);
+		SpellEntry * ritOfSumm = dbcSpell.LookupEntryForced(ritOfSummId);
+		if(ritOfSumm != NULL)
+		{
+			memcpy(ritOfSumm, sp, sizeof(SpellEntry));
+			ritOfSumm->Id = ritOfSummId;
+		}
+	}
+	sp = CheckAndReturnSpellEntry(10444);
+	if(sp)
+		sp->Effect[0] = SPELL_EFFECT_DUMMY;
+	sp = CheckAndReturnSpellEntry(8037);
+	if(sp)
+		sp->Effect[0] = SPELL_EFFECT_DUMMY;
 }

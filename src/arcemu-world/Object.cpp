@@ -904,7 +904,7 @@ void Object::AddToWorld()
 		if(mapMgr->pInstance != NULL && !plr->HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM))
 		{
 			// Player limit?
-			if(mapMgr->GetMapInfo()->playerlimit && mapMgr->GetPlayerCount() >= mapMgr->GetMapInfo()->playerlimit)
+			if(mapMgr->GetMapInfo()->playerlimit && mapMgr->GetPlayerCount(false) >= mapMgr->GetMapInfo()->playerlimit)
 				return;
 			Group* group = plr->GetGroup();
 			// Player in group?
@@ -943,7 +943,7 @@ void Object::AddToWorld()
 
 void Object::AddToWorld(MapMgr* pMapMgr)
 {
-	if(!pMapMgr || (pMapMgr->GetMapInfo()->playerlimit && this->IsPlayer() && pMapMgr->GetPlayerCount() >= pMapMgr->GetMapInfo()->playerlimit))
+	if(!pMapMgr || (pMapMgr->GetMapInfo()->playerlimit && this->IsPlayer() && pMapMgr->GetPlayerCount(false) >= pMapMgr->GetMapInfo()->playerlimit))
 		return; //instance add failed
 
 	m_mapMgr = pMapMgr;
@@ -1804,6 +1804,7 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 //==========================================================================================
 //==============================Data Sending ProcHandling===================================
 //==========================================================================================
+	res = objmgr.ApplySpellDamageLimit(spellID, res);
 	SendSpellNonMeleeDamageLog(this, pVictim, spellID, float2int32(res), static_cast<uint8>(spellInfo->School), abs_dmg, dmg.resisted_damage, false, 0, critical, IsPlayer());
 	DealDamage(pVictim, float2int32(res), 2, 0, spellID);
 

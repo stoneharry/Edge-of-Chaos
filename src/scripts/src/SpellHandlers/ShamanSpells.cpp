@@ -118,6 +118,18 @@ bool Reincarnation( uint32 i, Aura *a, bool apply ){
 	return true;
 }
 
+bool WeaponEffects( uint32 i, Spell *s )
+{
+	s->m_caster->SpellNonMeleeDamageLog(s->GetUnitTarget(), s->GetProto()->Id, RandomUInt(30, 40), !s->m_triggeredSpell, false);
+	return true;
+}
+
+bool ShieldNerf( uint32 i, Spell *s )
+{
+	s->m_caster->SpellNonMeleeDamageLog(s->GetUnitTarget(), s->GetProto()->Id, RandomUInt(20, 45), !s->m_triggeredSpell, false);
+	return true;
+}
+
 void SetupShamanSpells(ScriptMgr * mgr)
 {
 	uint32 FlametongueWeaponPassiveIds[] = { 10400, 15567, 15568, 15569, 16311, 16312, 16313, 58784, 58791, 58792, 0 };
@@ -148,4 +160,14 @@ void SetupShamanSpells(ScriptMgr * mgr)
 	mgr->register_dummy_aura( earthshielddummyauraids, &EarthShieldDummyAura );
 
 	mgr->register_dummy_aura( 20608, &Reincarnation );
+
+	uint32 WeaponSpellIds[] = {
+		8037,
+		10444,
+		0
+	};
+
+	mgr->register_dummy_spell( WeaponSpellIds, &WeaponEffects );
+
+	mgr->register_dummy_spell( 26545, &ShieldNerf );
 }

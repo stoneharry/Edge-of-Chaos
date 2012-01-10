@@ -2248,39 +2248,38 @@ bool ChatHandler::HandleMassSummonCommand(const char* args, WorldSession* m_sess
 	objmgr._playerslock.AcquireReadLock();
 	Player* summoner = m_session->GetPlayer();
 	Player* plr;
-	int faction = -1;
+	uint32 level = 0;
+	uint32 faction = 0;
+	if( sscanf(args, "%u %u", &level, &faction) != 2 )
+		if(sscanf(args, "%u", &level) != 1)
+			return false;
+	std::string factionname = "";
+	if(faction == 1)
+		factionname = "Alliance ";
+	if(faction == 2)
+		factionname = "Horde ";
 	char Buffer[170];
-	if(*args == 'a' || *args == 'A')
-	{
-		faction = 0;
-		snprintf(Buffer, 170, "%s%s Has requested a mass summon of all Alliance players. Do not feel obliged to accept the summon, as it is most likely for an event or a test of sorts", MSG_COLOR_GOLD, m_session->GetPlayer()->GetName());
-
-	}
-	else if(*args == 'h' || *args == 'H')
-	{
-		faction = 1;
-		snprintf(Buffer, 170, "%s%s Has requested a mass summon of all Horde players. Do not feel obliged to accept the summon, as it is most likely for an event or a test of sorts", MSG_COLOR_GOLD, m_session->GetPlayer()->GetName());
-	}
-	else  snprintf(Buffer, 170, "%s%s Has requested a mass summon of all players. Do not feel obliged to accept the summon, as it is most likely for an event or a test of sorts", MSG_COLOR_GOLD, m_session->GetPlayer()->GetName());
+	snprintf(Buffer, 170, "%s%s Has requested a mass summon of all %splayers level %u and up. Do not feel obliged to accept the summon, as it is most likely for an event or a test of sorts", MSG_COLOR_GOLD, m_session->GetPlayer()->GetName(), factionname, level);
 
 	uint32 c = 0;
 
 	for(itr = objmgr._players.begin(); itr != objmgr._players.end(); itr++)
 	{
 		plr = itr->second;
-		if(plr->GetSession() && plr->IsInWorld())
+		if(plr->GetSession() && plr->IsInWorld() && plr->getLevel() >= level)
 		{
-			//plr->SafeTeleport(summoner->GetMapId(), summoner->GetInstanceID(), summoner->GetPosition());
-			/* let's do this the blizz way */
-			if(faction > -1 && plr->GetTeam() == static_cast<uint32>(faction))
+			if(faction == 0)
 			{
 				plr->SummonRequest(summoner->GetLowGUID(), summoner->GetZoneId(), summoner->GetMapId(), summoner->GetInstanceID(), summoner->GetPosition());
 				++c;
 			}
-			else if(faction == -1)
+			else
 			{
-				plr->SummonRequest(summoner->GetLowGUID(), summoner->GetZoneId(), summoner->GetMapId(), summoner->GetInstanceID(), summoner->GetPosition());
-				++c;
+				if(plr->GetTeamInitial() +1 == faction)
+				{
+					plr->SummonRequest(summoner->GetLowGUID(), summoner->GetZoneId(), summoner->GetMapId(), summoner->GetInstanceID(), summoner->GetPosition());
+					++c;
+				}
 			}
 
 		}

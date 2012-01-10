@@ -256,7 +256,7 @@ class SERVER_DECL MapMgr : public CellHandler <MapCell>, public EventableObject,
 		virtual int32 event_GetInstanceID() { return m_instanceID; }
 
 		void LoadAllCells();
-		size_t GetPlayerCount() { return m_PlayerStorage.size(); }
+		size_t GetPlayerCount(bool include_gms = true);
 		uint32 GetTeamPlayersCount(uint32 teamId);
 
 		void _PerformObjectDuties();
