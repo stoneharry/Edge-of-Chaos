@@ -110,7 +110,7 @@ bool Group::AddMember(PlayerInfo* info, int32 subgroupid/* =-1 */)
 	m_groupLock.Acquire();
 	Player* pPlayer = info->m_loggedInPlayer;
 
-	if(m_Leader != NULL && m_Leader->m_loggedInPlayer && pPlayer)
+	if(pPlayer && pPlayer->getLevel() >= 19 && m_Leader != NULL && m_Leader->m_loggedInPlayer)
 	{
 		pPlayer->SetTeam(m_Leader->m_loggedInPlayer->GetTeam());
 		pPlayer->SetFaction(m_Leader->m_loggedInPlayer->GetFaction());
@@ -381,6 +381,11 @@ void SubGroup::Disband()
 			{
 				if((*itr)->m_loggedInPlayer->GetSession() != NULL)
 				{
+					if((*itr)->m_loggedInPlayer->getLevel() >= 19)
+					{
+						(*itr)->m_loggedInPlayer->SetFaction((*itr)->m_loggedInPlayer->GetInitialFactionId());
+						(*itr)->m_loggedInPlayer->SetTeam((*itr)->m_loggedInPlayer->GetTeamInitial());
+					}
 					data2.put(5, uint32((*itr)->m_loggedInPlayer->iInstanceType));
 					(*itr)->m_loggedInPlayer->GetSession()->SendPacket(&data2);
 					(*itr)->m_loggedInPlayer->GetSession()->SendPacket(&data);
@@ -483,8 +488,11 @@ void Group::RemovePlayer(PlayerInfo* info)
 
 	if(pPlayer != NULL)
 	{
-		pPlayer->SetFaction(pPlayer->GetInitialFactionId());
-		pPlayer->SetTeam(pPlayer->GetTeamInitial());
+		if(pPlayer->getLevel() >= 19)
+		{
+			pPlayer->SetFaction(pPlayer->GetInitialFactionId());
+			pPlayer->SetTeam(pPlayer->GetTeamInitial());
+		}
 		if(pPlayer->GetSession() != NULL)
 		{
 			SendNullUpdate(pPlayer);

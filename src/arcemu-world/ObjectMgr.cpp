@@ -3775,5 +3775,7 @@ uint32 ObjectMgr::ApplySpellDamageLimit(uint32 spellid, int32 damage)
 				dmg = f[0].GetUInt32();
 		}
 	}
+	if(dmg <= 0)
+		dmg = 1;
 	return dmg;
 }

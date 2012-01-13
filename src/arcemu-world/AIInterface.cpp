@@ -4481,7 +4481,7 @@ void AIInterface::MoveJump(float x, float y, float z, float o /*= 0*/, bool huge
 
 	m_splinetrajectoryTime = 0;
 	if(hugearc)
-		m_splinetrajectoryVertical = 15; //we don't have values for this afaik
+		m_splinetrajectoryVertical = 150; //WEEEEEEEEEEEEEEEEEEEEEEEEEEEE?
 	else
 		m_splinetrajectoryVertical = 5;
 

@@ -162,7 +162,7 @@ void SetupShamanSpells(ScriptMgr * mgr)
 	mgr->register_dummy_aura( 20608, &Reincarnation );
 
 	uint32 WeaponSpellIds[] = {
-		8037,
+		8034,
 		10444,
 		0
 	};

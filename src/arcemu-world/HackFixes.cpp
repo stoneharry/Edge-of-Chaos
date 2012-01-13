@@ -1087,7 +1087,10 @@ void ApplyNormalFixes()
 		//////////////////////////////////////////
 
 		// Insert shaman spell fixes here
-	
+		if(sp->NameHash == SPELL_HASH_FLAMETONGUE_ATTACK || sp->NameHash == SPELL_HASH_FROSTBRAND_ATTACK)
+		{
+			sp->Effect[0] = SPELL_EFFECT_DUMMY;
+		}
 		// Flametongue Totem passive target fix
 		if( sp->NameHash == SPELL_HASH_FLAMETONGUE_TOTEM && sp->Attributes & ATTRIBUTES_PASSIVE )
 		{
@@ -7087,10 +7090,4 @@ void ApplyNormalFixes()
 			ritOfSumm->Id = ritOfSummId;
 		}
 	}
-	sp = CheckAndReturnSpellEntry(10444);
-	if(sp)
-		sp->Effect[0] = SPELL_EFFECT_DUMMY;
-	sp = CheckAndReturnSpellEntry(8037);
-	if(sp)
-		sp->Effect[0] = SPELL_EFFECT_DUMMY;
 }
