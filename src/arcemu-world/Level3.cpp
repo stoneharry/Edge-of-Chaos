@@ -2249,18 +2249,8 @@ bool ChatHandler::HandleMassSummonCommand(const char* args, WorldSession* m_sess
 	Player* summoner = m_session->GetPlayer();
 	Player* plr;
 	uint32 level = 0;
-	uint32 faction = 0;
-	if( sscanf(args, "%u %u", &level, &faction) != 2 )
-		if(sscanf(args, "%u", &level) != 1)
-			return false;
-	std::string factionname = "";
-	if(faction == 1)
-		factionname = "Alliance ";
-	if(faction == 2)
-		factionname = "Horde ";
-	char Buffer[170];
-	snprintf(Buffer, 170, "%s%s Has requested a mass summon of all %splayers level %u and up. Do not feel obliged to accept the summon, as it is most likely for an event or a test of sorts", MSG_COLOR_GOLD, m_session->GetPlayer()->GetName(), factionname, level);
-
+	if( sscanf(args, "%u", &level) != 1)
+		return false;
 	uint32 c = 0;
 
 	for(itr = objmgr._players.begin(); itr != objmgr._players.end(); itr++)
@@ -2268,20 +2258,9 @@ bool ChatHandler::HandleMassSummonCommand(const char* args, WorldSession* m_sess
 		plr = itr->second;
 		if(plr->GetSession() && plr->IsInWorld() && plr->getLevel() >= level)
 		{
-			if(faction == 0)
-			{
-				plr->SummonRequest(summoner->GetLowGUID(), summoner->GetZoneId(), summoner->GetMapId(), summoner->GetInstanceID(), summoner->GetPosition());
-				++c;
-			}
-			else
-			{
-				if(plr->GetTeamInitial() +1 == faction)
-				{
-					plr->SummonRequest(summoner->GetLowGUID(), summoner->GetZoneId(), summoner->GetMapId(), summoner->GetInstanceID(), summoner->GetPosition());
-					++c;
-				}
-			}
-
+			GreenSystemMessageToPlr(plr,"%s requested a mass summon of players %u level and above.",summoner->GetName(), level);
+			plr->SummonRequest(summoner->GetLowGUID(), summoner->GetZoneId(), summoner->GetMapId(), summoner->GetInstanceID(), summoner->GetPosition());
+			++c;
 		}
 	}
 	sGMLog.writefromsession(m_session, "requested a mass summon of %u players.", c);
