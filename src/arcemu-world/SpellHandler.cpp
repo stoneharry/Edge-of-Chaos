@@ -474,6 +474,9 @@ void WorldSession::HandleCancelAuraOpcode(WorldPacket & recvPacket)
 	uint32 spellId;
 	recvPacket >> spellId;
 
+	if(spellId == 8326 || 9036) //you may never cancel "ghost" auras.
+		return;
+
 	if(_player->m_currentSpell && _player->m_currentSpell->GetProto()->Id == spellId)
 		_player->m_currentSpell->cancel();
 	else

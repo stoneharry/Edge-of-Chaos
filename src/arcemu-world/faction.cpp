@@ -48,6 +48,9 @@ bool isHostile(Object* objA, Object* objB)
 	if((objA->m_phase & objB->m_phase) == 0)     //What you can't see, can't be hostile!
 		return false;
 
+	if(objA->IsPlayer() && objB->IsPlayer() && TO< Player* >(objA)->IsGroupMember(TO< Player* >(objB)))
+		return false;
+
 	if(objA->IsPlayer() && objA->HasFlag(PLAYER_FLAGS, 0x100) && objB->IsCreature() && TO< Unit* >(objB)->GetAIInterface()->m_isNeutralGuard)
 		return true;
 	if(objB->IsPlayer() && objB->HasFlag(PLAYER_FLAGS, 0x100) && objA->IsCreature() && TO< Unit* >(objA)->GetAIInterface()->m_isNeutralGuard)
@@ -134,6 +137,9 @@ bool isAttackable(Object* objA, Object* objB, bool CheckStealth)
 		return false;   // can't attack self.. this causes problems with buffs if we don't have it :p
 
 	if((objA->m_phase & objB->m_phase) == 0)     //What you can't see, you can't attack either...
+		return false;
+
+	if(objA->IsPlayer() && objB->IsPlayer() && TO< Player* >(objA)->IsGroupMember(TO< Player* >(objB)))
 		return false;
 
 	if(objA->IsCorpse() || objB->IsCorpse())

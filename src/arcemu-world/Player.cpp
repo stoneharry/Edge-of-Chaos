@@ -4820,7 +4820,7 @@ void Player::RepopAtGraveyard(float ox, float oy, float oz, uint32 mapid)
 			if(pGrave->MapId == mapid && (pGrave->FactionID == GetTeam() || pGrave->FactionID == 3))
 			{
 				temp.ChangeCoords(pGrave->X, pGrave->Y, pGrave->Z);
-				dist = src.DistanceSq(temp);
+				dist = src.Distance2DSq(temp);
 				if(first || dist < closest_dist)
 				{
 					first = false;
@@ -13738,7 +13738,8 @@ void Player::ExitInstanceReleaseSpirit(uint32 mapid, const LocationVector & v, b
 	SetPosition(v);
 	SpeedCheatReset();
 	z_axisposition = 0.0f;
-	RepopAtGraveyard(GetPositionX(), GetPositionY(), GetPositionZ(), GetMapId());
+	//Repop is giving weird results.
+	//RepopAtGraveyard(GetPositionX(), GetPositionY(), GetPositionZ(), GetMapId());
 }
 
 void Player::AddHonor(uint32 amount)
