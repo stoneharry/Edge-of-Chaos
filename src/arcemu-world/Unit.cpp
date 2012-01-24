@@ -6679,8 +6679,8 @@ void CombatStatusHandler::UpdateFlag()
 				m_Unit->clearStateFlag(UF_ATTACKING);
 
 			// remove any of our healers from combat too, if they are able to be.
-			ClearMyHealers();
-
+			ClearAttackers();
+			ClearHealers();
 			if(m_Unit->IsPlayer())
 				TO_PLAYER(m_Unit)->UpdatePotionCooldown();
 		}
@@ -6692,14 +6692,39 @@ bool CombatStatusHandler::InternalIsInCombat()
 	if(m_Unit->IsPlayer() && m_Unit->GetMapMgr() && m_Unit->GetMapMgr()->IsCombatInProgress())
 		return true;
 
-	if(m_healed.size() > 0)
-		return true;
+	HealedSet::iterator itr = m_healed.begin();
+	Player* pt;
+	for(; itr != m_healed.end(); ++itr)
+	{
+		pt = m_Unit->GetMapMgr()->GetPlayer(*itr);
+		if(pt)
+		{
+			if(pt->isAlive() && pt->CombatStatus.IsInCombat())
+				return true;
+		}
+	}
 
-	if(m_attackTargets.size() > 0)
-		return true;
-
-	if(m_attackers.size() > 0)
-		return true;
+	for(AttackerMap::iterator itr = m_attackTargets.begin(); itr != m_attackTargets.end(); ++itr)
+	{
+		Unit* pt;
+		pt = m_Unit->GetMapMgr()->GetUnit(*itr);
+		if(pt)
+		{
+			if(pt->isAlive() && pt->CombatStatus.IsInCombat())
+				return true;
+		}
+	}
+	
+	for(AttackerMap::iterator itr = m_attackers.begin(); itr != m_attackers.end(); ++itr)
+	{
+		Unit* pt;
+		pt = m_Unit->GetMapMgr()->GetUnit(*itr);
+		if(pt)
+		{
+			if(pt->isAlive() && pt->CombatStatus.IsInCombat())
+				return true;
+		}
+	}
 
 	return false;
 }

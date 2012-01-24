@@ -129,15 +129,6 @@ class SealOfVengeanceSpellProc : public SpellProc
 		}
 };
 
-class HandofReckoningDamage : public Spell
-{
-	SPELL_FACTORY_FUNCTION(HandofReckoningDamage);
-	void DoAfterHandleEffect(Unit* target, uint32 i)
-	{
-		if(target && target->IsTauntable() && u_caster)
-			u_caster->CastSpell(target, 67485, true);
-	}
-}
 void SpellProcMgr::SetupPaladin()
 {
 	AddByNameHash(SPELL_HASH_SEAL_OF_COMMAND, &SealOfCommandSpellProc::Create);
@@ -153,5 +144,4 @@ void SpellProcMgr::SetupPaladin()
 	AddById(20170, &PaladinSealsSpellProc::Create);
 	AddById(53739, &SealOfCorruptionSpellProc::Create);
 	AddById(42463, &SealOfVengeanceSpellProc::Create);
-	AddSpellById(62124, &HandofReckoningDamage::Create);
 }
