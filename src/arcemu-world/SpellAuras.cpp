@@ -2381,7 +2381,6 @@ void Aura::SpellAuraModAttackSpeed(bool apply)
 
 void Aura::SpellAuraModThreatGenerated(bool apply)
 {
-	mod->m_amount < 0 ? SetPositive() : SetNegative();
 	for(uint32 x = 0; x < 7; x++)
 	{
 		if(mod->m_miscValue & (((uint32)1) << x))
@@ -2404,7 +2403,7 @@ void Aura::SpellAuraModTaunt(bool apply)
 
 	if(apply)
 	{
-		m_target->GetAIInterface()->AttackReaction(m_caster, 1, 0);
+		m_target->GetAIInterface()->AttackReaction(m_caster, 10000, 0);
 		m_target->GetAIInterface()->taunt(m_caster, true);
 	}
 	else
