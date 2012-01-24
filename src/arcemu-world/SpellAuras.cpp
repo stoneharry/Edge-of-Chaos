@@ -3442,8 +3442,27 @@ void Aura::SpellAuraModDecreaseSpeed(bool apply)
 		//m_target->m_speedModifier -= mod->m_amount;
 		//m_target->m_slowdown= NULL;
 	}
-	if(m_target->GetSpeedDecrease())
-		m_target->UpdateSpeed();
+	if(GetCaster() && GetCaster()->IsPlayer())
+	{
+		Player *p = TO< Player*>(GetCaster());
+		if(p->GetSession()->HasGMPermissions())
+		{
+			float speedmod_before = m_target->m_speedModifier;
+			float speed_before = m_target->m_runSpeed;
+			float slowdown_before = m_target->m_slowdown;
+			p->GetSpeedDecrease();
+			p->UpdateSpeed();
+			float slowdown = m_target->m_slowdown;
+			float speedmod = m_target->m_speedModifier;
+			float speed = m_target->m_runSpeed;
+			p->BroadcastMessage("SpeedMod Before: %f, Speed Before: %f, Slowdown After: %f, SpeedMod After: %f, Speed After: %f, Slowdown After: %f", speedmod_before, speed_before, slowdown_before, speedmod, speed, slowdown);
+		}
+	}
+	else
+	{
+		if(m_target->GetSpeedDecrease())
+			m_target->UpdateSpeed();
+	}
 }
 
 void Aura::UpdateAuraModDecreaseSpeed()

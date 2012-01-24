@@ -172,6 +172,12 @@ void ApplyNormalFixes()
 			{
 				sp->Attributes &= ~ATTRIBUTES_ONLY_OUTDOORS;
 			}
+
+			if(sp->EffectApplyAuraName[b] == SPELL_AURA_MOD_INCREASE_SWIM_SPEED && sp->AuraInterruptFlags & AURA_INTERRUPT_ON_ENTER_WATER)
+			{
+				//why blizzard has this set for these auras i don't know
+				sp->AuraInterruptFlags = sp->AuraInterruptFlags & ~AURA_INTERRUPT_ON_ENTER_WATER;
+			}
 		}
 
 		if(!strcmp(sp->Name, "Hearthstone") || !strcmp(sp->Name, "Stuck") || !strcmp(sp->Name, "Astral Recall"))
@@ -7074,6 +7080,7 @@ void ApplyNormalFixes()
 	{
 		sp->AttributesExB |= ATTRIBUTESEXB_CAN_TARGET_NOT_IN_LOS;
 	}
+
   /* Ritual of Summoning summons a GameObject that triggers an inexistant spell.
    * This will copy an existant Summon Player spell used for another Ritual Of Summoning
    * to the one taught by Warlock trainers.

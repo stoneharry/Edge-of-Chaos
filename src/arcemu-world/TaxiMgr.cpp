@@ -386,6 +386,71 @@ void TaxiMgr::_LoadTaxiPaths()
 	}
 }
 
+void TaxiMgr::_LoadCustomNodes()
+{
+	QueryResult * nodes = WorldDatabase.Query("Select * from taxi_node");
+	if(nodes == NULL)
+	{
+		Log.Error("MySQL", "taxi_node is empty!");
+		return;
+	}
+	do
+	{
+		Field * f = nodes->Fetch();
+		TaxiNode* n = new TaxiNode;
+		n->id = f[0].GetUInt32();
+		n->mapid = f[1].GetUInt32();
+		n->alliance_mount = f[2].GetUInt32();
+		n->horde_mount = f[3].GetUInt32();
+		n->x = f[4].GetFloat();
+		n->y = f[5].GetFloat();
+		n->z = f[6].GetFloat();
+		this->m_taxiNodes.insert(std::map<uint32, TaxiNode*>::value_type(n->id, n));
+	}while(nodes->NextRow());
+	delete nodes;
+	QueryResult * path = WorldDatabase.Query("Select * from taxi_path");
+	if(path == NULL)
+	{
+		Log.Error("MySQL", "taxi_path is empty!");
+		return;
+	}
+	do
+	{
+		Field * f = path->Fetch();
+		TaxiPath* p = new TaxiPath;
+		p->from = f[0].GetUInt32();
+		p->to = f[1].GetUInt32();
+		p->id = f[2].GetUInt32();
+		p->price = f[3].GetUInt32();
+		//Load Nodes
+		QueryResult * pathnodes = WorldDatabase.Query("Select * from taxi_path_node");
+		if(pathnodes == NULL)
+		{
+			Log.Error("MySQL", "taxi_path_node is empty!");
+			return;
+		}
+		do
+		{
+			Field * field = pathnodes->Fetch();
+			if(field[0].GetUInt32() == p->id)
+			{
+				TaxiPathNode* pn = new TaxiPathNode;
+				pn->x = field[1].GetFloat();
+				pn->y = field[2].GetFloat();
+				pn->z = field[3].GetFloat();
+				pn->mapid = field[4].GetUInt32();
+				p->AddPathNode(field[5].GetUInt32(), pn);
+			}
+		}while(pathnodes->NextRow());
+		delete pathnodes;
+		p->ComputeLen();
+		this->m_taxiPaths.insert(std::map<uint32, TaxiPath*>::value_type(p->id, p));
+	}while(path->NextRow());
+	delete path;
+	Log.Success("TaxiMgr", "%u taxi nodes loaded.", m_taxiNodes.size());
+	Log.Success("TaxiMgr", "%u taxi paths loaded.", m_taxiPaths.size());
+}
+
 TaxiPath* TaxiMgr::GetTaxiPath(uint32 path)
 {
 	HM_NAMESPACE::hash_map<uint32, TaxiPath*>::iterator itr;
