@@ -2864,17 +2864,10 @@ void Spell::HandleAddAura(uint64 guid)
 
 	uint32 spellid = 0;
 
-	if((GetProto()->MechanicsType == MECHANIC_INVULNARABLE && GetProto()->Id != 25771) || GetProto()->Id == 31884)     // Cast spell Forbearance
-	{
-		if(GetProto()->Id != 31884)
-			spellid = 25771;
-
-		if(Target->IsPlayer())
-		{
-			sEventMgr.AddEvent(TO< Player* >(Target), &Player::AvengingWrath, EVENT_PLAYER_AVENGING_WRATH, 30000, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
-			TO< Player* >(Target)->mAvengingWrath = false;
-		}
-	}
+	if(GetProto()->MechanicsType == MECHANIC_INVULNARABLE && GetProto()->Id != 25771)     // Cast spell Forbearance
+		spellid = 25771;
+	else if(GetProto()->Id == 31884)
+		spellid = 61987;
 	else if(GetProto()->MechanicsType == MECHANIC_HEALING && GetProto()->Id != 11196)  // Cast spell Recently Bandaged
 		spellid = 11196;
 	else if(GetProto()->MechanicsType == MECHANIC_SHIELDED && GetProto()->Id != 6788)  // Cast spell Weakened Soul
@@ -3069,7 +3062,7 @@ uint8 Spell::CanCast(bool tolerate)
 {
 	uint32 i;
 
-	if( ( p_caster != NULL ) && p_caster->moving && ( m_spellInfo->InterruptFlags & CAST_INTERRUPT_ON_MOVEMENT ) )
+	if( ( p_caster != NULL ) && p_caster->moving && ( m_spellInfo->InterruptFlags & CAST_INTERRUPT_ON_MOVEMENT ) && m_castTime > 1000)
 		return SPELL_FAILED_MOVING;
 
 	if(p_caster != NULL && HasCustomFlag(CUSTOM_FLAG_SPELL_REQUIRES_COMBAT) && !p_caster->CombatStatus.IsInCombat())
@@ -3153,6 +3146,8 @@ uint8 Spell::CanCast(bool tolerate)
 			if(kilsorrow->GetEntry() != 17147 && kilsorrow->GetEntry() != 17148 && kilsorrow->GetEntry() != 18397 && kilsorrow->GetEntry() != 18658 && kilsorrow->GetEntry() != 17146)
 				return SPELL_FAILED_NOT_HERE;
 		}
+		if(target->HasFullHealth() && (m_spellInfo->HasEffect(SPELL_EFFECT_HEAL_MAX_HEALTH) || m_spellInfo->HasEffect(SPELL_EFFECT_HEAL)))
+			return SPELL_FAILED_ALREADY_AT_FULL_HEALTH;
 	}
 
 	/**
@@ -3183,22 +3178,6 @@ uint8 Spell::CanCast(bool tolerate)
 		if(hasAttribute(ATTRIBUTES_REQ_STEALTH) && !p_caster->IsStealth() && !p_caster->ignoreShapeShiftChecks)
 			return SPELL_FAILED_ONLY_STEALTHED;
 
-		/**
-		 *	Indoor/Outdoor check
-		 */
-		if(sWorld.Collision)
-		{
-			if(GetProto()->MechanicsType == MECHANIC_MOUNTED)
-			{
-				if(CollideInterface.IsIndoor(p_caster->GetMapId(), p_caster->GetPositionNC()))
-					return SPELL_FAILED_NO_MOUNTS_ALLOWED;
-			}
-			else if(hasAttribute(ATTRIBUTES_ONLY_OUTDOORS))
-			{
-				if(!CollideInterface.IsOutdoor(p_caster->GetMapId(), p_caster->GetPositionNC()))
-					return SPELL_FAILED_ONLY_OUTDOORS;
-			}
-		}
 
 		/**
 		 *	Battlegrounds/Arena check

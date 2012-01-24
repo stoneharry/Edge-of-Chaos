@@ -20,6 +20,17 @@
 
 #include "StdAfx.h"
 
+class HandofReckoningDamage : public Spell
+{
+	SPELL_FACTORY_FUNCTION(HandofReckoningDamage);
+	void DoAfterHandleEffect(Unit* target, uint32 i)
+	{
+		if(target && target->IsTauntable() && u_caster)
+			u_caster->CastSpell(target, 67485, true);
+	}
+}
+
 void SpellFactoryMgr::SetupPaladin()
 {
+	AddSpellById(62124, &HandofReckoningDamage::Create);
 }

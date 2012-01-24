@@ -8410,3 +8410,15 @@ void Unit::SendEnvironmentalDamageLog( uint64 guid, uint8 type, uint32 damage ){
 
 	SendMessageToSet( &data, true, false );
 }
+
+bool Unit::IsTauntable()
+{
+	bool ret = true;
+	if(IsPlayer())
+		ret = false;
+	if(GetAIInterface()->GetIsTaunted())
+		ret = false;
+	if(IsCreature() && TO< Creature* >(this)->GetProto()->modImmunities & 4096)
+		ret = false;
+	return ret;
+}

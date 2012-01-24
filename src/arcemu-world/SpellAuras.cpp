@@ -5187,6 +5187,9 @@ void Aura::SpellAuraMechanicImmunity(bool apply)
 	}
 	else
 		m_target->MechanicsDispels[mod->m_miscValue]--;
+	//Hack for Forbearance
+	if(m_spellProto->Id == 25771)
+		SetNegative(100);
 }
 
 void Aura::SpellAuraMounted(bool apply)
@@ -5620,24 +5623,25 @@ void Aura::SpellAuraModDamagePercTaken(bool apply)
 {
 	float val;
 	if(apply)
-	{
 		val = mod->m_amount / 100.0f;
-		if(val <= 0)
-			SetPositive();
-		else
-			SetNegative();
-	}
 	else
-	{
 		val = -mod->m_amount / 100.0f;
-	}
 
 	if(m_spellProto->NameHash == SPELL_HASH_ARDENT_DEFENDER)   // Ardent Defender it only applys on 20% hp :/
 	{
 		m_target->DamageTakenPctModOnHP35 += val;
 		return;
 	}
-
+	if(m_spellProto->Id == 498)
+	{
+		if(apply)
+			val = 0.5f;
+		else
+			val = -0.5f;
+		for(uint32 x = 0; x < 7; x++)
+			m_target->DamageTakenPctMod[x] += val;
+		return;
+	}
 	for(uint32 x = 0; x < 7; x++)
 	{
 		if(mod->m_miscValue & (((uint32)1) << x))

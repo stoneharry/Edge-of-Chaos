@@ -185,6 +185,7 @@ bool JudgementLightWisdomJustice(uint32 i, Spell * pSpell)
 	}
 
 	caster->CastSpell(target, id, true);
+	caster->CastSpell(target, 23590, true);
 
 	caster->SetCurrentUnitForSingleTargetAura( pSpell->GetProto(), target->GetGUID() );
 

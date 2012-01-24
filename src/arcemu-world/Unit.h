@@ -1569,7 +1569,7 @@ class SERVER_DECL Unit : public Object
 		void UpdateSpeed();
 		void EnableFlight();
 		void DisableFlight();
-
+		bool IsTauntable();
 		// Escort Quests
 
 		void MoveToWaypoint(uint32 wp_id);
@@ -1872,7 +1872,12 @@ class SERVER_DECL Unit : public Object
 		uint32 GetMaxHealth() const { return GetUInt32Value(UNIT_FIELD_MAXHEALTH); }
 		void ModHealth(int32 val) { ModUnsigned32Value(UNIT_FIELD_HEALTH, val); }
 		void ModMaxHealth(int32 val) { ModUnsigned32Value(UNIT_FIELD_MAXHEALTH, val); }
-
+		bool HasFullHealth()
+		{
+			if(GetUInt32Value(UNIT_FIELD_MAXHEALTH) - GetUInt32Value(UNIT_FIELD_HEALTH) == 0)
+				return true;
+			return false;
+		}
 		void SetPower(uint32 type, int32 value);
 
 		void ModPower(uint32 index, int32 value)
