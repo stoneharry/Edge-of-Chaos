@@ -5634,9 +5634,9 @@ void Aura::SpellAuraModDamagePercTaken(bool apply)
 	if(m_spellProto->Id == 498)
 	{
 		if(apply)
-			val = 0.5f;
-		else
 			val = -0.5f;
+		else
+			val = 0.5f;
 		for(uint32 x = 0; x < 7; x++)
 			m_target->DamageTakenPctMod[x] += val;
 		return;
