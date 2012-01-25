@@ -423,28 +423,22 @@ void TaxiMgr::_LoadCustomNodes()
 		p->id = f[2].GetUInt32();
 		p->price = f[3].GetUInt32();
 		//Load Nodes
-		QueryResult * pathnodes = WorldDatabase.Query("Select * from taxi_path_node");
+		QueryResult * pathnodes = WorldDatabase.Query("Select * from taxi_path_node where id = %u", p->id);
 		if(pathnodes == NULL)
 		{
 			Log.Error("MySQL", "taxi_path_node is empty!");
 			return;
 		}
-		do
-		{
-			Field * field = pathnodes->Fetch();
-			if(field[0].GetUInt32() == p->id)
-			{
-				TaxiPathNode* pn = new TaxiPathNode;
-				pn->x = field[1].GetFloat();
-				pn->y = field[2].GetFloat();
-				pn->z = field[3].GetFloat();
-				pn->mapid = field[4].GetUInt32();
-				p->AddPathNode(field[5].GetUInt32(), pn);
-			}
-		}while(pathnodes->NextRow());
-		delete pathnodes;
+		Field * field = pathnodes->Fetch();
+		TaxiPathNode* pn = new TaxiPathNode;
+		pn->x = field[1].GetFloat();
+		pn->y = field[2].GetFloat();
+		pn->z = field[3].GetFloat();
+		pn->mapid = field[4].GetUInt32();
+		p->AddPathNode(field[5].GetUInt32(), pn);
 		p->ComputeLen();
 		this->m_taxiPaths.insert(std::map<uint32, TaxiPath*>::value_type(p->id, p));
+		delete pathnodes;
 	}while(path->NextRow());
 	delete path;
 	Log.Success("TaxiMgr", "%u taxi nodes loaded.", m_taxiNodes.size());
