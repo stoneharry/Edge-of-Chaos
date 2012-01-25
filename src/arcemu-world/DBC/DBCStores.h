@@ -1200,6 +1200,9 @@ struct DBCTaxiNode
 //	uint32 nameflags;
 	uint32 horde_mount;
 	uint32 alliance_mount;
+	DBCTaxiNode()
+	{
+	}
 };
 
 struct DBCTaxiPath
@@ -1208,6 +1211,9 @@ struct DBCTaxiPath
 	uint32 from;
 	uint32 to;
 	uint32 price;
+	DBCTaxiPath()
+	{
+	}
 };
 
 struct DBCTaxiPathNode
@@ -1223,6 +1229,11 @@ struct DBCTaxiPathNode
 	uint32 waittime;
 //	uint32 arivalEventID;
 //	uint32 departureEventID;
+	DBCTaxiPathNode()
+	{
+		flags = 0;
+		waittime = 0;
+	}
 };
 
 struct CreatureSpellDataEntry

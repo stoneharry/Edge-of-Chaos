@@ -89,9 +89,10 @@ class SERVER_DECL TaxiMgr :  public Singleton < TaxiMgr >
 	public:
 		TaxiMgr()
 		{
+			_CreateCustomPaths();
 			_LoadTaxiNodes();
 			_LoadTaxiPaths();
-			_LoadCustomNodes();
+			//_LoadCustomNodes();
 		}
 
 		~TaxiMgr()
@@ -122,6 +123,7 @@ class SERVER_DECL TaxiMgr :  public Singleton < TaxiMgr >
 		void _LoadTaxiNodes();
 		void _LoadTaxiPaths();
 		void _LoadCustomNodes();
+		void _CreateCustomPaths();
 
 		HM_NAMESPACE::hash_map<uint32, TaxiNode*> m_taxiNodes;
 		HM_NAMESPACE::hash_map<uint32, TaxiPath*> m_taxiPaths;
