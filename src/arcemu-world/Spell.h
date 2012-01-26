@@ -656,7 +656,7 @@ enum SpellGoFlags
     SPELL_GO_FLAGS_UNK1000			= 0x1000, //no idea
     //0x4000
     SPELL_GO_FLAGS_UNK8000			= 0x8000, //seems to make server send extra 2 bytes before SPELL_GO_FLAGS_UNK1 and after SPELL_GO_FLAGS_UNK20000
-    SPELL_GO_FLAGS_UNK20000			= 0x20000, //seems to make server send an uint32 after m_targets.write
+    CAST_FLAG_ADJUST_MISSILE     = 0x00020000, //seems to make server send an uint32 after m_targets.write
     SPELL_GO_FLAGS_UNK40000			= 0x40000, //1 uint32. this is not confirmed but i have a feeling about it :D
     SPELL_GO_FLAGS_UNK80000			= 0x80000, //2 functions called (same ones as for ranged but different)
     SPELL_GO_FLAGS_RUNE_UPDATE		= 0x200000, //2 bytes for the rune cur and rune next flags

@@ -1543,3 +1543,45 @@ bool ChatHandler::HandleVehicleAddPassengerCommand(const char *args, WorldSessio
 
 	return true;
 }
+
+bool ChatHandler::HandleStartTaxiCommand(const char *args, WorldSession *m_session)
+{
+	uint32 taxiid = 0;
+	Player * p = getSelectedChar(m_session, false);
+	if(p == NULL)
+		p = m_session->GetPlayer();
+	taxiid = atoi((char*)args);
+	TaxiPath* taxipath = sTaxiMgr.GetTaxiPath(taxiid);
+
+	if(!taxipath)
+	{
+		RedSystemMessage(m_session,"%u is an invalid taxi.", taxiid);
+		return true;
+	}
+
+	TaxiNode* taxinode = sTaxiMgr.GetTaxiNode(taxipath->GetSourceNode());
+
+	if(!taxinode)
+	{
+		RedSystemMessage(m_session,"Unable to fix taxi node for taxi %u.", taxiid);
+		return true;
+	}
+
+	uint32 modelid = 0;
+
+	if(p->IsTeamHorde())
+	{
+		CreatureInfo* ci = CreatureNameStorage.LookupEntry(taxinode->horde_mount);
+		if(!ci) return;
+		modelid = ci->Male_DisplayID;
+		if(!modelid) return;
+	}
+	else
+	{
+		CreatureInfo* ci = CreatureNameStorage.LookupEntry(taxinode->alliance_mount);
+		if(!ci) return;
+		modelid = ci->Male_DisplayID;
+		if(!modelid) return;
+	}
+	p->TaxiStart(taxipath, modelid, 0);
+}

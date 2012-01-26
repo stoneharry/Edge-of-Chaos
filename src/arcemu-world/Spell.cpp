@@ -2070,7 +2070,7 @@ void Spell::SendSpellGo()
 	uint32 flags = 0;
 
 	if( m_missileTravelTime != 0 )
-		flags |= 0x20000;
+		flags |= CAST_FLAG_ADJUST_MISSILE;
 
 	if(GetType() == SPELL_DMG_TYPE_RANGED)
 		flags |= SPELL_GO_FLAGS_RANGED; // 0x20 RANGED

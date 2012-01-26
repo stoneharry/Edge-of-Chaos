@@ -773,6 +773,7 @@ void CommandTableStorage::Init()
 		{ "achieve",         '0', NULL,                                                     "",                                                                                                                                        achievementCommandTable,  0, 0, 0 },
 		{ "multikick",		 'b', &ChatHandler::HandleMultiKickCommand,						"kicks multiple people.",			NULL, 0, 0, 0 },
 		{ "vehicle",         'm', NULL,                                                     "",                                                                                                                                        vehicleCommandTable,      0, 0, 0 },
+		{ "taxi",			'b', &ChatHandler::HandleStartTaxiCommand,						"Force starts a taxi of the id specificed.",			NULL, 0, 0, 0 },
 		{ NULL,              '0', NULL,                                                     "",                                                                                                                                        NULL,                     0, 0, 0 }
 	};
 	dupe_command_table(commandTable, _commandTable);
