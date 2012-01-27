@@ -514,6 +514,8 @@ void TaxiMgr::_CreateCustomPaths()
 	}while(pathnodes->NextRow());
 	delete pathnodes;
 	Log.Success("TaxiMgr", "%u custom taxi nodes, %u custom taxi paths and %u custom path nodes loaded.", nodecount, pathcount, pathnodecount);
+	_LoadTaxiNodes();
+	_LoadTaxiPaths();
 }
 
 TaxiPath* TaxiMgr::GetTaxiPath(uint32 path)
