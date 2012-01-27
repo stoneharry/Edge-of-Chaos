@@ -1572,16 +1572,20 @@ bool ChatHandler::HandleStartTaxiCommand(const char *args, WorldSession *m_sessi
 	if(p->IsTeamHorde())
 	{
 		CreatureInfo* ci = CreatureNameStorage.LookupEntry(taxinode->horde_mount);
-		if(!ci) return;
+		if(!ci) 
+			return true;
 		modelid = ci->Male_DisplayID;
-		if(!modelid) return;
+		if(!modelid) 
+			return true;
 	}
 	else
 	{
 		CreatureInfo* ci = CreatureNameStorage.LookupEntry(taxinode->alliance_mount);
 		if(!ci) return;
 		modelid = ci->Male_DisplayID;
-		if(!modelid) return;
+		if(!modelid) 
+			return true;;
 	}
 	p->TaxiStart(taxipath, modelid, 0);
+	return true;
 }
