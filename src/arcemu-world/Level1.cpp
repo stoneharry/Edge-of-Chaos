@@ -1581,7 +1581,8 @@ bool ChatHandler::HandleStartTaxiCommand(const char *args, WorldSession *m_sessi
 	else
 	{
 		CreatureInfo* ci = CreatureNameStorage.LookupEntry(taxinode->alliance_mount);
-		if(!ci) return;
+		if(!ci) 
+			return true;
 		modelid = ci->Male_DisplayID;
 		if(!modelid) 
 			return true;;
