@@ -2181,7 +2181,7 @@ void Spell::SendSpellGo()
 			traveltime = (sqrtf(dx * dx + dy * dy) / (cosf(missilepitch) * missilespeed)) * 1000;
 */
 	
-	if( flags & 0x20000 ){
+	if( flags & CAST_FLAG_ADJUST_MISSILE ){
 		data << float( m_missilePitch );
 		data << uint32( m_missileTravelTime );
 	}
