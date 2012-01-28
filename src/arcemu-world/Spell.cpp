@@ -3146,7 +3146,7 @@ uint8 Spell::CanCast(bool tolerate)
 			if(kilsorrow->GetEntry() != 17147 && kilsorrow->GetEntry() != 17148 && kilsorrow->GetEntry() != 18397 && kilsorrow->GetEntry() != 18658 && kilsorrow->GetEntry() != 17146)
 				return SPELL_FAILED_NOT_HERE;
 		}
-		if(target->HasFullHealth() && (m_spellInfo->HasEffect(SPELL_EFFECT_HEAL_MAX_HEALTH) || m_spellInfo->HasEffect(SPELL_EFFECT_HEAL)))
+		if(target && target->IsPlayer() && target->HasFullHealth() && (m_spellInfo->HasEffect(SPELL_EFFECT_HEAL_MAX_HEALTH) || m_spellInfo->HasEffect(SPELL_EFFECT_HEAL)))
 			return SPELL_FAILED_ALREADY_AT_FULL_HEALTH;
 	}
 
