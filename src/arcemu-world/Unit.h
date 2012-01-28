@@ -1874,9 +1874,9 @@ class SERVER_DECL Unit : public Object
 		void ModMaxHealth(int32 val) { ModUnsigned32Value(UNIT_FIELD_MAXHEALTH, val); }
 		bool HasFullHealth()
 		{
-			if(GetUInt32Value(UNIT_FIELD_MAXHEALTH) - GetUInt32Value(UNIT_FIELD_HEALTH) == 0)
-				return true;
-			return false;
+			if(GetUInt32Value(UNIT_FIELD_MAXHEALTH) - GetUInt32Value(UNIT_FIELD_HEALTH) > 0)
+				return false;
+			return true;
 		}
 		void SetPower(uint32 type, int32 value);
 
