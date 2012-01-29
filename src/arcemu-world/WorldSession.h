@@ -794,7 +794,7 @@ class SERVER_DECL WorldSession
 
 		float m_wLevel; // Level of water the player is currently in
 		bool m_bIsWLevelSet; // Does the m_wLevel variable contain up-to-date information about water level?
-
+		void SetAccountId(uint32 id) { _accountId = id; }
 	private:
 		friend class Player;
 		Player* _player;

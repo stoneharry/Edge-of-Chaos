@@ -2329,7 +2329,7 @@ void Player::SaveToDB(bool bNewCharacter /* =false */)
 	ss << "INSERT INTO characters VALUES ("
 
 	   << GetLowGUID() << ", "
-	   << GetSession()->GetAccountId() << ","
+	   << accountid << ","
 
 	   // stat saving
 	   << "'" << m_name << "', "
@@ -3406,6 +3406,7 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 		ModUnsigned32Value(UNIT_FIELD_FLAGS_2, 0x40000);
 	if(!HasSpell(52644))
 		addSpell(52644);
+	accountid = GetSession()->GetAccountId();
  }
 void Player::SetPersistentInstanceId(Instance* pInstance)
 {

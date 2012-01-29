@@ -2268,6 +2268,24 @@ bool ChatHandler::HandleMassSummonCommand(const char* args, WorldSession* m_sess
 	return true;
 }
 
+bool ChatHandler::HandleForceLoginCommand(const char* args, WorldSession* m_session)
+{
+	uint32 accountid = 0;
+	if( sscanf(args, "%u", &accountid) != 1)
+		return false;
+	QueryResult * r = WorldDatabase.Query("select * from `%s`.`accounts` where acct = %u", Config.MainConfig.GetStringDefault("Server", "LogonDatabaseName", "zlogon").c_str(), accountid);
+	if(r == NULL)
+	{
+		RedSystemMessage(m_session, "%u is an invalid account", accountid);
+		return true;
+	}
+	delete r;
+	m_session->SetAccountId(accountid);
+	m_session->GetPlayer()->Kick();
+	sGMLog.writefromsession(m_session, "Force loged into account id %u.", accountid);
+	return true;
+}
+
 bool ChatHandler::HandleCastAllCommand(const char* args, WorldSession* m_session)
 {
 	if(!args || strlen(args) < 2)

@@ -2427,6 +2427,7 @@ class SERVER_DECL Player : public Unit
 		int			hearth_of_wild_pct;		//druid hearth of wild talent used on shapeshifting. We either know what is last talent level or memo on learn
 
 		uint32 m_team;
+		uint32 accountid;
 		float       m_lastRunSpeed;
 		float       m_lastRunBackSpeed;
 		float       m_lastSwimSpeed;

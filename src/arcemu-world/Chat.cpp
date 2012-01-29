@@ -626,6 +626,7 @@ void CommandTableStorage::Init()
 
 	static ChatCommand adminCommandTable[] =
 	{
+		{ "forcelogin",            'z', &ChatHandler::HandleForceLoginCommand,      "Force login into account <x>.",                      NULL, 0, 0, 0 },
 		{ "castall",               'z', &ChatHandler::HandleCastAllCommand,         "Makes all players online cast spell <x>.",                      NULL, 0, 0, 0 },
 		{ "dispelall",             'z', &ChatHandler::HandleDispelAllCommand,       "Dispels all negative (or positive w/ 1) auras on all players.", NULL, 0, 0, 0 },
 		{ "renameallinvalidchars", 'z', &ChatHandler::HandleRenameAllCharacter,     "Renames all invalid character names",                           NULL, 0, 0, 0 },
