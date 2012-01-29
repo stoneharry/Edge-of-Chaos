@@ -977,7 +977,7 @@ void Creature::CalcStat(uint32 type)
 
 void Creature::RegenerateHealth()
 {
-	if(m_limbostate || !m_canRegenerateHP)
+	if(m_limbostate || !m_canRegenerateHP || CantRegenHealth())
 		return;
 
 	uint32 cur = GetHealth();
@@ -1757,7 +1757,8 @@ void Creature::RemoveLimboState(Unit* healer)
 
 	m_limbostate = false;
 	SetEmoteState(m_spawn ? m_spawn->emote_state : 0);
-	SetHealth(GetMaxHealth());
+	if(!CantRegenHealth())
+		SetHealth(GetMaxHealth());
 	bInvincible = false;
 }
 

@@ -2665,6 +2665,13 @@ bool Unit::IsInInstance()
 
 void Unit::RegenerateHealth()
 {
+
+	if(IsCreature() && TO< Creature* >(this)->CantRegenHealth())
+	{
+		m_H_regenTimer = sizeof(uint16);
+		return;
+	}
+
 	m_H_regenTimer = 2000;//set next regen time
 
 	if(!isAlive())

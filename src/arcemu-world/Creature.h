@@ -250,7 +250,8 @@ enum CreatureFlag1
 enum CustomFlags
 {
 	CREATURE_CUSTOMFLAG_CANTDIE = 0x1,
-	CREATURE_CUSTOMFLAG_IMMUNE_TO_CREATURE_DAMAGE = 0x2
+	CREATURE_CUSTOMFLAG_IMMUNE_TO_CREATURE_DAMAGE = 0x2,
+	CREATURE_CUSTOMFLAG_CANT_REGEN_HEALTH = 0x4
 };
 
 enum FAMILY
@@ -691,6 +692,11 @@ class SERVER_DECL Creature : public Unit
 		bool IsImmuneToCreatureDamage()
 		{
 			return (GetProto()->CustomFlags & CREATURE_CUSTOMFLAG_IMMUNE_TO_CREATURE_DAMAGE);
+		}
+
+		bool CantRegenHealth()
+		{
+			return (GetProto()->CustomFlags & CREATURE_CUSTOMFLAG_CANT_REGEN_HEALTH);
 		}
 
 		void FormationLinkUp(uint32 SqlId);
