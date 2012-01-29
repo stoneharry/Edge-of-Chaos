@@ -1242,6 +1242,8 @@ class SERVER_DECL Unit : public Object
 		uint32 m_triggerDamage;
 		uint32 m_canMove;
 
+		const char* GetName();
+
 		SummonHandler summonhandler;
 
 		// Spell Effect Variables

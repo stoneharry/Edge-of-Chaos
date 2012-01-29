@@ -2375,9 +2375,21 @@ void Spell::SendChannelStart(uint32 duration)
 
 void Spell::SendResurrectRequest(Player* target)
 {
-	WorldPacket data(SMSG_RESURRECT_REQUEST, 13);
-	data << m_caster->GetGUID();
-	data << uint32(0) << uint8(0);
+	char const* resurrectorName = "";
+	if(m_caster->IsCreature())
+		resurrectorName = u_caster->GetName();
+		
+    WorldPacket data(SMSG_RESURRECT_REQUEST, (8+4+strlen(resurrectorName)+1+1+1+4));
+    data << uint64(m_caster->GetGUID()); // resurrector guid
+    data << uint32(strlen(resurrectorName) + 1);
+
+    data << resurrectorName;
+    data << uint8(0); // null terminator
+
+	data << uint8(m_caster->IsPlayer() ? 0 : 1); // "you'll be afflicted with resurrection sickness"
+    // override delay sent with SMSG_CORPSE_RECLAIM_DELAY, set instant resurrection for spells with this attribute
+	if (hasAttributeExC(FLAGS4_IGNORE_RESURRECTION_TIMER))
+        data << uint32(0);
 
 	target->GetSession()->SendPacket(&data);
 	target->m_resurrecter = m_caster->GetGUID();

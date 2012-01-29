@@ -8454,3 +8454,14 @@ bool Unit::IsTauntable()
 		ret = false;
 	return ret;
 }
+
+const char* Unit::GetName()
+{
+	if(IsPet())
+		return TO_PET(this)->GetName().c_str();
+	if(IsCreature())
+		return TO_CREATURE(this)->GetCreatureInfo()->Name;
+	if(IsPlayer())
+		return TO_PLAYER(this)->GetName();
+	return "Unknown Being";
+}

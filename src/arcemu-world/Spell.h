@@ -491,7 +491,7 @@ enum Flags4 // AttributesExC
     FLAGS4_UNK3							= 0x2,
     FLAGS4_UNK4							= 0x4,
     FLAGS4_UNK5							= 0x8,
-    FLAGS4_UNK6							= 0x10,
+    FLAGS4_IGNORE_RESURRECTION_TIMER							= 0x10,
     FLAGS4_UNK7							= 0x20,
     FLAGS4_UNK8							= 0x40,
     FLAGS4_UNK9							= 0x80,
