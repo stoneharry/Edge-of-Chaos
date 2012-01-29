@@ -3101,6 +3101,9 @@ uint8 Spell::CanCast(bool tolerate)
 				if(!CanAttackCreatureType(targettype, type))
 					return SPELL_FAILED_BAD_TARGETS;
 			}
+
+			if(target->HasFullHealth() && m_spellInfo->HasEffect(SPELL_EFFECT_HEAL_MAX_HEALTH))
+				return SPELL_FAILED_ALREADY_AT_FULL_HEALTH;
 		}
 
 		/**
@@ -3146,8 +3149,6 @@ uint8 Spell::CanCast(bool tolerate)
 			if(kilsorrow->GetEntry() != 17147 && kilsorrow->GetEntry() != 17148 && kilsorrow->GetEntry() != 18397 && kilsorrow->GetEntry() != 18658 && kilsorrow->GetEntry() != 17146)
 				return SPELL_FAILED_NOT_HERE;
 		}
-		if(target && target->IsPlayer() && target->HasFullHealth() && (m_spellInfo->HasEffect(SPELL_EFFECT_HEAL_MAX_HEALTH) || m_spellInfo->HasEffect(SPELL_EFFECT_HEAL)))
-			return SPELL_FAILED_ALREADY_AT_FULL_HEALTH;
 	}
 
 	/**
@@ -3841,7 +3842,7 @@ uint8 Spell::CanCast(bool tolerate)
 						return SPELL_FAILED_NO_AMMO;
 				}
 
-				if(sWorld.Collision)
+				if(sWorld.Collision  && !(GetProto()->AttributesExB & ATTRIBUTESEXB_CAN_TARGET_NOT_IN_LOS))
 				{
 					if(p_caster->GetMapId() == target->GetMapId() && !p_caster->GetMapMgr()->InLineOfSight(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ() + 2, target->GetPositionX(), target->GetPositionY(), target->GetPositionZ() + 2))
 						return SPELL_FAILED_LINE_OF_SIGHT;
@@ -4026,7 +4027,7 @@ uint8 Spell::CanCast(bool tolerate)
 					facing_flags = SPELL_INFRONT_STATUS_REQUIRE_INFRONT;
 
 				/* burlex: units are always facing the target! */
-				if(p_caster && facing_flags != SPELL_INFRONT_STATUS_REQUIRE_SKIPCHECK)
+				if(p_caster && facing_flags != SPELL_INFRONT_STATUS_REQUIRE_SKIPCHECK  && !(GetProto()->AttributesExB & ATTRIBUTESEXB_CAN_TARGET_NOT_IN_LOS))
 				{
 					if(GetProto()->Spell_Dmg_Type == SPELL_DMG_TYPE_RANGED)
 					{
