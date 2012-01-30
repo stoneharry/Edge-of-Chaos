@@ -7930,31 +7930,6 @@ void Aura::SpellAuraEnableFlight(bool apply)
 	}
 }
 
-void Aura::SpellAuraEnableFlightWithUnmountedSpeed(bool apply)
-{
-	// Used in flight form (only so far)
-	if(apply)
-	{
-		m_target->EnableFlight();
-		m_target->m_flyspeedModifier += mod->m_amount;
-		m_target->UpdateSpeed();
-		if(m_target->IsPlayer())
-		{
-			TO< Player* >(m_target)->flying_aura = m_spellProto->Id;
-		}
-	}
-	else
-	{
-		m_target->DisableFlight();
-		m_target->m_flyspeedModifier -= mod->m_amount;
-		m_target->UpdateSpeed();
-		if(m_target->IsPlayer())
-		{
-			TO< Player* >(m_target)->flying_aura = 0;
-		}
-	}
-}
-
 void Aura::SpellAuraIncreaseMovementAndMountedSpeed(bool apply)
 {
 	if(apply)
@@ -8945,4 +8920,8 @@ void Aura::SpellAuraPreventResurrection(bool apply)
 		m_target->RemoveByteFlag(PLAYER_FIELD_BYTES, 0, PLAYER_FIELD_BYTE_RELEASE_TIMER);
 	else
 		m_target->SetByteFlag(PLAYER_FIELD_BYTES, 0, PLAYER_FIELD_BYTE_RELEASE_TIMER);
+}
+
+void Aura::SpellAuraModExperinceGain(bool apply)
+{
 }
