@@ -1116,7 +1116,7 @@ class SERVER_DECL Unit : public Object
 		bool RemoveAuraByNameHash(uint32 namehash);//required to remove weaker instances of a spell
 		bool RemoveAuras(uint32* SpellIds);
 		bool RemoveAurasByHeal();
-
+		bool HasFlyingAura();
 		////////////////////////////////////////////////////////////////////////////////////////
 		//bool AuraActionIf( AuraAction *a, AuraCondition *c )
 		//  Performs the specified action on the auras that meet the specified condition
@@ -1194,6 +1194,7 @@ class SERVER_DECL Unit : public Object
 		bool SetAurDuration(uint32 spellId, Unit* caster, uint32 duration);
 		bool SetAurDuration(uint32 spellId, uint32 duration);
 		void DropAurasOnDeath();
+		int32 GetTotalAuraModifer(uint32 AuraName, bool addone = false);
 
 		//******************************************************
 		// Auras that can affect only one target at a time
@@ -1563,7 +1564,6 @@ class SERVER_DECL Unit : public Object
 		int32 m_speedModifier;
 		int32 m_slowdown;
 		float m_maxSpeed;
-		map< uint32, int32 > speedReductionMap;
 		bool GetSpeedDecrease();
 		int32 m_mountedspeedModifier;
 		int32 m_flyspeedModifier;

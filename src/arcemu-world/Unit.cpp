@@ -6370,6 +6370,8 @@ void Unit::EnableFlight()
 
 void Unit::DisableFlight()
 {
+	if(HasFlyingAura())
+		return;
 	if(!IsPlayer() || TO_PLAYER(this)->m_changingMaps)
 	{
 		if(IsCreature())
@@ -6549,14 +6551,7 @@ bool Unit::GetSpeedDecrease()
 {
 	int32 before = m_speedModifier;
 	m_speedModifier -= m_slowdown;
-	m_slowdown = 0;
-	map< uint32, int32 >::iterator itr = speedReductionMap.begin();
-	for(; itr != speedReductionMap.end(); ++itr)
-		m_slowdown = (int32)min(m_slowdown, itr->second);
-
-	if(m_slowdown < -100)
-		m_slowdown = 100; //do not walk backwards !
-
+	m_slowdown = GetTotalAuraModifer(SPELL_AURA_MOD_DECREASE_SPEED);
 	m_speedModifier += m_slowdown;
 	//save bandwidth :P
 	if(m_speedModifier != before)
@@ -8464,4 +8459,39 @@ const char* Unit::GetName()
 	if(IsPlayer())
 		return TO_PLAYER(this)->GetName();
 	return "Unknown Being";
+}
+
+int32 Unit::GetTotalAuraModifer(uint32 AuraName, bool addone)
+{
+	int32 modifer = 0;
+	for(uint32 x = MAX_TOTAL_AURAS_START; x < MAX_TOTAL_AURAS_END; x++)
+		if(m_auras[x])
+			for(uint32 y = 0; y < 3; x++)
+				if(m_auras[x]->GetSpellProto()->EffectApplyAuraName[y] == AuraName)
+				{
+					if(addone)
+						modifer += 1 + m_auras[x]->GetModAmount(y);
+					else
+						modifer = m_auras[x]->GetModAmount(y);
+				}
+	return modifer;
+}
+
+bool Unit::HasFlyingAura()
+{
+	if(HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT))
+		return true;
+	if(HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT2))
+		return true;
+	if(HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT_WITH_UNMOUNTED_SPEED))
+		return true;
+	if(HasAuraWithName(SPELL_AURA_ALLOW_FLIGHT))
+		return true;
+	if(HasAuraWithName(SPELL_AURA_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS))
+		return true;
+	if(HasAuraWithName(SPELL_AURA_MOD_VEHICLE_SPEED_ALWAYS))
+		return true;
+	if(HasAuraWithName(SPELL_AURA_MOD_FLIGHT_SPEED_NOT_STACK))
+		return true;
+	return false;
 }

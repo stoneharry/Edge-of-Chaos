@@ -725,6 +725,22 @@ enum SPELL_INDEX2
     SPELL_TYPE3_DEATH_KNIGHT_AURA		= 1,
 };
 
+// used in PLAYER_FIELD_BYTES values
+enum PlayerFieldByteFlags
+{
+    PLAYER_FIELD_BYTE_TRACK_STEALTHED   = 0x00000002,
+    PLAYER_FIELD_BYTE_RELEASE_TIMER     = 0x00000008,       // Display time till auto release spirit
+    PLAYER_FIELD_BYTE_NO_RELEASE_WINDOW = 0x00000010        // Display no "release spirit" window at all
+};
+
+// used in PLAYER_FIELD_BYTES2 values
+enum PlayerFieldByte2Flags
+{
+    PLAYER_FIELD_BYTE2_NONE                 = 0x00,
+    PLAYER_FIELD_BYTE2_STEALTH              = 0x20,
+    PLAYER_FIELD_BYTE2_INVISIBILITY_GLOW    = 0x40
+};
+
 #define PLAYER_RATING_MODIFIER_RANGED_SKILL						PLAYER_FIELD_COMBAT_RATING_1
 #define PLAYER_RATING_MODIFIER_DEFENCE							PLAYER_FIELD_COMBAT_RATING_1+1
 #define PLAYER_RATING_MODIFIER_DODGE							PLAYER_FIELD_COMBAT_RATING_1+2

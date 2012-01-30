@@ -87,11 +87,14 @@ uint32 CalculateXpToGive(Unit* pVictim, Unit* pAttacker)
 		return 0;
 	uint32 VictimLvl = pVictim->getLevel();
 	uint32 AttackerLvl = pAttacker->getLevel();
-
+	Player * attacker = NULL;
+	if(pAttacker->IsPlayer())
+		attacker = TO< Player * >(pAttacker);
 	if(pAttacker->IsPet() && TO< Pet* >(pAttacker)->GetPetOwner())
 	{
+		attacker = TO< Pet* >(pAttacker)->GetPetOwner();
 		// based on: http://www.wowwiki.com/Talk:Formulas:Mob_XP#Hunter.27s_pet_XP (2008/01/12)
-		uint32 ownerLvl = TO< Pet* >(pAttacker)->GetPetOwner()->getLevel();
+		uint32 ownerLvl = attacker->getLevel();
 		VictimLvl += ownerLvl - AttackerLvl;
 		AttackerLvl = ownerLvl;
 	}
@@ -238,78 +241,12 @@ uint32 CalculateXpToGive(Unit* pVictim, Unit* pAttacker)
 				break;
 		}
 	}
+	if(attacker->HasAuraWithName(SPELL_AURA_MOD_XP_PCT))
+	{
+		float modxppct = float(attacker->GetTotalAuraModifer(SPELL_AURA_MOD_XP_PCT, true) / 100.0f);
+		xp += (xp * modxppct);
+	}
 	return (uint32)xp;
-	/*const float ZD[PLAYER_LEVEL_CAP+1] = {1,5,5,5,5,5,5,5,6,6,7,7,8,8,8,9,9,9,9,9,11,11,11,11,11,11,11,11,11,11,12,12,12,12,12,12,12,12,12,12,13,13,13,13,13,14,14,14,14,14,15,15,15,15,15,16,16,16,16,16,17,17,17,17,17,17,17,17,17,17,17};
-	float temp = 0;
-	float tempcap = 0;
-	float xp = 0;
-
-	if(VictimLvl >= AttackerLvl)
-	{
-	temp = ((AttackerLvl * 5) + 45) * (1 + 0.05 * (VictimLvl - AttackerLvl));
-	tempcap = ((AttackerLvl * 5) + 45) * 1.2;
-	if(temp > tempcap)
-	{
-	if( tempcap < 0 )
-	tempcap = 0;
-	else
-	tempcap *= sWorld.getRate(RATE_XP);
-
-	xp = tempcap;
-	}
-	else
-	{
-	if( temp < 0 )
-	temp = 0;
-	else
-	temp *= sWorld.getRate(RATE_XP);
-
-	xp = temp;
-	}
-	}
-	else
-	{
-	if(getConColor(AttackerLvl, VictimLvl) == 0)
-	{
-	return (uint32)0;
-	}
-	else
-	{
-	if(AttackerLvl < PLAYER_LEVEL_CAP)
-	temp = (((AttackerLvl * 5) + 45) * (1 - (AttackerLvl - VictimLvl)/ZD[AttackerLvl]));
-	else
-	temp = (((AttackerLvl * 5) + 45) * (1 - (AttackerLvl - VictimLvl)/17));
-	if( temp < 0 )
-	temp = 0;
-	else
-	temp *= sWorld.getRate(RATE_XP);
-
-	xp = temp;
-	}
-	}
-
-	if(victimI)
-	{
-	switch(victimI->Rank)
-	{
-	case 0: // normal mob
-	break;
-	case 1: // elite
-	xp *= 1.5f;
-	break;
-	case 2: // rare elite
-	xp *= 3.0f;
-	break;
-	case 3: // world boss
-	xp *= 10.0f;
-	break;
-	default:	// rare or higher
-	xp *= 7.0f;
-	break;
-	}
-	}
-
-	return (uint32)(xp);*/
 }
 
 //Taken from WoWWoW Source

@@ -258,13 +258,17 @@ enum MOD_TYPES
     SPELL_AURA_REDUCE_ATTACKER_CRICTICAL_HIT_CHANCE_PCT = 197,
     SPELL_AURA_198 = 198,
     SPELL_AURA_INCREASE_SPELL_HIT_PCT = 199,
-    SPELL_AURA_CANNOT_BE_DODGED = 201,
+	SPELL_AURA_MOD_XP_PCT = 200,
+    SPELL_AURA_ALLOW_FLIGHT = 201,
     SPELL_AURA_FINISHING_MOVES_CANNOT_BE_DODGED = 202,
     SPELL_AURA_REDUCE_ATTACKER_CRICTICAL_HIT_DAMAGE_MELEE_PCT = 203,
     SPELL_AURA_REDUCE_ATTACKER_CRICTICAL_HIT_DAMAGE_RANGED_PCT = 204,
     SPELL_AURA_ENABLE_FLIGHT = 206,
     SPELL_AURA_ENABLE_FLIGHT2 = 207,
     SPELL_AURA_ENABLE_FLIGHT_WITH_UNMOUNTED_SPEED = 208,
+	SPELL_AURA_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS = 209,
+	SPELL_AURA_MOD_VEHICLE_SPEED_ALWAYS = 210,
+	SPELL_AURA_MOD_FLIGHT_SPEED_NOT_STACK = 211,
     SPELL_AURA_MOD_RANGED_ATTACK_POWER_BY_STAT_PCT = 212,
     SPELL_AURA_INCREASE_RAGE_FROM_DAMAGE_DEALT_PCT = 213,
     SPELL_AURA_INCREASE_CASTING_TIME_PCT = 216,
@@ -328,7 +332,7 @@ enum MOD_TYPES
     SPELL_AURA_288 = 288,
     SPELL_AURA_289 = 289,
     SPELL_AURA_290 = 290,
-    SPELL_AURA_291 = 291,
+    SPELL_AURA_MOD_XP_QUEST_PCT = 291,
     SPELL_AURA_292 = 292,
     SPELL_AURA_293 = 293,
     SPELL_AURA_294 = 294,
@@ -716,7 +720,6 @@ class SERVER_DECL Aura : public EventableObject
 		void SpellAuraReduceCritMeleeAttackDmg(bool apply);
 		void SpellAuraReduceCritRangedAttackDmg(bool apply);
 		void SpellAuraEnableFlight(bool apply);
-		void SpellAuraEnableFlightWithUnmountedSpeed(bool apply);
 		void SpellAuraIncreaseRageFromDamageDealtPCT(bool apply);
 		void SpellAuraIncreaseFlightSpeed(bool apply);
 		void SpellAuraIncreaseMovementAndMountedSpeed(bool apply);
@@ -733,6 +736,7 @@ class SERVER_DECL Aura : public EventableObject
 		void SpellAuraIncreaseRAPbyStatPct(bool apply);
 		//void SpellAuraModRangedDamageTakenPCT(bool apply);
 		void SpellAuraModBlockValue(bool apply);
+		void SpellAuraModExperinceGain(bool apply);
 		void SpellAuraAllowFlight(bool apply);
 		void SpellAuraFinishingMovesCannotBeDodged(bool apply);
 		void SpellAuraExpertise(bool apply);
@@ -767,6 +771,7 @@ class SERVER_DECL Aura : public EventableObject
 		void SpellAuraReflectSpellsInfront(bool apply);
 		void SpellAuraCallStabledPet(bool apply);
 		void SpellAuraConvertRune(bool apply);
+		void SpellAuraPreventResurrection(bool apply);
 		void UpdateAuraModDecreaseSpeed();
 
 		void SendModifierLog(int32** m, int32 v, uint32* mask, uint8 type, bool pct = false);

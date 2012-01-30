@@ -379,12 +379,7 @@ void QuestMgr::BuildOfferReward(WorldPacket* data, Quest* qst, Object* qst_giver
 	}
 
 	*data << uint32(0);
-	uint32 xp = 0;
-	if(plr->getLevel() < plr->GetMaxLevel())
-	{
-		xp = float2int32(GenerateQuestXP(plr, qst) * sWorld.getRate(RATE_QUESTXP));
-	}
-	*data << uint32(xp); //VLack: The quest will give you this amount of XP
+	*data << uint32(plr->getLevel() < plr->GetMaxLevel() ? GenerateQuestXP(plr, qst) : 0); //VLack: The quest will give you this amount of XP
 
 	*data << (qst->bonushonor * 10);
 	*data << float(0);
@@ -556,18 +551,14 @@ void QuestMgr::BuildRequestItems(WorldPacket* data, Quest* qst, Object* qst_give
 
 void QuestMgr::BuildQuestComplete(Player* plr, Quest* qst)
 {
-	uint32 xp ;
+	uint32 xp = 0;
 	uint32 currtalentpoints = plr->GetCurrentTalentPoints();
 	uint32 rewardtalents = qst->rewardtalents;
 	uint32 playerlevel = plr->getLevel();
 
-	if(playerlevel >= plr->GetMaxLevel())
+	if(playerlevel <= plr->GetMaxLevel())
 	{
-		xp = 0;
-	}
-	else
-	{
-		xp = float2int32(GenerateQuestXP(plr, qst) * sWorld.getRate(RATE_QUESTXP));
+		xp = GenerateQuestXP(plr, qst);
 		plr->GiveXP(xp, 0, false);
 	}
 
@@ -1522,16 +1513,13 @@ uint32 QuestMgr::GenerateQuestXP(Player* plr, Quest* qst)
 {
 	if(qst->is_repeatable != 0)
 		return 0;
-
+	uint32 exp = qst->reward_xp;
 	// Leaving this for compatibility reason for the old system + custom quests ^^
 	if(qst->reward_xp != 0)
 	{
 		float modifier = 0.0f;
 		uint32 playerlevel = plr->getLevel();
 		int32 questlevel = qst->questlevel;
-
-		if(static_cast< int32 >(playerlevel) < (questlevel + 6))
-			return qst->reward_xp;
 
 		if(static_cast< int32 >(playerlevel) > (questlevel +  9))
 			return 0;
@@ -1549,7 +1537,7 @@ uint32 QuestMgr::GenerateQuestXP(Player* plr, Quest* qst)
 			modifier = 0.2f;
 
 
-		return static_cast< uint32 >(modifier * qst->reward_xp);
+		exp = static_cast< uint32 >(modifier * qst->reward_xp);
 
 	}
 	else
@@ -1622,54 +1610,20 @@ uint32 QuestMgr::GenerateQuestXP(Player* plr, Quest* qst)
 
 			realXP = static_cast< uint32 >(Arcemu::round(static_cast< double >(rawXP)));
 		}
-		return realXP;
+		exp = realXP;
 	}
+	if(plr->HasAuraWithName(SPELL_AURA_MOD_XP_QUEST_PCT))
+	{
+		float questexpmodpct = float(plr->GetTotalAuraModifer(SPELL_AURA_MOD_XP_QUEST_PCT, true) / 100.0f);
+		exp += (exp * questexpmodpct);
+	}
+	return exp * sWorld.getRate(RATE_QUESTXP);
 }
 
 uint32 QuestMgr::GenerateRewardMoney(Player* plr, Quest* qst)
 {
-//	if ( plr == NULL || !plr->IsInWorld() || plr->getLevel() >= plr->GetUInt32Value(PLAYER_FIELD_MAX_LEVEL) || ( !plr->GetSession()->HasFlag( ACCOUNT_FLAG_XPACK_01 ) && plr->getLevel() != 60 ) || plr->getLevel() != 70 || qst->is_repeatable != 0 )
-	{
-		return qst->reward_money;
-	}
-//	else
-	{
-//		return qst->reward_money + float2int32( GenerateQuestXP( plr, qst ) * sWorld.getRate( RATE_QUESTXP ) ) * 6;
-	}
+	return qst->reward_money;
 }
-/*
-#define XP_INC 50
-#define XP_DEC 10
-#define XP_INC100 15
-#define XP_DEC100 5
-	double xp, pxp, mxp, mmx;
-
-	// hack fix
-	xp  = qst->max_level * XP_INC;
-	if(xp <= 0)
-		xp = 1;
-
-	pxp  = xp + (xp / 100) * XP_INC100;
-
-	xp   = XP_DEC;
-
-	mxp  = xp + (xp / 100) * XP_DEC100;
-
-	mmx = (pxp - mxp);
-
-	if(qst->quest_flags & QUEST_FLAG_SPEAKTO)
-		mmx *= 0.6;
-	if(qst->quest_flags & QUEST_FLAG_TIMED)
-		mmx *= 1.1;
-	if(qst->quest_flags & QUEST_FLAG_EXPLORATION)
-		mmx *= 1.2;
-
-	if(mmx < 0)
-		return 1;
-
-	mmx *= sWorld.getRate(RATE_QUESTXP);
-	return (int)mmx;*/
-
 
 void QuestMgr::SendQuestInvalid(INVALID_REASON reason, Player* plyr)
 {

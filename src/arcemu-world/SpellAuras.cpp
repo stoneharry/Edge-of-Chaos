@@ -222,7 +222,7 @@ pSpellAura SpellAuraHandler[TOTAL_SPELL_AURAS] =
 	&Aura::SpellAuraModAttackerCritChance,//197 Apply Aura: Reduce Attacker Critical Hit Chance by %
 	&Aura::SpellAuraIncreaseAllWeaponSkill,//198
 	&Aura::SpellAuraIncreaseHitRate,//199 Apply Aura: Increases Spell % To Hit (Fire, Nature, Frost)
-	&Aura::SpellAuraNULL,//200 // Increases experience earned by $s1%.  Lasts $d.
+	&Aura::SpellAuraModExperinceGain,//200 Implemented in CalculateXpToGive
 	&Aura::SpellAuraAllowFlight,//SPELL_AURA_FLY 201 isn't it same like 206 and 207?
 	&Aura::SpellAuraFinishingMovesCannotBeDodged,//202 // Finishing moves cannot be dodged - 32601, 44452
 	&Aura::SpellAuraReduceCritMeleeAttackDmg,//203 Apply Aura: Reduces Attacker Critical Hit Damage with Melee by %
@@ -230,10 +230,10 @@ pSpellAura SpellAuraHandler[TOTAL_SPELL_AURAS] =
 	&Aura::SpellAuraNULL,//205 // "School" Vulnerability
 	&Aura::SpellAuraEnableFlight,//206 // Take flight on a worn old carpet. - Spell 43343
 	&Aura::SpellAuraEnableFlight,//207 set fly mod flight speed?
-	&Aura::SpellAuraEnableFlightWithUnmountedSpeed,//208 mod flight speed?
-	&Aura::SpellAuraNULL,//209  // mod flight speed?
-	&Aura::SpellAuraNULL,//210	// commentator's command - spell 42009
-	&Aura::SpellAuraIncreaseFlightSpeed,//211
+	&Aura::SpellAuraEnableFlight,//208 mod flight speed?
+	&Aura::SpellAuraEnableFlight,//209  // mod flight speed?
+	&Aura::SpellAuraEnableFlight,//210	// commentator's command - spell 42009
+	&Aura::SpellAuraEnableFlight,//211
 	&Aura::SpellAuraIncreaseRAPbyStatPct,//SPELL_AURA_MOD_RANGED_ATTACK_POWER_BY_STAT_PCT //212 Apply Aura: Increase Ranged Atk Power by % of stat
 	&Aura::SpellAuraIncreaseRageFromDamageDealtPCT, //213 Apply Aura: Increase Rage from Damage Dealt by %
 	&Aura::SpellAuraNULL,//214 // Tamed Pet Passive (DND)
@@ -313,7 +313,7 @@ pSpellAura SpellAuraHandler[TOTAL_SPELL_AURAS] =
 	&Aura::SpellAuraNULL,//288 not used by any spells (3.09) except 1 test spell.
 	&Aura::SpellAuraNULL,//289 unused
 	&Aura::SpellAuraNULL,//290 unused
-	&Aura::SpellAuraNULL,//291 unused
+	&Aura::SpellAuraModExperinceGain,//291 SPELL_AURA_MOD_XP_QUEST_PCT 
 	&Aura::SpellAuraCallStabledPet,//292 call stabled pet
 	&Aura::SpellAuraNULL,//293 2 test spells
 	&Aura::SpellAuraNULL,//294 2 spells, possible prevent mana regen
@@ -336,7 +336,7 @@ pSpellAura SpellAuraHandler[TOTAL_SPELL_AURAS] =
 	&Aura::SpellAuraNULL,//311
 	&Aura::SpellAuraNULL,//312
 	&Aura::SpellAuraNULL,//313
-	&Aura::SpellAuraNULL,//314
+	&Aura::SpellAuraPreventResurrection,//314
 	&Aura::SpellAuraNULL,//315
 	&Aura::SpellAuraNULL //316
 
@@ -2697,7 +2697,7 @@ void Aura::SpellAuraModStealth(bool apply)
 
 		m_target->SetFlag(UNIT_FIELD_BYTES_1, 0x020000);
 		if(m_target->IsPlayer())
-			m_target->SetFlag(PLAYER_FIELD_BYTES2, 0x2000);
+			m_target->SetByteFlag(PLAYER_FIELD_BYTES2, 3, PLAYER_FIELD_BYTE2_STEALTH);
 
 		m_target->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_STEALTH | AURA_INTERRUPT_ON_INVINCIBLE);
 		m_target->m_stealthLevel += mod->m_amount;
@@ -2791,7 +2791,7 @@ void Aura::SpellAuraModStealth(bool apply)
 
 			if(p_target != NULL)
 			{
-				p_target->RemoveFlag(PLAYER_FIELD_BYTES2, 0x2000);
+				p_target->SetByteFlag(PLAYER_FIELD_BYTES2, 3, PLAYER_FIELD_BYTE2_STEALTH);
 				p_target->SendSpellCooldownEvent(m_spellProto->Id);
 
 				if(p_target->m_outStealthDamageBonusPeriod && p_target->m_outStealthDamageBonusPct)
@@ -3429,39 +3429,11 @@ void Aura::SpellAuraModDecreaseSpeed(bool apply)
 			if(m_target->IsPlayer() && caster)
 				TO< Unit* >(m_target)->EventChill(caster, true);
 		}
-		m_target->speedReductionMap.insert(make_pair(m_spellProto->Id, mod->m_amount));
 		//m_target->m_slowdown=this;
 		//m_target->m_speedModifier += mod->m_amount;
 	}
-	else if((m_flags & (1 << mod->i)) == 0)   //add these checks to mods where immunity can cancel only 1 mod and not whole spell
-	{
-		map< uint32, int32 >::iterator itr = m_target->speedReductionMap.find(m_spellProto->Id);
-		if(itr != m_target->speedReductionMap.end())
-			m_target->speedReductionMap.erase(itr);
-		//m_target->m_speedModifier -= mod->m_amount;
-		//m_target->m_slowdown= NULL;
-	}
-	if(GetCaster() && GetCaster()->IsPlayer())
-	{
-		Player *p = TO< Player*>(GetCaster());
-		if(p->GetSession()->HasGMPermissions())
-		{
-			float speedmod_before = m_target->m_speedModifier;
-			float speed_before = m_target->m_runSpeed;
-			float slowdown_before = m_target->m_slowdown;
-			p->GetSpeedDecrease();
-			p->UpdateSpeed();
-			float slowdown = m_target->m_slowdown;
-			float speedmod = m_target->m_speedModifier;
-			float speed = m_target->m_runSpeed;
-			p->BroadcastMessage("SpeedMod Before: %f, Speed Before: %f, Slowdown After: %f, SpeedMod After: %f, Speed After: %f, Slowdown After: %f", speedmod_before, speed_before, slowdown_before, speedmod, speed, slowdown);
-		}
-	}
-	else
-	{
-		if(m_target->GetSpeedDecrease())
-			m_target->UpdateSpeed();
-	}
+	m_target->GetSpeedDecrease();
+	m_target->UpdateSpeed();
 }
 
 void Aura::UpdateAuraModDecreaseSpeed()
@@ -5739,11 +5711,10 @@ void Aura::SpellAuraPreventsFleeing(bool apply)
 
 void Aura::SpellAuraModUnattackable(bool apply)
 {
-	/*
-			Also known as Apply Aura: Mod Unintractable
-			Used by: Spirit of Redemption, Divine Intervention, Phase Shift, Flask of Petrification
-			It uses one of the UNIT_FIELD_FLAGS, either UNIT_FLAG_NOT_SELECTABLE or UNIT_FLAG_NOT_ATTACKABLE_2
-	*/
+	if(apply)
+		m_target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_2);
+	else
+		m_target->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_2);
 }
 
 void Aura::SpellAuraInterruptRegen(bool apply)
@@ -8963,4 +8934,15 @@ void Aura::SpellAuraMirrorImage2(bool apply)
 			m_target->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 2, GetCaster()->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 2));
 		}
 	}
+}
+
+void Aura::SpellAuraPreventResurrection(bool apply)
+{
+	if(m_target == NULL || !m_target->IsPlayer())
+		return;
+
+	if(apply)
+		m_target->RemoveByteFlag(PLAYER_FIELD_BYTES, 0, PLAYER_FIELD_BYTE_RELEASE_TIMER);
+	else
+		m_target->SetByteFlag(PLAYER_FIELD_BYTES, 0, PLAYER_FIELD_BYTE_RELEASE_TIMER);
 }
