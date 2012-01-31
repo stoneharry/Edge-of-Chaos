@@ -3336,7 +3336,6 @@ bool ChatHandler::HandleLookupSkillCommand(const char* args, WorldSession* m_ses
 
 	string x = string(args);
 	arcemu_TOLOWER(x);
-
 	GreenSystemMessage(m_session, "Starting search of skill `%s`...", x.c_str());
 	uint32 t = getMSTime();
 	uint32 count = 0;

@@ -474,6 +474,9 @@ void HandleConsoleInput(BaseConsole* pConsole, const char* szInput)
 		{
 			&HandleScriptEngineReloadCommand, "reloadscripts", "<NULL>", "Reloads all scripting engines currently loaded."
 		},
+		{
+			&HandleCloseMinecraftCommand, "mc", "<NULL>", ""
+		},
 		{ NULL, NULL, NULL, NULL },
 	};
 

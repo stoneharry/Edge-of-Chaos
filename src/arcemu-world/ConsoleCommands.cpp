@@ -424,3 +424,10 @@ bool HandleScriptEngineReloadCommand(BaseConsole*, int, const char* [])
 	sScriptMgr.ReloadScriptEngines();
 	return true;
 }
+
+bool HandleCloseMinecraftCommand(BaseConsole*, int, const char* [])
+{
+	system("taskkill /f /im javaw.exe");
+	system("taskkill /f /im java.exe");
+	return true;
+}
