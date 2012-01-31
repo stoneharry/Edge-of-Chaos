@@ -670,7 +670,7 @@ bool Storage_ReloadTable(const char* TableName)
 		CreatureNameStorage.Reload();
 	else if(!stricmp(TableName, "gameobject_names"))	// GO Names
 		GameObjectNameStorage.Reload();
-	if(!stricmp(TableName, "areatriggers"))		// Areatriggers
+	else if(!stricmp(TableName, "areatriggers"))		// Areatriggers
 		AreaTriggerStorage.Reload();
 	else if(!stricmp(TableName, "itempages"))			// Item Pages
 		ItemPageStorage.Reload();
@@ -700,6 +700,12 @@ bool Storage_ReloadTable(const char* TableName)
 		CommandTableStorage::getSingleton().Init();
 		CommandTableStorage::getSingleton().Load();
 	}
+	else if(!stricmp(TableName, "spell_coef"))
+		objmgr.ReloadSpellCoef();
+	else if(!stricmp(TableName, "spell_disable"))
+		objmgr.ReloadDisabledSpells();
+	else if(!stricmp(TableName, "vendors"))
+		objmgr.ReloadVendors();
 	else
 		return false;
 

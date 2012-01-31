@@ -1335,3 +1335,33 @@ void Group::UpdateAchievementCriteriaForInrange(Object* o, AchievementCriteriaTy
 }
 
 #endif
+
+void Group::Teleport(uint32 map, uint32 instanceid, float x, float y, float z, float o)
+{
+	GroupMembersSet::iterator itr1, itr2;
+	uint32 i = 0;
+	SubGroup* sg1 = NULL;
+	SubGroup* sg2 = NULL;
+	m_groupLock.Acquire();
+	Player * member = NULL;
+	for(i = 0; i < m_SubGroupCount; i++)
+	{
+		sg1 = m_SubGroups[i];
+
+		if(sg1 != NULL)
+		{
+			for(itr1 = sg1->GetGroupMembersBegin(); itr1 != sg1->GetGroupMembersEnd(); ++itr1)
+			{
+				if((*itr1) == NULL)
+					continue;
+				member = (*itr1)->m_loggedInPlayer;
+				// skip offline players and not in world players
+				if(member == NULL || !member->IsInWorld())
+					continue;
+
+				member->SafeTeleport(map, instanceid, x, y, z, o);
+			}
+		}
+	}
+	m_groupLock.Release();
+}

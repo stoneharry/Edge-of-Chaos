@@ -185,6 +185,7 @@ class SERVER_DECL CommandTableStorage : public Singleton<CommandTableStorage>
 		ChatCommand* _arenaCommandTable;
 		ChatCommand* _achievementCommandTable;
 		ChatCommand* _vehicleCommandTable;
+		ChatCommand* _groupCommandTable;
 		ChatCommand* _commandTable;
 
 		ChatCommand* GetSubCommandTable(const char* name);
@@ -465,6 +466,7 @@ class SERVER_DECL ChatHandler : public Singleton<ChatHandler>
 		bool HandleCastCommand(const char* args, WorldSession* m_session);
 		bool HandleCastBackCommand(const char* args, WorldSession* m_session);
 		bool HandleCastAOECommand(const char* args, WorldSession* m_session);
+		bool HandleCastSelfCommand(const char* args, WorldSession* m_session);
 		bool HandleParalyzeCommand(const char* args, WorldSession* m_session);
 		bool HandleUnParalyzeCommand(const char* args, WorldSession* m_session);
 		bool HandleSetMotdCommand(const char* args, WorldSession* m_session);
@@ -628,12 +630,17 @@ class SERVER_DECL ChatHandler : public Singleton<ChatHandler>
 		bool HandleAchievementCriteriaCommand(const char* args, WorldSession* m_session);
 		bool HandleAchievementResetCommand(const char* args, WorldSession* m_session);
 #endif
-		bool HandleReloadSpellCoefCommand(const char *args, WorldSession *m_session);
 		bool HandleVehicleEjectPassengerCommand( const char *args, WorldSession *session );
 		bool HandleVehicleEjectAllPassengersCommand( const char *args, WorldSession *session );
 		bool HandleVehicleInstallAccessoriesCommand( const char *args, WorldSession *session );
 		bool HandleVehicleRemoveAccessoriesCommand( const char *args, WorldSession *session );
 		bool HandleVehicleAddPassengerCommand( const char *args, WorldSession *session );
+		bool HandleVehicleEnterCommand( const char *args, WorldSession *m_session );
+		// Groups
+		bool HandleGroupAddMemberCommand( const char *args, WorldSession *session );
+		bool HandleGroupRemoveMemberCommand( const char *args, WorldSession *session );
+		bool HandleGroupDisbandCommand( const char *args, WorldSession *session );
+		bool HandleGroupTeleportCommand( const char *args, WorldSession *session );
 };
 
 

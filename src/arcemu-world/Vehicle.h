@@ -263,8 +263,10 @@ public:
 	//
 	//
 	////////////////////////////////////////////////////////////////////////
-	void AddPassengerToSeat( Unit *passenger, uint32 seatid );
+	void AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force = false );
 
+
+	bool AddPassengerToSeatIfCan( Unit *passenger, uint32 seatid, bool force );
 
 	/////////////////////////////////////////////////////////////////////////
 	//void EjectPassenger( Unit *passenger )

@@ -83,6 +83,8 @@ ChatCommand* CommandTableStorage::GetSubCommandTable(const char* name)
 		return _achievementCommandTable;
 	else if(!stricmp(name, "vehicle"))
 		return _vehicleCommandTable;
+	else if(!stricmp(name, "group"))
+		return _groupCommandTable;
 	return 0;
 }
 
@@ -222,6 +224,7 @@ void CommandTableStorage::Dealloc()
 	free(_arenaCommandTable);
 	free(_achievementCommandTable);
 	free(_vehicleCommandTable);
+	free(_groupCommandTable);
 	free(_commandTable);
 }
 
@@ -703,10 +706,22 @@ void CommandTableStorage::Init()
 		{ "installaccessories",   'm', &ChatHandler::HandleVehicleInstallAccessoriesCommand, "Installs the accessories for the selected vehicle", NULL, 0, 0, 0 },
 		{ "removeaccessories",    'm', &ChatHandler::HandleVehicleRemoveAccessoriesCommand,  "Removes the accessories of the selected vehicle",   NULL, 0, 0, 0 },
 		{ "addpassenger",         'm', &ChatHandler::HandleVehicleAddPassengerCommand,       "Adds a new NPC passenger to the vehicle",           NULL, 0, 0, 0 },
+		{ "enter",         'm', &ChatHandler::HandleVehicleEnterCommand,       "Enters a targeted vehicle with specified seatid and can be forced into the seat.",           NULL, 0, 0, 0 },
 		{ NULL,                   '0', NULL,                                                 "",                                                  NULL, 0, 0, 0 }
 	};
 
 	dupe_command_table(vehicleCommandTable, _vehicleCommandTable);
+
+	static ChatCommand groupCommandTable[] = 
+	{
+		{ "addmember",			  'm', &ChatHandler::HandleGroupAddMemberCommand,     "Add targeted player to x's group.",      NULL, 0, 0, 0 },
+		{ "removemember",   'm', &ChatHandler::HandleGroupRemoveMemberCommand, "Remove targeted player or x from their group.",            NULL, 0, 0, 0 },
+		{ "disband",   'm', &ChatHandler::HandleGroupDisbandCommand, "Disband targeted or x's group.", NULL, 0, 0, 0 },
+		{ "teleport",    'm', &ChatHandler::HandleGroupTeleportCommand,  "Teleport targeted player or x's group to your location.",   NULL, 0, 0, 0 },
+		{ NULL,                   '0', NULL,                                                 "",                                                  NULL, 0, 0, 0 }
+	};
+
+	dupe_command_table(groupCommandTable, _groupCommandTable);
 
 	static ChatCommand commandTable[] =
 	{
@@ -761,8 +776,9 @@ void CommandTableStorage::Init()
 		{ "clearcooldowns",  'm', &ChatHandler::HandleClearCooldownsCommand,                "Clears all cooldowns for your class.",                                                                                                    NULL,                     0, 0, 0 },
 		{ "removeauras",     'm', &ChatHandler::HandleRemoveAurasCommand,                   "Removes a single or all auras from target",                                                                                                           NULL,                     0, 0, 0 },
 		{ "cast",			 'm', &ChatHandler::HandleCastCommand,							"Casts specified spell onto target. <spell id> <triggered.",                                                                                                           NULL,                     0, 0, 0 },
-		{ "castback",     'm', &ChatHandler::HandleCastBackCommand,                   "Forces target to cast spell back at you. <Spell id> <triggered>",                                                                                                           NULL,                     0, 0, 0 },
-		{ "castaoe",     'm', &ChatHandler::HandleCastAOECommand,                   "Casts an aoe spell at the inputed cords. <spell id> <x y z> <triggered>.",                                                                                                           NULL,                     0, 0, 0 },
+		{ "castback",		 'm', &ChatHandler::HandleCastBackCommand,						"Forces target to cast spell back at you. <Spell id> <triggered>",                                                                                                           NULL,                     0, 0, 0 },
+		{ "castaoe",		 'm', &ChatHandler::HandleCastAOECommand,						"Casts an aoe spell at the inputed cords. <spell id> <x y z> <triggered>.",                                                                                                           NULL,                     0, 0, 0 },
+		{ "cast",			 'm', &ChatHandler::HandleCastSelfCommand,						"Forces target to cast specified spell on self. <spell id> <triggered.",                                                                                                           NULL,                     0, 0, 0 },
 		{ "paralyze",        'b', &ChatHandler::HandleParalyzeCommand,                      "Roots/Paralyzes the target.",                                                                                                             NULL,                     0, 0, 0 },
 		{ "unparalyze",      'b', &ChatHandler::HandleUnParalyzeCommand,                    "Unroots/Unparalyzes the target.",                                                                                                         NULL,                     0, 0, 0 },
 		{ "gotrig",          'v', &ChatHandler::HandleTriggerCommand,                       "Warps to areatrigger <id>",                                                                                                               NULL,                     0, 0, 0 },
@@ -774,7 +790,8 @@ void CommandTableStorage::Init()
 		{ "achieve",         '0', NULL,                                                     "",                                                                                                                                        achievementCommandTable,  0, 0, 0 },
 		{ "multikick",		 'b', &ChatHandler::HandleMultiKickCommand,						"kicks multiple people.",			NULL, 0, 0, 0 },
 		{ "vehicle",         'm', NULL,                                                     "",                                                                                                                                        vehicleCommandTable,      0, 0, 0 },
-		{ "taxi",			'b', &ChatHandler::HandleStartTaxiCommand,						"Force starts a taxi of the id specificed.",			NULL, 0, 0, 0 },
+		{ "group",			 'm', NULL,                                                     "",                                                                                                                                        groupCommandTable,      0, 0, 0 },
+		{ "taxi",			 'b', &ChatHandler::HandleStartTaxiCommand,						"Force starts a taxi of the id specificed.",			NULL, 0, 0, 0 },
 		{ NULL,              '0', NULL,                                                     "",                                                                                                                                        NULL,                     0, 0, 0 }
 	};
 	dupe_command_table(commandTable, _commandTable);

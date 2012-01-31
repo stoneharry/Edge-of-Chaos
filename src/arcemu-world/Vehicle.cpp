@@ -113,11 +113,42 @@ void Vehicle::AddPassenger( Unit *passenger ){
 	AddPassengerToSeat( passenger, seatid );
 }
 
-void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid ){
-	if( seats[ seatid ]->HasPassenger() )
-		return;
+bool Vehicle::AddPassengerToSeatIfCan( Unit *passenger, uint32 seatid, bool force )
+{
+	uint32 addseat = MAX_VEHICLE_SEATS;
+	if(force)
+	{
+		for( uint32 i = 0; i < MAX_VEHICLE_SEATS; i++ )
+			if( seats[ i ] != NULL)
+			{
+				if(seatid != 0 && i != seatid)
+					continue;
+				addseat = i;
+				break;
+			}
+	}
+	if(!force)
+	{
+		for( uint32 i = 0; i < MAX_VEHICLE_SEATS; i++ )
+			if( ( seats[ i ] != NULL ) && seats[ i ]->Usable() && ( !seats[ i ]->HasPassenger() ) )
+			{
+				addseat = i;
+				break;
+			}
+	}
 
-	if( !seats[ seatid ]->Usable() )
+	AddPassengerToSeat(passenger, addseat, force);
+}
+
+void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
+{
+	if(force)
+	{
+		if(seats[ seatid ]->HasPassenger())
+			EjectPassengerFromSeat(seatid);
+	}
+
+	if( !force && !seats[ seatid ]->Usable() )
 		return;
 
 	passenger->RemoveAllAuraType( SPELL_AURA_MOUNTED );
@@ -146,11 +177,8 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid ){
 
 	passenger->SetPosition( v, false );
 
-	// Player's client sets these
-	if( passenger->IsCreature() ){
-		passenger->transporter_info.guid = owner->GetGUID();
-		passenger->transporter_info.seat = seatid;
-	}
+	passenger->transporter_info.guid = owner->GetGUID();
+	passenger->transporter_info.seat = seatid;
 
 	if( passenger->IsPlayer() ){
 		WorldPacket ack( SMSG_CONTROL_VEHICLE, 0);

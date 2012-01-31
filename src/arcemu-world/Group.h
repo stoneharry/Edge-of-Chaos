@@ -251,7 +251,7 @@ class SERVER_DECL Group
 #ifdef ENABLE_ACHIEVEMENTS
 		void UpdateAchievementCriteriaForInrange(Object* o, AchievementCriteriaTypes type, int32 miscvalue1, int32 miscvalue2, uint32 time);
 #endif
-
+		void Teleport(uint32 map, uint32 instanceid, float x, float y, float z, float o = 0.0f);
 	protected:
 		PlayerInfo* m_Leader;
 		PlayerInfo* m_Looter;

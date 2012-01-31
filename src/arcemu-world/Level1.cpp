@@ -1544,6 +1544,38 @@ bool ChatHandler::HandleVehicleAddPassengerCommand(const char *args, WorldSessio
 	return true;
 }
 
+bool ChatHandler::HandleVehicleEnterCommand(const char *args, WorldSession *m_session)
+{
+	uint32 seatid, forced = 0;
+	if(sscanf(args, "%u %u", &seatid, &forced) != 2)
+		return false;
+
+
+
+	Unit *u = getSelectedUnit(m_session, false);
+	if( u == NULL )
+	{
+		RedSystemMessage( m_session, "You need to select a vehicle." );
+		return false;
+	}
+
+	if( u->GetVehicleComponent() == NULL )
+	{
+		RedSystemMessage( m_session, "You need to select a vehicle." );
+		return false;
+	}
+
+	if( !u->GetVehicleComponent()->HasEmptySeat() )
+	{
+		RedSystemMessage( m_session, "That vehicle has no more empty seats." );
+		return false;
+	}
+	
+	u->GetVehicleComponent()->AddPassengerToSeatIfCan(m_session->GetPlayer(), seatid, forced >= 1);
+
+	return true;
+}
+
 bool ChatHandler::HandleStartTaxiCommand(const char *args, WorldSession *m_session)
 {
 	uint32 taxiid = 0;
@@ -1551,9 +1583,17 @@ bool ChatHandler::HandleStartTaxiCommand(const char *args, WorldSession *m_sessi
 	if(p == NULL)
 		p = m_session->GetPlayer();
 	taxiid = atoi((char*)args);
+	DBCTaxiPath* path = dbcTaxiPath.LookupRowForced(taxiid);
+
+	if(path == NULL)
+	{
+		RedSystemMessage(m_session,"%u not found in the TaxiPath.dbc", taxiid);
+		return true;
+	}
+
 	TaxiPath* taxipath = sTaxiMgr.GetTaxiPath(taxiid);
 
-	if(!taxipath)
+	if(taxipath == NULL)
 	{
 		RedSystemMessage(m_session,"%u is an invalid taxi.", taxiid);
 		return true;
@@ -1561,7 +1601,7 @@ bool ChatHandler::HandleStartTaxiCommand(const char *args, WorldSession *m_sessi
 
 	TaxiNode* taxinode = sTaxiMgr.GetTaxiNode(taxipath->GetSourceNode());
 
-	if(!taxinode)
+	if(taxinode == NULL)
 	{
 		RedSystemMessage(m_session,"Unable to fix taxi node for taxi %u.", taxiid);
 		return true;

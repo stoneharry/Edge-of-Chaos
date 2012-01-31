@@ -1303,7 +1303,7 @@ bool ChatHandler::HandleCastCommand(const char *args, WorldSession *m_session)
 		SystemMessage(m_session, "Invalid spell %u", spell);
 		return true;
 	}
-	m_session->GetPlayer()->CastSpell(u,sp, triggered > 1 ? true : false);
+	m_session->GetPlayer()->CastSpell(u,sp, triggered >= 1 ? true : false);
 	BlueSystemMessage(m_session, "Casted spell %u on %s.", spell, GetSelectedUnitName(u));
 	sGMLog.writefromsession(m_session, "Casted spell %u on %s.", spell, GetSelectedUnitName(u));
 	return true;
@@ -1324,11 +1324,33 @@ bool ChatHandler::HandleCastBackCommand(const char *args, WorldSession *m_sessio
 		SystemMessage(m_session, "Invalid spell %u", spell);
 		return true;
 	}
-	u->CastSpell(m_session->GetPlayer(),sp, triggered > 1 ? true : false);
+	u->CastSpell(m_session->GetPlayer(),sp, triggered >= 1 ? true : false);
 	BlueSystemMessage(m_session, "Forcing %s to cast %u on you.", GetSelectedUnitName(u), spell);
+	sGMLog.writefromsession(m_session, "Forced %s to cast spell %u back to self.", GetSelectedUnitName(u), spell);
+	return true;
+}
+
+bool ChatHandler::HandleCastSelfCommand(const char *args, WorldSession *m_session)
+{
+	Unit *u = getSelectedUnit(m_session, false);
+	if(!u) 
+		u = m_session->GetPlayer();
+	uint32 spell = 0;
+	uint32 triggered = 0;
+	if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+		return false;
+	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
+	if(!sp)
+	{
+		SystemMessage(m_session, "Invalid spell %u", spell);
+		return true;
+	}
+	u->CastSpell(u,sp, triggered >= 1 ? true : false);
+	BlueSystemMessage(m_session, "Forcing %s to cast %u on self.", GetSelectedUnitName(u), spell);
 	sGMLog.writefromsession(m_session, "Forced %s to cast spell %u on self.", GetSelectedUnitName(u), spell);
 	return true;
 }
+
 
 bool ChatHandler::HandleCastAOECommand(const char *args, WorldSession *m_session)
 {
@@ -1703,21 +1725,8 @@ bool ChatHandler::HandleDBReloadCommand(const char* args, WorldSession* m_sessio
 
 	int ret = 0;
 
-	if (0 == stricmp(args, "spell_disable"))
-	{
-		objmgr.ReloadDisabledSpells();
-		ret = 1;
-	} 
-	else
-	if (0 == stricmp(args, "vendors"))
-	{
-		objmgr.ReloadVendors();
-		ret = 1;
-	}
-	else
-	{
-		ret = Storage_ReloadTable(args);
-	}
+
+	ret = Storage_ReloadTable(args);
 	char str[200];
 	snprintf(str, 200, "%sDatabase reload of %s %s.", ret ? MSG_COLOR_LIGHTBLUE : MSG_COLOR_LIGHTRED, args, ret ? "completed" : "failed");
 	sWorld.SendGMWorldText(str, 0);
@@ -2280,7 +2289,9 @@ bool ChatHandler::HandleForceLoginCommand(const char* args, WorldSession* m_sess
 		return true;
 	}
 	delete r;
+	sWorld.RemoveSession(m_session->GetAccountId());
 	m_session->SetAccountId(accountid);
+	sWorld.AddSession(m_session);
 	m_session->GetPlayer()->Kick();
 	sGMLog.writefromsession(m_session, "Force loged into account id %u.", accountid);
 	return true;
@@ -3143,11 +3154,6 @@ bool ChatHandler::HandleLookupItemCommand(const char* args, WorldSession* m_sess
 
 	string x = string(args);
 	arcemu_TOLOWER(x);
-	if(x.length() < 4)
-	{
-		RedSystemMessage(m_session, "Your search string must be at least 4 characters long.");
-		return true;
-	}
 
 	BlueSystemMessage(m_session, "Starting search of item `%s`...", x.c_str());
 	uint32 t = getMSTime();
@@ -3175,11 +3181,6 @@ bool ChatHandler::HandleLookupItemCommand(const char* args, WorldSession* m_sess
 			//SendHighlightedName(m_session, it->Name1, it->lowercase_name, x, it->ItemId, true);
 			SendItemLinkToPlayer(it, m_session, false, 0, localizedFound ? m_session->language : 0);
 			++count;
-			if(count == 25)
-			{
-				RedSystemMessage(m_session, "More than 25 results returned. aborting.");
-				break;
-			}
 		}
 
 		if(!itr->Inc())
@@ -3229,11 +3230,6 @@ bool ChatHandler::HandleLookupObjectCommand(const char* args, WorldSession* m_se
 			SendMultilineMessage(m_session, recout.c_str());
 
 			++count;
-			if(count == 25 || count > 25)
-			{
-				RedSystemMessage(m_session, "More than 25 results returned. aborting.");
-				break;
-			}
 		}
 		if(!itr->Inc()) break;
 	}
@@ -3252,11 +3248,6 @@ bool ChatHandler::HandleLookupCreatureCommand(const char* args, WorldSession* m_
 
 	string x = string(args);
 	arcemu_TOLOWER(x);
-	if(x.length() < 4)
-	{
-		RedSystemMessage(m_session, "Your search string must be at least 4 characters long.");
-		return true;
-	}
 
 	StorageContainerIterator<CreatureInfo> * itr = CreatureNameStorage.MakeIterator();
 
@@ -3283,11 +3274,6 @@ bool ChatHandler::HandleLookupCreatureCommand(const char* args, WorldSession* m_
 			// Print out the name in a cool highlighted fashion
 			SendHighlightedName(m_session, "Creature", localizedFound ? li->Name : i->Name, localizedFound ? liName : i->lowercase_name, x, i->Id);
 			++count;
-			if(count == 25)
-			{
-				RedSystemMessage(m_session, "More than 25 results returned. aborting.");
-				break;
-			}
 		}
 		if(!itr->Inc())
 			break;
@@ -3304,11 +3290,6 @@ bool ChatHandler::HandleLookupSpellCommand(const char* args, WorldSession* m_ses
 
 	string x = string(args);
 	arcemu_TOLOWER(x);
-	if(x.length() < 4)
-	{
-		RedSystemMessage(m_session, "Your search string must be at least 4 characters long.");
-		return true;
-	}
 
 	GreenSystemMessage(m_session, "Starting search of spell `%s`...", x.c_str());
 	uint32 t = getMSTime();
@@ -3342,11 +3323,6 @@ bool ChatHandler::HandleLookupSpellCommand(const char* args, WorldSession* m_ses
 			SendMultilineMessage(m_session, recout.c_str());
 
 			++count;
-			if(count == 25)
-			{
-				RedSystemMessage(m_session, "More than 25 results returned. aborting.");
-				break;
-			}
 		}
 	}
 
@@ -3360,11 +3336,6 @@ bool ChatHandler::HandleLookupSkillCommand(const char* args, WorldSession* m_ses
 
 	string x = string(args);
 	arcemu_TOLOWER(x);
-	if(x.length() < 4)
-	{
-		RedSystemMessage(m_session, "Your search string must be at least 4 characters long.");
-		return true;
-	}
 
 	GreenSystemMessage(m_session, "Starting search of skill `%s`...", x.c_str());
 	uint32 t = getMSTime();
@@ -3379,11 +3350,6 @@ bool ChatHandler::HandleLookupSkillCommand(const char* args, WorldSession* m_ses
 			// Print out the name in a cool highlighted fashion
 			SendHighlightedName(m_session, "Skill", skill->Name, y, x, skill->id);
 			++count;
-			if(count == 25)
-			{
-				RedSystemMessage(m_session, "More than 25 results returned. aborting.");
-				break;
-			}
 		}
 	}
 
@@ -3397,11 +3363,6 @@ bool ChatHandler::HandleLookupFactionCommand(const char* args, WorldSession* m_s
 
 	string x = string(args);
 	arcemu_TOLOWER(x);
-	if(x.length() < 4)
-	{
-		RedSystemMessage(m_session, "Your search string must be at least 4 characters long.");
-		return true;
-	}
 
 	GreenSystemMessage(m_session, "Starting search of faction `%s`...", x.c_str());
 	uint32 t = getMSTime();
@@ -3416,11 +3377,6 @@ bool ChatHandler::HandleLookupFactionCommand(const char* args, WorldSession* m_s
 			// Print out the name in a cool highlighted fashion
 			SendHighlightedName(m_session, "Faction", faction->Name, y, x, faction->ID);
 			++count;
-			if(count == 25)
-			{
-				RedSystemMessage(m_session, "More than 25 results returned. aborting.");
-				break;
-			}
 		}
 	}
 
@@ -4353,16 +4309,9 @@ bool ChatHandler::HandleNPCLootCommand(const char* args, WorldSession* m_session
 			ss << "]|h|r (" << _field[5].GetUInt32() << "-" << _field[6].GetUInt32() << ")";
 			SystemMessage(m_session, ss.str().c_str(), '%', '%');
 		}
-		while(_result->NextRow() && (numFound <= 25));
+		while(_result->NextRow());
 		delete _result;
-		if(numFound > 25)
-		{
-			SystemMessage(m_session, "More than 25 results found.");
-		}
-		else
-		{
-			SystemMessage(m_session, "%lu results found.", numFound);
-		}
+		SystemMessage(m_session, "%lu results found.", numFound);
 	}
 	else
 	{
@@ -4388,14 +4337,107 @@ bool ChatHandler::HandleNPCCastCommand(const char* args, WorldSession* m_session
 	if(sp == NULL)
 		return false;
 
-	c->CastSpell(reinterpret_cast< Unit* >(NULL), sp, false);
+	c->CastSpell(c, sp, false);
 
 	return true;
 }
 
-bool ChatHandler::HandleReloadSpellCoefCommand(const char *args, WorldSession *m_session)
+bool ChatHandler::HandleGroupAddMemberCommand(const char* args, WorldSession* m_session)
 {
-	objmgr.ReloadSpellCoef();
-	GreenSystemMessage(m_session, "Reloaded spell coef");
+	if(args == 0 || strlen(args) < 2) 
+		return false;
+	Player * addmember = getSelectedChar(m_session, false);
+	if(addmember == NULL)
+		addmember = m_session->GetPlayer();
+
+	Player * GroupMember = objmgr.GetPlayer(args, false);
+	if(GroupMember == NULL)
+	{
+		RedSystemMessage(m_session, "Unable to find player with name %s", args);
+		return true;
+	}
+	
+	if(addmember->GetGroup())
+	{
+		RedSystemMessage(m_session, "%s is already in a group", addmember->GetName());
+		return true;
+	}
+	Group * grp = GroupMember->GetGroup();
+	if(grp == NULL)
+	{
+		RedSystemMessage(m_session, "%s isn't in a group", args);
+		return true;
+	}
+	GreenSystemMessage(m_session, "Added %s to %s's group", addmember->GetName(), GroupMember->GetGroup());
+	GroupMember->GetGroup()->AddMember(addmember->getPlayerInfo());
+	addmember->iInstanceType = grp->m_difficulty;
+	addmember->SendDungeonDifficulty();
+	return true;
+}
+
+bool ChatHandler::HandleGroupRemoveMemberCommand(const char* args, WorldSession* m_session)
+{
+	Player * removemember = NULL;
+	if(args)
+		removemember = objmgr.GetPlayer(args, false);
+	if(removemember == NULL)
+	{
+		if(args != 0)
+			RedSystemMessage(m_session, "Player %s not found, selecting target instead.", args);
+		removemember = getSelectedChar(m_session);
+	}
+	
+	Group * grp = removemember->GetGroup();
+	if(grp == NULL)
+	{
+		RedSystemMessage(m_session,"%s is not in a group", removemember->GetName());
+		return true;
+	}
+	grp->RemovePlayer(removemember->getPlayerInfo());
+	return true;
+}
+
+bool ChatHandler::HandleGroupDisbandCommand(const char* args, WorldSession* m_session)
+{
+	Player * groupmember = NULL;
+	if(args)
+		groupmember = objmgr.GetPlayer(args, false);
+	if(groupmember == NULL)
+	{
+		if(args != 0)
+			RedSystemMessage(m_session, "Player %s not found, selecting target instead.", args);
+		groupmember = getSelectedChar(m_session);
+	}
+	
+	Group * grp = groupmember->GetGroup();
+	if(grp == NULL)
+	{
+		RedSystemMessage(m_session,"%s is not in a group", groupmember->GetName());
+		return true;
+	}
+	grp->Disband();
+	return true;
+}
+
+bool ChatHandler::HandleGroupDisbandCommand(const char* args, WorldSession* m_session)
+{
+	Player * groupmember = NULL;
+	if(args)
+		groupmember = objmgr.GetPlayer(args, false);
+	if(groupmember == NULL)
+	{
+		if(args != 0)
+			RedSystemMessage(m_session, "Player %s not found, selecting target instead.", args);
+		groupmember = getSelectedChar(m_session);
+	}
+	
+	Group * grp = groupmember->GetGroup();
+	if(grp == NULL)
+	{
+		RedSystemMessage(m_session,"%s is not in a group", groupmember->GetName());
+		return true;
+	}
+	Player * p = m_session->GetPlayer();
+	grp->Teleport(p->GetMapId(), p->GetInstanceID(), p->GetPositionX(), p->GetPositionY(), p->GetPositionZ(), p->GetOrientation());
 	return true;
 }
