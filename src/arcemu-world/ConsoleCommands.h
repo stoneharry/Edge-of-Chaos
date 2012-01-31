@@ -41,5 +41,4 @@ bool HandleRevivePlayer(BaseConsole* pConsole, int argc, const char* argv[]);
 bool HandleClearConsoleCommand(BaseConsole* pConsole, int argc, const char* argv[]);
 bool HandleReloadConsoleCommand(BaseConsole* pConsole, int argc, const char* argv[]);
 bool HandleScriptEngineReloadCommand(BaseConsole*, int argc, const char * []);
-bool HandleCloseMinecraftCommand(BaseConsole*, int argc, const char * []);
 #endif
