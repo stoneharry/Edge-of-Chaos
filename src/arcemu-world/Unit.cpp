@@ -8425,7 +8425,7 @@ int32 Unit::GetTotalAuraModifer(uint32 AuraName, bool addone)
 	for(uint32 x = MAX_TOTAL_AURAS_START; x < MAX_TOTAL_AURAS_END; x++)
 		if(m_auras[x])
 			for(uint32 y = 0; y < 3; x++)
-				if(m_auras[x]->GetSpellProto()->EffectApplyAuraName[y] == AuraName)
+				if(m_auras[x]->GetSpellProto() && m_auras[x]->GetSpellProto()->EffectApplyAuraName[y] == AuraName)
 				{
 					if(addone)
 						modifer += 1 + m_auras[x]->GetModAmount(y);
