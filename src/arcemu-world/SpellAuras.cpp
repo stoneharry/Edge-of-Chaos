@@ -276,7 +276,7 @@ pSpellAura SpellAuraHandler[TOTAL_SPELL_AURAS] =
 	&Aura::SpellAuraNULL,//251  Mod Enemy Dodge
 	&Aura::SpellAuraNULL,//252 Reduces the target's ranged, melee attack, and casting speed by X pct for Y sec.
 	&Aura::SpellAuraBlockMultipleDamage,//253 SPELL_AURA_BLOCK_MULTIPLE_DAMAGE
-	&Aura::SpellAuraNULL,//254
+	&Aura::SpellAuraModDisarm,//254 SPELL_AURA_MOD_DISARM_OFFHAND
 	&Aura::SpellAuraModMechanicDmgTakenPct, //255 SPELL_AURA_MOD_MECHANIC_DAMAGE_TAKEN_PERCENT
 	&Aura::SpellAuraRemoveReagentCost,//256 Remove reagent cost
 	&Aura::SpellAuraNULL,//257 Mod Target Resist By Spell Class ( does damage in the form of X damage, ignoring all resistances, absorption, and immunity mechanics. - http://thottbot.com/s47271 )
@@ -300,7 +300,7 @@ pSpellAura SpellAuraHandler[TOTAL_SPELL_AURAS] =
 	&Aura::SpellAuraIgnoreShapeshift,//275 Ignore unit states
 	&Aura::SpellAuraNULL,//276 Mod Damage % Mechanic
 	&Aura::SpellAuraNULL,//277 SPELL_AURA_REDIRECT_THREAT or SPELL_AURA_MOD_MAX_AFFECTED_TARGETS ?
-	&Aura::SpellAuraNULL,//278 Mod Disarm Ranged
+	&Aura::SpellAuraModDisarm,//278 SPELL_AURA_MOD_DISARM_RANGED
 	&Aura::SpellAuraMirrorImage2,//279 Modify models(?)
 	&Aura::SpellAuraModIgnoreArmorPct,//280 SPELL_AURA_IGNORE_ARMOR_PCT
 	&Aura::SpellAuraNULL,//281 Mod Honor gain increased by X pct. Final Reward Honor increased by X pct for Y Rank and above. (http://thottbot.com/s58560 && http://thottbot.com/s58557)
@@ -4952,21 +4952,41 @@ void Aura::SpellAuraFeignDeath(bool apply)
 
 void Aura::SpellAuraModDisarm(bool apply)
 {
+	uint32 field, flag;
+	switch(mod->m_type)
+	{
+		case SPELL_AURA_MOD_DISARM:
+			field = UNIT_FIELD_FLAGS;
+			flag = UNIT_FLAG_DISARMED;
+			break;
+		case SPELL_AURA_MOD_DISARM_OFFHAND:
+			field = UNIT_FIELD_FLAGS_2;
+			flag = UNIT_FLAG2_DISARM_OFFHAND;
+			break;
+		case SPELL_AURA_MOD_DISARM_RANGED:
+			field = UNIT_FIELD_FLAGS_2;
+			flag = UNIT_FLAG2_DISARM_RANGED;
+			break;
+		default:
+			return;
+	}
+
 	if(apply)
 	{
-		if(p_target != NULL && p_target->IsInFeralForm()) return;
+		if(p_target != NULL && p_target->IsInFeralForm())
+			return;
 
 		SetNegative();
 
 		m_target->disarmed = true;
 		m_target->m_special_state |= UNIT_STATE_DISARMED;
-		m_target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED);
+		m_target->SetFlag(field, flag);
 	}
 	else
 	{
 		m_target->disarmed = false;
 		m_target->m_special_state &= ~UNIT_STATE_DISARMED;
-		m_target->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_DISARMED);
+		m_target->RemoveFlag(field, flag);
 	}
 }
 
@@ -8611,26 +8631,9 @@ void Aura::SpellAuraModAttackPowerOfArmor(bool apply)
 	m_target->CalcDamage();
 }
 
-void Aura::SpellAuraReflectSpellsInfront(bool apply)
+void Aura::SpellAuraDeflectSpells(bool apply)
 {
-	m_target->RemoveReflect(GetSpellId(), apply);
-
-	if(apply)
-	{
-		SpellEntry* sp = dbcSpell.LookupEntry(GetSpellId());
-		if(sp == NULL)
-			return;
-
-		ReflectSpellSchool* rss = new ReflectSpellSchool;
-		rss->chance = mod->m_amount;
-		rss->spellId = GetSpellId();
-		rss->school = -1;
-		rss->require_aura_hash = 0;
-		rss->charges = 0;
-		rss->infront = true;
-
-		m_target->m_reflectSpellSchool.push_back(rss);
-	}
+	//Currently used only by Detterence and handled in Spell::DidHit
 }
 
 void Aura::SpellAuraPhase(bool apply)

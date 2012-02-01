@@ -904,7 +904,7 @@ void Spell::SpellEffectTeleportUnits(uint32 i)    // Teleport Units
 		if(unitTarget == m_caster)
 		{
 			/* try to get a selection */
-			unitTarget = m_caster->GetMapMgr()->GetUnit(p_caster->GetSelection());
+			unitTarget = m_caster->GetMapMgr()->GetUnit(m_targets.m_unitTarget);
 			if((!unitTarget) || !isAttackable(p_caster, unitTarget, !(GetProto()->c_is_flags & SPELL_FLAG_IS_TARGETINGSTEALTHED)) || (unitTarget->CalcDistance(p_caster) > 28.0f))
 			{
 				return;
@@ -3715,13 +3715,12 @@ void Spell::SpellEffectInterruptCast(uint32 i) // Interrupt Cast
 		// Check for CastingTime (to prevent interrupting instant casts), PreventionType
 		// and InterruptFlags of target's casting spell
 		if(school
-			&& TargetSpell->getState() == SPELL_STATE_CASTING
-			|| (TargetSpell->getState() == SPELL_STATE_PREPARING && TargetSpell->GetProto()->CastingTimeIndex > 0.0f)
+			&& (TargetSpell->getState() == SPELL_STATE_CASTING
+			|| (TargetSpell->getState() == SPELL_STATE_PREPARING && TargetSpell->GetProto()->CastingTimeIndex > 0))
 			&& TargetSpell->GetProto()->PreventionType == PREVENTION_TYPE_SILENCE
-			&& (TargetSpell->GetProto()->InterruptFlags & CAST_INTERRUPT_ON_INTERRUPT_SCHOOL)
-			|| (TargetSpell->GetProto()->ChannelInterruptFlags & CHANNEL_INTERRUPT_ON_4 ))
+			&& ((TargetSpell->GetProto()->InterruptFlags & CAST_INTERRUPT_ON_INTERRUPT_SCHOOL)
+			|| (TargetSpell->GetProto()->ChannelInterruptFlags & CHANNEL_INTERRUPT_ON_4 )))
 		{
-
 			if(unitTarget->IsPlayer())
 			{
 				// Check for interruption reducing talents
@@ -3731,7 +3730,7 @@ void Spell::SpellEffectInterruptCast(uint32 i) // Interrupt Cast
 
 				// Prevent player from casting in that school
 				TO_PLAYER(unitTarget)->SendPreventSchoolCast(school, duration);
- 			}
+			}
 			else
 				// Prevent unit from casting in that school
 				unitTarget->SchoolCastPrevent[school] = duration + getMSTime();
@@ -3740,7 +3739,6 @@ void Spell::SpellEffectInterruptCast(uint32 i) // Interrupt Cast
 		}
 	}
 }
-
 void Spell::SpellEffectDistract(uint32 i) // Distract
 {
 	//spellId 1725 Distract:Throws a distraction attracting the all monsters for ten sec's

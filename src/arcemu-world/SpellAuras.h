@@ -295,7 +295,7 @@ enum MOD_TYPES
     SPELL_AURA_MOD_ENEMY_DODGE = 251,
     SPELL_AURA_252 = 252,
     SPELL_AURA_BLOCK_MULTIPLE_DAMAGE = 253,
-    SPELL_AURA_254 = 254,
+    SPELL_AURA_MOD_DISARM_OFFHAND = 254,
     SPELL_AURA_MOD_MECHANIC_DAMAGE_TAKEN_PERCENT = 255,
     SPELL_AURA_256 = 256,
     SPELL_AURA_257 = 257,
@@ -319,7 +319,7 @@ enum MOD_TYPES
     SPELL_AURA_275 = 275,
     SPELL_AURA_276 = 276,
     SPELL_AURA_277 = 277,
-    SPELL_AURA_278 = 278,
+    SPELL_AURA_MOD_DISARM_RANGED = 278,
     SPELL_AURA_279 = 279,
     SPELL_AURA_IGNORE_ARMOR_PCT = 280,
     SPELL_AURA_281 = 281,
@@ -328,7 +328,7 @@ enum MOD_TYPES
     SPELL_AURA_284 = 284,
     SPELL_AURA_MOD_ATTACK_POWER_OF_ARMOR = 285,
     SPELL_AURA_ALLOW_DOT_TO_CRIT = 286,
-    SPELL_AURA_REFLECT_INFRONT = 287,
+    SPELL_AURA_DEFLECT_SPELLS = 287,
     SPELL_AURA_288 = 288,
     SPELL_AURA_289 = 289,
     SPELL_AURA_290 = 290,
@@ -768,7 +768,7 @@ class SERVER_DECL Aura : public EventableObject
 		void SpellAuraModIgnoreArmorPct(bool apply);
 		void SpellAuraModBaseHealth(bool apply);
 		void SpellAuraModAttackPowerOfArmor(bool apply);
-		void SpellAuraReflectSpellsInfront(bool apply);
+		void SpellAuraDeflectSpells(bool apply);
 		void SpellAuraCallStabledPet(bool apply);
 		void SpellAuraConvertRune(bool apply);
 		void SpellAuraPreventResurrection(bool apply);
