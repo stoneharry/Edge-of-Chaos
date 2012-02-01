@@ -1264,7 +1264,45 @@ enum Opcodes
     CMSG_WORLD_STATE_UI_TIMER_UPDATE                = 0x4F6,	// implemented
     SMSG_WORLD_STATE_UI_TIMER_UPDATE                = 0x4F7,	// implemented
 	CMSG_CHAR_RACE_CHANGE                           = 0x4F8,	// TODO: Not implemented
-    NUM_MSG_TYPES                                   = 0x4F9,	// max msg number
+    MSG_VIEW_PHASE_SHIFT                            = 0x4F9,
+    SMSG_TALENTS_INVOLUNTARILY_RESET                = 0x4FA, // uint8
+    CMSG_DEBUG_SERVER_GEO                           = 0x4FB,
+    SMSG_DEBUG_SERVER_GEO                           = 0x4FC,
+    SMSG_LOOT_SLOT_CHANGED                          = 0x4FD,
+    UMSG_UPDATE_GROUP_INFO                          = 0x4FE,
+    CMSG_READY_FOR_ACCOUNT_DATA_TIMES               = 0x4FF,
+    CMSG_QUERY_QUESTS_COMPLETED                     = 0x500,
+    SMSG_QUERY_QUESTS_COMPLETED_RESPONSE            = 0x501,
+    CMSG_GM_REPORT_LAG                              = 0x502,
+    CMSG_AFK_MONITOR_INFO_REQUEST                   = 0x503,
+    SMSG_AFK_MONITOR_INFO_RESPONSE                  = 0x504,
+    CMSG_AFK_MONITOR_INFO_CLEAR                     = 0x505,
+    SMSG_CORPSE_NOT_IN_INSTANCE                     = 0x506,
+    CMSG_GM_NUKE_CHARACTER                          = 0x507,
+    CMSG_SET_ALLOW_LOW_LEVEL_RAID1                  = 0x508,
+    CMSG_SET_ALLOW_LOW_LEVEL_RAID2                  = 0x509,
+    SMSG_CAMERA_SHAKE                               = 0x50A, // uint32 SpellEffectCameraShakes.dbc index, uint32
+    SMSG_UPDATE_ITEM_ENCHANTMENTS                   = 0x50B, // some item update packet?
+    CMSG_SET_CHARACTER_MODEL                        = 0x50C,
+    SMSG_REDIRECT_CLIENT                            = 0x50D, // uint32 ip, uint16 port, uint32 unk, uint8[20] hash (ip + port, seed=sessionkey)
+    CMSG_REDIRECTION_FAILED                         = 0x50E, // something with networking
+    SMSG_SUSPEND_COMMS                              = 0x50F,
+    CMSG_SUSPEND_COMMS_ACK                          = 0x510,
+    SMSG_FORCE_SEND_QUEUED_PACKETS                  = 0x511,
+    CMSG_REDIRECTION_AUTH_PROOF                     = 0x512,
+    CMSG_DROP_NEW_CONNECTION                        = 0x513,
+    SMSG_SEND_ALL_COMBAT_LOG                        = 0x514,
+    SMSG_OPEN_LFG_DUNGEON_FINDER                    = 0x515,
+    SMSG_MOVE_SET_COLLISION_HGT                     = 0x516,
+    CMSG_MOVE_SET_COLLISION_HGT_ACK                 = 0x517,
+    MSG_MOVE_SET_COLLISION_HGT                      = 0x518,
+    CMSG_CLEAR_RANDOM_BG_WIN_TIME                   = 0x519,
+    CMSG_CLEAR_HOLIDAY_BG_WIN_TIME                  = 0x51A,
+    CMSG_COMMENTATOR_SKIRMISH_QUEUE_COMMAND         = 0x51B,
+    SMSG_COMMENTATOR_SKIRMISH_QUEUE_RESULT1         = 0x51C,
+    SMSG_COMMENTATOR_SKIRMISH_QUEUE_RESULT2         = 0x51D,
+    SMSG_COMPRESSED_UNKNOWN_1310                    = 0x51E, // some compressed packet?
+    NUM_MSG_TYPES                                   = 0x51F
 };
 
 enum FriendsResult

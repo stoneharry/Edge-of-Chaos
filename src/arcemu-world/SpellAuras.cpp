@@ -5225,7 +5225,7 @@ void Aura::SpellAuraMounted(bool apply)
 			if(p_target->GetShapeShift() && !(p_target->GetShapeShift() & (FORM_BATTLESTANCE | FORM_DEFENSIVESTANCE | FORM_BERSERKERSTANCE)) && p_target->m_ShapeShifted != m_spellProto->Id)
 				p_target->RemoveAura(p_target->m_ShapeShifted);
 			p_target->DismissActivePets();
-
+			p_target->SetCollisionHeight(true);
 			p_target->mountvehicleid = cp->vehicleid;
 
 			if( p_target->mountvehicleid != 0 )
@@ -5247,24 +5247,28 @@ void Aura::SpellAuraMounted(bool apply)
 	}
 	else
 	{
-		if(p_target && p_target->GetVehicleComponent() != NULL )
+		if(p_target)
 		{
-			p_target->RemoveFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PLAYER_VEHICLE );
-			p_target->RemoveFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT );
+			p_target->SetCollisionHeight(false);
+			if(p_target && p_target->GetVehicleComponent() != NULL )
+			{
+				p_target->RemoveFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PLAYER_VEHICLE );
+				p_target->RemoveFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT );
 
-			p_target->GetVehicleComponent()->RemoveAccessories();
-			p_target->GetVehicleComponent()->EjectAllPassengers();
+				p_target->GetVehicleComponent()->RemoveAccessories();
+				p_target->GetVehicleComponent()->EjectAllPassengers();
 
-			WorldPacket data( SMSG_PLAYER_VEHICLE_DATA, 12 );
-			data << p_target->GetNewGUID();
-			data << uint32( 0 );
-			p_target->SendMessageToSet( &data, true );
+				WorldPacket data( SMSG_PLAYER_VEHICLE_DATA, 12 );
+				data << p_target->GetNewGUID();
+				data << uint32( 0 );
+				p_target->SendMessageToSet( &data, true );
 
-			p_target->RemoveVehicleComponent();
-			p_target->mountvehicleid = 0;
-			p_target->m_MountSpellId = 0;
-			p_target->flying_aura = 0;
-			p_target->SpawnActivePet();
+				p_target->RemoveVehicleComponent();
+				p_target->mountvehicleid = 0;
+				p_target->m_MountSpellId = 0;
+				p_target->flying_aura = 0;
+				p_target->SpawnActivePet();
+			}
 		}
 
 		m_target->SetMount(0);

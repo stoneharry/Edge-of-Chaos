@@ -2467,6 +2467,8 @@ class SERVER_DECL Player : public Unit
 		void PlaySound(uint32 sound_id);
 
 		void SendGuildMOTD();
+		void SetCollisionHeight(bool mounted);
+		float GetCollisionHeight(bool mounted);
 		/************************************************************************/
 		/* SOCIAL                                                               */
 		/************************************************************************/

@@ -92,6 +92,8 @@ SERVER_DECL DBCStorage< LFGDungeonEntry > dbcLFGDungeon;
 SERVER_DECL DBCStorage< VehicleEntry > dbcVehicle;
 SERVER_DECL DBCStorage< VehicleSeatEntry > dbcVehicleSeat;
 SERVER_DECL DBCStorage<DestructibleModelDataEntry> dbcDestructibleModelDataEntry;
+SERVER_DECL DBCStorage< CreatureDisplayInfoEntry > dbcCreatureDisplayInfoEntry;
+SERVER_DECL DBCStorage< CreatureModelDataEntry > dbcCreatureModelDataEntry;
 
 const char* WorldMapOverlayStoreFormat = "nxiiiixxxxxxxxxxx";
 const char* BarberShopStyleEntryFormat = "nxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxi";
@@ -346,6 +348,8 @@ const char* summonpropertiesformat = "uuuuuu";
 const char* namegenentryformat = "usuu";
 const char* LFGDungeonEntryformat = "nxxxxxxxxxxxxxxxxxiiiiiiixixxixixxxxxxxxxxxxxxxxx";
 const char* DestructibleModelDataFormat = "uxxuxxxuxxxuxxxuxxx";
+const char* CreatureDisplayInfoFormat = "nixxfxxxxxxxxxxx";
+const char* CreatureModelDataFormat ="nxxxfxxxxxxxxxxffxxxxxxxxxxx";
 
 template<class T>
 bool loader_stub(const char* filename, const char* format, bool ind, T & l, bool loadstrs)
@@ -430,5 +434,7 @@ bool LoadDBCs()
 	LOAD_DBC( "DBC/Vehicle.dbc", VehicleEntryfmt, true, dbcVehicle, true );
 	LOAD_DBC( "DBC/VehicleSeat.dbc", VehicleSeatEntryfmt, true, dbcVehicleSeat, false );
 	LOAD_DBC( "DBC/DestructibleModelData.dbc", DestructibleModelDataFormat, true, dbcDestructibleModelDataEntry, false);
+	LOAD_DBC( "DBC/CreatureDisplayInfo.dbc", CreatureDisplayInfoFormat, true, dbcCreatureDisplayInfoEntry, false);
+	LOAD_DBC( "DBC/CreatureModelData.dbc", CreatureModelDataFormat, true, dbcCreatureModelDataEntry, false);
 	return true;
 }

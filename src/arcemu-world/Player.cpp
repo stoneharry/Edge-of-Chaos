@@ -13769,3 +13769,37 @@ void Player::AddComboPoints(uint64 target, int8 count)
 	}
 	UpdateComboPoints();
 }
+
+void Player::SetCollisionHeight(bool mounted)
+{
+	WorldPacket data(SMSG_MOVE_SET_COLLISION_HGT, sizeof(GetNewGUID()) + 4 + 4);
+	data << GetNewGUID();
+	data << uint32(0);   // Packet counter
+	data << GetCollisionHeight(mounted);
+	SendPacket(&data);
+}
+
+float Player::GetCollisionHeight(bool mounted)
+{
+    if (mounted)
+    {
+		CreatureDisplayInfoEntry const* mountDisplayInfo = dbcCreatureDisplayInfoEntry.LookupEntry(GetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID));
+		if (!mountDisplayInfo)
+		    return GetCollisionHeight(false);
+
+		CreatureModelDataEntry const* mountModelData = dbcCreatureModelDataEntry.LookupEntry(mountDisplayInfo->ModelId);
+		if (!mountModelData)
+		    return GetCollisionHeight(false);
+
+		CreatureDisplayInfoEntry const* displayInfo = dbcCreatureDisplayInfoEntry.LookupEntry(GetNativeDisplayId());
+		CreatureModelDataEntry const* modelData = dbcCreatureModelDataEntry.LookupEntry(displayInfo->ModelId);
+		float scaleMod = GetFloatValue(OBJECT_FIELD_SCALE_X); // 99% sure about this
+		return scaleMod * mountModelData->MountHeight + modelData->CollisionHeight * 0.5f;
+	}
+	else
+	{
+		CreatureDisplayInfoEntry const* displayInfo = dbcCreatureDisplayInfoEntry.LookupEntry(GetNativeDisplayId());
+		CreatureModelDataEntry const* modelData = dbcCreatureModelDataEntry.LookupEntry(displayInfo->ModelId);
+		return modelData->CollisionHeight;
+	}
+}

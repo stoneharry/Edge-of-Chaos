@@ -1861,6 +1861,46 @@ struct DestructibleModelDataEntry
 	}
 };
 
+struct CreatureDisplayInfoEntry
+{
+    uint32      Displayid;                                  // 0        m_ID
+    uint32      ModelId;                                    // 1        m_modelID
+                                                            // 2        m_soundID
+                                                            // 3        m_extendedDisplayInfoID
+    float       scale;                                      // 4        m_creatureModelScale
+                                                            // 5        m_creatureModelAlpha
+                                                            // 6-8      m_textureVariation[3]
+                                                            // 9        m_portraitTextureName
+                                                            // 10       m_sizeClass
+                                                            // 11       m_bloodID
+                                                            // 12       m_NPCSoundID
+                                                            // 13       m_particleColorID
+                                                            // 14       m_creatureGeosetData
+                                                            // 15       m_objectEffectPackageID
+};
+
+struct CreatureModelDataEntry
+{
+    uint32 Id;
+    //uint32 Flags;
+    //char* ModelPath[16]
+    //uint32 Unk1;
+    float Scale;                                             // Used in calculation of unit collision data
+    //int32 Unk2
+    //int32 Unk3
+    //uint32 Unk4
+    //uint32 Unk5
+    //float Unk6
+    //uint32 Unk7
+    //float Unk8
+    //uint32 Unk9
+    //uint32 Unk10
+    //float CollisionWidth;
+    float CollisionHeight;
+    float MountHeight;                                       // Used in calculation of unit collision data when mounted
+    //float Unks[11]
+};
+
 #pragma pack(pop)
 
 ARCEMU_INLINE float GetRadius(SpellRadius* radius)
@@ -2250,6 +2290,8 @@ extern SERVER_DECL DBCStorage< LFGDungeonEntry > dbcLFGDungeon;
 extern SERVER_DECL DBCStorage< VehicleEntry > dbcVehicle;
 extern SERVER_DECL DBCStorage< VehicleSeatEntry > dbcVehicleSeat;
 extern SERVER_DECL DBCStorage< DestructibleModelDataEntry > dbcDestructibleModelDataEntry;
+extern SERVER_DECL DBCStorage< CreatureDisplayInfoEntry > dbcCreatureDisplayInfoEntry;
+extern SERVER_DECL DBCStorage< CreatureModelDataEntry > dbcCreatureModelDataEntry;
 
 bool LoadDBCs();
 
