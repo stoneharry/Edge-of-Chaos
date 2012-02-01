@@ -517,6 +517,11 @@ void Spell::SpellEffectInstantKill(uint32 i)
 	//instant kill effects don't have a log
 	//m_caster->SpellNonMeleeDamageLog(unitTarget, GetProto()->Id, unitTarget->GetHealth(), true);
 	// cebernic: the value of instant kill must be higher than normal health,cuz anti health regenerated.
+	WorldPacket data(SMSG_SPELLINSTAKILLLOG, 8+8+4);
+	data << uint64(m_caster->GetGUID());
+	data << uint64(unitTarget->GetGUID());
+	data << uint32(m_spellInfo->Id);
+	m_caster->SendMessageToSet(&data, true);
 	m_caster->DealDamage(unitTarget, unitTarget->GetUInt32Value(UNIT_FIELD_HEALTH) << 1, 0, 0, 0);
 }
 
