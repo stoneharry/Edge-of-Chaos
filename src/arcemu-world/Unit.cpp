@@ -8422,16 +8422,14 @@ const char* Unit::GetName()
 int32 Unit::GetTotalAuraModifer(uint32 AuraName, bool addone)
 {
 	int32 modifer = 0;
-	for(uint32 x = MAX_TOTAL_AURAS_START; x < MAX_TOTAL_AURAS_END; x++)
-		if(m_auras[x])
-			for(uint32 y = 0; y < 3; x++)
-				if(m_auras[x]->GetSpellProto() && m_auras[x]->GetSpellProto()->EffectApplyAuraName[y] == AuraName)
-				{
-					if(addone)
-						modifer += 1 + m_auras[x]->GetModAmount(y);
-					else
-						modifer = m_auras[x]->GetModAmount(y);
-				}
+	for(uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i)
+	{
+		if(m_auras[ i ] != NULL && m_auras[ i ]->GetSpellProto()->AppliesAura(AuraName))
+			if(addone)
+				modifer += 1 + m_auras[i]->GetModAmount(m_auras[ i ]->GetSpellProto()->GetApplyAura(AuraName));
+			else
+				modifer = m_auras[i]->GetModAmount(m_auras[ i ]->GetSpellProto()->GetApplyAura(AuraName));
+	}
 	return modifer;
 }
 
