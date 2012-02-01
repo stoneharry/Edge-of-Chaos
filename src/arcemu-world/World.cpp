@@ -284,6 +284,7 @@ bool BasicTaskExecutor::run()
 }
 
 void ApplyNormalFixes();
+void ApplyDatabaseFixes();
 
 bool World::SetInitialWorldSettings()
 {
@@ -391,6 +392,7 @@ bool World::SetInitialWorldSettings()
 	new SpellProcMgr;
 
 	ApplyNormalFixes();
+	ApplyDatabaseFixes();
 
 	new SpellFactoryMgr;
 

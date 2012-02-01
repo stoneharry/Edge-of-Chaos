@@ -7098,3 +7098,109 @@ void ApplyNormalFixes()
 		}
 	}
 }
+void ApplyDatabaseFixes()
+{
+	QueryResult * r = WorldDatabase.Query("Select * from spell_dbc");
+	if(r == NULL)
+		return;
+	SpellEntry *sp = NULL;
+	do
+	{
+		Field *f = r->Fetch();
+		sp = CheckAndReturnSpellEntry(f[0].GetUInt32());
+		if(sp)
+		{
+			sp->Attributes = f[1].GetUInt32();
+			sp->AttributesEx = f[2].GetUInt32();
+			sp->AttributesExB = f[3].GetUInt32();
+			sp->AttributesExC = f[4].GetUInt32();
+			sp->AttributesExD = f[5].GetUInt32();
+			sp->AttributesExE = f[6].GetUInt32();
+			sp->AttributesExF = f[7].GetUInt32();
+			sp->InterruptFlags = f[8].GetUInt32();
+			sp->AuraInterruptFlags = f[9].GetUInt32();
+			sp->ChannelInterruptFlags = f[10].GetUInt32();
+			sp->procFlags = f[11].GetUInt32();
+			sp->procCharges = f[12].GetInt32();
+			sp->DurationIndex = f[13].GetUInt32();
+			sp->Effect[0] = f[14].GetUInt32();
+			sp->Effect[1] = f[15].GetUInt32();
+			sp->Effect[2] = f[16].GetUInt32();
+			sp->EffectDieSides[0] = f[18].GetUInt32();
+			sp->EffectDieSides[1] = f[19].GetUInt32();
+			sp->EffectDieSides[2] = f[20].GetUInt32();
+			sp->EffectBasePoints[0] = f[21].GetInt32();
+			sp->EffectBasePoints[1] = f[22].GetInt32();
+			sp->EffectBasePoints[2] = f[23].GetInt32();
+			sp->EffectImplicitTargetA[0] = f[24].GetUInt32();
+			sp->EffectImplicitTargetA[1] = f[25].GetUInt32();
+			sp->EffectImplicitTargetA[2] = f[26].GetUInt32();
+			sp->EffectImplicitTargetB[0] = f[27].GetUInt32();
+			sp->EffectImplicitTargetB[1] = f[28].GetUInt32();
+			sp->EffectImplicitTargetB[2] = f[29].GetUInt32();
+			sp->EffectRadiusIndex[0] = f[30].GetUInt32();
+			sp->EffectRadiusIndex[1] = f[31].GetUInt32();
+			sp->EffectRadiusIndex[2] = f[32].GetUInt32();
+			sp->EffectApplyAuraName[0] = f[33].GetUInt32();
+			sp->EffectApplyAuraName[1] = f[34].GetUInt32();
+			sp->EffectApplyAuraName[2] = f[35].GetUInt32();
+			sp->EffectMiscValue[0] = f[36].GetUInt32();
+			sp->EffectMiscValue[1] = f[37].GetUInt32();
+			sp->EffectMiscValue[2] = f[38].GetUInt32();
+			sp->EffectMiscValueB[0] = f[39].GetUInt32();
+			sp->EffectMiscValueB[1] = f[40].GetUInt32();
+			sp->EffectMiscValueB[2] = f[41].GetUInt32();
+			sp->EffectTriggerSpell[0] = f[42].GetUInt32();
+			sp->EffectTriggerSpell[1] = f[43].GetUInt32();
+			sp->EffectTriggerSpell[2] = f[44].GetUInt32();
+		}
+		else
+		{
+			CreateDummySpell(f[0].GetUInt32());
+			sp = CheckAndReturnSpellEntry(f[0].GetUInt32());
+			sp->Attributes = f[1].GetUInt32();
+			sp->AttributesEx = f[2].GetUInt32();
+			sp->AttributesExB = f[3].GetUInt32();
+			sp->AttributesExC = f[4].GetUInt32();
+			sp->AttributesExD = f[5].GetUInt32();
+			sp->AttributesExE = f[6].GetUInt32();
+			sp->AttributesExF = f[7].GetUInt32();
+			sp->InterruptFlags = f[8].GetUInt32();
+			sp->AuraInterruptFlags = f[9].GetUInt32();
+			sp->ChannelInterruptFlags = f[10].GetUInt32();
+			sp->procFlags = f[11].GetUInt32();
+			sp->procCharges = f[12].GetInt32();
+			sp->DurationIndex = f[13].GetUInt32();
+			sp->Effect[0] = f[14].GetUInt32();
+			sp->Effect[1] = f[15].GetUInt32();
+			sp->Effect[2] = f[16].GetUInt32();
+			sp->EffectDieSides[0] = f[18].GetUInt32();
+			sp->EffectDieSides[1] = f[19].GetUInt32();
+			sp->EffectDieSides[2] = f[20].GetUInt32();
+			sp->EffectBasePoints[0] = f[21].GetInt32();
+			sp->EffectBasePoints[1] = f[22].GetInt32();
+			sp->EffectBasePoints[2] = f[23].GetInt32();
+			sp->EffectImplicitTargetA[0] = f[24].GetUInt32();
+			sp->EffectImplicitTargetA[1] = f[25].GetUInt32();
+			sp->EffectImplicitTargetA[2] = f[26].GetUInt32();
+			sp->EffectImplicitTargetB[0] = f[27].GetUInt32();
+			sp->EffectImplicitTargetB[1] = f[28].GetUInt32();
+			sp->EffectImplicitTargetB[2] = f[29].GetUInt32();
+			sp->EffectRadiusIndex[0] = f[30].GetUInt32();
+			sp->EffectRadiusIndex[1] = f[31].GetUInt32();
+			sp->EffectRadiusIndex[2] = f[32].GetUInt32();
+			sp->EffectApplyAuraName[0] = f[33].GetUInt32();
+			sp->EffectApplyAuraName[1] = f[34].GetUInt32();
+			sp->EffectApplyAuraName[2] = f[35].GetUInt32();
+			sp->EffectMiscValue[0] = f[36].GetUInt32();
+			sp->EffectMiscValue[1] = f[37].GetUInt32();
+			sp->EffectMiscValue[2] = f[38].GetUInt32();
+			sp->EffectMiscValueB[0] = f[39].GetUInt32();
+			sp->EffectMiscValueB[1] = f[40].GetUInt32();
+			sp->EffectMiscValueB[2] = f[41].GetUInt32();
+			sp->EffectTriggerSpell[0] = f[42].GetUInt32();
+			sp->EffectTriggerSpell[1] = f[43].GetUInt32();
+			sp->EffectTriggerSpell[2] = f[44].GetUInt32();
+		}
+	}while(r->NextRow());
+}
