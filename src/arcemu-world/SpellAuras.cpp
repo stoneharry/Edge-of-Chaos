@@ -5203,8 +5203,6 @@ void Aura::SpellAuraMounted(bool apply)
 				p_target->m_bg->HookOnMount(p_target);
 		}
 
-		u_target->RemoveAllAuraType(SPELL_AURA_MOUNTED);
-
 		u_target->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_MOUNT);
 
 		CreatureInfo* ci = CreatureNameStorage.LookupEntry(mod->m_miscValue);
