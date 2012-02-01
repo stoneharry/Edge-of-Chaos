@@ -655,14 +655,14 @@ void WorldSession::InitPacketHandlerTable()
 	    &WorldSession::HandleAcknowledgementOpcodes;
 	WorldPacketHandlers[CMSG_FORCE_MOVE_UNROOT_ACK].handler =
 	    &WorldSession::HandleAcknowledgementOpcodes;
-	WorldPacketHandlers[CMSG_MOVE_KNOCK_BACK_ACK].handler =
-	    &WorldSession::HandleAcknowledgementOpcodes;
 	WorldPacketHandlers[CMSG_MOVE_HOVER_ACK].handler =
 	    &WorldSession::HandleAcknowledgementOpcodes;
 	WorldPacketHandlers[CMSG_MOVE_SET_CAN_FLY_ACK].handler =
 	    &WorldSession::HandleAcknowledgementOpcodes;
 	WorldPacketHandlers[MSG_MOVE_START_DESCEND].handler =
 	    &WorldSession::HandleMovementOpcodes;
+	WorldPacketHandlers[CMSG_MOVE_KNOCK_BACK_ACK].handler =
+		&WorldSession::HandleMoveKnockBackAck;
 
 	WorldPacketHandlers[CMSG_FORCE_FLIGHT_SPEED_CHANGE_ACK].handler =
 	    &WorldSession::HandleAcknowledgementOpcodes;

@@ -928,7 +928,10 @@ void MovementInfo::init(WorldPacket & data)
 	}
 	if(flags & MOVEFLAG_REDIRECTED)
 	{
-		data >> redirectVelocity >> redirectSin >> redirectCos >> redirect2DSpeed;
+		data >> redirectVelocity;
+		data >> redirectSin;
+		data >> redirectCos;
+		data >> redirect2DSpeed;
 	}
 	if(flags & MOVEFLAG_SPLINE_MOVER)
 	{
@@ -970,4 +973,21 @@ void MovementInfo::write(WorldPacket & data)
 	data << unklast;
 	if(unk13)
 		data << unk13;
+}
+
+void WorldSession::HandleMoveKnockBackAck(WorldPacket & recv_data)
+{
+	WoWGuid guid;
+	recv_data >> guid;
+	movement_info.init(recv_data);
+	if(recv_data.rpos() != recv_data.wpos())
+		recv_data.rpos(recv_data.wpos());
+	WorldPacket data(MSG_MOVE_KNOCK_BACK, 66);
+	data.appendPackGUID(guid);
+	movement_info.write(data);
+	data << movement_info.redirectVelocity;
+	data << movement_info.redirectSin;
+	data << movement_info.redirectCos;
+	data << movement_info.redirect2DSpeed;
+	_player->SendMessageToSet(&data, false);
 }

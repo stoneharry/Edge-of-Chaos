@@ -755,6 +755,7 @@ class SERVER_DECL WorldSession
 		void HandleTeleportCheatOpcode(WorldPacket & recv_data);
 		void HandleTeleportToUnitOpcode(WorldPacket & recv_data);
 		void HandleWorldportOpcode(WorldPacket & recv_data);
+		void HandleMoveKnockBackAck(WorldPacket & recv_data);
 		void HandleWrapItemOpcode(WorldPacket & recv_data);
 
 		// VOICECHAT
