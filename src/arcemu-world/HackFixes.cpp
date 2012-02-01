@@ -483,8 +483,8 @@ void ApplyNormalFixes()
 					|| strstr( desc,"chance on spell hit") || strstr( desc,"your spell casts have") || strstr( desc,"chance on spell cast")
 					|| strstr( desc,"your spell casts have") || strstr( desc,"your Fire damage spell hits")
 					|| strstr( desc,"pain, mind flay and vampiric touch spells also cause")
-					|| strstr( desc,"next offensive ability") || strstr( desc,"on successful spellcast")
-					|| strstr( desc,"shadow damage spells have") || strstr( desc,"your next offensive ability")))
+					|| strstr( desc,"on successful spellcast")
+					|| strstr( desc,"shadow damage spells have")))
 					pr |= PROC_ON_CAST_SPELL;
 
 				if((pr & PROC_ON_ANY_DAMAGE_VICTIM) == 0 && (strstr( desc,"any damage caused") || strstr( desc,"when caster takes damage") || strstr( desc,"damage on hit")
@@ -638,11 +638,6 @@ void ApplyNormalFixes()
 		{
 			sp->School = SCHOOL_FROST;
 		}
-		// Blackout handled by Shadow school
-		else if( strstr( sp->Name, "Blackout"))
-		{
-			sp->School = SCHOOL_SHADOW;
-		}
 		//more triggered spell ids are wrong. I think blizz is trying to outsmart us :S
 		//Chain Heal all ranks %50 heal value (49 + 1)
 		else if( strstr( sp->Name, "Chain Heal"))
@@ -682,8 +677,6 @@ void ApplyNormalFixes()
 			sp->procFlags |= PROC_TARGET_SELF;
 		}
 		else if( strstr( sp->Name, "Earth Shield"))
-			sp->proc_interval = 3000; //few seconds
-		else if( strstr( sp->Name, "Shadowguard"))
 			sp->proc_interval = 3000; //few seconds
 		else if( strstr( sp->Name, "Poison Shield"))
 			sp->proc_interval = 3000; //few seconds
@@ -2911,11 +2904,6 @@ void ApplyNormalFixes()
 	sp = CheckAndReturnSpellEntry( 51690 );
 	if( sp != NULL )
 		sp->AttributesEx |= ATTRIBUTESEX_NOT_BREAK_STEALTH;
-
-	// Rogue - Cold Blood (Interrupt Flag)
-	sp = CheckAndReturnSpellEntry( 14177 );
-	if(sp != NULL)
-		sp->AuraInterruptFlags |= AURA_INTERRUPT_ON_AFTER_CAST_SPELL;
 
 	/* Rogue - Improved Expose Armor (rank 1)
 	sp = CheckAndReturnSpellEntry( 14168 );
