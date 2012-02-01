@@ -456,6 +456,15 @@ uint32 Vehicle::GetSeatEntryForPassenger( Unit *passenger ){
 	return 0;
 }
 
+bool Vehicle::IsControler(Unit *u)
+{
+	for( uint32 i = 0; i < MAX_VEHICLE_SEATS; i++ )
+		if( ( seats[ i ] != NULL ) && ( seats[ i ]->GetPassengerGUID() == u->GetGUID() ) )
+			return seats[ i ]->GetSeatInfo()->IsController();
+
+	return 0;
+}
+
 void Vehicle::MovePassengers( float x, float y, float z, float o ){
 	for( uint32 i = 0; i < MAX_VEHICLE_SEATS; i++ ){
 		if( ( seats[ i ] != NULL ) && ( seats[ i ]->GetPassengerGUID() != 0 ) ){
