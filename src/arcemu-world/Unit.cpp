@@ -5620,13 +5620,12 @@ void Unit::UpdateSpeed()
 
 	// Limit speed due to effects such as http://www.wowhead.com/?spell=31896 [Judgement of Justice]
 	if(m_maxSpeed && m_runSpeed > m_maxSpeed)
-	{
 		m_runSpeed = m_maxSpeed;
-	}
-
-	if( IsPlayer() && TO_PLAYER(this)->m_changingMaps ){
+	m_runSpeed -= (m_runSpeed * (m_slowdown / 100));
+	if( IsPlayer() && TO_PLAYER(this)->m_changingMaps )
 		TO< Player* >(this)->resend_speed = true;
-	}else{
+	else
+	{
 		SetSpeeds( RUN, m_runSpeed );
 		SetSpeeds( FLY, m_flySpeed );
 	}

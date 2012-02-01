@@ -966,6 +966,15 @@ void Aura::ApplyModifiers(bool apply)
 					                               m_target->GetLowGUID(), mod->m_type, m_spellProto->Id, mod->i, apply , GetDuration(), mod->m_amount, m_casterGuid);
 			}
 #endif
+			if(apply)
+			{
+				if(m_spellProto->Attributes & ATTRIBUTES_NEGATIVE_1)
+					SetNegative(100);
+				if(m_spellProto->c_is_flags & SPELL_FLAG_IS_FORCEDDEBUFF)
+					SetNegative(100);
+				if(m_spellProto->c_is_flags & SPELL_FLAG_IS_FORCEDBUFF)
+					SetPositive(100);
+			}
 
 		}
 		else
@@ -5178,79 +5187,68 @@ void Aura::SpellAuraMechanicImmunity(bool apply)
 	else
 		m_target->MechanicsDispels[mod->m_miscValue]--;
 	//Hack for Forbearance
-	if(m_spellProto->Id == 25771)
+	if(m_spellProto->Id == 25771 || m_spellProto->Id == 6788)
 		SetNegative(100);
 }
 
 void Aura::SpellAuraMounted(bool apply)
 {
-	if(!p_target) return;
-
-	/*Shady: Is it necessary? Stealth should be broken since all spells with Mounted SpellEffect don't have "does not break stealth" flag (except internal Video mount spell).
-	So commented, cause we don't need useless checks and hackfixes*/
-	/* if(m_target->IsStealth())
-	{
-		uint32 id = m_target->m_stealth;
-		m_target->m_stealth = 0;
-		m_target->RemoveAura(id);
-	}*/
-
+	Unit *u_target = GetTarget();
 	if(apply)
 	{
-
 		SetPositive();
+		if(p_target)
+		{
+			if(p_target->m_bg)
+				p_target->m_bg->HookOnMount(p_target);
+		}
 
-		//p_target->AdvanceSkillLine(762); // advance riding skill
+		u_target->RemoveAllAuraType(SPELL_AURA_MOUNTED);
 
-		if(p_target->m_bg)
-			p_target->m_bg->HookOnMount(p_target);
-
-		p_target->Dismount();
-
-		m_target->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_MOUNT);
+		u_target->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_MOUNT);
 
 		CreatureInfo* ci = CreatureNameStorage.LookupEntry(mod->m_miscValue);
-		if(!ci) return;
+		if(!ci) 
+			return;
 
 		uint32 displayId = ci->Male_DisplayID;
-		if(!displayId) return;
+		if(!displayId) 
+			return;
 
 		CreatureProto *cp = CreatureProtoStorage.LookupEntry( mod->m_miscValue );
 		if( cp == NULL )
 			return;
-		p_target->m_MountSpellId = m_spellProto->Id;
-		p_target->flying_aura = 0;
-		m_target->SetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID , displayId);
-		//m_target->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNTED_TAXI);
+		if(p_target)
+		{
+			p_target->m_MountSpellId = m_spellProto->Id;
+			p_target->flying_aura = 0;
+			if(p_target->GetShapeShift() && !(p_target->GetShapeShift() & (FORM_BATTLESTANCE | FORM_DEFENSIVESTANCE | FORM_BERSERKERSTANCE)) && p_target->m_ShapeShifted != m_spellProto->Id)
+				p_target->RemoveAura(p_target->m_ShapeShifted);
+			p_target->DismissActivePets();
 
-		if(p_target->GetShapeShift() && !(p_target->GetShapeShift() & (FORM_BATTLESTANCE | FORM_DEFENSIVESTANCE | FORM_BERSERKERSTANCE)) && p_target->m_ShapeShifted != m_spellProto->Id)
-			p_target->RemoveAura(p_target->m_ShapeShifted);
+			p_target->mountvehicleid = cp->vehicleid;
 
-		p_target->DismissActivePets();
+			if( p_target->mountvehicleid != 0 )
+			{
+				p_target->AddVehicleComponent( cp->Id, cp->vehicleid );
+				WorldPacket data( SMSG_PLAYER_VEHICLE_DATA, 12 );
+				data << p_target->GetNewGUID();
+				data << uint32( p_target->mountvehicleid );
+				p_target->SendMessageToSet( &data, true );
+				data.Initialize( SMSG_CONTROL_VEHICLE );
+				p_target->SendPacket( &data );
+				p_target->SetFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT );
+				p_target->SetFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PLAYER_VEHICLE );
+				p_target->GetVehicleComponent()->InstallAccessories();
+			}
 
-		p_target->mountvehicleid = cp->vehicleid;
-
-		if( p_target->mountvehicleid != 0 ){
-			p_target->AddVehicleComponent( cp->Id, cp->vehicleid );
-			
-			WorldPacket data( SMSG_PLAYER_VEHICLE_DATA, 12 );
-			data << p_target->GetNewGUID();
-			data << uint32( p_target->mountvehicleid );
-			p_target->SendMessageToSet( &data, true );
-			
-			data.Initialize( SMSG_CONTROL_VEHICLE );
-			p_target->SendPacket( &data );
-
-			p_target->SetFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT );
-			p_target->SetFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PLAYER_VEHICLE );
-
-			p_target->GetVehicleComponent()->InstallAccessories();
 		}
-
+		m_target->SetUInt32Value(UNIT_FIELD_MOUNTDISPLAYID , displayId);
 	}
 	else
 	{
-		if( p_target->GetVehicleComponent() != NULL ){
+		if(p_target && p_target->GetVehicleComponent() != NULL )
+		{
 			p_target->RemoveFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PLAYER_VEHICLE );
 			p_target->RemoveFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT );
 
@@ -5263,17 +5261,14 @@ void Aura::SpellAuraMounted(bool apply)
 			p_target->SendMessageToSet( &data, true );
 
 			p_target->RemoveVehicleComponent();
+			p_target->mountvehicleid = 0;
+			p_target->m_MountSpellId = 0;
+			p_target->flying_aura = 0;
+			p_target->SpawnActivePet();
 		}
 
-		p_target->mountvehicleid = 0;
-		p_target->m_MountSpellId = 0;
-		p_target->flying_aura = 0;
 		m_target->SetMount(0);
-		//m_target->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNTED_TAXI);
-
-		//if we had pet then respawn
-		p_target->SpawnActivePet();
-		p_target->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_DISMOUNT);
+		u_target->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_DISMOUNT);
 	}
 }
 
@@ -7153,16 +7148,12 @@ void Aura::SpellAuraIncreaseCricticalTypePCT(bool apply)
 
 void Aura::SpellAuraIncreasePartySpeed(bool apply)
 {
-	if(m_target->IsPlayer() && m_target->isAlive() && m_target->GetMount() == 0)
+	if(m_target->isAlive() && m_target->GetMount() == 0)
 	{
 		if(apply)
-		{
 			m_target->m_speedModifier += mod->m_amount;
-		}
 		else
-		{
 			m_target->m_speedModifier -= mod->m_amount;
-		}
 		m_target->UpdateSpeed();
 	}
 }

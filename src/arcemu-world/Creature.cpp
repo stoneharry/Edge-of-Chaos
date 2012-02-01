@@ -1911,40 +1911,50 @@ void Creature::SetSpeeds( uint8 type, float speed ){
 
 	data << float( speed );
 
-	switch( type ){
-
-		case WALK:{
-			data.SetOpcode( SMSG_FORCE_WALK_SPEED_CHANGE );
-			m_walkSpeed = speed;
-			break;}
-
-		case RUN:{
+	switch(type)
+	{
+	case RUN:
+		{
 			data.SetOpcode(SMSG_FORCE_RUN_SPEED_CHANGE);
 			m_runSpeed = speed;
-			break;}
-		
-		case RUNBACK:{
+		}break;
+	case RUNBACK:
+		{
 			data.SetOpcode(SMSG_FORCE_RUN_BACK_SPEED_CHANGE);
 			m_backWalkSpeed = speed;
-			break;}
-		
-		case SWIM:{
+		}break;
+	case SWIM:
+		{
 			data.SetOpcode(SMSG_FORCE_SWIM_SPEED_CHANGE);
 			m_swimSpeed = speed;
-			break;}
-		
-		case SWIMBACK:{
+		}break;
+	case SWIMBACK:
+		{
 			data.SetOpcode(SMSG_FORCE_SWIM_BACK_SPEED_CHANGE);
 			m_backSwimSpeed = speed;
-			break;}
-
-		case FLY:{
+		}break;
+	case TURN:
+		{
+			data.SetOpcode(SMSG_FORCE_TURN_RATE_CHANGE);
+			m_turnRate = speed;
+		}break;
+	case FLY:
+		{
 			data.SetOpcode(SMSG_FORCE_FLIGHT_SPEED_CHANGE);
 			m_flySpeed = speed;
-			break;}
-
-		default:
-			return;
+		}break;
+	case FLYBACK:
+		{
+			data.SetOpcode(SMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE);
+			m_backFlySpeed = speed;
+		}break;
+	case PITCH:
+		{
+			data.SetOpcode(SMSG_FORCE_PITCH_RATE_CHANGE);
+			m_pitchRate = speed;
+		}break;
+	default:
+		return;
 	}
 
 	SendMessageToSet( &data , true );

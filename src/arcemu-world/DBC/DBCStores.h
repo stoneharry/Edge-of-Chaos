@@ -951,6 +951,165 @@ struct SpellEntry
 
 		SpellFactoryFunc = NULL;
 		AuraFactoryFunc = NULL;
+		Id= 0;                                                //1
+		Category= 0;                                          //2
+		DispelType= 0;                                        //3
+		MechanicsType= 0;                                     //4
+		Attributes= 0;                                        //5
+		AttributesEx= 0;                                      //6
+		AttributesExB= 0;                                     //7
+		AttributesExC= 0;                                     //8 Flags to
+		AttributesExD= 0;                                     //9 Flags....
+		AttributesExE= 0;                                     //10 Flags 2.0.1 unknown one
+		AttributesExF= 0;                                     //11
+		//	Unknown= 0;                                           //12 AttributesExG ?
+		RequiredShapeShift= 0;                                //13 Flags BitMask for shapeshift spells
+		//Unknown= 0;                                           //14 UNK
+		ShapeshiftExclude= 0;                                 //15 this is wrong // Flags BitMask for which shapeshift forms this spell can NOT be used in.
+		//Unknown= 0;                                           //16 UNK
+		Targets= 0;                                           //17 - N / M
+		TargetCreatureType= 0;                                //18
+		RequiresSpellFocus= 0;                                //19
+		FacingCasterFlags= 0;                                 //20
+		CasterAuraState= 0;                                   //21
+		TargetAuraState= 0;                                   //22
+		CasterAuraStateNot= 0;                                //23
+		TargetAuraStateNot= 0;                                //24
+		casterAuraSpell= 0;                                   //25
+		targetAuraSpell= 0;                                   //26
+		casterAuraSpellNot= 0;                                //27
+		targetAuraSpellNot= 0;                                //28
+		CastingTimeIndex= 0;                                  //29
+		RecoveryTime= 0;                                      //30
+		CategoryRecoveryTime= 0;                              //31 recoverytime
+		InterruptFlags= 0;                                    //32
+		AuraInterruptFlags= 0;                                //33
+		ChannelInterruptFlags= 0;                             //34
+		procFlags= 0;                                         //35
+		procChance= 0;                                        //36
+		procCharges= 0;                                       //37
+		maxLevel= 0;                                          //38
+		baseLevel= 0;                                         //39
+		spellLevel= 0;                                        //40
+		DurationIndex= 0;                                     //41
+		powerType= 0;                                         //42
+		manaCost= 0;                                          //43
+		manaCostPerlevel= 0;                                  //44
+		manaPerSecond= 0;                                     //45
+		manaPerSecondPerLevel= 0;                             //46
+		rangeIndex= 0;                                        //47
+		speed= 0;                                             //48
+		modalNextSpell= 0;                                    //49
+		maxstack= 0;                                          //50
+		Totem[2]= 0;                                          //51 - 52
+		Reagent[8]= 0;                                        //53 - 60
+		ReagentCount[8]= 0;                                   //61 - 68
+		EquippedItemClass= 0;                                 //69
+		EquippedItemSubClass= 0;                              //70
+		RequiredItemFlags= 0;                                 //71
+		Effect[ MAX_SPELL_EFFECTS ]= 0;                       //72 - 74
+		EffectDieSides[ MAX_SPELL_EFFECTS ]= 0;               //75 - 77
+		EffectRealPointsPerLevel[ MAX_SPELL_EFFECTS ]= 0;     //78 - 80
+		EffectBasePoints[ MAX_SPELL_EFFECTS ]= 0;             //81 - 83
+		EffectMechanic[ MAX_SPELL_EFFECTS ]= 0;               //84 - 86 Related to SpellMechanic.dbc
+		EffectImplicitTargetA[ MAX_SPELL_EFFECTS ]= 0;        //87 - 89
+		EffectImplicitTargetB[ MAX_SPELL_EFFECTS ]= 0;        //90 - 92
+		EffectRadiusIndex[ MAX_SPELL_EFFECTS ]= 0;            //93 - 95
+		EffectApplyAuraName[ MAX_SPELL_EFFECTS ]= 0;          //96 - 98
+		EffectAmplitude[ MAX_SPELL_EFFECTS ]= 0;              //99 - 101
+		EffectMultipleValue[ MAX_SPELL_EFFECTS ]= 0;          //102 - 104 This value is the $ value from description
+		EffectChainTarget[ MAX_SPELL_EFFECTS ]= 0;            //105 - 107
+		EffectItemType[ MAX_SPELL_EFFECTS ]= 0;               //108 - 110 Not sure maybe we should rename it. its the relation to field: SpellGroupType
+		EffectMiscValue[ MAX_SPELL_EFFECTS ]= 0;              //111 - 113
+		EffectMiscValueB[ MAX_SPELL_EFFECTS ]= 0;             //114 - 116 2.4.3
+		EffectTriggerSpell[ MAX_SPELL_EFFECTS ]= 0;           //117 - 119
+		EffectPointsPerComboPoint[ MAX_SPELL_EFFECTS ]= 0;    //120 - 122
+		EffectSpellClassMask[3][3]= 0;                        //123 - 131
+		SpellVisual= 0;                                       //132
+		field114= 0;                                          //133
+		spellIconID= 0;                                       //134
+		activeIconID= 0;                                      //135 activeIconID= 0;
+		spellPriority= 0;                                     //136
+		const char*  Name= 0;                                        //137
+		//char*  NameAlt[15]= 0;                                       //138 - 152 not used
+		//NameFlags= 0;                                         //153 not used
+		const char*  Rank= 0;                                        //154
+		//char*  RankAlt[15]= 0;                                       //155 - 169 not used
+		//RankFlags= 0;                                         //170 not used
+		char*  Description= 0;                                       //171
+		//char*  DescriptionAlt[15]= 0;                                //172 - 186 not used
+		//DescriptionFlags= 0;                                  //187 not used
+		const char*  BuffDescription= 0;                             //188
+		//char*  BuffDescription[15]= 0;                               //189 - 203 not used
+		//buffdescflags= 0;                                     //204 not used
+		ManaCostPercentage= 0;                                //205
+		StartRecoveryCategory= 0;                             //206
+		StartRecoveryTime= 0;                                 //207
+		MaxTargetLevel= 0;                                    //208
+		SpellFamilyName= 0;                                   //209
+		SpellGroupType[ MAX_SPELL_EFFECTS ]= 0;               //210-212
+		MaxTargets= 0;                                        //213
+		Spell_Dmg_Type= 0;                                    //214 dmg_class Integer 0=None, 1=Magic, 2=Melee, 3=Ranged
+		PreventionType= 0;                                    //215 0,1,2 related to Spell_Dmg_Type I think
+		StanceBarOrder= 0;                                    //216 Related to paladin aura's
+		dmg_multiplier[ MAX_SPELL_EFFECTS ]= 0;               //217-219 Maybe related to EffectChainTarget?
+		MinFactionID= 0;                                      //220 References Faction.dbc
+		MinReputation= 0;                                     //221 Standing enumerated in Player.h
+		RequiredAuraVision= 0;                                //222 Mostly test spells as of
+		TotemCategory[2]= 0;                                  //223-224 References TotemCategory.dbc
+		RequiresAreaId= 0;                                    //225 References AreaGroup.dbc
+		School= 0;                                            //226 Enumerated in Unit.h
+		RuneCostID= 0;                                        //227 References SpellRuneCost.dbc
+		//SpellMissileID= 0;                                    //228 References SpellMissile.dbc
+		//UnKnown= 0;                                           //229 powerdisplayid ?
+		//UnKnown= 0;                                           //230
+		//UnKnown= 0;                                           //231
+		//UnKnown= 0;                                           //232
+		//SpellDescriptionVariable= 0;                          //233 References SpellDescriptionVariables.dbc
+		//SpellDifficultyID= 0;                                 //234 References SpellDifficulty.dbc
+
+		/// CUSTOM: these fields are used for the modifications made in the world.cpp
+		DiminishStatus= 0;                  //
+		proc_interval= 0;                   //!!! CUSTOM, <Fill description for variable>
+		//Buff Groupin Rule -> caster can cast this spell only on 1 target. Value represents the group spell is part of. Can be part of only 1 group
+		//target can have only buff of this type on self. Value represents the group spell is part of. Can be part of only 1 group
+		BGR_one_buff_on_target= 0;          //!!! CUSTOM, these are related to creating a item through a spell
+		//caster can have only 1 Aura per spell group, ex pal auras
+		BGR_one_buff_from_caster_on_self= 0;//!!! CUSTOM, these are related to creating a item through a spell
+		//buffIndexType= 0;                   //!!! CUSTOM, <Fill description for variable>
+		c_is_flags= 0;                      //!!! CUSTOM, store spell checks in a static way : isdamageind,ishealing
+		//buffType= 0;                        //!!! CUSTOM, these are related to creating a item through a spell
+		RankNumber= 0;                      //!!! CUSTOM, this protects players from having >1 rank of a spell
+		NameHash= 0;                        //!!! CUSTOM, related to custom spells, summon spell quest related spells
+		talent_tree= 0;                     //!!! CUSTOM,
+		in_front_status= 0;                 //!!! CUSTOM,
+		EffectSpellGroupRelation_high[ MAX_SPELL_EFFECTS ]= 0;     //!!! this is not contained in client dbc but server must have it
+		ThreatForSpell= 0;
+		ThreatForSpellCoef= 0;
+		ProcOnNameHash[ MAX_SPELL_EFFECTS ]= 0;
+		spell_coef_flags= 0;                //!!! CUSTOM, store flags for spell coefficient calculations
+
+		base_range_or_radius_sqr= 0;        //!!! CUSTOM, needed for aoe spells most of the time
+		// love me or hate me, all "In a cone in front of the caster" spells don't necessarily mean "in front"
+		cone_width= 0;
+		//Spell Coefficient
+		casttime_coef= 0;                   //!!! CUSTOM, faster spell bonus calculation
+		fixed_dddhcoef= 0;                  //!!! CUSTOM, fixed DD-DH coefficient for some spells
+		fixed_hotdotcoef= 0;                //!!! CUSTOM, fixed HOT-DOT coefficient for some spells
+		Dspell_coef_override= 0;            //!!! CUSTOM, overrides any spell coefficient calculation and use this value in DD&DH
+		OTspell_coef_override= 0;           //!!! CUSTOM, overrides any spell coefficient calculation and use this value in HOT&DOT
+		ap_coef= 0;
+		ap_dot_coef= 0;
+ 		ai_target_type= 0;
+
+		self_cast_only= false;
+		apply_on_shapeshift_change= false;
+		always_apply= false;
+		is_melee_spell= false;                  //!!! CUSTOM,
+		is_ranged_spell= false;                 //!!! CUSTOM,
+		noproc= false;
+
+		SchoolMask= 0;                      // Custom
 	}
 };
 

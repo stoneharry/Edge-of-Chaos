@@ -4307,91 +4307,79 @@ void Player::SetMovement(uint8 pType, uint32 flag)
 
 void Player::SetSpeeds( uint8 type, float speed )
 {
-	WorldPacket data(50);
+	if( speed < 0.1f )
+		speed = 0.1f;
 
-	if(type != SWIMBACK)
+	WorldPacket data(SMSG_FORCE_RUN_SPEED_CHANGE, 400);
+
+	if( type != SWIMBACK )
 	{
 		data << GetNewGUID();
-		data << m_speedChangeCounter++;
-		if(type == RUN)
+		data << uint32(m_speedChangeCounter++);
+		if( type == RUN )
 			data << uint8(1);
 
-		data << float( speed );
+		data << speed;
 	}
 	else
 	{
 		data << GetNewGUID();
-		data << uint32(0);
+		data << uint32(m_speedChangeCounter++);
 		data << uint8(0);
 		data << uint32(getMSTime());
-		data << GetPosition();
-		data << float( m_position.o );
+		data << m_position.x;
+		data << m_position.y;
+		data << m_position.z;
+		data << m_position.o;
 		data << uint32(0);
-		data << float( speed );
+		data << speed;
 	}
 
 	switch(type)
 	{
-		case WALK:{
-			data.SetOpcode( SMSG_FORCE_WALK_SPEED_CHANGE );
-			m_walkSpeed = speed;
-
-			break; }
-
-		case RUN:
-			{
-				if(speed == m_lastRunSpeed)
-					return;
-
-				data.SetOpcode(SMSG_FORCE_RUN_SPEED_CHANGE);
-				m_runSpeed = speed;
-				m_lastRunSpeed = speed;
-			}
-			break;
-		case RUNBACK:
-			{
-				if(speed == m_lastRunBackSpeed)
-					return;
-
-				data.SetOpcode(SMSG_FORCE_RUN_BACK_SPEED_CHANGE);
-				m_backWalkSpeed = speed;
-				m_lastRunBackSpeed = speed;
-			}
-			break;
-		case SWIM:
-			{
-				if(speed == m_lastSwimSpeed)
-					return;
-
-				data.SetOpcode(SMSG_FORCE_SWIM_SPEED_CHANGE);
-				m_swimSpeed = speed;
-				m_lastSwimSpeed = speed;
-			}
-			break;
-		case SWIMBACK:
-			{
-				if(speed == m_lastBackSwimSpeed)
-					break;
-
-				data.SetOpcode(SMSG_FORCE_SWIM_BACK_SPEED_CHANGE);
-				m_backSwimSpeed = speed;
-				m_lastBackSwimSpeed = speed;
-			}
-			break;
-		case FLY:
-			{
-				if(speed == m_lastFlySpeed)
-					return;
-
-				data.SetOpcode(SMSG_FORCE_FLIGHT_SPEED_CHANGE);
-				m_flySpeed = speed;
-				m_lastFlySpeed = speed;
-			}
-			break;
-		default:
-			return;
+	case RUN:
+		{
+			data.SetOpcode(SMSG_FORCE_RUN_SPEED_CHANGE);
+			m_runSpeed = speed;
+		}break;
+	case RUNBACK:
+		{
+			data.SetOpcode(SMSG_FORCE_RUN_BACK_SPEED_CHANGE);
+			m_backWalkSpeed = speed;
+		}break;
+	case SWIM:
+		{
+			data.SetOpcode(SMSG_FORCE_SWIM_SPEED_CHANGE);
+			m_swimSpeed = speed;
+		}break;
+	case SWIMBACK:
+		{
+			data.SetOpcode(SMSG_FORCE_SWIM_BACK_SPEED_CHANGE);
+			m_backSwimSpeed = speed;
+		}break;
+	case TURN:
+		{
+			data.SetOpcode(SMSG_FORCE_TURN_RATE_CHANGE);
+			m_turnRate = speed;
+		}break;
+	case FLY:
+		{
+			data.SetOpcode(SMSG_FORCE_FLIGHT_SPEED_CHANGE);
+			m_flySpeed = speed;
+		}break;
+	case FLYBACK:
+		{
+			data.SetOpcode(SMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE);
+			m_backFlySpeed = speed;
+		}break;
+	case PITCH:
+		{
+			data.SetOpcode(SMSG_FORCE_PITCH_RATE_CHANGE);
+			m_pitchRate = speed;
+		}break;
+	default:
+		return;
 	}
-
 	SendMessageToSet(&data , true);
 }
 

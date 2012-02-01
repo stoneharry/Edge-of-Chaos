@@ -46,6 +46,7 @@ Object::Object() : m_position(0, 0, 0, 0), m_spawnLocation(0, 0, 0, 0)
 	m_swimSpeed = 4.722222f;
 	m_backSwimSpeed = 2.5f;
 	m_turnRate = M_PI_FLOAT;
+	m_pitchRate = M_PI_FLOAT;
 
 	m_phase = 1; //Set the default phase: 00000000 00000000 00000000 00000001
 

@@ -611,41 +611,78 @@ bool ChatHandler::HandleTaxiCheatCommand(const char* args, WorldSession* m_sessi
 
 bool ChatHandler::HandleModifySpeedCommand(const char* args, WorldSession* m_session)
 {
-	WorldPacket data;
-
-	if(!*args)
+	if (!*args)
 		return false;
 
-	float Speed = (float)atof((char*)args);
+	int32 type = -1;
+	float Speed = 0.0f;
+	if( sscanf(args, "%f %i", &Speed, &type) < 1 )
+		return false;
 
-	if(Speed > 255 || Speed < 1)
+	if(Speed == 0.0f)
+		type = -1;
+
+	std::string speedname = "run";
+	switch(type)
 	{
-		RedSystemMessage(m_session, "Incorrect value. Range is 1..255");
-		return true;
+	case -1:
+		speedname = "total";
+		break;
+	case WALK:
+		speedname = "walk";
+		break;
+	case RUN:
+		speedname = "run";
+		break;
+	case RUNBACK:
+		speedname = "backwards run";
+		break;
+	case SWIM:
+		speedname = "swim";
+		break;
+	case SWIMBACK:
+		speedname = "backwards swim";
+		break;
+	case TURN:
+		speedname = "turn";
+		break;
+	case FLY:
+		speedname = "flying";
+		break;
+	case FLYBACK:
+		speedname = "backwards flying";
+		break;
+	case PITCH:
+		speedname = "pitch";
+		break;
+	default:
+		return false;
 	}
 
-	Player* chr = getSelectedChar(m_session);
-	if(chr == NULL)
-		return true;
+	Unit * u = getSelectedUnit(m_session, false);
+	if(!u)
+		u = m_session->GetPlayer();
 
-	if(chr != m_session->GetPlayer())
-		sGMLog.writefromsession(m_session, "modified speed of %s to %2.2f.", chr->GetName(), Speed);
+	if(Speed == 0.0f)
+		Speed = u->m_base_runSpeed*(1.0f + ((float)u->m_speedModifier)/100.0f);
 
+	BlueSystemMessage(m_session, "You set the %s speed of %s to %2.2f.", speedname.c_str(),  u->GetName(), Speed);
+	if(u->IsPlayer() && TO_PLAYER(u) != m_session->GetPlayer())
+		SystemMessage(TO_PLAYER(u)->GetSession(), "%s set your %s speed to %2.2f.", speedname.c_str(),  m_session->GetPlayer()->GetName(), Speed);
 
-	char buf[256];
-
-	// send message to user
-	BlueSystemMessage(m_session, "You set the speed of %s to %2.2f.", chr->GetName(), Speed);
-
-	// send message to player
-	snprintf((char*)buf, 256, "%s set your speed to %2.2f.", m_session->GetPlayer()->GetName(), Speed);
-	SystemMessage(chr->GetSession(), buf);
-
-	chr->SetSpeeds(RUN, Speed);
-	chr->SetSpeeds(SWIM, Speed);
-	chr->SetSpeeds(RUNBACK, Speed / 2); // Backwards slower, it's more natural :P
-	chr->SetSpeeds(FLY, Speed * 2); // Flying is faster :P
-
+	if(type == -1)
+	{
+		u->SetSpeeds(RUN, Speed);
+		u->SetSpeeds(RUNBACK, (Speed * 0.5));
+		u->SetSpeeds(SWIM, Speed);
+		u->SetSpeeds(SWIMBACK, (Speed * 0.5));
+		u->SetSpeeds(TURN, 3.141593f);
+		u->SetSpeeds(FLY, Speed*3);
+		u->SetSpeeds(FLYBACK, (Speed * 1.5));
+		u->SetSpeeds(PITCH, 3.141593f);
+	}
+	else
+		u->SetSpeeds(type, Speed);
 	return true;
 }
 

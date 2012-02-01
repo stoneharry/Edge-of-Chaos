@@ -276,12 +276,15 @@ enum PlayerMovementType
 
 enum PlayerSpeedType
 {
+	WALK			= 0,
     RUN	            = 1,
     RUNBACK         = 2,
-    SWIM	        = 3,
-    SWIMBACK        = 4,
-    WALK	        = 5,
-    FLY	            = 6,
+	SWIM	        = 3,
+	SWIMBACK		= 4,
+	TURN			= 5,
+	FLY				= 6,
+	FLYBACK			= 7,
+	PITCH			= 8
 };
 
 /*
