@@ -1699,11 +1699,30 @@ void WorldSession::HandleLearnMultipleTalentsOpcode(WorldPacket & recvPacket)
 
 void WorldSession::SendMOTD()
 {
+	WorldPacket data(SMSG_MOTD, 50);                     // new in 2.0.1
+	data << (uint32)0;
+	uint32 linecount=0;
+	std::string str_motd = sWorld.GetMotd();
+	std::string::size_type pos, nextpos;
 
-	WorldPacket data(SMSG_MOTD, 100);
+	pos = 0;
+	while ((nextpos= str_motd.find('@', pos)) != std::string::npos)
+	{
+	    if (nextpos != pos)
+	    {
+			data << str_motd.substr(pos, nextpos-pos);
+			++linecount;
+	    }
+	    pos = nextpos+1;
+	}
 
-	data << uint32(4);
-	data << sWorld.GetMotd();
+	if (pos<str_motd.length())
+	{
+	    data << str_motd.substr(pos);
+	    ++linecount;
+	}
+
+	data.put(0, linecount);
 
 	SendPacket(&data);
 }

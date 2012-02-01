@@ -13752,3 +13752,17 @@ void Player::AddHonor(uint32 amount)
 		m_bg->UpdatePvPData();
 	}
 }
+
+void Player::SendGuildMOTD()
+{
+	WorldPacket data(SMSG_GUILD_EVENT, 50);
+
+	data << uint8(GUILD_EVENT_MOTD);
+	data << uint8(1);
+
+	if(GetGuild())
+		data << GetGuild()->GetMOTD();
+	else
+		data << uint8(0);
+	SendPacket(&data);	
+}
