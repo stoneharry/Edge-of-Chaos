@@ -110,7 +110,9 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket & recv_data)
 {
 	WoWGuid guid;
 	recv_data >> guid;
-	if(guid == _player->GetGUID())
+    uint32 flags, time;
+    recv_data >> flags >> time;
+	if(m_MoverWoWGuid.GetOldGuid() == _player->GetGUID())
 	{
 		if(sWorld.antihack_teleport && !(HasGMPermissions() && sWorld.no_antihack_on_gm) && _player->GetPlayerStatus() != TRANSFER_PENDING)
 		{
@@ -673,18 +675,6 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 			}
 		}
 	}
-	
-	/*float x = movement_info.x - movement_info.transX;
-	float y = movement_info.y - movement_info.transY;
-	float z = movement_info.z - movement_info.transZ;
-	Transporter* trans = _player->m_CurrentTransporter;
-	if(trans) sChatHandler.SystemMessageToPlr(_player, "Client t pos: %f %f\nServer t pos: %f %f   Diff: %f %f", x,y, trans->GetPositionX(), trans->GetPositionY(), trans->CalcDistance(x,y,z), trans->CalcDistance(movement_info.x, movement_info.y, movement_info.z));*/
-
-	/************************************************************************/
-	/* Anti-Speed Hack Checks                                               */
-	/************************************************************************/
-
-
 
 	/************************************************************************/
 	/* Breathing System                                                     */
