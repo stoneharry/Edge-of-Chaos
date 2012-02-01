@@ -4419,7 +4419,7 @@ bool ChatHandler::HandleGroupDisbandCommand(const char* args, WorldSession* m_se
 	return true;
 }
 
-bool ChatHandler::HandleGroupDisbandCommand(const char* args, WorldSession* m_session)
+bool ChatHandler::HandleGroupTeleportCommand(const char* args, WorldSession* m_session)
 {
 	Player * groupmember = NULL;
 	if(args)
