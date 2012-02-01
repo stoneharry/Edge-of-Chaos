@@ -8428,7 +8428,7 @@ int32 Unit::GetTotalAuraModifer(uint32 AuraName, bool addone)
 			if(addone)
 				modifer += 1 + m_auras[i]->GetModAmount(m_auras[ i ]->GetSpellProto()->GetApplyAura(AuraName));
 			else
-				modifer = m_auras[i]->GetModAmount(m_auras[ i ]->GetSpellProto()->GetApplyAura(AuraName));
+				modifer += m_auras[i]->GetModAmount(m_auras[ i ]->GetSpellProto()->GetApplyAura(AuraName));
 	}
 	return modifer;
 }
