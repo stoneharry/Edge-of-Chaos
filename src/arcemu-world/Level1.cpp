@@ -1583,8 +1583,9 @@ bool ChatHandler::HandleVehicleAddPassengerCommand(const char *args, WorldSessio
 
 bool ChatHandler::HandleVehicleEnterCommand(const char *args, WorldSession *m_session)
 {
-	uint32 seatid, forced = 0;
-	if(sscanf(args, "%u %u", &seatid, &forced) != 2)
+	int seatid = -1;
+	uint32 forced = 0;
+	if(sscanf(args, "%i %u", &seatid, &forced) != 2)
 		return false;
 
 
@@ -1601,14 +1602,11 @@ bool ChatHandler::HandleVehicleEnterCommand(const char *args, WorldSession *m_se
 		RedSystemMessage( m_session, "You need to select a vehicle." );
 		return false;
 	}
-
-	if( !u->GetVehicleComponent()->HasEmptySeat() )
-	{
-		RedSystemMessage( m_session, "That vehicle has no more empty seats." );
-		return false;
-	}
 	
-	u->GetVehicleComponent()->AddPassengerToSeatIfCan(m_session->GetPlayer(), seatid, forced >= 1);
+	if(u->GetVehicleComponent()->AddPassengerToSeatIfCan(m_session->GetPlayer(), seatid, forced >= 1))
+		GreenSystemMessage(m_session, "Entered vehicle successfully");
+	else
+		RedSystemMessage(m_session, "Unable to enter vehicle");
 
 	return true;
 }

@@ -240,7 +240,14 @@ class SERVER_DECL WorldSession
 		uint32 m_currMsTime;
 		uint32 m_lastPing;
 
-		uint32 GetAccountId() const { return _accountId; }
+		uint32 GetAccountId(bool canuseforced = false) const 
+		{ 
+			if(canuseforced)
+				return _forcedaccountid;
+			return _accountId; 
+		}
+
+		void SetForcedAccountId(uint32 id) { _forcedaccountid = id; }
 		Player* GetPlayer() { return _player; }
 
 		/* Acct flags */
@@ -809,6 +816,7 @@ class SERVER_DECL WorldSession
 		uint8 movement_packet[90];
 
 		uint32 _accountId;
+		uint32 _forcedaccountid;
 		uint32 _accountFlags;
 		string _accountName;
 		bool has_level_55_char; // death knights

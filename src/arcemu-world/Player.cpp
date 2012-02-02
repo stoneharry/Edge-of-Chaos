@@ -2766,7 +2766,7 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 
 	Field* fields = result->Fetch();
 
-	if(fields[1].GetUInt32() != m_session->GetAccountId())
+	if(fields[1].GetUInt32() != m_session->GetAccountId(true))
 	{
 		sCheatLog.writefromsession(m_session, "player tried to load character not belonging to them (guid %u, on account %u)",
 		                           fields[0].GetUInt32(), fields[1].GetUInt32());

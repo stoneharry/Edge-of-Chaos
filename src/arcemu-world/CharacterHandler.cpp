@@ -305,8 +305,8 @@ void WorldSession::CharacterEnumProc(QueryResult* result)
 
 void WorldSession::HandleCharEnumOpcode(WorldPacket & recv_data)
 {
-	AsyncQuery* q = new AsyncQuery(new SQLClassCallbackP1<World, uint32>(World::getSingletonPtr(), &World::CharacterEnumProc, GetAccountId()));
-	q->AddQuery("SELECT guid, level, race, class, gender, bytes, bytes2, name, positionX, positionY, positionZ, mapId, zoneId, banned, restState, deathstate, login_flags, player_flags, guild_data.guildid FROM characters LEFT JOIN guild_data ON characters.guid = guild_data.playerid WHERE acct=%u ORDER BY guid LIMIT 10", GetAccountId());
+	AsyncQuery* q = new AsyncQuery(new SQLClassCallbackP1<World, uint32>(World::getSingletonPtr(), &World::CharacterEnumProc, GetAccountId(true)));
+	q->AddQuery("SELECT guid, level, race, class, gender, bytes, bytes2, name, positionX, positionY, positionZ, mapId, zoneId, banned, restState, deathstate, login_flags, player_flags, guild_data.guildid FROM characters LEFT JOIN guild_data ON characters.guid = guild_data.playerid WHERE acct=%u ORDER BY guid LIMIT 10", GetAccountId(true));
 	CharacterDatabase.QueueAsyncQuery(q);
 }
 
@@ -398,7 +398,7 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket & recv_data)
 	// Check the number of characters, so we can't make over 10.
 	// They're able to manage to create >10 sometimes, not exactly sure how ..
 
-	result = CharacterDatabase.Query("SELECT COUNT(*) FROM characters WHERE acct = %u", GetAccountId());
+	result = CharacterDatabase.Query("SELECT COUNT(*) FROM characters WHERE acct = %u", GetAccountId(true));
 	if(result)
 	{
 		if(result->Fetch()[0].GetUInt32() >= 10)
@@ -471,7 +471,7 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket & recv_data)
 	pn->cl = pNewChar->getClass();
 	pn->race = pNewChar->getRace();
 	pn->gender = pNewChar->getGender();
-	pn->acct = GetAccountId();
+	pn->acct = GetAccountId(true);
 	pn->m_Group = 0;
 	pn->subGroup = 0;
 	pn->m_loggedInPlayer = NULL;
@@ -487,7 +487,7 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket & recv_data)
 
 	OutPacket(SMSG_CHAR_CREATE, 1, CHAR_CREATE_SUCCESS);
 
-	sLogonCommHandler.UpdateAccountCount(GetAccountId(), 1);
+	sLogonCommHandler.UpdateAccountCount(GetAccountId(true), 1);
 }
 
 void WorldSession::HandleCharDeleteOpcode(WorldPacket & recv_data)

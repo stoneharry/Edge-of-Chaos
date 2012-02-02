@@ -282,7 +282,7 @@ void WorldSession::HandleSendMail(WorldPacket & recv_data)
 			SendMailError(MAIL_ERR_INTERNAL_ERROR);
 			return;
 		}
-		if(pItem->IsAccountbound() && GetAccountId() !=  player->acct) // don't mail account-bound items to another account
+		if(pItem->IsAccountbound() && GetAccountId(true) !=  player->acct) // don't mail account-bound items to another account
 		{
 			WorldPacket data(SMSG_SEND_MAIL_RESULT, 16);
 			data << uint32(0);
@@ -386,7 +386,7 @@ void WorldSession::HandleSendMail(WorldPacket & recv_data)
 		}
 	}
 
-	if(msg.money != 0 || msg.cod != 0 || (!msg.items.size() && player->acct != _player->GetSession()->GetAccountId()))
+	if(msg.money != 0 || msg.cod != 0 || (!msg.items.size() && player->acct != _player->GetSession()->GetAccountId(true)))
 	{
 		if(!sMailSystem.MailOption(MAIL_FLAG_DISABLE_HOUR_DELAY_FOR_ITEMS))
 			msg.delivery_time += 3600;  // 1hr

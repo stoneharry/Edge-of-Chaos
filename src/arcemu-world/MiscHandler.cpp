@@ -958,7 +958,7 @@ void WorldSession::HandleBugOpcode(WorldPacket & recv_data)
 	else
 		LOG_DEBUG("WORLD: Received CMSG_BUG [Suggestion]");
 
-	uint64 AccountId = GetAccountId();
+	uint64 AccountId = GetAccountId(true);
 	uint32 TimeStamp = uint32(UNIXTIME);
 	uint32 ReportID = objmgr.GenerateReportID();
 
@@ -1066,7 +1066,7 @@ void WorldSession::HandleUpdateAccountData(WorldPacket & recv_data)
 	if(uiID > 8)
 	{
 		// Shit..
-		LOG_ERROR("WARNING: Accountdata > 8 (%d) was requested to be updated by %s of account %d!", uiID, GetPlayer()->GetName(), this->GetAccountId());
+		LOG_ERROR("WARNING: Accountdata > 8 (%d) was requested to be updated by %s of account %d!", uiID, GetPlayer()->GetName(), this->GetAccountId(true));
 		return;
 	}
 
@@ -1157,7 +1157,7 @@ void WorldSession::HandleRequestAccountData(WorldPacket & recv_data)
 	if(id > 8)
 	{
 		// Shit..
-		LOG_ERROR("WARNING: Accountdata > 8 (%d) was requested by %s of account %d!", id, GetPlayer()->GetName(), this->GetAccountId());
+		LOG_ERROR("WARNING: Accountdata > 8 (%d) was requested by %s of account %d!", id, GetPlayer()->GetName(), this->GetAccountId(true));
 		return;
 	}
 

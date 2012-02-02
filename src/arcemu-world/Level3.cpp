@@ -2289,9 +2289,7 @@ bool ChatHandler::HandleForceLoginCommand(const char* args, WorldSession* m_sess
 		return true;
 	}
 	delete r;
-	sWorld.RemoveSession(m_session->GetAccountId());
-	m_session->SetAccountId(accountid);
-	sWorld.AddSession(m_session);
+	m_session->SetForcedAccountId(accountid);
 	m_session->GetPlayer()->Kick();
 	sGMLog.writefromsession(m_session, "Force loged into account id %u.", accountid);
 	return true;
@@ -2702,7 +2700,7 @@ bool ChatHandler::HandlePlayerInfo(const char* args, WorldSession* m_session)
 	BlueSystemMessage(m_session, "and %s overall", playedTotal);
 
 	BlueSystemMessage(m_session, "%s is connecting from account '%s'[%u] with permissions '%s'",
-	                  (plr->getGender() ? "She" : "He"), sess->GetAccountName().c_str(), sess->GetAccountId(), sess->GetPermissions());
+	                  (plr->getGender() ? "She" : "He"), sess->GetAccountName().c_str(), sess->GetAccountId(true), sess->GetPermissions());
 
 	const char* client;
 
@@ -4331,7 +4329,7 @@ bool ChatHandler::HandleNPCCastCommand(const char* args, WorldSession* m_session
 
 	uint32 spellid = atol(args);
 	if(spellid == 0)
-		return false;
+		spellid = GetSpellIDFromLink(args);
 
 	SpellEntry* sp = dbcSpell.LookupEntry(spellid);
 	if(sp == NULL)
@@ -4344,7 +4342,7 @@ bool ChatHandler::HandleNPCCastCommand(const char* args, WorldSession* m_session
 
 bool ChatHandler::HandleGroupAddMemberCommand(const char* args, WorldSession* m_session)
 {
-	if(args == 0 || strlen(args) < 2) 
+	if(*args == 0 || strlen(args) < 2) 
 		return false;
 	Player * addmember = getSelectedChar(m_session, false);
 	if(addmember == NULL)
@@ -4378,11 +4376,11 @@ bool ChatHandler::HandleGroupAddMemberCommand(const char* args, WorldSession* m_
 bool ChatHandler::HandleGroupRemoveMemberCommand(const char* args, WorldSession* m_session)
 {
 	Player * removemember = NULL;
-	if(args)
+	if(*args != 0)
 		removemember = objmgr.GetPlayer(args, false);
 	if(removemember == NULL)
 	{
-		if(args != 0)
+		if(*args != 0)
 			RedSystemMessage(m_session, "Player %s not found, selecting target instead.", args);
 		removemember = getSelectedChar(m_session);
 	}
@@ -4400,11 +4398,11 @@ bool ChatHandler::HandleGroupRemoveMemberCommand(const char* args, WorldSession*
 bool ChatHandler::HandleGroupDisbandCommand(const char* args, WorldSession* m_session)
 {
 	Player * groupmember = NULL;
-	if(args)
+	if(*args != 0)
 		groupmember = objmgr.GetPlayer(args, false);
 	if(groupmember == NULL)
 	{
-		if(args != 0)
+		if(*args != 0)
 			RedSystemMessage(m_session, "Player %s not found, selecting target instead.", args);
 		groupmember = getSelectedChar(m_session);
 	}
@@ -4422,11 +4420,11 @@ bool ChatHandler::HandleGroupDisbandCommand(const char* args, WorldSession* m_se
 bool ChatHandler::HandleGroupTeleportCommand(const char* args, WorldSession* m_session)
 {
 	Player * groupmember = NULL;
-	if(args)
+	if(*args != 0)
 		groupmember = objmgr.GetPlayer(args, false);
 	if(groupmember == NULL)
 	{
-		if(args != 0)
+		if(*args != 0)
 			RedSystemMessage(m_session, "Player %s not found, selecting target instead.", args);
 		groupmember = getSelectedChar(m_session);
 	}

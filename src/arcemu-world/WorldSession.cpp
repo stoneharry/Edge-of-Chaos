@@ -38,6 +38,7 @@ WorldSession::WorldSession(uint32 id, string Name, WorldSocket* sock):
 	_player(NULL),
 	_socket(sock),
 	_accountId(id),
+	_forcedaccountid(id),
 	_accountName(Name),
 	has_level_55_char(false),
 	_side(-1),

@@ -266,7 +266,7 @@ public:
 	void AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force = false );
 
 
-	void AddPassengerToSeatIfCan( Unit *passenger, uint32 seatid, bool force );
+	bool AddPassengerToSeatIfCan( Unit *passenger, int seatid, bool force );
 
 	/////////////////////////////////////////////////////////////////////////
 	//void EjectPassenger( Unit *passenger )

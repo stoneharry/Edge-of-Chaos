@@ -113,15 +113,15 @@ void Vehicle::AddPassenger( Unit *passenger ){
 	AddPassengerToSeat( passenger, seatid );
 }
 
-void Vehicle::AddPassengerToSeatIfCan( Unit *passenger, uint32 seatid, bool force )
+bool Vehicle::AddPassengerToSeatIfCan( Unit *passenger, int seatid, bool force )
 {
-	uint32 addseat = MAX_VEHICLE_SEATS;
+	int addseat = -1;
 	if(force)
 	{
 		for( uint32 i = 0; i < MAX_VEHICLE_SEATS; i++ )
 			if( seats[ i ] != NULL)
 			{
-				if(seatid != 0 && i != seatid)
+				if(seatid != -1 && i != seatid)
 					continue;
 				addseat = i;
 				break;
@@ -136,8 +136,12 @@ void Vehicle::AddPassengerToSeatIfCan( Unit *passenger, uint32 seatid, bool forc
 				break;
 			}
 	}
-
-	AddPassengerToSeat(passenger, addseat, force);
+	if(addseat != -1)
+	{
+		AddPassengerToSeat(passenger, addseat, force);
+		return true;
+	}
+	return false;
 }
 
 void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
