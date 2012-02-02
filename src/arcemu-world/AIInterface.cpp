@@ -1894,6 +1894,7 @@ void AIInterface::UpdateSpeeds()
 
 	m_walkSpeed = m_Unit->m_walkSpeed * 0.001f;
 	m_flySpeed = m_Unit->m_flySpeed * 0.001f;
+	m_Unit->UpdateSpeed();
 }
 
 void AIInterface::UpdateMove()
@@ -4484,13 +4485,13 @@ void AIInterface::MoveJump(float x, float y, float z, float o /*= 0*/, bool huge
 
 	m_splinetrajectoryTime = 0;
 	if(hugearc)
-		m_splinetrajectoryVertical = 150; //WEEEEEEEEEEEEEEEEEEEEEEEEEEEE?
+		m_splinetrajectoryVertical = 150; //WEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 	else
 		m_splinetrajectoryVertical = 5;
 
 	SetRun();
 	if(hugearc)
-		m_runSpeed = 5;
+		m_runSpeed = 2;
 	m_runSpeed *= 3;
 
 	AddSpline(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ());
