@@ -682,6 +682,8 @@ class SERVER_DECL ObjectMgr : public Singleton < ObjectMgr >, public EventableOb
 		uint32 ApplySpellDamageLimit(uint32 spellid, int32 damage);
 
 		void ReloadSpellCoef();
+		void ReloadSpellDbc();
+		void CreateDummySpell(uint32 id, const char * name);
 
 #undef ENABLE_ALWAYS_SERIOUS_MODE_GCC_STL_HACK
 

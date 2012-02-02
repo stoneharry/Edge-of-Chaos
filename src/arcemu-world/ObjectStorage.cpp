@@ -706,6 +706,8 @@ bool Storage_ReloadTable(const char* TableName)
 		objmgr.ReloadDisabledSpells();
 	else if(!stricmp(TableName, "vendors"))
 		objmgr.ReloadVendors();
+	else if(!stricmp(TableName, "spell_dbc"))
+		objmgr.ReloadSpellDbc();
 	else
 		return false;
 
