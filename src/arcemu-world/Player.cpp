@@ -5976,11 +5976,10 @@ int32 Player::CanShootRangedWeapon(uint32 spellid, Unit* target, bool autoshot)
 	// Check ammo
 	Item* itm = GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_RANGED);
 	ItemPrototype* iprot = ItemPrototypeStorage.LookupEntry(GetAmmoId());
+	if(itm == NULL || HasAuraWithName(SPELL_AURA_MOD_DISARM_RANGED))
+		return SPELL_FAILED_NO_AMMO;
 	if(!m_requiresNoAmmo)
 	{
-		if(itm == NULL)
-			return SPELL_FAILED_NO_AMMO;
-
 		// Check ammo level
 		if(iprot && getLevel() < iprot->RequiredLevel)
 			return SPELL_FAILED_LOWLEVEL;
@@ -12409,7 +12408,7 @@ void Player::SendMessageToSet(WorldPacket* data, bool bToSelf, bool myteam_only)
 			{
 				Player* p = TO< Player* >(*itr);
 
-				if(p->GetSession() && p->GetTeam() == myteam && ! p->Social_IsIgnoring(GetLowGUID()) && (p->GetPhase() & myphase) != 0 && p->m_invisible == m_invisible)
+				if(p->GetSession() && p->GetTeam() == myteam && ! p->Social_IsIgnoring(GetLowGUID()) && (p->GetPhase() & myphase) != 0 && p->m_invisible == (m_invisible || p->m_isGmInvisible))
 					p->SendPacket(data);
 			}
 		}
@@ -12432,7 +12431,7 @@ void Player::SendMessageToSet(WorldPacket* data, bool bToSelf, bool myteam_only)
 			{
 				Player* p = TO< Player* >(*itr);
 
-				if(p->GetSession() &&  ! p->Social_IsIgnoring(GetLowGUID()) && (p->GetPhase() & myphase) != 0 && p->m_invisible == m_invisible)
+				if(p->GetSession() &&  ! p->Social_IsIgnoring(GetLowGUID()) && (p->GetPhase() & myphase) != 0 &&p->m_invisible == (m_invisible || p->m_isGmInvisible))
 					p->SendPacket(data);
 			}
 		}

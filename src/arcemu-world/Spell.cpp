@@ -256,12 +256,23 @@ Spell::Spell(Object* Caster, SpellEntry* info, bool triggered, Aura* aur)
 			LOG_DEBUG("[DEBUG][SPELL] Incompatible object type, please report this to the dev's");
 			break;
 	}
-
+	if(u_caster && m_spellInfo->AttributesExF & FLAGS7_CAST_BY_CHARMER)
+	{
+		Unit * u = u_caster->GetMapMgrUnit(u_caster->GetCharmedByGUID());
+		if(u)
+		{
+			u_caster = u;
+			if(u->IsPlayer())
+				p_caster = TO< Player *>(u);
+		}
+	}
 	m_spellState = SPELL_STATE_NULL;
 
 	m_castPositionX = m_castPositionY = m_castPositionZ = 0;
 	//TriggerSpellId = 0;
 	//TriggerSpellTarget = 0;
+	if(m_spellInfo->AttributesExD & FLAGS5_TRIGGERED)
+		triggered = true;
 	m_triggeredSpell = triggered;
 	m_AreaAura = false;
 

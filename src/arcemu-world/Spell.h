@@ -531,7 +531,7 @@ enum Flags5 // AttributesExD
     FLAGS5_UNK6							= 0x10,
     FLAGS5_UNK7							= 0x20,
     FLAGS5_UNK8							= 0x40,
-    FLAGS5_UNK9							= 0x80,
+    FLAGS5_TRIGGERED					= 0x80,
     FLAGS5_UNK10						= 0x100,
     FLAGS5_UNK11						= 0x200,
     FLAGS5_UNK12						= 0x400,
@@ -616,6 +616,7 @@ enum Flags7 // AttributesExF
     FLAGS7_UNUSED6						= 0x8000, // unused 2.4.3
     FLAGS7_UNUSED7						= 0x10000, // unused 2.4.3 - 20-33 also unused 2.4.3
     FLAGS7_UNK19						= 0x20000,
+    FLAGS7_CAST_BY_CHARMER              = 0x40000, // 18 client won't allow to cast these spells when unit is not possessed && charmer of caster will be original caster
 };
 
 
