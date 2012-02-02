@@ -1674,15 +1674,15 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 
 		caster->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_START_ATTACK);
 
-		res += caster->GetSpellDmgBonus(pVictim, spellInfo, (int)res, false);
+		res = static_cast< float >(caster->GetSpellDmgBonus(pVictim, spellInfo, damage, false));
 
-		if(res < 0)
-			res = 0;
+		if(res < 0.0f)
+			res = 0.0f;
 	}
 //==========================================================================================
 //==============================Post +SpellDamage Bonus Modifications=======================
 //==========================================================================================
-	if(res > 0 && !(spellInfo->AttributesExB & ATTRIBUTESEXB_CANT_CRIT))
+	if(res > 0.0f && !(spellInfo->AttributesExB & ATTRIBUTESEXB_CANT_CRIT))
 	{
 		critical = this->IsCriticalDamageForSpell(pVictim, spellInfo);
 
@@ -1722,7 +1722,13 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 	//==========================================================================================
 //==============================Post Roll Calculations======================================
 //==========================================================================================
+	//------------------------------damage reduction--------------------------------------------
 
+	float reduce_damage = 0.0f;
+	reduce_damage += static_cast< float >( pVictim->DamageTakenMod[spellInfo->School] );
+	reduce_damage += res * pVictim->DamageTakenPctMod[spellInfo->School];
+	reduce_damage += res * pVictim->ModDamageTakenByMechPCT[spellInfo->MechanicsType];
+	res += reduce_damage;
 //------------------------------absorption--------------------------------------------------
 	uint32 ress = (uint32)res;
 	uint32 abs_dmg = pVictim->AbsorbDamage(spellInfo->School, &ress);
