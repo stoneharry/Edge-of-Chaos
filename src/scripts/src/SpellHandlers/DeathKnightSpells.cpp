@@ -168,78 +168,19 @@ bool RaiseDead( uint32 i, Spell *s ){
 	return true;
 }
 
-bool DeathGrip( uint32 i, Spell *s ){
+bool DeathGrip( uint32 i, Spell *s )
+{
 	Unit *unitTarget = s->GetUnitTarget();
-
-	if(!s->u_caster || !s->u_caster->isAlive() || !unitTarget || !unitTarget->isAlive())
+	Unit * u_caster = s->u_caster;
+	if(!u_caster || !u_caster->isAlive() || !unitTarget || !unitTarget->isAlive() || unitTarget->isTrainingDummy())
 		return false;
 	
 	// rooted units can't be death gripped
 	if( unitTarget->isRooted() )
 		return false;
-	
-	if(unitTarget->IsPlayer())
-	{
-		Player *playerTarget = TO< Player* >(unitTarget);
-		
-		if(playerTarget->m_CurrentTransporter) // Blizzard screwed this up, so we won't.
-			return false;
-		
-		s->SpellEffectPlayerPull( i );
-		
-		return false;
 
-	}else{
-		float posX, posY, posZ;
-		float deltaX,deltaY;
-		
-		if( s->u_caster->GetPositionX() == 0.0f || s->u_caster->GetPositionY() == 0.0f)
-			return false;
-		
-		deltaX = s->u_caster->GetPositionX()-unitTarget->GetPositionX();
-		deltaY = s->u_caster->GetPositionY()-unitTarget->GetPositionY();
-		
-		if(deltaX == 0.0f || deltaY == 0.0f)
-			return false;
-		
-		float d = sqrt(deltaX*deltaX+deltaY*deltaY) - s->u_caster->GetBoundingRadius()-unitTarget->GetBoundingRadius();
-		
-		float alpha = atanf(deltaY/deltaX);
-		
-		if(deltaX<0)
-			alpha += M_PI_FLOAT;
-		
-		posX = d*cosf(alpha)+unitTarget->GetPositionX();
-		posY = d*sinf(alpha)+unitTarget->GetPositionY();
-		posZ = s->u_caster->GetPositionZ();
-		
-		uint32 time = uint32( (unitTarget->CalcDistance( s->m_caster) / ((unitTarget->m_runSpeed * 3.5) * 0.001f)) + 0.5);
-		
-		WorldPacket data(SMSG_MONSTER_MOVE, 60);
-		data << unitTarget->GetNewGUID();
-		data << uint8(0); //VLack: the usual change in SMSG_MONSTER_MOVE packets, initial idea from Mangos
-		data << unitTarget->GetPositionX();
-		data << unitTarget->GetPositionY();
-		data << unitTarget->GetPositionZ();
-		data << getMSTime();
-		data << uint8(0x00);
-		data << uint32(0x00001000);
-		data << time;
-		data << uint32(1);
-		data << posX << posY << posZ;
-		
-		if(unitTarget->IsCreature())
-			unitTarget->GetAIInterface()->StopMovement(2000);
-		
-		unitTarget->SendMessageToSet(&data, true);
-		unitTarget->SetPosition(posX,posY,posZ,alpha,true);
-		unitTarget->addStateFlag(UF_ATTACKING);
-		unitTarget->smsg_AttackStart( unitTarget );
-		unitTarget->setAttackTimer(time, false);
-		unitTarget->setAttackTimer(time, true);
-		unitTarget->GetAIInterface()->taunt( s->u_caster,true);
-	}
-
+	unitTarget->CastSpellAoF( u_caster->GetPositionX(), u_caster->GetPositionY(), u_caster->GetPositionZ(), dbcSpell.LookupEntryForced(49575), true);
+	u_caster->CastSpell( unitTarget, 51399, true ); // Taunt Effect
 	return true;
 }
 
