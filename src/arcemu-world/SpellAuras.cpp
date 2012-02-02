@@ -5248,6 +5248,8 @@ void Aura::SpellAuraMounted(bool apply)
 		if(p_target)
 		{
 			p_target->SetCollisionHeight(false);
+			p_target->m_MountSpellId = 0;
+			p_target->flying_aura = 0;
 			if(p_target && p_target->GetVehicleComponent() != NULL )
 			{
 				p_target->RemoveFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PLAYER_VEHICLE );
@@ -5263,8 +5265,6 @@ void Aura::SpellAuraMounted(bool apply)
 
 				p_target->RemoveVehicleComponent();
 				p_target->mountvehicleid = 0;
-				p_target->m_MountSpellId = 0;
-				p_target->flying_aura = 0;
 				p_target->SpawnActivePet();
 			}
 		}
