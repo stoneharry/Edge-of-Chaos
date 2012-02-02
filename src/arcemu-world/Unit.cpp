@@ -3933,8 +3933,9 @@ void Unit::Strike(Unit* pVictim, uint32 weapon_damage_type, SpellEntry* ability,
 		if(GetSummonedByGUID() != 0 && GetEntry() == 19668)
 		{
 			Player* owner = GetMapMgr()->GetPlayer((uint32)GetSummonedByGUID());
+			uint32 amount = static_cast< uint32 >(owner->GetMaxPower( POWER_TYPE_MANA ) * 0.05f);
 			if(owner != NULL)
-				this->Energize(owner, 34433, float2int32(2.5f * realdamage + 0.5f), POWER_TYPE_MANA);
+				Energize(owner, 34650, amount, POWER_TYPE_MANA);
 		}
 		//ugly hack for Bloodsworm restoring hp
 		if(GetUInt64Value(UNIT_FIELD_SUMMONEDBY) != 0 && GetUInt32Value(OBJECT_FIELD_ENTRY) == 28017)
@@ -5621,7 +5622,7 @@ void Unit::UpdateSpeed()
 	// Limit speed due to effects such as http://www.wowhead.com/?spell=31896 [Judgement of Justice]
 	if(m_maxSpeed && m_runSpeed > m_maxSpeed)
 		m_runSpeed = m_maxSpeed;
-	m_runSpeed -= (m_runSpeed * (m_slowdown / 100));
+	m_runSpeed -= (m_runSpeed * (GetTotalAuraModifer(SPELL_AURA_MOD_DECREASE_SPEED) / 100));
 	if( IsPlayer() && TO_PLAYER(this)->m_changingMaps )
 		TO< Player* >(this)->resend_speed = true;
 	else

@@ -421,9 +421,9 @@ void TaxiMgr::_CreateCustomPaths()
 	{
 		Field * f = path->Fetch();
 		DBCTaxiPath* p = new DBCTaxiPath;
-		p->from = f[0].GetUInt32();
-		p->to = f[1].GetUInt32();
-		p->id = f[2].GetUInt32();
+		p->id = f[0].GetUInt32();
+		p->from = f[1].GetUInt32();
+		p->to = f[2].GetUInt32();
 		p->price = f[3].GetUInt32();
 		dbcTaxiPath.SetRow(f[0].GetUInt32(), p);
 		pathcount++;

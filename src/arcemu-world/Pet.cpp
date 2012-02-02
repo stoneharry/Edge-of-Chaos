@@ -120,8 +120,7 @@ void Pet::SetNameForEntry(uint32 entry)
 					CharacterDatabase.Execute("INSERT INTO playersummons VALUES(%u, %u, '%s')",
 					                          m_Owner->GetLowGUID(), entry, m_name.data());
 				}
-			}
-			break;
+			}break;
 		default:
 			m_name = sWorld.GenerateName();
 	}
@@ -763,7 +762,9 @@ void Pet::InitializeMe(bool first)
 		if(GetEntry() == WATER_ELEMENTAL || GetEntry() == WATER_ELEMENTAL_NEW)
 		{
 			float parentfrost = (float)m_Owner->GetDamageDoneMod(SCHOOL_FROST);
-			parentfrost *= 0.40f;
+			// According to WoWWiki and ElitistJerks, Water Elemental should inherit 33% of owner's frost spell power.
+			// And don't freak out about Waterbolt damage, it is supposed to do 601-673 base damage.
+			float parentfrost = static_cast< float >(m_Owner->GetDamageDoneMod(SCHOOL_FROST) * 0.33f);
 			ModDamageDone[SCHOOL_FROST] = (uint32)parentfrost;
 		}
 		else if(GetEntry() == PET_IMP)
@@ -1592,17 +1593,10 @@ void Pet::ApplyStatsForLevel()
 	// Apply common stuff
 	// Apply scale for this family.
 	if(myFamily != NULL)
-	{
-		/*float pet_level = float(getLevel());
-		float level_diff = float(myFamily->maxlevel - myFamily->minlevel);
-		float scale_diff = float(myFamily->maxsize - myFamily->minsize);
-		float factor = scale_diff / level_diff;
-		float scale = factor * pet_level + myFamily->minsize;*/
 		SetScale(1.0f);
-	}
 
 	// Apply health fields.
-	SetHealth(m_uint32Values[ UNIT_FIELD_MAXHEALTH ]);
+	SetHealth(GetMaxHealth());
 	SetPower(POWER_TYPE_MANA, GetMaxPower(POWER_TYPE_MANA));   // mana
 	SetPower(POWER_TYPE_FOCUS, GetMaxPower(POWER_TYPE_FOCUS));   // focus
 }

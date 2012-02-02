@@ -1424,22 +1424,20 @@ bool CleansingVialDND( uint32 i, Spell *s ){
 	return true;
 }
 
-bool HunterTamingQuest( uint32 i, Aura *a, bool apply ){
+bool HunterTamingQuest( uint32 i, Aura *a, bool apply )
+{
 	Unit *m_target = a->GetTarget();
 	Player *p_caster = a->GetPlayerCaster();
 
 	if( p_caster == NULL )
 		return true;
 	
-	if (apply){
+	if (apply)
 		m_target->GetAIInterface()->AttackReaction( a->GetUnitCaster(), 10, 0);
-	}
-	else{
+	else
+	{
 		uint32 TamingSpellid = a->GetSpellProto()->EffectMiscValue[ 1 ];
 
-		if (a->GetSpellId() == 19674) //no valid entry in MiscValueB
-			TamingSpellid = 19677;
-		
 		SpellEntry *triggerspell = dbcSpell.LookupEntryForced( TamingSpellid );
 		if(triggerspell == NULL)
 		{

@@ -3437,8 +3437,6 @@ void Aura::SpellAuraModDecreaseSpeed(bool apply)
 			if(m_target->IsPlayer() && caster)
 				TO< Unit* >(m_target)->EventChill(caster, true);
 		}
-		//m_target->m_slowdown=this;
-		//m_target->m_speedModifier += mod->m_amount;
 	}
 	m_target->GetSpeedDecrease();
 	m_target->UpdateSpeed();
