@@ -114,7 +114,7 @@ void ObjectMgr::LoadExtraCreatureProtoStuff()
 				if( sp == NULL )
 					continue;
 
-				if( ( sp->Attributes & ATTRIBUTES_PASSIVE ) == 0 )
+				if( ( sp->Attributes & SPELL_ATTR0_PASSIVE ) == 0 )
 					cn->castable_spells.push_back( sp->Id );
 				else
 					cn->start_auras.insert( sp->Id );
@@ -132,7 +132,7 @@ void ObjectMgr::LoadExtraCreatureProtoStuff()
 					if( sp == NULL )
 						continue;
 
-					if( ( sp->Attributes & ATTRIBUTES_PASSIVE ) == 0 )
+					if( ( sp->Attributes & SPELL_ATTR0_PASSIVE ) == 0 )
 						cn->castable_spells.push_back( sp->Id );
 					else
 						cn->start_auras.insert( sp->Id );

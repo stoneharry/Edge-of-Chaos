@@ -8857,7 +8857,7 @@ void Player::CompleteLoading()
 		info = dbcSpell.LookupEntryForced(*itr);
 
 		if(info != NULL
-		        && (info->Attributes & ATTRIBUTES_PASSIVE)  // passive
+		        && (info->Attributes & SPELL_ATTR0_PASSIVE)  // passive
 		        && !(info->c_is_flags & SPELL_FLAG_IS_EXPIREING_WITH_PET)   //on pet summon talents
 		  )
 		{
@@ -10176,7 +10176,7 @@ void Player::_LearnSkillSpells(uint32 SkillLine, uint32 curr_sk)
 						removeSpell(removeSpellId, true, true, sls->next);
 					}
 					// if passive spell, apply it now
-					if(sp->Attributes & ATTRIBUTES_PASSIVE)
+					if(sp->Attributes & SPELL_ATTR0_PASSIVE)
 					{
 						SpellCastTargets targets;
 						targets.m_unitTarget = this->GetGUID();
@@ -12203,7 +12203,7 @@ void Player::LearnTalent(uint32 talentid, uint32 rank, bool isPreviewed)
 				}
 			}
 
-			if(spellInfo->Attributes & ATTRIBUTES_PASSIVE || ((spellInfo->Effect[0] == SPELL_EFFECT_LEARN_SPELL ||
+			if(spellInfo->Attributes & SPELL_ATTR0_PASSIVE || ((spellInfo->Effect[0] == SPELL_EFFECT_LEARN_SPELL ||
 			        spellInfo->Effect[1] == SPELL_EFFECT_LEARN_SPELL ||
 			        spellInfo->Effect[2] == SPELL_EFFECT_LEARN_SPELL)
 			        && ((spellInfo->c_is_flags & SPELL_FLAG_IS_EXPIREING_WITH_PET) == 0 || ((spellInfo->c_is_flags & SPELL_FLAG_IS_EXPIREING_WITH_PET) && GetSummon())))
@@ -12269,7 +12269,7 @@ void Player::SendPreventSchoolCast(uint32 SpellSchool, uint32 unTimeMs)
 		}
 
 		// Not send cooldown for this spells
-		if(spellInfo->Attributes & ATTRIBUTES_DISABLED_WHILE_ACTIVE)
+		if(spellInfo->Attributes & SPELL_ATTR0_DISABLED_WHILE_ACTIVE)
 			continue;
 
 		if(spellInfo->School == SpellSchool)
@@ -13664,7 +13664,7 @@ void Player::SendAurasForTarget(Unit* target)
 			else
 				Flags |= AFLAG_NEGATIVE;
 
-			if( aur->GetDuration() != 0 && !(aur->GetSpellProto()->AttributesExE & FLAGS6_HIDE_DURATION))
+			if( aur->GetDuration() != 0 && !(aur->GetSpellProto()->AttributesEx5 & SPELL_ATTR5_HIDE_DURATION))
 				Flags |= AFLAG_DURATION;
 
 			data << uint8( aur->m_visualSlot );

@@ -749,11 +749,11 @@ Aura::Aura(SpellEntry* proto, int32 duration, Object* caster, Unit* target, bool
 	m_modcount = 0;
 	m_dynamicValue = 0;
 	m_areaAura = false;
-	if(m_spellProto->Attributes & ATTRIBUTES_NEGATIVE_1)
+	if(m_spellProto->Attributes & SPELL_ATTR0_NEGATIVE_1)
 		SetNegative(100);
 	if(m_spellProto->c_is_flags & SPELL_FLAG_IS_FORCEDDEBUFF)
 		SetNegative(100);
-	else if(m_spellProto->c_is_flags & SPELL_FLAG_IS_FORCEDBUFF)
+	if(m_spellProto->c_is_flags & SPELL_FLAG_IS_FORCEDBUFF)
 		SetPositive(100);
 
 	if(caster->IsUnit())
@@ -802,7 +802,7 @@ void Aura::Remove()
 
 	m_deleted = true;
 
-	if(!IsPassive() || m_spellProto->AttributesEx & ATTRIBUTES_ON_NEXT_SWING_2)
+	if(!IsPassive() || m_spellProto->AttributesEx & SPELL_ATTR0_ON_NEXT_SWING_2)
 		m_target->ModVisualAuraStackCount(this, -1);
 
 	ApplyModifiers(false);
@@ -869,7 +869,7 @@ void Aura::Remove()
 	* m_spellProto->Attributes == 0x2040100
 	* are handled. Its possible there are more spells like this
 	*************************************************************/
-	if(caster != NULL && caster->IsPlayer() && caster->IsInWorld() && m_spellProto->Attributes & ATTRIBUTES_DISABLED_WHILE_ACTIVE)
+	if(caster != NULL && caster->IsPlayer() && caster->IsInWorld() && m_spellProto->Attributes & SPELL_ATTR0_DISABLED_WHILE_ACTIVE)
 	{
 		Player* p = TO< Player* >(caster);
 
@@ -890,7 +890,7 @@ void Aura::Remove()
 	}
 
 	// If this aura can affect one target at a time, remove this target from the caster map
-	if(caster != NULL && GetSpellProto()->AttributesExE & FLAGS6_SINGLE_TARGET_AURA && m_target->GetAuraStackCount(GetSpellId()) == 1)
+	if(caster != NULL && GetSpellProto()->AttributesEx5 & SPELL_ATTR5_SINGLE_TARGET_SPELL && m_target->GetAuraStackCount(GetSpellId()) == 1)
 		caster->RemoveCurrentUnitForSingleTargetAura(GetSpellProto());
 
 	/* Remove aurastates */
@@ -968,7 +968,7 @@ void Aura::ApplyModifiers(bool apply)
 #endif
 			if(apply)
 			{
-				if(m_spellProto->Attributes & ATTRIBUTES_NEGATIVE_1)
+				if(m_spellProto->Attributes & SPELL_ATTR0_NEGATIVE_1)
 					SetNegative(100);
 				if(m_spellProto->c_is_flags & SPELL_FLAG_IS_FORCEDDEBUFF)
 					SetNegative(100);
@@ -3925,7 +3925,7 @@ void Aura::SpellAuraModSchoolImmunity(bool apply)
 		for(uint32 i = MAX_NEGATIVE_AURAS_EXTEDED_START; i < MAX_NEGATIVE_AURAS_EXTEDED_END; ++i)
 		{
 			pAura = m_target->m_auras[i];
-			if(pAura != this && pAura != NULL && !pAura->IsPassive() && !pAura->IsPositive() && !(pAura->GetSpellProto()->Attributes & ATTRIBUTES_IGNORE_INVULNERABILITY))
+			if(pAura != this && pAura != NULL && !pAura->IsPassive() && !pAura->IsPositive() && !(pAura->GetSpellProto()->Attributes & SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY))
 			{
 				pAura->Remove();
 			}

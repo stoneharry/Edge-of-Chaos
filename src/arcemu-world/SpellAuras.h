@@ -441,7 +441,7 @@ class SERVER_DECL Aura : public EventableObject
 
 		ARCEMU_INLINE SpellEntry* GetSpellProto() const { return m_spellProto; }
 		ARCEMU_INLINE uint32 GetSpellId() const {return m_spellProto->Id; }
-		ARCEMU_INLINE bool IsPassive() { if(!m_spellProto) return false; return (m_spellProto->Attributes & ATTRIBUTES_PASSIVE && !m_areaAura);}
+		ARCEMU_INLINE bool IsPassive() { if(!m_spellProto) return false; return (m_spellProto->Attributes & SPELL_ATTR0_PASSIVE && !m_areaAura);}
 
 		void ResetDuration();
 

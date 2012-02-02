@@ -1682,7 +1682,7 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 //==========================================================================================
 //==============================Post +SpellDamage Bonus Modifications=======================
 //==========================================================================================
-	if(res > 0.0f && !(spellInfo->AttributesExB & ATTRIBUTESEXB_CANT_CRIT))
+	if(res > 0.0f && !(spellInfo->AttributesEx2 & SPELL_ATTR2_CANT_CRIT))
 	{
 		critical = this->IsCriticalDamageForSpell(pVictim, spellInfo);
 

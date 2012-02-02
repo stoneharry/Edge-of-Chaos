@@ -2290,7 +2290,6 @@ bool ChatHandler::HandleForceLoginCommand(const char* args, WorldSession* m_sess
 	}
 	delete r;
 	m_session->SetForcedAccountId(accountid);
-	m_session->GetPlayer()->Kick();
 	sGMLog.writefromsession(m_session, "Force loged into account id %u.", accountid);
 	return true;
 }

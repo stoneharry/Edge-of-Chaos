@@ -538,7 +538,7 @@ void WorldSession::HandlePetCancelAura(WorldPacket & recvPacket)
 
 	recvPacket >> guid >> spellid;
 	SpellEntry* info = dbcSpell.LookupEntryForced(spellid);
-	if(info != NULL && info->Attributes & static_cast<uint32>(ATTRIBUTES_CANT_CANCEL))
+	if(info != NULL && info->Attributes & static_cast<uint32>(SPELL_ATTR0_CANT_CANCEL))
 		return;
 	Creature* pet = _player->GetMapMgr()->GetCreature(guid);
 	if(pet != NULL && (pet->GetPlayerOwner() == _player || _player->GetCurrentVehicle() && _player->GetCurrentVehicle()->IsControler(_player)))

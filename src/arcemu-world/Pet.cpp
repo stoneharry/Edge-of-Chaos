@@ -33,7 +33,7 @@
 
 uint32 Pet::GetAutoCastTypeForSpell(SpellEntry* ent)
 {
-	if(ent->AttributesEx & ATTRIBUTESEX_UNAUTOCASTABLE_BY_PET)
+	if(ent->AttributesEx & SPELL_ATTR1_UNAUTOCASTABLE_BY_PET)
 		return AUTOCAST_EVENT_NONE;
 	switch(ent->NameHash)
 	{
@@ -523,7 +523,7 @@ void Pet::InitializeSpells()
 		SpellEntry* info = itr->first;
 
 		// Check that the spell isn't passive
-		if(info->Attributes & ATTRIBUTES_PASSIVE)
+		if(info->Attributes & SPELL_ATTR0_PASSIVE)
 		{
 			// Cast on self..
 			Spell* sp = sSpellFactoryMgr.NewSpell(this, info, true, NULL);
@@ -1131,7 +1131,7 @@ void Pet::AddSpell(SpellEntry* sp, bool learning, bool showLearnSpell)
 		return;
 
 	// Cast on self if we're a passive spell
-	if(sp->Attributes & ATTRIBUTES_PASSIVE)
+	if(sp->Attributes & SPELL_ATTR0_PASSIVE)
 	{
 		if(IsInWorld())
 		{

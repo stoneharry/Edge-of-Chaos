@@ -815,7 +815,7 @@ void Spell::SpellEffectSchoolDMG(uint32 i) // dmg school
 					_type = RANGED;
 				else
 				{
-					if(GetProto()->AttributesExC & FLAGS4_TYPE_OFFHAND)
+					if(GetProto()->AttributesEx3 & SPELL_ATTR3_REQ_OFFHAND)
 						_type =  OFFHAND;
 					else
 						_type = MELEE;
@@ -1122,7 +1122,7 @@ void Spell::SpellEffectApplyAura(uint32 i)  // Apply Aura
 		uint32 Duration = GetDuration();
 
 		// Handle diminishing returns, if it should be resisted, it'll make duration 0 here.
-		if(!(GetProto()->Attributes & ATTRIBUTES_PASSIVE)) // Passive
+		if(!(GetProto()->Attributes & SPELL_ATTR0_PASSIVE)) // Passive
 			::ApplyDiminishingReturnTimer(&Duration, unitTarget, GetProto());
 
 		if(!Duration)
@@ -2431,7 +2431,7 @@ void Spell::SpellEffectWeaponDmgPerc(uint32 i) // Weapon Percent damage
 			_type = RANGED;
 		else
 		{
-			if(GetProto()->AttributesExC & 0x1000000)
+			if(GetProto()->AttributesEx3 & 0x1000000)
 				_type =  OFFHAND;
 			else
 				_type = MELEE;
@@ -2936,7 +2936,7 @@ void Spell::SpellEffectDispel(uint32 i) // Dispel
 			aursp = aur->GetSpellProto();
 
 			//Nothing can dispel resurrection sickness;
-			if(!aur->IsPassive() && !(aursp->Attributes & ATTRIBUTES_IGNORE_INVULNERABILITY))
+			if(!aur->IsPassive() && !(aursp->Attributes & SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY))
 			{
 				if(GetProto()->DispelType == DISPEL_ALL)
 				{
@@ -3522,7 +3522,7 @@ void Spell::SpellEffectWeapondamage(uint32 i)   // Weapon damage +
 		_type = RANGED;
 	else
 	{
-		if(hasAttributeExC(FLAGS4_TYPE_OFFHAND))
+		if(hasAttributeExC(SPELL_ATTR3_REQ_OFFHAND))
 			_type =  OFFHAND;
 		else
 			_type = MELEE;
@@ -4810,7 +4810,7 @@ void Spell::SpellEffectDummyMelee(uint32 i)   // Normalized Weapon damage +
 		_type = RANGED;
 	else
 	{
-		if(GetProto()->AttributesExC & 0x1000000)
+		if(GetProto()->AttributesEx3 & 0x1000000)
 			_type =  OFFHAND;
 		else
 			_type = MELEE;

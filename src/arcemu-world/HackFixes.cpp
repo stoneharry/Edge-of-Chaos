@@ -28,7 +28,7 @@ void CreateDummySpell(uint32 id)
 	sp->Id = id;
 	sp->Attributes = 384;
 	sp->AttributesEx = 268435456;
-	sp->AttributesExB = 4;
+	sp->AttributesEx2 = 4;
 	sp->CastingTimeIndex=1;
 	sp->procChance=75;
 	sp->rangeIndex=13;
@@ -168,9 +168,9 @@ void ApplyNormalFixes()
 				CreateDummySpell(sp->EffectTriggerSpell[b]);
 			}
 
-			if( sp->Attributes & ATTRIBUTES_ONLY_OUTDOORS && sp->EffectApplyAuraName[b] == SPELL_AURA_MOUNTED )
+			if( sp->Attributes & SPELL_ATTR0_OUTDOORS_ONLY && sp->EffectApplyAuraName[b] == SPELL_AURA_MOUNTED )
 			{
-				sp->Attributes &= ~ATTRIBUTES_ONLY_OUTDOORS;
+				sp->Attributes &= ~SPELL_ATTR0_OUTDOORS_ONLY;
 			}
 
 			if(sp->EffectApplyAuraName[b] == SPELL_AURA_MOD_INCREASE_SWIM_SPEED && sp->AuraInterruptFlags & AURA_INTERRUPT_ON_ENTER_WATER)
@@ -359,7 +359,7 @@ void ApplyNormalFixes()
 		//Quivers, Ammo Pouches and Thori'dal the Star's Fury
 		if( ( namehash == SPELL_HASH_HASTE && sp->Attributes & 0x10000 ) || sp->Id == 44972 )
 		{
-			sp->Attributes &= ~ATTRIBUTES_PASSIVE;//Otherwise we couldn't remove them
+			sp->Attributes &= ~SPELL_ATTR0_PASSIVE;//Otherwise we couldn't remove them
 			sp->BGR_one_buff_on_target |= SPELL_TYPE_QUIVER_HASTE;
 		}
 
@@ -407,7 +407,7 @@ void ApplyNormalFixes()
 		sp->RankNumber = rank;
 
 		if( sp->activeIconID == 2158 )
-			sp->Attributes |= ATTRIBUTES_PASSIVE; 
+			sp->Attributes |= SPELL_ATTR0_PASSIVE; 
 
 		uint32 pr = sp->procFlags;
 		for(uint32 y= 0;y < 3; y++)
@@ -1091,7 +1091,7 @@ void ApplyNormalFixes()
 			sp->Effect[0] = SPELL_EFFECT_DUMMY;
 		}
 		// Flametongue Totem passive target fix
-		if( sp->NameHash == SPELL_HASH_FLAMETONGUE_TOTEM && sp->Attributes & ATTRIBUTES_PASSIVE )
+		if( sp->NameHash == SPELL_HASH_FLAMETONGUE_TOTEM && sp->Attributes & SPELL_ATTR0_PASSIVE )
 		{
 			sp->EffectImplicitTargetA[0] = EFF_TARGET_SELF;
 			sp->EffectImplicitTargetB[0] = 0;
@@ -1448,19 +1448,19 @@ void ApplyNormalFixes()
 		// Warrior - Overpower Rank 1
 		sp = CheckAndReturnSpellEntry( 7384 );
 		if(sp != NULL)
-			sp->Attributes |= ATTRIBUTES_CANT_BE_DPB;
+			sp->Attributes |= SPELL_ATTR0_IMPOSSIBLE_DODGE_PARRY_BLOCK;
 		// Warrior - Overpower Rank 2
 		sp = CheckAndReturnSpellEntry( 7887 );
 		if(sp != NULL)
-			sp->Attributes |= ATTRIBUTES_CANT_BE_DPB;
+			sp->Attributes |= SPELL_ATTR0_IMPOSSIBLE_DODGE_PARRY_BLOCK;
 		// Warrior - Overpower Rank 3
 		sp = CheckAndReturnSpellEntry( 11584 );
 		if(sp != NULL)
-			sp->Attributes |= ATTRIBUTES_CANT_BE_DPB;
+			sp->Attributes |= SPELL_ATTR0_IMPOSSIBLE_DODGE_PARRY_BLOCK;
 		// Warrior - Overpower Rank 4
 		sp = CheckAndReturnSpellEntry( 11585 );
 		if(sp != NULL)
-			sp->Attributes |= ATTRIBUTES_CANT_BE_DPB;
+			sp->Attributes |= SPELL_ATTR0_IMPOSSIBLE_DODGE_PARRY_BLOCK;
 
 		// Warrior - Tactical Mastery Rank 1
 		sp = CheckAndReturnSpellEntry( 12295 );
@@ -1762,7 +1762,7 @@ void ApplyNormalFixes()
 		sp = CheckAndReturnSpellEntry( 3411 );
 		if( sp != NULL )
 		{
-			sp->Attributes |= ATTRIBUTES_STOP_ATTACK;
+			sp->Attributes |= SPELL_ATTR0_STOP_ATTACK_TARGET;
 		}
 
 		// Gag Order Rank 1
@@ -2783,7 +2783,7 @@ void ApplyNormalFixes()
 		//rogue - Vanish : Second Trigger Spell
 		sp = CheckAndReturnSpellEntry( 18461 );
 		if( sp != NULL )
-			sp->AttributesEx |= ATTRIBUTESEX_NOT_BREAK_STEALTH;
+			sp->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
 
 		// rogue - Blind (Make it able to miss!)
 		sp = CheckAndReturnSpellEntry( 2094 );
@@ -2802,13 +2802,13 @@ void ApplyNormalFixes()
 		// Still related to shadowstep - prevent the trigger spells from breaking stealth.
 		sp = CheckAndReturnSpellEntry( 44373 );
 		if( sp )
-			sp->AttributesEx |= ATTRIBUTESEX_NOT_BREAK_STEALTH;
+			sp->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
 		sp = CheckAndReturnSpellEntry( 36563 );
 		if( sp )
-			sp->AttributesEx |= ATTRIBUTESEX_NOT_BREAK_STEALTH;
+			sp->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
 		sp = CheckAndReturnSpellEntry( 36554 );
 		if( sp != NULL )
-			sp->AttributesEx |= ATTRIBUTESEX_NOT_BREAK_STEALTH;
+			sp->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
 
 		//rogue - Seal Fate
 		sp = CheckAndReturnSpellEntry( 14186 );
@@ -2903,7 +2903,7 @@ void ApplyNormalFixes()
 	//Rogue - Killing Spree Stealth fix
 	sp = CheckAndReturnSpellEntry( 51690 );
 	if( sp != NULL )
-		sp->AttributesEx |= ATTRIBUTESEX_NOT_BREAK_STEALTH;
+		sp->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
 
 	/* Rogue - Improved Expose Armor (rank 1)
 	sp = CheckAndReturnSpellEntry( 14168 );
@@ -3016,10 +3016,10 @@ void ApplyNormalFixes()
 		// Spirit of Redemption - required spells can be casted while dead
 		sp = CheckAndReturnSpellEntry( 27795 ); // This is casted by shape shift
 		if( sp != NULL )
-			sp->AttributesExC |= CAN_PERSIST_AND_CASTED_WHILE_DEAD;
+			sp->AttributesEx3 |= SPELL_ATTR3_DEATH_PERSISTENT;
 		sp = CheckAndReturnSpellEntry( 27792 ); // This is casted by Apply Aura: Spirit of Redemption
 		if( sp != NULL )
-			sp->AttributesExC |= CAN_PERSIST_AND_CASTED_WHILE_DEAD;
+			sp->AttributesEx3 |= SPELL_ATTR3_DEATH_PERSISTENT;
 
 		/**********************************************************
 		 *	Holy Nova
@@ -3971,7 +3971,7 @@ void ApplyNormalFixes()
 		// Rogue - Master of Subtlety
 		sp = CheckAndReturnSpellEntry( 31665 );
 		if( sp != NULL )
-			sp->AttributesEx |= ATTRIBUTESEX_NOT_BREAK_STEALTH;
+			sp->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
 
 	//////////////////////////////////////////
 	// MAGE									//
@@ -5189,28 +5189,28 @@ void ApplyNormalFixes()
 		sp = CheckAndReturnSpellEntry( 50796 );
 		if( sp != NULL )
 		{
-			sp->Attributes |= ATTRIBUTES_IGNORE_INVULNERABILITY;
+			sp->Attributes |= SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY;
 			sp->School = SCHOOL_FIRE;
 		}
 
 		sp = CheckAndReturnSpellEntry( 59170 );
 		if( sp != NULL )
 		{
-			sp->Attributes |= ATTRIBUTES_IGNORE_INVULNERABILITY;
+			sp->Attributes |= SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY;
 			sp->School = SCHOOL_FIRE;
 		}
 
 		sp = CheckAndReturnSpellEntry( 59171 );
 		if( sp != NULL )
 		{
-			sp->Attributes |= ATTRIBUTES_IGNORE_INVULNERABILITY;
+			sp->Attributes |= SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY;
 			sp->School = SCHOOL_FIRE;
 		}
 
 		sp = CheckAndReturnSpellEntry( 59172 );
 		if( sp != NULL )
 		{
-			sp->Attributes |= ATTRIBUTES_IGNORE_INVULNERABILITY;
+			sp->Attributes |= SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY;
 			sp->School = SCHOOL_FIRE;
 		}
 		// End Warlock chaos bolt
@@ -6334,7 +6334,7 @@ void ApplyNormalFixes()
 		//Figurine - Shadowsong Panther
 		sp = CheckAndReturnSpellEntry( 46784 );		//	http://www.wowhead.com/?item=35702
 		if( sp != NULL )
-			sp->AttributesEx |= ATTRIBUTESEX_NOT_BREAK_STEALTH;
+			sp->AttributesEx |= SPELL_ATTR1_NOT_BREAK_STEALTH;
 
 		// Infernal Protection
 		sp = CheckAndReturnSpellEntry(36488);			//	http://www.wowhead.com/?spell=36488
@@ -6772,7 +6772,7 @@ void ApplyNormalFixes()
 		sp = CheckAndReturnSpellEntry( 56815 );
 		if( sp != NULL )
 		{
-			sp->Attributes |= ATTRIBUTES_CANT_BE_DPB;
+			sp->Attributes |= SPELL_ATTR0_IMPOSSIBLE_DODGE_PARRY_BLOCK;
 		}
 
 		CreateDummySpell( 56817 );
@@ -6788,32 +6788,32 @@ void ApplyNormalFixes()
 		sp = CheckAndReturnSpellEntry( 49143 );
 		if( sp != NULL )
 		{
-			sp->Attributes = ATTRIBUTES_CANT_BE_DPB;
+			sp->Attributes = SPELL_ATTR0_IMPOSSIBLE_DODGE_PARRY_BLOCK;
 		}
 		sp = CheckAndReturnSpellEntry( 51416 );
 		if( sp != NULL )
 		{
-			sp->Attributes = ATTRIBUTES_CANT_BE_DPB;
+			sp->Attributes = SPELL_ATTR0_IMPOSSIBLE_DODGE_PARRY_BLOCK;
 		}
 		sp = CheckAndReturnSpellEntry( 51417 );
 		if( sp != NULL )
 		{
-			sp->Attributes = ATTRIBUTES_CANT_BE_DPB;
+			sp->Attributes = SPELL_ATTR0_IMPOSSIBLE_DODGE_PARRY_BLOCK;
 		}
 		sp = CheckAndReturnSpellEntry( 51418 );
 		if( sp != NULL )
 		{
-			sp->Attributes = ATTRIBUTES_CANT_BE_DPB;
+			sp->Attributes = SPELL_ATTR0_IMPOSSIBLE_DODGE_PARRY_BLOCK;
 		}
 		sp = CheckAndReturnSpellEntry( 51419 );
 		if( sp != NULL )
 		{
-			sp->Attributes = ATTRIBUTES_CANT_BE_DPB;
+			sp->Attributes = SPELL_ATTR0_IMPOSSIBLE_DODGE_PARRY_BLOCK;
 		}
 		sp = CheckAndReturnSpellEntry( 55268 );
 		if( sp != NULL )
 		{
-			sp->Attributes = ATTRIBUTES_CANT_BE_DPB;
+			sp->Attributes = SPELL_ATTR0_IMPOSSIBLE_DODGE_PARRY_BLOCK;
 		}
 		         
 		/**********************************************************
@@ -7066,7 +7066,7 @@ void ApplyNormalFixes()
 	sp = CheckAndReturnSpellEntry(54485);
 	if(sp)
 	{
-		sp->AttributesExB |= ATTRIBUTESEXB_CAN_TARGET_NOT_IN_LOS;
+		sp->AttributesEx2 |= SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS;
 	}
 
   /* Ritual of Summoning summons a GameObject that triggers an inexistant spell.
@@ -7100,11 +7100,11 @@ void ApplyDatabaseFixes()
 		{
 			sp->Attributes = f[1].GetUInt32();
 			sp->AttributesEx = f[2].GetUInt32();
-			sp->AttributesExB = f[3].GetUInt32();
-			sp->AttributesExC = f[4].GetUInt32();
-			sp->AttributesExD = f[5].GetUInt32();
-			sp->AttributesExE = f[6].GetUInt32();
-			sp->AttributesExF = f[7].GetUInt32();
+			sp->AttributesEx2 = f[3].GetUInt32();
+			sp->AttributesEx3 = f[4].GetUInt32();
+			sp->AttributesEx4 = f[5].GetUInt32();
+			sp->AttributesEx5 = f[6].GetUInt32();
+			sp->AttributesEx6 = f[7].GetUInt32();
 			sp->CastingTimeIndex = f[8].GetUInt32();
 			sp->InterruptFlags = f[9].GetUInt32();
 			sp->AuraInterruptFlags = f[10].GetUInt32();
@@ -7149,11 +7149,11 @@ void ApplyDatabaseFixes()
 			sp = CheckAndReturnSpellEntry(f[0].GetUInt32());
 			sp->Attributes = f[1].GetUInt32();
 			sp->AttributesEx = f[2].GetUInt32();
-			sp->AttributesExB = f[3].GetUInt32();
-			sp->AttributesExC = f[4].GetUInt32();
-			sp->AttributesExD = f[5].GetUInt32();
-			sp->AttributesExE = f[6].GetUInt32();
-			sp->AttributesExF = f[7].GetUInt32();
+			sp->AttributesEx2 = f[3].GetUInt32();
+			sp->AttributesEx3 = f[4].GetUInt32();
+			sp->AttributesEx4 = f[5].GetUInt32();
+			sp->AttributesEx5 = f[6].GetUInt32();
+			sp->AttributesEx6 = f[7].GetUInt32();
 			sp->CastingTimeIndex = f[8].GetUInt32();
 			sp->InterruptFlags = f[9].GetUInt32();
 			sp->AuraInterruptFlags = f[10].GetUInt32();

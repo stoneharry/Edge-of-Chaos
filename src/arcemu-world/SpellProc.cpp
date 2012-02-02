@@ -25,7 +25,7 @@ initialiseSingleton(SpellProcMgr);
 uint32 SpellProc::CalcProcChance(Unit* victim, SpellEntry* CastingSpell)
 {
 	// Check if proc chance is based on combo points
-	if(mTarget->IsPlayer() && mOrigSpell && mOrigSpell->AttributesEx & ATTRIBUTESEX_REQ_COMBO_POINTS1 && mOrigSpell->AttributesExD & FLAGS5_PROCCHANCE_COMBOBASED)
+	if(mTarget->IsPlayer() && mOrigSpell && mOrigSpell->AttributesEx & SPELL_ATTR1_REQ_COMBO_POINTS1 && mOrigSpell->AttributesEx4 & SPELL_ATTR4_PROC_ONLY_ON_DUMMY)
 		return float2int32(TO_PLAYER(mTarget)->m_comboPoints * mOrigSpell->EffectPointsPerComboPoint[0]);
 	else
 		return mProcChance;
@@ -33,7 +33,7 @@ uint32 SpellProc::CalcProcChance(Unit* victim, SpellEntry* CastingSpell)
 
 bool SpellProc::CanProcOnTriggered(Unit* victim, SpellEntry* CastingSpell)
 {
-	if(mOrigSpell != NULL && mOrigSpell->AttributesExC & FLAGS4_CAN_PROC_ON_TRIGGERED)
+	if(mOrigSpell != NULL && mOrigSpell->AttributesEx2 & SPELL_ATTR2_TRIGGERED_CAN_TRIGGER_PROC)
 		return true;
 	return false;
 }

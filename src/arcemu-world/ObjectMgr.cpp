@@ -3722,11 +3722,11 @@ void ObjectMgr::ReloadSpellDbc()
 		{
 			sp->Attributes = f[1].GetUInt32();
 			sp->AttributesEx = f[2].GetUInt32();
-			sp->AttributesExB = f[3].GetUInt32();
-			sp->AttributesExC = f[4].GetUInt32();
-			sp->AttributesExD = f[5].GetUInt32();
-			sp->AttributesExE = f[6].GetUInt32();
-			sp->AttributesExF = f[7].GetUInt32();
+			sp->AttributesEx2 = f[3].GetUInt32();
+			sp->AttributesEx3 = f[4].GetUInt32();
+			sp->AttributesEx4 = f[5].GetUInt32();
+			sp->AttributesEx5 = f[6].GetUInt32();
+			sp->AttributesEx6 = f[7].GetUInt32();
 			sp->CastingTimeIndex = f[8].GetUInt32();
 			sp->InterruptFlags = f[9].GetUInt32();
 			sp->AuraInterruptFlags = f[10].GetUInt32();
@@ -3771,11 +3771,11 @@ void ObjectMgr::ReloadSpellDbc()
 			sp = CheckAndReturnSpellEntry(f[0].GetUInt32());
 			sp->Attributes = f[1].GetUInt32();
 			sp->AttributesEx = f[2].GetUInt32();
-			sp->AttributesExB = f[3].GetUInt32();
-			sp->AttributesExC = f[4].GetUInt32();
-			sp->AttributesExD = f[5].GetUInt32();
-			sp->AttributesExE = f[6].GetUInt32();
-			sp->AttributesExF = f[7].GetUInt32();
+			sp->AttributesEx2 = f[3].GetUInt32();
+			sp->AttributesEx3 = f[4].GetUInt32();
+			sp->AttributesEx4 = f[5].GetUInt32();
+			sp->AttributesEx5 = f[6].GetUInt32();
+			sp->AttributesEx6 = f[7].GetUInt32();
 			sp->CastingTimeIndex = f[8].GetUInt32();
 			sp->InterruptFlags = f[9].GetUInt32();
 			sp->AuraInterruptFlags = f[10].GetUInt32();
@@ -3824,7 +3824,7 @@ void ObjectMgr::CreateDummySpell(uint32 id, const char * name)
 	sp->Id = id;
 	sp->Attributes = 384;
 	sp->AttributesEx = 268435456;
-	sp->AttributesExB = 4;
+	sp->AttributesEx2 = 4;
 	sp->CastingTimeIndex=1;
 	sp->procChance=75;
 	sp->rangeIndex=13;

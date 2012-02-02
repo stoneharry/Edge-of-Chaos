@@ -661,12 +661,12 @@ struct SpellEntry
 	uint32 MechanicsType;                                     //4
 	uint32 Attributes;                                        //5
 	uint32 AttributesEx;                                      //6
-	uint32 AttributesExB;                                     //7
-	uint32 AttributesExC;                                     //8 Flags to
-	uint32 AttributesExD;                                     //9 Flags....
-	uint32 AttributesExE;                                     //10 Flags 2.0.1 unknown one
-	uint32 AttributesExF;                                     //11
-//	int32  Unknown;                                           //12 AttributesExG ?
+	uint32 AttributesEx2;                                     //7
+	uint32 AttributesEx3;                                     //8 Flags to
+	uint32 AttributesEx4;                                     //9 Flags....
+	uint32 AttributesEx5;                                     //10 Flags 2.0.1 unknown one
+	uint32 AttributesEx6;                                     //11
+	uint32 AttributesEx7;                                      //12
 	uint32 RequiredShapeShift;                                //13 Flags BitMask for shapeshift spells
 //	uint32 Unknown;                                           //14 UNK
 	uint32 ShapeshiftExclude;                                 //15 this is wrong // Flags BitMask for which shapeshift forms this spell can NOT be used in.
@@ -958,11 +958,11 @@ struct SpellEntry
 		MechanicsType= 0;                                     //4
 		Attributes= 0;                                        //5
 		AttributesEx= 0;                                      //6
-		AttributesExB= 0;                                     //7
-		AttributesExC= 0;                                     //8 Flags to
-		AttributesExD= 0;                                     //9 Flags....
-		AttributesExE= 0;                                     //10 Flags 2.0.1 unknown one
-		AttributesExF= 0;                                     //11
+		AttributesEx2= 0;                                     //7
+		AttributesEx3= 0;                                     //8 Flags to
+		AttributesEx4= 0;                                     //9 Flags....
+		AttributesEx5= 0;                                     //10 Flags 2.0.1 unknown one
+		AttributesEx6= 0;                                     //11
 		//	Unknown= 0;                                           //12 AttributesExG ?
 		RequiredShapeShift= 0;                                //13 Flags BitMask for shapeshift spells
 		//Unknown= 0;                                           //14 UNK
