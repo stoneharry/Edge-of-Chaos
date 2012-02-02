@@ -2329,7 +2329,7 @@ void Player::SaveToDB(bool bNewCharacter /* =false */)
 	ss << "INSERT INTO characters VALUES ("
 
 	   << GetLowGUID() << ", "
-	   << accountid << ","
+	   << GetSession()->GetAccountId(true) << ","
 
 	   // stat saving
 	   << "'" << m_name << "', "
