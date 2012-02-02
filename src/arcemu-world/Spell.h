@@ -571,7 +571,7 @@ enum Flags6 // AttributesExE
     FLAGS6_UNK9							= 0x80,
     FLAGS6_UNK10						= 0x100,
     FLAGS6_UNK11						= 0x200,
-    FLAGS6_UNK12						= 0x400,
+    FLAGS6_HIDE_DURATION				= 0x400,
     FLAGS6_UNK13						= 0x800,
     FLAGS6_UNK14						= 0x1000,
     FLAGS6_UNK15						= 0x2000,

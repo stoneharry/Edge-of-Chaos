@@ -933,13 +933,14 @@ struct SpellEntry
 		return 0;
 	}
 
-	uint32 GetApplyAura(uint32 aura)
+	int32 GetApplyAura(uint32 aura)
 	{
 		for(uint32 i = 0; i < MAX_SPELL_EFFECTS; ++i)
 		{
 			if(EffectApplyAuraName[ i ] == aura)
 				return i;
 		}
+		return -1;
 	}
 
 	SpellEntry()

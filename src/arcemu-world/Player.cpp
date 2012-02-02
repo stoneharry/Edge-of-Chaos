@@ -13659,7 +13659,7 @@ void Player::SendAurasForTarget(Unit* target)
 			else
 				Flags |= AFLAG_NEGATIVE;
 
-			if( aur->GetDuration() != 0 )
+			if( aur->GetDuration() != 0 && !(aur->GetSpellProto()->AttributesExE & FLAGS6_HIDE_DURATION))
 				Flags |= AFLAG_DURATION;
 
 			data << uint8( aur->m_visualSlot );
