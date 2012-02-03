@@ -998,10 +998,13 @@ void WorldSession::FullLogin(Player* plr)
 	}
 #endif
 
-
-
+	std::string rev = "N/A";
+	QueryResult * dbver = WorldDatabase.Query("select * from world_db_version");
+	if(dbver)
+		rev = dbver->Fetch()[0].GetString();
 	// Revision
-	_player->BroadcastMessage("ChaoticUnited Emulator : Revision: %sN/A", MSG_COLOR_CYAN);
+	_player->BroadcastMessage("ChaoticUnited Emulator : Revision: %s%s", MSG_COLOR_CYAN, rev);
+	delete dbver;
 	// Bugs
 
 	// Shows Server uptime
