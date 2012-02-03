@@ -49,6 +49,7 @@ class PersistentShield : public SpellProc
 		void Init(Object* obj)
 		{
 			mProcFlags = PROC_ON_CAST_SPELL;
+			mProcChance = 10;
 		}
 
 		bool CanProc(Unit* victim, SpellEntry* CastingSpell)
