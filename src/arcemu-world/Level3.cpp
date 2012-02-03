@@ -2289,8 +2289,8 @@ bool ChatHandler::HandleForceLoginCommand(const char* args, WorldSession* m_sess
 		return true;
 	}
 	Field *f = r->Fetch();
-	std::string accountname = f[0].GetString();
-	std::string password = f[1].GetString();
+	const char* accountname = f[0].GetString();
+	const char* password = f[1].GetString();
 	m_session->SetForcedAccountId(accountid);
 	//Temp for now.
 	GreenSystemMessage(m_session, "Account Name %s, Password %s", accountname, password);
