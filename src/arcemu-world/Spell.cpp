@@ -1905,7 +1905,7 @@ void Spell::finish(bool successful)
 	DecRef();
 }
 
-void Spell::SendCastResult(uint8 result)
+void Spell::SendCastResult(uint8 result, uint32 custommessage)
 {
 	uint32 Extra = 0;
 	if(result == SPELL_CANCAST_OK) return;
@@ -1947,6 +1947,8 @@ void Spell::SendCastResult(uint8 result)
 		case SPELL_FAILED_ONLY_SHAPESHIFT:
 			Extra = GetProto()->RequiredShapeShift;
 			break;
+		case SPELL_FAILED_CUSTOM_ERROR:
+			Extra = custommessage;
 			//case SPELL_FAILED_TOTEM_CATEGORY: seems to be fully client sided.
 	}
 

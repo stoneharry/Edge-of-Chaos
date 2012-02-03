@@ -1767,7 +1767,7 @@ class SERVER_DECL Spell : public EventableObject
 		ARCEMU_INLINE void SetUnitTarget(Unit* punit) {unitTarget = punit;}
 
 		// Send Packet functions
-		void SendCastResult(uint8 result);
+		void SendCastResult(uint8 result, uint32 custommessage = 0);
 		void SendSpellStart();
 		void SendSpellGo();
 		void SendLogExecute(uint32 damage, uint64 & targetGuid);
