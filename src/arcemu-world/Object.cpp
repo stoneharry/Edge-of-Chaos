@@ -1903,6 +1903,9 @@ void Object::SendSpellNonMeleeDamageLog(Object* Caster, Object* Target, uint32 S
 	if(!Caster || !Target || !SpellID)
 		return;
 
+	if(SpellEntry * sp = dbcSpell.LookupEntry(SpellID))
+		if(sp->Attributes & SPELL_ATTR0_HIDE_IN_COMBAT_LOG )
+			return;
 	uint32 Overkill = 0;
 
 	if(Damage > Target->GetUInt32Value(UNIT_FIELD_HEALTH))

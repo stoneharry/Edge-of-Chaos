@@ -3134,7 +3134,16 @@ uint8 Spell::CanCast(bool tolerate)
 					return SPELL_FAILED_BAD_TARGETS;
 			}
 
-			if(target->HasFullHealth() && m_spellInfo->HasEffect(SPELL_EFFECT_HEAL_MAX_HEALTH))
+			if( m_spellInfo->AttributesEx6 & SPELL_ATTR6_CANT_TARGET_CROWD_CONTROLLED && ( target->IsFeared() || target->isRooted() || target->IsStunned() || target->HasAuraWithMechanics(MECHANIC_POLYMORPHED)))
+				return SPELL_FAILED_BAD_TARGETS;
+
+			if( m_spellInfo->AttributesEx2 & SPELL_ATTR2_CANT_TARGET_TAPPED && target->IsTagged() && m_caster->GetGUID() != target->GetTaggerGUID())
+				return SPELL_FAILED_BAD_TARGETS;
+
+			if(m_spellInfo->AttributesEx3 & SPELL_ATTR3_ONLY_TARGET_PLAYERS && !target->IsPlayer())
+				return SPELL_FAILED_BAD_TARGETS;
+
+			if( m_spellInfo->HasEffect(SPELL_EFFECT_HEAL_MAX_HEALTH) && target->HasFullHealth())
 				return SPELL_FAILED_ALREADY_AT_FULL_HEALTH;
 		}
 
