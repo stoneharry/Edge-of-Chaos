@@ -8256,6 +8256,8 @@ void Player::ApplyLevelInfo(LevelInfo* Info, uint32 Level)
 
 void Player::BroadcastMessage(const char* Format, ...)
 {
+	if(*Format == 0)
+		return;
 	va_list l;
 	va_start(l, Format);
 	char Message[1024];
