@@ -42,7 +42,39 @@ class TwinBladesOfAzzinothSpellProc : public SpellProc
 		}
 };
 
+class PersistentShield : public SpellProc
+{
+		SPELL_PROC_FACTORY_FUNCTION(PersistentShield);
+
+		void Init(Object* obj)
+		{
+			mProcFlags = PROC_ON_CAST_SPELL;
+		}
+
+		bool CanProc(Unit* victim, SpellEntry* CastingSpell)
+		{
+			if(CastingSpell->HasEffect(SPELL_EFFECT_HEAL))
+				return true;
+			return false;
+		}
+
+		bool DoEffect(Unit* victim, SpellEntry* CastingSpell, uint32 flag, uint32 dmg, uint32 abs, int* dmg_overwrite, uint32 weapon_damage_type)
+		{
+			if(CastingSpell == NULL)
+				return true;
+
+			if(!CastingSpell->HasEffect(SPELL_EFFECT_HEAL))
+				return true;
+
+			dmg_overwrite[0] = int32((mOrigSpell->EffectBasePoints[0] + 1) * 0.15);
+
+			return false;
+		}
+
+};
+
 void SpellProcMgr::SetupItems()
 {
 	AddByNameHash(SPELL_HASH_THE_TWIN_BLADES_OF_AZZINOTH, &TwinBladesOfAzzinothSpellProc::Create);
+	AddById(26470, &PersistentShield::Create);
 }

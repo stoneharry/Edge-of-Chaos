@@ -7085,6 +7085,10 @@ void ApplyNormalFixes()
 			ritOfSumm->Id = ritOfSummId;
 		}
 	}
+
+	sp = CheckAndReturnSpellEntry(26467);
+	if(sp)
+		sp->EffectTriggerSpell[0] = 26470;
 }
 void ApplyDatabaseFixes()
 {
@@ -7095,7 +7099,8 @@ void ApplyDatabaseFixes()
 	do
 	{
 		Field *f = r->Fetch();
-		sp = CheckAndReturnSpellEntry(f[0].GetUInt32());
+		uint32 entry = f[0].GetUInt32();
+		sp = CheckAndReturnSpellEntry(entry);
 		if(sp)
 		{
 			sp->Attributes = f[1].GetUInt32();
@@ -7145,8 +7150,8 @@ void ApplyDatabaseFixes()
 		}
 		else
 		{
-			CreateDummySpell(f[0].GetUInt32());
-			sp = CheckAndReturnSpellEntry(f[0].GetUInt32());
+			CreateDummySpell(entry);
+			sp = CheckAndReturnSpellEntry(entry);
 			sp->Attributes = f[1].GetUInt32();
 			sp->AttributesEx = f[2].GetUInt32();
 			sp->AttributesEx2 = f[3].GetUInt32();

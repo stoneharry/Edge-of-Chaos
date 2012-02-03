@@ -115,6 +115,7 @@ class SERVER_DECL TaxiMgr :  public Singleton < TaxiMgr >
 
 		uint32 GetNearestTaxiNode(float x, float y, float z, uint32 mapid);
 		bool GetGlobalTaxiNodeMask(uint32 curloc, uint32* Mask);
+		bool _AttemptToAddMissingTaxiPaths(uint32 findtaxi);
 
 
 	private:

@@ -454,6 +454,151 @@ void TaxiMgr::_CreateCustomPaths()
 	_LoadTaxiPaths();
 }
 
+bool TaxiMgr::_AttemptToAddMissingTaxiPaths(uint32 findtaxi)
+{
+	uint32 nodecount = 0;
+	uint32 pathcount = 0;
+	uint32 pathnodecount = 0;
+	QueryResult * nodes = WorldDatabase.Query("Select * from taxi_node");
+	if(nodes == NULL)
+	{
+		Log.Error("MySQL", "taxi_node is empty!");
+		return false;
+	}
+	do
+	{
+		Field * f = nodes->Fetch();
+		DBCTaxiNode* n = dbcTaxiNode.LookupEntry(f[0].GetUInt32());
+		if(n == NULL)
+			n = new DBCTaxiNode;
+		n->id = f[0].GetUInt32();
+		n->mapid = f[1].GetUInt32();
+		n->alliance_mount = f[2].GetUInt32();
+		n->horde_mount = f[3].GetUInt32();
+		n->x = f[4].GetFloat();
+		n->y = f[5].GetFloat();
+		n->z = f[6].GetFloat();
+		dbcTaxiNode.SetRow(f[0].GetUInt32(), n);
+		nodecount++;
+	}while(nodes->NextRow());
+	delete nodes;
+	QueryResult * path = WorldDatabase.Query("Select * from taxi_path");
+	if(path == NULL)
+	{
+		Log.Error("MySQL", "taxi_path is empty!");
+		return false;
+	}
+	do
+	{
+		Field * f = path->Fetch();
+		DBCTaxiPath* p = dbcTaxiPath.LookupEntry(f[0].GetUInt32());
+		if(p == NULL)
+			p = new DBCTaxiPath;
+		p->id = f[0].GetUInt32();
+		p->from = f[1].GetUInt32();
+		p->to = f[2].GetUInt32();
+		p->price = f[3].GetUInt32();
+		dbcTaxiPath.SetRow(f[0].GetUInt32(), p);
+		pathcount++;
+	}while(path->NextRow());
+	delete path;
+	QueryResult * pathnodes = WorldDatabase.Query("Select * from taxi_path_node");
+	if(pathnodes == NULL)
+	{
+		Log.Error("MySQL", "taxi_path_node is empty!");
+		return false;
+	}
+	do
+	{
+		Field * field = pathnodes->Fetch();
+		DBCTaxiPathNode* pn = new DBCTaxiPathNode;
+		pn->id = field[0].GetUInt32();
+		pn->mapid = field[1].GetUInt32();
+		pn->seq = field[2].GetUInt32();
+		pn->x = field[3].GetFloat();
+		pn->y = field[4].GetFloat();
+		pn->z = field[5].GetFloat();
+		dbcTaxiPathNode.SetRow(field[0].GetUInt32(), pn);
+		pathnodecount++;
+	}while(pathnodes->NextRow());
+	delete pathnodes;
+	Log.Success("TaxiMgr", "%u custom taxi nodes, %u custom taxi paths and %u custom path nodes loaded.", nodecount, pathcount, pathnodecount);
+	uint32 i, j;
+
+	for(i = 0; i < dbcTaxiNode.GetNumRows(); i++)
+	{
+		DBCTaxiNode* node = dbcTaxiNode.LookupRowForced(i);
+		if(node)
+		{
+			TaxiNode* n = GetTaxiNode(node->id);
+			if(n != NULL)
+			{
+				n->id = node->id;
+				n->mapid = node->mapid;
+				n->alliance_mount = node->alliance_mount;
+				n->horde_mount = node->horde_mount;
+				n->x = node->x;
+				n->y = node->y;
+				n->z = node->z;
+			}
+			else
+			{
+				n->id = node->id;
+				n->mapid = node->mapid;
+				n->alliance_mount = node->alliance_mount;
+				n->horde_mount = node->horde_mount;
+				n->x = node->x;
+				n->y = node->y;
+				n->z = node->z;
+				this->m_taxiNodes.insert(std::map<uint32, TaxiNode*>::value_type(n->id, n));
+			}
+		}
+	}
+
+	i = j = 0;
+
+	for(i = 0; i < dbcTaxiPath.GetNumRows(); i++)
+	{
+		DBCTaxiPath* path = dbcTaxiPath.LookupRowForced(i);
+
+		if(path)
+		{
+			TaxiPath* p = new TaxiPath;
+			p->from = path->from;
+			p->to = path->to;
+			p->id = path->id;
+			p->price = path->price;
+
+			//Load Nodes
+			for(j = 0; j < dbcTaxiPathNode.GetNumRows(); j++)
+			{
+				DBCTaxiPathNode* pathnode = dbcTaxiPathNode.LookupRowForced(j);
+
+				if(pathnode)
+				{
+					if(pathnode->path == p->id)
+					{
+						TaxiPathNode* pn = new TaxiPathNode;
+						pn->x = pathnode->x;
+						pn->y = pathnode->y;
+						pn->z = pathnode->z;
+						pn->mapid = pathnode->mapid;
+						p->AddPathNode(pathnode->seq, pn);
+					}
+				}
+			}
+			p->ComputeLen();
+			if(GetTaxiPath(path->id) == NULL)
+			{
+				this->m_taxiPaths.insert(std::map<uint32, TaxiPath*>::value_type(p->id, p));
+			}
+		}
+	}
+	if(dbcTaxiPath.LookupRowForced(findtaxi) != NULL)
+		return true;
+	return false;
+}
+
 TaxiPath* TaxiMgr::GetTaxiPath(uint32 path)
 {
 	HM_NAMESPACE::hash_map<uint32, TaxiPath*>::iterator itr;

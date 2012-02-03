@@ -686,17 +686,24 @@ class SERVER_DECL Creature : public Unit
 
 		bool CantDie()
 		{
-			return (GetProto()->CustomFlags & CREATURE_CUSTOMFLAG_CANTDIE);
+			return HasCustomFlag(CREATURE_CUSTOMFLAG_CANTDIE);
 		}
 
 		bool IsImmuneToCreatureDamage()
 		{
-			return (GetProto()->CustomFlags & CREATURE_CUSTOMFLAG_IMMUNE_TO_CREATURE_DAMAGE);
+			return HasCustomFlag(CREATURE_CUSTOMFLAG_IMMUNE_TO_CREATURE_DAMAGE);
 		}
 
 		bool CantRegenHealth()
 		{
-			return (GetProto()->CustomFlags & CREATURE_CUSTOMFLAG_CANT_REGEN_HEALTH);
+			return HasCustomFlag(CREATURE_CUSTOMFLAG_CANT_REGEN_HEALTH);
+		}
+
+		bool HasCustomFlag(uint32 flag)
+		{
+			if(GetProto()->CustomFlags & flag)
+				return true;
+			return false;
 		}
 
 		void FormationLinkUp(uint32 SqlId);

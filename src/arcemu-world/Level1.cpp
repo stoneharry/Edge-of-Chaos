@@ -1622,8 +1622,17 @@ bool ChatHandler::HandleStartTaxiCommand(const char *args, WorldSession *m_sessi
 
 	if(path == NULL)
 	{
-		RedSystemMessage(m_session,"%u not found in the TaxiPath.dbc", taxiid);
-		return true;
+		RedSystemMessage(m_session,"%u not found in the TaxiPath.dbc, attempting to fix by reloading taxis.", taxiid);
+		if(sTaxiMgr._AttemptToAddMissingTaxiPaths(taxiid))
+		{
+			GreenSystemMessage(m_session, "Found taxi %u by reloading taxis", taxiid);
+			path = dbcTaxiPath.LookupRowForced(taxiid);
+		}
+		else
+		{
+			RedSystemMessage(m_session,"Not able to find taxi %u even after reloading", taxiid);
+			return true;
+		}
 	}
 
 	TaxiPath* taxipath = sTaxiMgr.GetTaxiPath(taxiid);

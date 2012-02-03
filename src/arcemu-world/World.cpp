@@ -389,11 +389,11 @@ bool World::SetInitialWorldSettings()
 	new AddonMgr;
 	new WorldLog;
 	new ChatHandler;
-	new SpellProcMgr;
 
 	ApplyNormalFixes();
 	ApplyDatabaseFixes();
 
+	new SpellProcMgr;
 	new SpellFactoryMgr;
 
 #define MAKE_TASK(sp, ptr) tl.AddTask(new Task(new CallbackP0<sp>(sp::getSingletonPtr(), &sp::ptr)))
