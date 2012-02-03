@@ -2269,3 +2269,12 @@ bool World::IsTrialAccount(uint32 accountid)
 
 	return r->Fetch()[0].GetBool();
 }
+
+const char*  World::GetEmulatorRevision()
+{
+	QueryResult * r = WorldDatabase.Query("select LastUpdate from world_db_version");
+	if(!r)
+		return "N/A";
+
+	return r->Fetch()[0].GetString();
+}

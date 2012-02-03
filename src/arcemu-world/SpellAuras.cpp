@@ -1821,11 +1821,7 @@ void Aura::EventPeriodicDamage(uint32 amount)
 				bonus += c->GetSpellDmgBonus(m_target, m_spellProto, amount, true) * amp / GetDuration();
 				res += static_cast< float >( bonus );
 				// damage taken is reduced after bonus damage is calculated and added
-				float reduce_damage = 0.0f;
-				reduce_damage += static_cast< float >( m_target->DamageTakenMod[school] );
-				reduce_damage += res * m_target->DamageTakenPctMod[school];
-				reduce_damage += res * m_target->ModDamageTakenByMechPCT[m_spellProto->MechanicsType];
-				res += reduce_damage;
+				res += c->CalcSpellDamageReduction(m_target, m_spellProto, res);
 			}
 			res += bonus;
 

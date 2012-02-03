@@ -665,6 +665,7 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 
 		void LogoutPlayers();
 
+		const char* GetEmulatorRevision();
 	protected:
 		// update Stuff, FIX ME: use diff
 		time_t _UpdateGameTime()

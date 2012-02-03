@@ -7049,13 +7049,6 @@ void ApplyNormalFixes()
 		sp->Effect[1] = SPELL_EFFECT_DUMMY;
 	}
 
-	// Build house
-	/*sp = CheckAndReturnSpellEntry( 6757 );
-	if( sp )
-	{
-		sp->m_target->m_destX;
-	}*/
-
 	sp = CheckAndReturnSpellEntry(52644);
 	if(sp)
 	{
@@ -7088,7 +7081,11 @@ void ApplyNormalFixes()
 
 	sp = CheckAndReturnSpellEntry(26467);
 	if(sp)
+	{
 		sp->EffectTriggerSpell[0] = 26470;
+		sp->Attributes |= SPELL_ATTR0_HIDDEN_CLIENTSIDE | SPELL_ATTR0_PASSIVE;
+		sp->DurationIndex = 0;
+	}
 }
 void ApplyDatabaseFixes()
 {

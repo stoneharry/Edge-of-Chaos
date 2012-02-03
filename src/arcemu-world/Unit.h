@@ -2003,6 +2003,8 @@ class SERVER_DECL Unit : public Object
 		int32 m_safeFall;
 		
 		void SendEnvironmentalDamageLog( uint64 guid, uint8 type, uint32 damage );
+
+		float CalcSpellDamageReduction(Unit* victim, SpellEntry* spell, float res);
 };
 
 

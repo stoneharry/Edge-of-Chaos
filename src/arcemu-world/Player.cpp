@@ -13654,7 +13654,10 @@ void Player::SendAurasForTarget(Unit* target)
 	{
 		Aura * aur = target->m_auras[ i ];
 		
-		if( aur != NULL ){
+		if( aur != NULL )
+		{
+			if(aur->GetSpellProto()->Attributes & SPELL_ATTR0_HIDDEN_CLIENTSIDE)
+				continue;
 			uint8 Flags = uint8( aur->GetAuraFlags() );
 
 			Flags = ( AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3 );

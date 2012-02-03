@@ -5125,7 +5125,7 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 	Unit* caster = this;
 	uint32 school = spellInfo->School;
 
-	if( spellInfo->c_is_flags & SPELL_FLAG_IS_NOT_USING_DMG_BONUS )
+	if( spellInfo->c_is_flags & SPELL_FLAG_IS_NOT_USING_DMG_BONUS || spellInfo->AttributesEx3 & SPELL_ATTR3_NO_DONE_BONUS)
 		return 0;
 
 	if( caster->IsPlayer() )
@@ -8432,4 +8432,13 @@ bool Unit::HasFlyingAura()
 	if(HasAuraWithName(SPELL_AURA_MOD_FLIGHT_SPEED_NOT_STACK))
 		return true;
 	return false;
+}
+
+float Unit::CalcSpellDamageReduction(Unit* victim, SpellEntry* spell, float res)
+{
+	float reduced_damage = 0;
+	reduced_damage += static_cast< float >( victim->DamageTakenMod[spell->School] );
+	reduced_damage += res * victim->DamageTakenPctMod[spell->School];
+	reduced_damage += res * victim->ModDamageTakenByMechPCT[spell->MechanicsType];
+	return reduced_damage;
 }

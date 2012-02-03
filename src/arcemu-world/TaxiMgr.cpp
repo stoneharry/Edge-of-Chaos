@@ -456,9 +456,6 @@ void TaxiMgr::_CreateCustomPaths()
 
 bool TaxiMgr::_AttemptToAddMissingTaxiPaths(uint32 findtaxi)
 {
-	uint32 nodecount = 0;
-	uint32 pathcount = 0;
-	uint32 pathnodecount = 0;
 	QueryResult * nodes = WorldDatabase.Query("Select * from taxi_node");
 	if(nodes == NULL)
 	{
@@ -479,7 +476,6 @@ bool TaxiMgr::_AttemptToAddMissingTaxiPaths(uint32 findtaxi)
 		n->y = f[5].GetFloat();
 		n->z = f[6].GetFloat();
 		dbcTaxiNode.SetRow(f[0].GetUInt32(), n);
-		nodecount++;
 	}while(nodes->NextRow());
 	delete nodes;
 	QueryResult * path = WorldDatabase.Query("Select * from taxi_path");
@@ -499,7 +495,6 @@ bool TaxiMgr::_AttemptToAddMissingTaxiPaths(uint32 findtaxi)
 		p->to = f[2].GetUInt32();
 		p->price = f[3].GetUInt32();
 		dbcTaxiPath.SetRow(f[0].GetUInt32(), p);
-		pathcount++;
 	}while(path->NextRow());
 	delete path;
 	QueryResult * pathnodes = WorldDatabase.Query("Select * from taxi_path_node");
@@ -519,10 +514,8 @@ bool TaxiMgr::_AttemptToAddMissingTaxiPaths(uint32 findtaxi)
 		pn->y = field[4].GetFloat();
 		pn->z = field[5].GetFloat();
 		dbcTaxiPathNode.SetRow(field[0].GetUInt32(), pn);
-		pathnodecount++;
 	}while(pathnodes->NextRow());
 	delete pathnodes;
-	Log.Success("TaxiMgr", "%u custom taxi nodes, %u custom taxi paths and %u custom path nodes loaded.", nodecount, pathcount, pathnodecount);
 	uint32 i, j;
 
 	for(i = 0; i < dbcTaxiNode.GetNumRows(); i++)
@@ -543,6 +536,7 @@ bool TaxiMgr::_AttemptToAddMissingTaxiPaths(uint32 findtaxi)
 			}
 			else
 			{
+				n = new TaxiNode;
 				n->id = node->id;
 				n->mapid = node->mapid;
 				n->alliance_mount = node->alliance_mount;
@@ -561,7 +555,7 @@ bool TaxiMgr::_AttemptToAddMissingTaxiPaths(uint32 findtaxi)
 	{
 		DBCTaxiPath* path = dbcTaxiPath.LookupRowForced(i);
 
-		if(path)
+		if(path && GetTaxiPath(path->id) == NULL)
 		{
 			TaxiPath* p = new TaxiPath;
 			p->from = path->from;
@@ -588,10 +582,7 @@ bool TaxiMgr::_AttemptToAddMissingTaxiPaths(uint32 findtaxi)
 				}
 			}
 			p->ComputeLen();
-			if(GetTaxiPath(path->id) == NULL)
-			{
-				this->m_taxiPaths.insert(std::map<uint32, TaxiPath*>::value_type(p->id, p));
-			}
+			this->m_taxiPaths.insert(std::map<uint32, TaxiPath*>::value_type(p->id, p));
 		}
 	}
 	if(dbcTaxiPath.LookupRowForced(findtaxi) != NULL)
