@@ -54,7 +54,7 @@ class PersistentShield : public SpellProc
 
 		bool CanProc(Unit* victim, SpellEntry* CastingSpell)
 		{
-			if(CastingSpell->HasEffect(SPELL_EFFECT_HEAL))
+			if(CastingSpell && CastingSpell->HasEffect(SPELL_EFFECT_HEAL))
 				return true;
 			return false;
 		}
