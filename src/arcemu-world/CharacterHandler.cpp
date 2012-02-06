@@ -969,7 +969,10 @@ void WorldSession::FullLogin(Player* plr)
 
 	//Issue a message telling all guild members that this player has signed on
 	if(plr->IsInGuild())
+	{
 		plr->SendGuildMOTD();
+		plr->m_playerInfo->guild->LogGuildEvent(GUILD_EVENT_HASCOMEONLINE, 1, plr->GetName());
+	}
 
 	// Send online status to people having this char in friendlist
 	_player->Social_TellFriendsOnline();
