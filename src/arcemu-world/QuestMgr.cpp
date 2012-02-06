@@ -1511,113 +1511,29 @@ void QuestMgr::_RemoveChar(char* c, std::string* str)
 
 uint32 QuestMgr::GenerateQuestXP(Player* plr, Quest* qst)
 {
-	if(qst->is_repeatable != 0)
-		return 0;
 	uint32 exp = qst->reward_xp;
-	// Leaving this for compatibility reason for the old system + custom quests ^^
-	if(qst->reward_xp != 0)
-	{
-		float modifier = 0.0f;
-		uint32 playerlevel = plr->getLevel();
-		int32 questlevel = qst->questlevel;
+	float modifier = 0.0f;
+	uint32 playerlevel = plr->getLevel();
+	int32 questlevel = qst->questlevel;
+	if(static_cast< int32 >(playerlevel) == (questlevel +  6))
+		modifier = 0.8f;
+	if(static_cast< int32 >(playerlevel) == (questlevel +  7))
+		modifier = 0.6f;
+	if(static_cast< int32 >(playerlevel) == (questlevel +  8))
+		modifier = 0.4f;
+	if(static_cast< int32 >(playerlevel) == (questlevel +  9))
+		modifier = 0.2f;
+	uint32 newexp = static_cast< uint32 >(modifier * qst->reward_xp);
 
-		if(static_cast< int32 >(playerlevel) > (questlevel +  9))
-			return 0;
+	if(newexp > exp)
+		exp = newexp;
 
-		if(static_cast< int32 >(playerlevel) == (questlevel +  6))
-			modifier = 0.8f;
-
-		if(static_cast< int32 >(playerlevel) == (questlevel +  7))
-			modifier = 0.6f;
-
-		if(static_cast< int32 >(playerlevel) == (questlevel +  8))
-			modifier = 0.4f;
-
-		if(static_cast< int32 >(playerlevel) == (questlevel +  9))
-			modifier = 0.2f;
-
-
-		exp = static_cast< uint32 >(modifier * qst->reward_xp);
-
-	}
-	else
-	{
-		// new quest reward xp calculation mechanism based on DBC values + index taken from DB
-
-		uint32 realXP = 0;
-		uint32 xpMultiplier = 0;
-		int32 baseLevel = 0;
-		int32 playerLevel = plr->getLevel();
-		int32 QuestLevel = qst->questlevel;
-
-		if(QuestLevel != -1)
-			baseLevel = QuestLevel;
-
-		if(((baseLevel - playerLevel) + 10) * 2 > 10)
-		{
-			baseLevel = playerLevel;
-
-			if(QuestLevel != -1)
-				baseLevel = QuestLevel;
-
-			if(((baseLevel - playerLevel) + 10) * 2 <= 10)
-			{
-				if(QuestLevel == -1)
-					baseLevel = playerLevel;
-
-				xpMultiplier = 2 * (baseLevel - playerLevel) + 20;
-			}
-			else
-			{
-				xpMultiplier = 10;
-			}
-		}
-		else
-		{
-			baseLevel = playerLevel;
-
-			if(QuestLevel != -1)
-				baseLevel = QuestLevel;
-
-			if(((baseLevel - playerLevel) + 10) * 2 >= 1)
-			{
-				baseLevel = playerLevel;
-
-				if(QuestLevel != -1)
-					baseLevel = QuestLevel;
-
-				if(((baseLevel - playerLevel) + 10) * 2 <= 10)
-				{
-					if(QuestLevel == -1)
-						baseLevel = playerLevel;
-
-					xpMultiplier = 2 * (baseLevel - playerLevel) + 20;
-				}
-				else
-				{
-					xpMultiplier = 10;
-				}
-			}
-			else
-			{
-				xpMultiplier = 1;
-			}
-		}
-
-		if(const QuestXP* pXPData = dbcQuestXP.LookupEntry(baseLevel))
-		{
-			uint32 rawXP = xpMultiplier * pXPData->xpIndex[ qst->RewXPId ] / 10;
-
-			realXP = static_cast< uint32 >(Arcemu::round(static_cast< double >(rawXP)));
-		}
-		exp = realXP;
-	}
 	if(plr->HasAuraWithName(SPELL_AURA_MOD_XP_QUEST_PCT))
 	{
 		float questexpmodpct = float(plr->GetTotalAuraModifer(SPELL_AURA_MOD_XP_QUEST_PCT, true) / 100.0f);
 		exp += (exp * questexpmodpct);
 	}
-	return exp * sWorld.getRate(RATE_QUESTXP);
+	return uint32(exp * sWorld.getRate(RATE_QUESTXP));
 }
 
 uint32 QuestMgr::GenerateRewardMoney(Player* plr, Quest* qst)
