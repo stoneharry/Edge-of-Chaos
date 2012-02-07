@@ -2836,6 +2836,16 @@ AI_Spell* AIInterface::getSpell()
 	return 0;
 }
 
+void AIInterface::addSpellToList(AI_Spell* sp)
+{
+	if(!sp || !sp->spell)
+		return;
+
+	AI_Spell* sp2 = new AI_Spell;
+	memcpy(sp2, sp, sizeof(AI_Spell));
+	m_spells.push_back(sp2);
+}
+
 uint32 AIInterface::getThreatByGUID(uint64 guid)
 {
 

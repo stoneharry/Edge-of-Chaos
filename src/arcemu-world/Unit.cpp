@@ -8451,3 +8451,19 @@ bool Unit::ClassUsesSpellPower()
 	}
 	return false;
 }
+
+bool Unit::HasCreatureCustomFlag(uint32 flag)
+{
+	if(!IsCreature())
+		return false;
+	return TO< Creature *>(this)->HasCustomFlag(flag);
+}
+
+bool Unit::HasLoot()
+{
+	if(IsPlayer() && IsInBg())
+		return true;
+	if(!IsCreature())
+		return false;
+	return TO< Creature *>(this)->HasLoot();
+}

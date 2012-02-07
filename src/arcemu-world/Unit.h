@@ -2008,22 +2008,9 @@ class SERVER_DECL Unit : public Object
 
 		bool ClassUsesSpellPower();
 
-		bool HasCreatureCustomFlag(uint32 flag)
-		{
-			if(!IsCreature())
-				return false;
-			return TO< Creature *>(this)->HasCustomFlag(flag);
-		}
+		bool HasCreatureCustomFlag(uint32 flag);
 
-		bool HasLoot()
-		{
-			if(IsPlayer() && IsInBg())
-				return true;
-			if(!IsCreature())
-				return false;
-
-			return TO< Creature *>(this)->HasLoot();
-		}
+		bool HasLoot();
 };
 
 
