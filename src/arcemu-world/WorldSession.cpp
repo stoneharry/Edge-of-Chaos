@@ -1958,7 +1958,8 @@ void WorldSession::HandleMirrorImageOpcode(WorldPacket & recv_data)
 	uint64 CasterGUID = Image->GetCreatedByGUID();
 	Unit* Caster = _player->GetMapMgr()->GetUnit(CasterGUID);
 	if(Caster == NULL)
-		return;					// apperantly this mirror image mirrors
+		return;					
+	// apperantly this mirror image mirrors
 	// nothing, poor lonely soul :(
 	// Maybe it's the Caster's ghost called Casper
 
@@ -2009,7 +2010,10 @@ void WorldSession::HandleMirrorImageOpcode(WorldPacket & recv_data)
 			            int16 >
 			            (imageitemslots
 			             [i]));
-
+			if(i == EQUIPMENT_SLOT_HEAD && pcaster->HasFlag(PLAYER_FLAGS, 0x00000400))
+				item = NULL;
+			if(i == EQUIPMENT_SLOT_BACK && pcaster->HasFlag(PLAYER_FLAGS, 0x00000800))
+				item = NULL;
 			if(item != NULL)
 				data << uint32(item->GetProto()->DisplayInfoID);
 			else
