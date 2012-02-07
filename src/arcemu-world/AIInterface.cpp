@@ -2815,10 +2815,7 @@ AI_Spell* AIInterface::getSpell()
 			def_spell->procCounter++;
 
 		if(def_spell->cooldown)
-		{
-			def_spell->cooldown = def_spell->spell->RecoveryTime;
 			def_spell->cooldowntime = nowtime + def_spell->cooldown;
-		}
 
 		waiting_for_cooldown = false;
 		return def_spell;
@@ -2836,21 +2833,7 @@ AI_Spell* AIInterface::getSpell()
 		next_spell_time = (uint32)UNIXTIME + MOB_SPELLCAST_REFRESH_COOLDOWN_INTERVAL;
 		waiting_for_cooldown = false;
 	}
-
-#ifdef _AI_DEBUG
-	LOG_DEBUG("AI DEBUG: Returning no spell for unit %u", m_Unit->GetEntry());
-#endif
 	return 0;
-}
-
-void AIInterface::addSpellToList(AI_Spell* sp)
-{
-	if(!sp || !sp->spell)
-		return;
-
-	AI_Spell* sp2 = new AI_Spell;
-	memcpy(sp2, sp, sizeof(AI_Spell));
-	m_spells.push_back(sp2);
 }
 
 uint32 AIInterface::getThreatByGUID(uint64 guid)

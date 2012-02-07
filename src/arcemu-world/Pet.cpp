@@ -563,18 +563,21 @@ AI_Spell* Pet::CreateAISpell(SpellEntry* info)
 	sp->spell = info;
 	sp->cooldown = objmgr.GetPetSpellCooldown(info->Id);
 	if(sp->cooldown == 0)
-		sp->cooldown = info->StartRecoveryTime; //avoid spell spamming
+		sp->cooldown = info->RecoveryTime; //still 0 ?
 	if(sp->cooldown == 0)
-		sp->cooldown = info->StartRecoveryCategory; //still 0 ?
+		sp->cooldown = info->CategoryRecoveryTime;
+	if(sp->cooldown == 0)
+		sp->cooldown = info->StartRecoveryTime; //avoid spell spamming
 	if(sp->cooldown == 0)
 		sp->cooldown = PET_SPELL_SPAM_COOLDOWN; //omg, avoid spamming at least
 	sp->cooldowntime = 0;
 
 	if(/* info->Effect[0] == SPELL_EFFECT_APPLY_AURA || */ 
-	      info->Effect[0] == SPELL_EFFECT_APPLY_GROUP_AREA_AURA 
-          || info->Effect[0] == SPELL_EFFECT_APPLY_RAID_AREA_AURA
-          || info->EffectImplicitTargetA[0] == 27) //TARGET_MASTER
-			sp->spellType = STYPE_BUFF;
+		info->Effect[0] == SPELL_EFFECT_APPLY_GROUP_AREA_AURA 
+		|| info->Effect[0] == SPELL_EFFECT_APPLY_RAID_AREA_AURA
+		|| info->EffectImplicitTargetA[0] == 27 //TARGET_MASTER
+		|| info->EffectImplicitTargetA[0] == 57) //TARGET_SINGLE_FRIEND_2
+		sp->spellType = STYPE_BUFF;
 	else
 		sp->spellType = STYPE_DAMAGE;
 

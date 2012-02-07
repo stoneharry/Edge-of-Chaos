@@ -2468,7 +2468,10 @@ uint32 ObjectMgr::GetPetSpellCooldown(uint32 SpellId)
 		return itr->second;
 
 	SpellEntry* sp = dbcSpell.LookupEntry(SpellId);
-	return sp->CategoryRecoveryTime + sp->StartRecoveryTime;
+	if( sp->RecoveryTime > sp->CategoryRecoveryTime )
+		return sp->RecoveryTime;
+	else
+		return sp->CategoryRecoveryTime;
 }
 
 void ObjectMgr::LoadSpellOverride()
