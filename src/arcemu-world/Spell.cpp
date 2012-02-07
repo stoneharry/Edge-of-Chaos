@@ -3870,7 +3870,7 @@ uint8 Spell::CanCast(bool tolerate)
 			}
 
 			/* Target OOC check */
-			if(hasAttributeEx(SPELL_ATTR0_CANT_USED_IN_COMBAT) && target->CombatStatus.IsInCombat())
+			if(hasAttributeEx(SPELL_ATTR1_CANT_TARGET_IN_COMBAT) && target->CombatStatus.IsInCombat())
 				return SPELL_FAILED_TARGET_IN_COMBAT;
 
 			if(p_caster != NULL)
