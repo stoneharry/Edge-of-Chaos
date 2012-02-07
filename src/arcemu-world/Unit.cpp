@@ -8247,6 +8247,8 @@ void Unit::HandleKnockback(Object* caster, float horizontal, float vertical)
 	//This is in unit and not creature because players who are mind controlled must use this.
 	if(caster == NULL)
 		caster = this;
+	if(GetCurrentSpell())
+		GetCurrentSpell()->cancel();
 	/* This seems to never go into the right direction ex: caster facing foward does knockback, victim goes backwards.
 	float angle = calcRadAngle(caster->GetPositionX(), caster->GetPositionY(), GetPositionX(), GetPositionY());
 	if(caster == this)
