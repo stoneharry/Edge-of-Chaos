@@ -251,7 +251,8 @@ enum CustomFlags
 {
 	CREATURE_CUSTOMFLAG_CANTDIE = 0x1,
 	CREATURE_CUSTOMFLAG_IMMUNE_TO_CREATURE_DAMAGE = 0x2,
-	CREATURE_CUSTOMFLAG_CANT_REGEN_HEALTH = 0x4
+	CREATURE_CUSTOMFLAG_CANT_REGEN_HEALTH = 0x4,
+	CREATURE_CUSTOMFLAG_NO_LOOT	= 0x8
 };
 
 enum FAMILY
@@ -608,7 +609,12 @@ class SERVER_DECL Creature : public Unit
 		void OnRespawn(MapMgr* m);
 
 		void BuildPetSpellList(WorldPacket & data);
-		bool HasLoot() { return (loot.gold > 0 || !loot.items.empty()); }
+		bool HasLoot() 
+		{
+			if(ForcedNoLoot())
+				return false;
+			return (loot.gold > 0 || !loot.items.empty()); 
+		}
 	protected:
 		virtual void SafeDelete();//use DeleteMe() instead of SafeDelete() to avoid crashes like InWorld Creatures deleted.
 	public:
@@ -697,6 +703,11 @@ class SERVER_DECL Creature : public Unit
 		bool CantRegenHealth()
 		{
 			return HasCustomFlag(CREATURE_CUSTOMFLAG_CANT_REGEN_HEALTH);
+		}
+
+		bool ForcedNoLoot()
+		{
+			return HasCustomFlag(CREATURE_CUSTOMFLAG_NO_LOOT);
 		}
 
 		bool HasCustomFlag(uint32 flag)

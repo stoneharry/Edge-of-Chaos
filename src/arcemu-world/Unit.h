@@ -2007,6 +2007,23 @@ class SERVER_DECL Unit : public Object
 		float CalcSpellDamageReduction(Unit* victim, SpellEntry* spell, float res);
 
 		bool ClassUsesSpellPower();
+
+		bool HasCreatureCustomFlag(uint32 flag)
+		{
+			if(!IsCreature())
+				return false;
+			return TO< Creature *>(this)->HasCustomFlag(flag);
+		}
+
+		bool HasLoot()
+		{
+			if(IsPlayer() && IsInBg())
+				return true;
+			if(!IsCreature())
+				return false;
+
+			return TO< Creature *>(this)->HasLoot();
+		}
 };
 
 

@@ -7856,7 +7856,7 @@ uint64 Unit::GetTaggerGUID()
 
 bool Unit::isLootable()
 {
-	if(IsTagged() && !IsPet() && !isCritter() && !(IsPlayer() && !IsInBg()) && ( GetCreatedByGUID() == 0 ) && !IsVehicle() )
+	if(IsTagged() && !IsPet() && !isCritter() && !HasLoot() && ( GetCreatedByGUID() == 0 ) && !IsVehicle())
 		return true;
 	else
 		return false;

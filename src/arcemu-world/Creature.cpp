@@ -416,7 +416,7 @@ void Creature::CreateWayPoint(uint32 WayPointID, uint32 mapid, float x, float y,
 void Creature::generateLoot()
 {
 
-	if(isCritter())
+	if(isCritter() || HasLoot())
 		return;
 
 	if(!loot.items.empty())
@@ -1816,6 +1816,8 @@ Group* Creature::GetGroup()
 
 bool Creature::HasLootForPlayer(Player* plr)
 {
+	if(!HasLoot())
+		return false;
 	if(loot.gold > 0)
 		return true;
 
