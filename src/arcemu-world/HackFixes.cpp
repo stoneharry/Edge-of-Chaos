@@ -1249,28 +1249,83 @@ void ApplyNormalFixes()
 	//Big Blizzard Bear
 	sp = CheckAndReturnSpellEntry( 58983 );
 	if( sp != NULL )
-		sp->Effect[0] = SPELL_EFFECT_NULL; 
+	{
+		sp->Effect[0] = SPELL_EFFECT_DUMMY;
+		sp->Effect[1] = SPELL_EFFECT_NULL;
+		sp->Effect[2] = SPELL_EFFECT_NULL;
+	}
 	//Winged Steed of Ebon Blade
 	sp = CheckAndReturnSpellEntry( 54729 );
 	if( sp != NULL )
-		sp->Effect[0] = SPELL_EFFECT_NULL; 
+	{
+		sp->Effect[0] = SPELL_EFFECT_DUMMY;
+		sp->Effect[1] = SPELL_EFFECT_NULL;
+		sp->Effect[2] = SPELL_EFFECT_NULL;
+	}
 	//Headless Horsemen Mount
 	sp = CheckAndReturnSpellEntry( 48025 );
 	if( sp != NULL )
-		sp->Effect[0] = SPELL_EFFECT_NULL; 
+	{
+		sp->Effect[0] = SPELL_EFFECT_DUMMY;
+		sp->Effect[1] = SPELL_EFFECT_NULL;
+		sp->Effect[2] = SPELL_EFFECT_NULL;
+	}
 	//Magic Broom
 	sp = CheckAndReturnSpellEntry( 47977 );
 	if( sp != NULL )
-		sp->Effect[0] = SPELL_EFFECT_NULL; 
+	{
+		sp->Effect[0] = SPELL_EFFECT_DUMMY;
+		sp->Effect[1] = SPELL_EFFECT_NULL;
+		sp->Effect[2] = SPELL_EFFECT_NULL;
+	}
 	//Magic Rooster
 	sp = CheckAndReturnSpellEntry( 65917 );
 	if( sp != NULL )
-		sp->Effect[0] = SPELL_EFFECT_NULL; 
+	{
+		sp->Effect[0] = SPELL_EFFECT_DUMMY;
+		sp->Effect[1] = SPELL_EFFECT_NULL;
+		sp->Effect[2] = SPELL_EFFECT_NULL;
+	}
 	//Invincible
 	sp = CheckAndReturnSpellEntry( 72286 ); 
 	if( sp != NULL )
-		sp->Effect[0] = SPELL_EFFECT_NULL; 
-
+	{
+		sp->Effect[0] = SPELL_EFFECT_DUMMY;
+		sp->Effect[1] = SPELL_EFFECT_NULL;
+		sp->Effect[2] = SPELL_EFFECT_NULL;
+	}
+	//Big Love Rocket
+	sp = CheckAndReturnSpellEntry( 71342 );
+	if(sp)
+	{
+		sp->Effect[0] = SPELL_EFFECT_DUMMY;
+		sp->Effect[1] = SPELL_EFFECT_NULL;
+		sp->Effect[2] = SPELL_EFFECT_NULL;
+	}
+	//X-53 Touring Rocket
+	sp = CheckAndReturnSpellEntry( 75973 );
+	if(sp)
+	{
+		sp->Effect[0] = SPELL_EFFECT_DUMMY;
+		sp->Effect[1] = SPELL_EFFECT_NULL;
+		sp->Effect[2] = SPELL_EFFECT_NULL;
+	}
+	//Blazing Hippogryph
+	sp = CheckAndReturnSpellEntry( 74856 );
+	if(sp)
+	{
+		sp->Effect[0] = SPELL_EFFECT_DUMMY;
+		sp->Effect[1] = SPELL_EFFECT_NULL;
+		sp->Effect[2] = SPELL_EFFECT_NULL;
+	}
+	//Celestial Steed
+	sp = CheckAndReturnSpellEntry( 75614 );
+	if(sp)
+	{
+		sp->Effect[0] = SPELL_EFFECT_DUMMY;
+		sp->Effect[1] = SPELL_EFFECT_NULL;
+		sp->Effect[2] = SPELL_EFFECT_NULL;
+	}
 	//////////////////////////////////////////////////////
 	// CLASS-SPECIFIC SPELL FIXES						//
 	//////////////////////////////////////////////////////

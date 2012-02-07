@@ -8880,7 +8880,7 @@ void Aura::SpellAuraMirrorImage(bool apply)
 	if(m_target == NULL || ! m_target->IsCreature())
 		return;
 
-	if(apply && m_target->IsSummon() && (m_target->GetCreatedByGUID() == GetCasterGUID()))
+	if(apply && m_target->IsSummon())
 	{
 		Summon* s = TO< Summon* >(m_target);
 
@@ -8896,7 +8896,7 @@ void Aura::SpellAuraMirrorImage2(bool apply)
 	if(m_target == NULL)
 		return;
 
-	if(apply && m_target->IsSummon() && (m_target->GetCreatedByGUID() == GetCasterGUID()))
+	if(apply && m_target->IsSummon())
 	{
 		if(GetCaster()->IsPlayer())
 		{

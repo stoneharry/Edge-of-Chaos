@@ -2005,6 +2005,8 @@ class SERVER_DECL Unit : public Object
 		void SendEnvironmentalDamageLog( uint64 guid, uint8 type, uint32 damage );
 
 		float CalcSpellDamageReduction(Unit* victim, SpellEntry* spell, float res);
+
+		bool ClassUsesSpellPower();
 };
 
 

@@ -5128,18 +5128,8 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 	if( spellInfo->c_is_flags & SPELL_FLAG_IS_NOT_USING_DMG_BONUS || spellInfo->AttributesEx3 & SPELL_ATTR3_NO_DONE_BONUS)
 		return 0;
 
-	if( caster->IsPlayer() )
-	{
-		switch( TO< Player* >(this)->getClass() )
-		{
-			case ROGUE:
-			case WARRIOR:
-			case DEATHKNIGHT:
-			case HUNTER:
-				return 0;
-			default: break;
-		}
-	}
+	if( caster->IsPlayer() && !caster->ClassUsesSpellPower() )
+		return 0;
 
 //------------------------------by school---------------------------------------------------
 	plus_damage += caster->GetDamageDoneMod(school);
@@ -8441,4 +8431,21 @@ float Unit::CalcSpellDamageReduction(Unit* victim, SpellEntry* spell, float res)
 	reduced_damage += res * victim->DamageTakenPctMod[spell->School];
 	reduced_damage += res * victim->ModDamageTakenByMechPCT[spell->MechanicsType];
 	return reduced_damage;
+}
+
+bool Unit::ClassUsesSpellPower()
+{
+	switch( getClass() )
+	{
+		case PALADIN:
+		case PRIEST:
+		case SHAMAN:
+		case MAGE:
+		case WARLOCK:
+		case DRUID:
+		{
+			return true;
+		}break;
+	}
+	return false;
 }

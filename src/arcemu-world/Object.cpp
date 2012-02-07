@@ -1673,8 +1673,10 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 		Unit* caster = TO_UNIT(this);
 
 		caster->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_START_ATTACK);
-
-		res += static_cast< float >(caster->GetSpellDmgBonus(pVictim, spellInfo, damage, false));
+		if(caster->ClassUsesSpellPower())
+			res = static_cast< float >(caster->GetSpellDmgBonus(pVictim, spellInfo, damage, false));
+		else
+			res += static_cast< float >(caster->GetSpellDmgBonus(pVictim, spellInfo, damage, false));
 
 		if(res < 0.0f)
 			res = 0.0f;
@@ -1684,7 +1686,7 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 //==========================================================================================
 	if(res > 0.0f && !(spellInfo->AttributesEx2 & SPELL_ATTR2_CANT_CRIT))
 	{
-		critical = this->IsCriticalDamageForSpell(pVictim, spellInfo);
+		critical = IsCriticalDamageForSpell(pVictim, spellInfo);
 
 //==========================================================================================
 //==============================Spell Critical Hit==========================================
@@ -1743,36 +1745,8 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 	if(abs_dmg)
 		vproc |= PROC_ON_ABSORB;
 
-	// Incanter's Absorption
-	if(pVictim->IsPlayer() && pVictim->HasAurasWithNameHash(SPELL_HASH_INCANTER_S_ABSORPTION))
-	{
-		float pctmod = 0.0f;
-		Player* pl = TO< Player* >(pVictim);
-		if(pl->HasAura(44394))
-			pctmod = 0.05f;
-		else if(pl->HasAura(44395))
-			pctmod = 0.10f;
-		else if(pl->HasAura(44396))
-			pctmod = 0.15f;
-
-		uint32 hp = static_cast<uint32>(0.05f * pl->GetUInt32Value(UNIT_FIELD_MAXHEALTH));
-		uint32 spellpower = static_cast<uint32>(pctmod * pl->GetPosDamageDoneMod(SCHOOL_NORMAL));
-
-		if(spellpower > hp)
-			spellpower = hp;
-
-		SpellEntry* entry = dbcSpell.LookupEntryForced(44413);
-		if(!entry)
-			return;
-
-		Spell* sp = sSpellFactoryMgr.NewSpell(pl, entry, true, NULL);
-		sp->GetProto()->EffectBasePoints[0] = spellpower;
-		SpellCastTargets targets;
-		targets.m_unitTarget = pl->GetGUID();
-		sp->prepare(&targets);
-	}
-
-	if(ress < 0) ress = 0;
+	if(ress < 0) 
+		ress = 0;
 
 	res = (float)ress;
 	dealdamage dmg;
@@ -1801,9 +1775,7 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 
 	// Paladin: Blessing of Sacrifice, and Warlock: Soul Link
 	if(pVictim->m_damageSplitTarget)
-	{
 		res = (float)pVictim->DoDamageSplitTarget((uint32)res, spellInfo->School, false);
-	}
 
 //==========================================================================================
 //==============================Data Sending ProcHandling===================================
@@ -1821,10 +1793,9 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 		TO< Unit* >(this)->HandleProc(aproc, pVictim, spellInfo, !allowProc, dmg2, abs_dmg);
 		TO< Unit* >(this)->m_procCounter = 0;
 	}
-	if(this->IsPlayer())
-	{
+
+	if(IsPlayer())
 		TO< Player* >(this)->m_casted_amount[spellInfo->School] = (uint32)res;
-	}
 
 	if(!(dmg.full_damage == 0 && abs_dmg))
 	{

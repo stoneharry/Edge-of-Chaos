@@ -407,93 +407,83 @@ bool OrbOfTheSindorei(uint32 i, Aura * pAura, bool apply)
 	return true;
 }
 
-bool BigBlizzardBear(uint32 i, Aura * pAura, bool apply)
+bool BigBlizzardBear(uint32 i, Spell * pSpell)
 {
-	if( !pAura->GetTarget()->IsPlayer() )
+	if(pSpell->GetUnitTarget() == NULL || !pSpell->GetUnitTarget()->IsPlayer())
 		return true;
-
-	if( apply )
-	{
-		uint32 newspell = 0;
-		Player* pPlayer = TO_PLAYER( pAura->GetTarget() );
-
-		if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true ) >= 150 )
-			newspell = 58999;
-		else
-			newspell = 58997;
-
-		pAura->GetTarget()->CastSpell(pAura->GetTarget(), newspell, true);
-	}
+	Unit* target = pSpell->GetUnitTarget();
+	uint32 newspell = 0;
+	Player* pPlayer = TO_PLAYER( target );
+	if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true ) >= 150 )
+		newspell = 58999;
+	else
+		newspell = 58997;
+	target->CastSpell(target, newspell, true);
 
 	return true;
 }
 
-bool WingedSteed(uint32 i, Aura * pAura, bool apply)
+bool WingedSteed(uint32 i, Spell * pSpell)
 {
-	if( !pAura->GetTarget()->IsPlayer() )
+	if(pSpell->GetUnitTarget() == NULL || !pSpell->GetUnitTarget()->IsPlayer())
 		return true;
 
-	if( apply )
-	{
-		uint32 newspell = 0;
-		Player* pPlayer = TO_PLAYER( pAura->GetTarget() );
+	Unit* target = pSpell->GetUnitTarget();
 
-		if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true ) == 300 )
-			newspell = 54727;
-		else
-			newspell = 54726;
+	uint32 newspell = 0;
+	Player* pPlayer = TO_PLAYER( target );
+	if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true ) == 300 )
+		newspell = 54727;
+	else
+		newspell = 54726;
 
-		pAura->GetTarget()->CastSpell(pAura->GetTarget(), newspell, true);
-	}
+	target->CastSpell(target, newspell, true);
 
 	return true;
 }
 
-bool HeadlessHorsemanMount(uint32 i, Aura * pAura, bool apply)
+bool HeadlessHorsemanMount(uint32 i, Spell * pSpell)
 {
-	if( !pAura->GetTarget()->IsPlayer() )
+	if(pSpell->GetUnitTarget() == NULL || !pSpell->GetUnitTarget()->IsPlayer())
 		return true;
+	Unit* target = pSpell->GetUnitTarget();
+	uint32 mount_display = 25958;
+	uint32 newspell = 0;
+	Player* pPlayer = TO_PLAYER(target);
+	AreaTable *pArea = dbcArea.LookupEntry(pPlayer->GetAreaID());
 
-	if( apply )
+	if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true ) >= 225 && 
+		( ( pArea->AreaFlags & 1024 && pPlayer->GetMapId() != 571 ) ||
+			( pArea->AreaFlags & 1024 && pPlayer->GetMapId() == 571 && pPlayer->HasSpellwithNameHash( SPELL_HASH_COLD_WEATHER_FLYING ) ) ) )
 	{
-		uint32 newspell = 0;
-		Player* pPlayer = TO_PLAYER(pAura->GetTarget());
-		AreaTable *pArea = dbcArea.LookupEntry(pPlayer->GetAreaID());
-
-		if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true ) >= 225 && 
-			( ( pArea->AreaFlags & 1024 && pPlayer->GetMapId() != 571 ) ||
-				( pArea->AreaFlags & 1024 && pPlayer->GetMapId() == 571 && pPlayer->HasSpellwithNameHash( SPELL_HASH_COLD_WEATHER_FLYING ) ) ) )
-		{
-			if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true) == 300 )
-				newspell = 48023;
-			else
-				newspell = 51617;
-		}
+		if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true) == 300 )
+			newspell = 48023;
+		else
+			newspell = 51617;
+		mount_display = 25159;
+	}
 	else if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true ) >= 150 )
 		newspell = 48024;			
 	else
 		newspell = 51621;
 
-	pAura->GetTarget()->CastSpell(pAura->GetTarget(), newspell, true);
-	}
-
+	target->CastSpell(target, newspell, true);
+	target->SetMount(mount_display);
 	return true;
 }
 
-bool MagicBroomMount(uint32 i, Aura * pAura, bool apply)
+bool MagicBroomMount(uint32 i, Spell * pSpell)
 {
-	if( !pAura->GetTarget()->IsPlayer() )
+	if(pSpell->GetUnitTarget() == NULL || !pSpell->GetUnitTarget()->IsPlayer())
 		return true;
+	Unit* target = pSpell->GetUnitTarget();
+	uint32 newspell = 0;
+	Player* pPlayer = TO_PLAYER( target );
+	AreaTable *pArea = dbcArea.LookupEntry(pPlayer->GetAreaID());
 
-	if( apply )
-	{
-		uint32 newspell = 0;
-		Player* pPlayer = TO_PLAYER( pAura->GetTarget() );
-		AreaTable *pArea = dbcArea.LookupEntry(pPlayer->GetAreaID());
-
-		if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true) >= 225 &&
-			( ( pArea->AreaFlags & 1024 && pPlayer->GetMapId() != 571 ) ||
-				( pArea->AreaFlags & 1024 && pPlayer->GetMapId() == 571 && pPlayer->HasSpellwithNameHash( SPELL_HASH_COLD_WEATHER_FLYING ) ) ) )
+	if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true) >= 225 &&
+		( ( pArea->AreaFlags & 1024 && pPlayer->GetMapId() != 571 ) ||
+			( pArea->AreaFlags & 1024 && pPlayer->GetMapId() == 571 && pPlayer->HasSpellwithNameHash( SPELL_HASH_COLD_WEATHER_FLYING ) ) ) )
 	{
 		if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true) == 300 )
 			newspell = 42668;
@@ -505,57 +495,160 @@ bool MagicBroomMount(uint32 i, Aura * pAura, bool apply)
 	else
 		newspell = 42680;
 
-	pAura->GetTarget()->CastSpell(pAura->GetTarget(),newspell,true);
-	}
-
+	target->CastSpell(target,newspell,true);
 	return true;
 }
 
-bool MagicRoosterMount(uint32 i, Aura * pAura, bool apply)
+bool MagicRoosterMount(uint32 i, Spell * pSpell)
 {
-	if( !pAura->GetTarget()->IsPlayer() )
+	if(pSpell->GetUnitTarget() == NULL || !pSpell->GetUnitTarget()->IsPlayer())
 		return true;
+	Unit* target = pSpell->GetUnitTarget();
 
-	if( apply )
+	uint32 spellId = 66122;
+	switch(target->getRace())
 	{
-		pAura->GetTarget()->CastSpell(pAura->GetTarget(), 66122, true);
+		case RACE_DRAENEI:
+			if(target->getGender() == 0)
+				spellId = 66123;
+			break;
+		case RACE_TAUREN:
+			if(target->getGender() == 0)
+				spellId = 66124;
 	}
-
+	target->CastSpell(target, spellId, true);
 	return true;
 }
 
-bool Invincible(uint32 i, Aura * pAura, bool apply)
+bool Invincible(uint32 i, Spell * pSpell)
 {
-	if( !pAura->GetTarget()->IsPlayer() )
+	if(pSpell->GetUnitTarget() == NULL || !pSpell->GetUnitTarget()->IsPlayer())
 		return true;
+	Unit* target = pSpell->GetUnitTarget();
+	uint32 newspell = 0;
+	Player* pPlayer = TO_PLAYER( target );
+	AreaTable *pArea = dbcArea.LookupEntry(pPlayer->GetAreaID());
 
-	if( apply )
+	if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true) >= 225 &&
+		( ( pArea->AreaFlags & 1024 && pPlayer->GetMapId() != 571 ) ||
+			( pArea->AreaFlags & 1024 && pPlayer->GetMapId() == 571 && pPlayer->HasSpellwithNameHash( SPELL_HASH_COLD_WEATHER_FLYING ) ) ) )
 	{
-		uint32 newspell = 0;
-		Player* pPlayer = TO_PLAYER( pAura->GetTarget() );
-		AreaTable *pArea = dbcArea.LookupEntry(pPlayer->GetAreaID());
-
-		if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true) >= 225 &&
-			( ( pArea->AreaFlags & 1024 && pPlayer->GetMapId() != 571 ) ||
-				( pArea->AreaFlags & 1024 && pPlayer->GetMapId() == 571 && pPlayer->HasSpellwithNameHash( SPELL_HASH_COLD_WEATHER_FLYING ) ) ) )
-		{
 		if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true) == 300 )
 			newspell = 72284;
 		else
 			newspell = 72283;
-		}
-
-		else if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true ) >= 150 )
-			{
-				newspell = 72282;
-		}
-			else
-				newspell = 72281;
-
-		pAura->GetTarget()->CastSpell(pAura->GetTarget(), newspell, true);
 	}
 
+	else if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true ) >= 150 )
+		newspell = 72282;
+	else
+		newspell = 72281;
 
+	target->CastSpell(target, newspell, true);
+	return true;
+}
+
+bool BigLoveRocket(uint32 i, Spell * pSpell)
+{
+	if(pSpell->GetUnitTarget() == NULL || !pSpell->GetUnitTarget()->IsPlayer())
+		return true;
+	Unit* target = pSpell->GetUnitTarget();
+	uint32 newspell = 0;
+	Player* pPlayer = TO_PLAYER( target );
+	AreaTable *pArea = dbcArea.LookupEntry(pPlayer->GetAreaID());
+
+	if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true) >= 225 &&
+		( ( pArea->AreaFlags & 1024 && pPlayer->GetMapId() != 571 ) ||
+			( pArea->AreaFlags & 1024 && pPlayer->GetMapId() == 571 && pPlayer->HasSpellwithNameHash( SPELL_HASH_COLD_WEATHER_FLYING ) ) ) )
+	{
+		if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true) == 300 )
+			newspell = 71347;
+		else
+			newspell = 71346;
+	}
+
+	else if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true ) >= 150 )
+		newspell = 71345;
+	else
+		newspell = 71344;
+
+	target->CastSpell(target, newspell, true);
+	return true;
+}
+
+bool X52TouringRocket(uint32 i, Spell * pSpell)
+{
+	if(pSpell->GetUnitTarget() == NULL || !pSpell->GetUnitTarget()->IsPlayer())
+		return true;
+	Unit* target = pSpell->GetUnitTarget();
+	uint32 newspell = 0;
+	Player* pPlayer = TO_PLAYER( target );
+	AreaTable *pArea = dbcArea.LookupEntry(pPlayer->GetAreaID());
+
+	if((pArea->AreaFlags & 1024 && pPlayer->GetMapId() != 571 ) ||
+			(pArea->AreaFlags & 1024 && pPlayer->GetMapId() == 571 && pPlayer->HasSpellwithNameHash( SPELL_HASH_COLD_WEATHER_FLYING )))
+	{
+		
+		if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true) == 300 )
+			newspell = 76154;
+		else if(pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true ) >= 225)
+			newspell = 75972;
+		else
+			newspell = 75957;
+	}
+	target->CastSpell(target, newspell, true);
+	return true;
+}
+
+bool CelestialSteed(uint32 i, Spell * pSpell)
+{
+	if(pSpell->GetUnitTarget() == NULL || !pSpell->GetUnitTarget()->IsPlayer())
+		return true;
+	Unit* target = pSpell->GetUnitTarget();
+	uint32 newspell = 0;
+	Player* pPlayer = TO_PLAYER( target );
+	AreaTable *pArea = dbcArea.LookupEntry(pPlayer->GetAreaID());
+
+	if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true) >= 225 &&
+		( ( pArea->AreaFlags & 1024 && pPlayer->GetMapId() != 571 ) ||
+			( pArea->AreaFlags & 1024 && pPlayer->GetMapId() == 571 && pPlayer->HasSpellwithNameHash( SPELL_HASH_COLD_WEATHER_FLYING ) ) ) )
+	{
+		if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true) == 300 )
+			newspell = 76153;
+		else if(pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true ) >= 225)
+			newspell = 75618;
+		else
+			newspell = 75617;
+	}
+
+	else if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true ) >= 150 )
+		newspell = 75620;
+	else
+		newspell = 75619;
+
+	target->CastSpell(target, newspell, true);
+	return true;
+}
+
+bool BlazingHippogryph(uint32 i, Spell * pSpell)
+{
+	if(pSpell->GetUnitTarget() == NULL || !pSpell->GetUnitTarget()->IsPlayer())
+		return true;
+	Unit* target = pSpell->GetUnitTarget();
+	uint32 newspell = 0;
+	Player* pPlayer = TO_PLAYER( target );
+	AreaTable *pArea = dbcArea.LookupEntry(pPlayer->GetAreaID());
+
+	if((pArea->AreaFlags & 1024 && pPlayer->GetMapId() != 571 ) ||
+			( pArea->AreaFlags & 1024 && pPlayer->GetMapId() == 571 && pPlayer->HasSpellwithNameHash( SPELL_HASH_COLD_WEATHER_FLYING )))
+	{
+		
+		if( pPlayer->_GetSkillLineCurrent( SKILL_RIDING, true) == 225 )
+			newspell = 74855;
+		else
+			newspell = 74854;
+	}
+	target->CastSpell(target, newspell, true);
 	return true;
 }
 
@@ -914,12 +1007,16 @@ void SetupItemSpells_1(ScriptMgr * mgr)
 	mgr->register_dummy_spell(29200, &PurifyBoarMeat);			// Purify Boar meat spell
 	mgr->register_script_effect(35036, &WarpRiftGenerator);       // Summon a Warp Rift in Void Ridge
 	mgr->register_dummy_aura( 46354, &OrbOfTheSindorei);        //Orb of the Sin'dorei
-	mgr->register_dummy_aura( 58983, &BigBlizzardBear);			// Big Blizzard Bear mount
-	mgr->register_dummy_aura( 54729, &WingedSteed);				// DK flying mount
-	mgr->register_dummy_aura( 48025, &HeadlessHorsemanMount);	// Headless Horseman Mount
-	mgr->register_dummy_aura( 47977, &MagicBroomMount);			// Magic Broom Mount
-	mgr->register_dummy_aura( 65917, &MagicRoosterMount);		// Magic Rooster Mount
-	mgr->register_dummy_aura( 72286, &Invincible);				// Invincible
+	mgr->register_dummy_spell( 58983, &BigBlizzardBear);			// Big Blizzard Bear mount
+	mgr->register_dummy_spell( 54729, &WingedSteed);				// DK flying mount
+	mgr->register_dummy_spell( 48025, &HeadlessHorsemanMount);	// Headless Horseman Mount
+	mgr->register_dummy_spell( 47977, &MagicBroomMount);			// Magic Broom Mount
+	mgr->register_dummy_spell( 65917, &MagicRoosterMount);		// Magic Rooster Mount
+	mgr->register_dummy_spell( 72286, &Invincible);				// Invincible
+	mgr->register_dummy_spell( 71342, &BigLoveRocket);
+	mgr->register_dummy_spell( 75973, &X52TouringRocket);
+	mgr->register_dummy_spell( 75614, &CelestialSteed);
+	mgr->register_dummy_spell( 74856, &BlazingHippogryph);
 
 	mgr->register_dummy_spell( 30507, &Poultryizer );
 	mgr->register_dummy_spell( 14537, &SixDemonBag );

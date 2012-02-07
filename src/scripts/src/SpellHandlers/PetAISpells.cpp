@@ -73,62 +73,12 @@ class MirrorImageAI : public CreatureAIScript
 
 		void OnLoad()
 		{
-			if(_unit->IsSummon())
-			{
-				Summon* s = TO< Summon* >(_unit);
-				Unit* owner = s->GetOwner();
-
-				owner->CastSpell(_unit, 45204, true);   // clone me
-				owner->CastSpell(_unit, 58838, true);   // inherit threat list
-
-				// Mage mirror image spell
-				if(_unit->GetCreatedBySpell() == 58833)
-				{
-					_unit->SetMaxHealth(2500);
-					_unit->SetHealth(2500);
-					_unit->SetMaxPower(POWER_TYPE_MANA, owner->GetMaxPower(POWER_TYPE_MANA));
-					_unit->SetPower(POWER_TYPE_MANA, owner->GetPower(POWER_TYPE_MANA));
-
-					SpellRange* range = NULL;
-
-					AI_Spell sp1;
-
-					sp1.entryId = 59638;
-					sp1.spell = dbcSpell.LookupEntryForced(sp1.entryId);
-					sp1.spellType = STYPE_DAMAGE;
-					sp1.agent = AGENT_SPELL;
-					sp1.spelltargetType = TTYPE_SINGLETARGET;
-					sp1.cooldown = 0;
-					sp1.cooldowntime = 0;
-					sp1.Misc2 = 0;
-					sp1.procCount = 0;
-					sp1.procChance = 100;
-					range = dbcSpellRange.LookupEntry(sp1.spell->rangeIndex);
-					sp1.minrange = GetMinRange(range);
-					sp1.maxrange = GetMaxRange(range);
-
-					_unit->GetAIInterface()->addSpellToList(&sp1);
-
-					AI_Spell sp2;
-					sp2.entryId = 59637;
-					sp2.spell = dbcSpell.LookupEntryForced(sp2.entryId);
-					sp2.spellType = STYPE_DAMAGE;
-					sp2.agent = AGENT_SPELL;
-					sp2.spelltargetType = TTYPE_SINGLETARGET;
-					sp2.cooldown = 0;
-					sp2.cooldowntime = 0;
-					sp2.Misc2 = 0;
-					sp2.procCount = 0;
-					sp2.procChance = 100;
-					range = dbcSpellRange.LookupEntry(sp2.spell->rangeIndex);
-					sp2.minrange = GetMinRange(range);
-					sp2.maxrange = GetMaxRange(range);
-
-					_unit->GetAIInterface()->addSpellToList(&sp2);
-
-				}
-			}
-
+			if(!_unit->IsSummon())
+				return;
+			Summon* s = TO< Summon* >(_unit);
+			Unit* owner = s->GetOwner();
+			owner->CastSpell(_unit, 45204, true);   // clone me
+			owner->CastSpell(_unit, 58838, true);   // inherit threat list
 		}
 
 	private:
