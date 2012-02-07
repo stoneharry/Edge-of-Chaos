@@ -2631,7 +2631,7 @@ bool Unit::IsInInstance()
 void Unit::RegenerateHealth()
 {
 
-	if(IsCreature() && TO< Creature* >(this)->CantRegenHealth())
+	if(HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_CANT_REGEN_HEALTH))
 	{
 		m_H_regenTimer = sizeof(uint16);
 		return;
@@ -7856,7 +7856,7 @@ uint64 Unit::GetTaggerGUID()
 
 bool Unit::isLootable()
 {
-	if(IsTagged() && !IsPet() && !isCritter() && !HasLoot() && ( GetCreatedByGUID() == 0 ) && !IsVehicle())
+	if(IsTagged() && !IsPet() && !isCritter() && HasLoot() && !HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_LOOT) && ( GetCreatedByGUID() == 0 ) && !IsVehicle())
 		return true;
 	else
 		return false;

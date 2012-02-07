@@ -2061,7 +2061,7 @@ void Creature::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint
 	}
 	else
 	{
-		if(!(pVictim->IsCreature() && !IsPet() && TO_CREATURE(pVictim)->IsImmuneToCreatureDamage()))
+		if(!(pVictim->IsCreature() && !IsPet() && pVictim->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_IMMUNE_TO_CREATURE_DAMAGE)))
 			pVictim->TakeDamage(this, damage, spellId, no_remove_auras);
 	}
 }

@@ -244,7 +244,7 @@ void AIInterface::Update(uint32 p_time)
 			m_combatResetX = m_combatResetY = m_combatResetZ = 0.0f;
 			SetWalk();
 
-			if(m_AIType != AITYPE_PET && !skip_reset_hp && !(m_Unit->IsCreature() && TO<Creature *>(m_Unit)->CantRegenHealth()))
+			if(m_AIType != AITYPE_PET && !skip_reset_hp && !(m_Unit->IsCreature() && m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_CANT_REGEN_HEALTH)))
 				m_Unit->SetHealth(m_Unit->GetMaxHealth());
 		}
 		else
