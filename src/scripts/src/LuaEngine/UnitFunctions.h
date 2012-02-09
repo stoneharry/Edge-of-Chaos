@@ -6247,6 +6247,17 @@ class LuaUnit
 
 			return 1;
 		}
+		
+		static int AIDisableCombat( lua_State *L, Unit *ptr )
+		{
+			TEST_UNIT();
+
+			bool check = CHECK_BOOL(L, 1);
+
+			ptr->GetAIInterface()->disable_combat = check;
+
+			return 0;
+		}
 
 		static int _CreateTaxi(lua_State* L, Unit* ptr)
 		{
