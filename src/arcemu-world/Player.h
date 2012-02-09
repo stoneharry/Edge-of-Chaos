@@ -2469,6 +2469,9 @@ class SERVER_DECL Player : public Unit
 		void SendGuildMOTD();
 		void SetCollisionHeight(bool mounted);
 		float GetCollisionHeight(bool mounted);
+		void _CreateTaxi();
+		void _AddPathNode(uint32 mapid, float x, float y, float z, uint32 index = 0);
+		void _StartTaxi(uint32 modelid, uint32 start_node);
 		/************************************************************************/
 		/* SOCIAL                                                               */
 		/************************************************************************/
@@ -2522,10 +2525,6 @@ class SERVER_DECL Player : public Unit
 
 		void LoadFieldsFromString(const char* string, uint32 firstField, uint32 fieldsNum);
 		void UpdateGlyphs();
-
-		// Avenging Wrath
-		bool mAvengingWrath;
-		void AvengingWrath() { mAvengingWrath = true; }
 
 		void ToggleXpGain();
 		bool CanGainXp();

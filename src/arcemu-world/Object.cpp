@@ -1324,13 +1324,9 @@ bool Object::IsWithinLOS(LocationVector location)
 	location2 = GetPosition();
 
 	if(sWorld.Collision)
-	{
 		return CollideInterface.CheckLOS(GetMapId(), location2.x, location2.y, location2.z + 2.0f, location.x, location.y, location.z + 2.0f);
-	}
 	else
-	{
 		return true;
-	}
 }
 
 
@@ -1414,13 +1410,9 @@ float Object::calcRadAngle(float Position1X, float Position1Y, float Position2X,
 float Object::getEasyAngle(float angle)
 {
 	while(angle < 0)
-	{
 		angle = angle + 360;
-	}
 	while(angle >= 360)
-	{
 		angle = angle - 360;
-	}
 	return angle;
 }
 
@@ -1431,13 +1423,9 @@ bool Object::inArc(float Position1X, float Position1Y, float FOV, float Orientat
 	float rborder = getEasyAngle((Orientation + (FOV * 0.5f/*/2*/)));
 	//LOG_DEBUG("Orientation: %f Angle: %f LeftBorder: %f RightBorder %f",Orientation,angle,lborder,rborder);
 	if(((angle >= lborder) && (angle <= rborder)) || ((lborder > rborder) && ((angle < rborder) || (angle > lborder))))
-	{
 		return true;
-	}
 	else
-	{
 		return false;
-	}
 }
 
 bool Object::isInFront(Object* target)

@@ -6247,5 +6247,35 @@ class LuaUnit
 
 			return 1;
 		}
+
+		static int _CreateTaxi(lua_State* L, Unit* ptr)
+		{
+			TEST_PLAYER()
+			Player* plr = TO_PLAYER(ptr);
+			plr->_CreateTaxi();
+			return 0;
+		}
+
+		static int _AddPathNode(lua_State* L, Unit* ptr)
+		{
+			TEST_PLAYER()
+			Player* plr = TO_PLAYER(ptr);
+			uint32 mapid = luaL_checkint(L, 1);
+			float x = CHECK_FLOAT(L, 2);
+			float y = CHECK_FLOAT(L, 3);
+			float z = CHECK_FLOAT(L, 4);
+			uint32 index = luaL_optnumber(L, 5, 0);
+			plr->_AddPathNode(mapid, x, y, z, index);
+			return 0;
+		}
+
+		static int _StartTaxi(lua_State* L, Unit* ptr)
+		{
+			TEST_PLAYER()
+			Player* plr = TO_PLAYER(ptr);
+			uint32 mount_id = luaL_checkint(L, 1);
+			plr->_StartTaxi(mount_id, 0);
+			return 0;
+		}
 };
 #endif

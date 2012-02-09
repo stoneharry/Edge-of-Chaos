@@ -555,6 +555,9 @@ RegType<Unit> UnitMethods[] =
 	{ "ExitVehicle", &LuaUnit::ExitVehicle },
 	{ "GetVehicleBase", &LuaUnit::GetVehicleBase },
 	{ "IsTrial", &LuaUnit::IsTrial },
+	{ "_CreateTaxi",&LuaUnit::_CreateTaxi },
+	{ "_AddPathNode", &LuaUnit::_AddPathNode },
+	{ "_StartTaxi", &LuaUnit::_StartTaxi },
 	{ NULL, NULL },
 };
 

@@ -302,7 +302,6 @@ Player::Player(uint32 guid)
 	SDetector =  new SpeedCheatDetector;
 
 	cannibalize			 = false;
-	mAvengingWrath		 = true;
 	m_AreaID				= 0;
 	cannibalizeCount		= 0;
 	rageFromDamageDealt	 = 0;
@@ -13810,5 +13809,167 @@ float Player::GetCollisionHeight(bool mounted)
 		CreatureDisplayInfoEntry const* displayInfo = dbcCreatureDisplayInfoEntry.LookupEntry(GetNativeDisplayId());
 		CreatureModelDataEntry const* modelData = dbcCreatureModelDataEntry.LookupEntry(displayInfo->ModelId);
 		return modelData->CollisionHeight;
+	}
+}
+
+void Player::_CreateTaxi()
+{
+	m_CurrentTaxiPath = new TaxiPath();
+}
+
+void Player::_AddPathNode(uint32 mapid, float x, float y, float z, uint32 index)
+{
+	if(index == 0)
+		index = m_CurrentTaxiPath->GetNodeCount();
+	TaxiPathNode* tpn = new TaxiPathNode();
+	tpn->mapid = mapid;
+	tpn->x = x;
+	tpn->y = y;
+	tpn->z = z;
+	m_CurrentTaxiPath->AddPathNode(index, tpn);
+}
+
+void Player::_StartTaxi(uint32 modelid, uint32 start_node)
+{
+	int32 mapchangeid = -1;
+	float mapchangex = 0.0f, mapchangey = 0.0f, mapchangez = 0.0f;
+	uint32 cn = m_taxiMapChangeNode;
+
+	m_taxiMapChangeNode = 0;
+
+	Dismount();
+
+	if( currentvehicle != NULL )
+		currentvehicle->EjectPassenger( this );
+
+	//also remove morph spells
+	if(GetDisplayId() != GetNativeDisplayId())
+	{
+		RemoveAllAuraType(SPELL_AURA_TRANSFORM);
+		RemoveAllAuraType(SPELL_AURA_MOD_SHAPESHIFT);
+	}
+
+	DismissActivePets();
+	summonhandler.RemoveAllSummons();
+	SetMount(modelid);
+	SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNTED_TAXI);
+	SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
+
+	SetTaxiPos();
+	SetTaxiState(true);
+	m_taxi_ride_time = getMSTime();
+
+	//uint32 traveltime = uint32(path->getLength() * TAXI_TRAVEL_SPEED); // 36.7407
+	float traveldist = 0;
+
+	float lastx = 0, lasty = 0, lastz = 0;
+	TaxiPathNode* firstNode = m_CurrentTaxiPath->GetPathNode(start_node);
+	uint32 add_time = 0;
+
+	if(start_node)
+	{
+		TaxiPathNode* pn = m_CurrentTaxiPath->GetPathNode(0);
+		float dist = 0;
+		lastx = pn->x;
+		lasty = pn->y;
+		lastz = pn->z;
+		for(uint32 i = 1; i <= start_node; ++i)
+		{
+			pn = m_CurrentTaxiPath->GetPathNode(i);
+			if(!pn)
+			{
+				JumpToEndTaxiNode(m_CurrentTaxiPath);
+				return;
+			}
+
+			dist += CalcDistance(lastx, lasty, lastz, pn->x, pn->y, pn->z);
+			lastx = pn->x;
+			lasty = pn->y;
+			lastz = pn->z;
+		}
+		add_time = uint32(dist * TAXI_TRAVEL_SPEED);
+		lastx = lasty = lastz = 0;
+	}
+	size_t endn = m_CurrentTaxiPath->GetNodeCount();
+	if(m_taxiPaths.size())
+		endn -= 2;
+
+	for(uint32 i = start_node; i < endn; ++i)
+	{
+		TaxiPathNode* pn = m_CurrentTaxiPath->GetPathNode(i);
+
+		if(pn->mapid != m_mapId)
+		{
+			endn = (i - 1);
+			m_taxiMapChangeNode = i;
+
+			mapchangeid = (int32)pn->mapid;
+			mapchangex = pn->x;
+			mapchangey = pn->y;
+			mapchangez = pn->z;
+			break;
+		}
+
+		if(!lastx || !lasty || !lastz)
+		{
+			lastx = pn->x;
+			lasty = pn->y;
+			lastz = pn->z;
+		}
+		else
+		{
+			float dist = CalcDistance(lastx, lasty, lastz,
+			                          pn->x, pn->y, pn->z);
+			traveldist += dist;
+			lastx = pn->x;
+			lasty = pn->y;
+			lastz = pn->z;
+		}
+	}
+
+	uint32 traveltime = uint32(traveldist * TAXI_TRAVEL_SPEED);
+
+	if(start_node > endn || (endn - start_node) > 200)
+		return;
+
+	WorldPacket data(SMSG_MONSTER_MOVE, 38 + ((endn - start_node) * 12));
+	data << GetNewGUID();
+	data << uint8(0);
+	data << firstNode->x << firstNode->y << firstNode->z;
+	data << m_taxi_ride_time;
+	data << uint8(0);
+	data << uint32(0x00003000);
+	data << uint32(traveltime);
+
+	if(!cn)
+		m_taxi_ride_time -= add_time;
+
+	data << uint32(endn - start_node);
+	for(uint32 i = start_node; i < endn; i++)
+	{
+		TaxiPathNode* pn = m_CurrentTaxiPath->GetPathNode(i);
+		if(!pn)
+		{
+			JumpToEndTaxiNode(m_CurrentTaxiPath);
+			return;
+		}
+
+		data << pn->x << pn->y << pn->z;
+	}
+
+	SendMessageToSet(&data, true);
+
+	sEventMgr.AddEvent(this, &Player::EventTaxiInterpolate,
+	                   EVENT_PLAYER_TAXI_INTERPOLATE, 900, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+
+	if(mapchangeid < 0)
+	{
+		TaxiPathNode* pn = m_CurrentTaxiPath->GetPathNode((uint32)m_CurrentTaxiPath->GetNodeCount() - 1);
+		sEventMgr.AddEvent(this, &Player::EventDismount, m_CurrentTaxiPath->GetPrice(),
+		                   pn->x, pn->y, pn->z, EVENT_PLAYER_TAXI_DISMOUNT, traveltime, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+	}
+	else
+	{
+		sEventMgr.AddEvent(this, &Player::EventTeleportTaxi, (uint32)mapchangeid, mapchangex, mapchangey, mapchangez, EVENT_PLAYER_TELEPORT, traveltime, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 	}
 }
