@@ -22,7 +22,7 @@
 
 #include "StdAfx.h"
 #include "LUAEngine.h"
-#include "svn_revision.h"
+#include "git_version.h"
 
 #define ENGINE_NAME "LuaHypArc" //You should check in your scripts that GetLuaEngine() == "LuaHypArc"
 #ifdef LUA_SVN_REVISION_H
