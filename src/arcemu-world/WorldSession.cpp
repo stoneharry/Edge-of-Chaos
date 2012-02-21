@@ -662,8 +662,7 @@ void WorldSession::InitPacketHandlerTable()
 	    &WorldSession::HandleAcknowledgementOpcodes;
 	WorldPacketHandlers[MSG_MOVE_START_DESCEND].handler =
 	    &WorldSession::HandleMovementOpcodes;
-	WorldPacketHandlers[CMSG_MOVE_KNOCK_BACK_ACK].handler =
-		&WorldSession::HandleMoveKnockBackAck;
+	//WorldPacketHandlers[CMSG_MOVE_KNOCK_BACK_ACK].handler = &WorldSession::HandleMoveKnockBackAck;
 
 	WorldPacketHandlers[CMSG_FORCE_FLIGHT_SPEED_CHANGE_ACK].handler =
 	    &WorldSession::HandleAcknowledgementOpcodes;
