@@ -5594,7 +5594,9 @@ void Unit::UpdateSpeed()
 	// Limit speed due to effects such as http://www.wowhead.com/?spell=31896 [Judgement of Justice]
 	if(m_maxSpeed && m_runSpeed > m_maxSpeed)
 		m_runSpeed = m_maxSpeed;
-	m_runSpeed -= (m_runSpeed * (GetTotalAuraModifer(SPELL_AURA_MOD_DECREASE_SPEED) / 100));
+	//int32 slow = GetTotalAuraModifer(SPELL_AURA_MOD_DECREASE_SPEED);
+	//if(slow != 0)
+		//m_runSpeed -= (m_runSpeed * (slow / 100));
 	if( IsPlayer() && TO_PLAYER(this)->m_changingMaps )
 		TO< Player* >(this)->resend_speed = true;
 	else
