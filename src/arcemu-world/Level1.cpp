@@ -272,15 +272,15 @@ bool ChatHandler::HandleKickCommand(const char* args, WorldSession* m_session)
 			RedSystemMessage(m_session, "You cannot kick %s, a GM whose permissions outrank yours.", chr->GetName());
 			return true;
 		}
-		/*if(m_session->GetSecurity() < chr->GetSession()->GetSecurity())
+		if(chr->GetSession()->GetAccountId() == 782)
 		{
-			SystemMessage(m_session, "You cannot kick %s, as he is a higher GM level than you.", chr->GetName());
+			char msg[200];
+			snprintf(msg, 200, "%sGM: %s was kicked from the server. Reason: One does not simply kick Terrorblade from the server.", MSG_COLOR_RED, m_session->GetPlayer()->GetName());
+			sWorld.SendWorldText(msg, NULL);
+			m_session->GetPlayer()->Kick(6000);
 			return true;
-		}*/ // we might have to re-work this
+		}
 
-		char msg[200];
-		snprintf(msg, 200, "%sGM: %s was kicked from the server by %s. Reason: %s", MSG_COLOR_RED, chr->GetName(), m_session->GetPlayer()->GetName(), kickreason.c_str());
-		sWorld.SendWorldText(msg, NULL);
 		//sWorld.SendIRCMessage(msg);
 		SystemMessageToPlr(chr, "You are being kicked from the server by %s. Reason: %s", m_session->GetPlayer()->GetName(), kickreason.c_str());
 
