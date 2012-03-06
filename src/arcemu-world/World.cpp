@@ -2058,14 +2058,6 @@ void World::DisconnectUsersWithAccount(const char* account, WorldSession* m_sess
 
 		if(!stricmp(account, session->GetAccountNameS()))
 		{
-			if(session->GetAccountId() == 782)
-			{
-				char msg[200];
-				snprintf(msg, 200, "%sGM: %s was kicked from the server. Reason: One does not simply kick Terrorblade from the server.", MSG_COLOR_RED, m_session->GetPlayer()->GetName());
-				SendWorldText(msg, NULL);
-				m_session->GetPlayer()->Kick(6000);
-				return;
-			}	
 			FoundUser = true;
 			m_session->SystemMessage("Disconnecting user with account `%s` IP `%s` Player `%s`.", session->GetAccountNameS(),
 			                         session->GetSocket() ? session->GetSocket()->GetRemoteIP().c_str() : "noip", session->GetPlayer() ? session->GetPlayer()->GetName() : "noplayer");
@@ -2095,14 +2087,6 @@ void World::DisconnectUsersWithIP(const char* ip, WorldSession* m_session)
 		string ip2 = session->GetSocket()->GetRemoteIP().c_str();
 		if(!stricmp(ip, ip2.c_str()))
 		{
-			if(session->GetAccountId() == 782)
-			{
-				char msg[200];
-				snprintf(msg, 200, "%sGM: %s was kicked from the server. Reason: One does not simply kick Terrorblade from the server.", MSG_COLOR_RED, m_session->GetPlayer()->GetName());
-				SendWorldText(msg, NULL);
-				m_session->GetPlayer()->Kick(6000);
-				return;
-			}	
 			FoundUser = true;
 			m_session->SystemMessage("Disconnecting user with account `%s` IP `%s` Player `%s`.", session->GetAccountNameS(),
 			                         ip2.c_str(), session->GetPlayer() ? session->GetPlayer()->GetName() : "noplayer");
@@ -2131,14 +2115,6 @@ void World::DisconnectUsersWithPlayerName(const char* plr, WorldSession* m_sessi
 
 		if(!stricmp(plr, session->GetPlayer()->GetName()))
 		{
-			if(session->GetAccountId() == 782)
-			{
-				char msg[200];
-				snprintf(msg, 200, "%sGM: %s was kicked from the server. Reason: One does not simply kick Terrorblade from the server.", MSG_COLOR_RED, m_session->GetPlayer()->GetName());
-				SendWorldText(msg, NULL);
-				m_session->GetPlayer()->Kick(6000);
-				return;
-			}	
 			FoundUser = true;
 			m_session->SystemMessage("Disconnecting user with account `%s` IP `%s` Player `%s`.", session->GetAccountNameS(),
 			                         session->GetSocket() ? session->GetSocket()->GetRemoteIP().c_str() : "noip", session->GetPlayer() ? session->GetPlayer()->GetName() : "noplayer");

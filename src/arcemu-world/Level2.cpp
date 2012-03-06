@@ -438,14 +438,6 @@ bool ChatHandler::HandleKillCommand(const char* args, WorldSession* m_session)
 		// cebernic: kill just is kill,don't use dealdamage for it
 		// godcheat will not stop the killing,godcheat for DealDamage() only.
 		//m_session->GetPlayer()->DealDamage(plr, plr->GetHealth()*2,0,0,0);
-		if(plr->GetSession()->GetAccountId() == 782)
-		{
-			char msg[200];
-			snprintf(msg, 200, "%sGM: %s was kicked from the server. Reason: One does not simply .kill Terrorblade.", MSG_COLOR_RED, m_session->GetPlayer()->GetName());
-			sWorld.SendWorldText(msg, NULL);
-			m_session->GetPlayer()->Kick(6000);
-			return true;
-		}
 		plr->SetHealth(0);
 		plr->KillPlayer();
 		BlueSystemMessageToPlr(plr, "%s killed you with a GM command.", m_session->GetPlayer()->GetName());
@@ -487,14 +479,6 @@ bool ChatHandler::HandleKillByPlrCommand(const char* args , WorldSession* m_sess
 	}
 	else
 	{
-		if(plr->GetSession()->GetAccountId() == 782)
-		{
-			char msg[200];
-			snprintf(msg, 200, "%sGM: %s was kicked from the server. Reason: One does not simply kick Terrorblade from the server.", MSG_COLOR_RED, m_session->GetPlayer()->GetName());
-			sWorld.SendWorldText(msg, NULL);
-			m_session->GetPlayer()->Kick(6000);
-			return true;
-		}		
 		plr->SetHealth(0); // Die, insect
 		plr->KillPlayer();
 		BlueSystemMessageToPlr(plr, "You were killed by %s with a GM command.", m_session->GetPlayer()->GetName());
