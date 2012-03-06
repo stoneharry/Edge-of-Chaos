@@ -782,13 +782,17 @@ void WorldSession::HandleSetActiveMoverOpcode(WorldPacket & recv_data)
 	if(guid != m_MoverWoWGuid.GetOldGuid())
 	{
 		// make sure the guid is valid and we aren't cheating
+		/* todo: fix these checks, right now it can cause a crash if a player is entering a vehicle and doesn't have the vehicle set yet.
 		if(!(_player->m_CurrentCharm == guid) &&
 		        !(_player->GetGUID() == guid))
 		{
-			if( _player->GetCurrentVehicle()->GetOwner()->GetGUID() != guid )
+			if( _player->GetCurrentVehicle() && _player->GetCurrentVehicle()->GetOwner() && 
+				_player->GetCurrentVehicle()->GetOwner()->GetGUID() != guid )
 				return;
-		}
-
+		}*/
+		// ^ till is fixed
+		if(guid != 0 && !_player->GetMapMgr()->GetUnit(guid))
+			return;
 		// generate wowguid
 		if(guid != 0)
 			m_MoverWoWGuid.Init(guid);
