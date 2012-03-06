@@ -6090,12 +6090,12 @@ int Unit::HasAurasWithNameHash(uint32 name_hash)
 	return 0;
 }
 
-bool Unit::HasAuraWithName(uint32 name)
+bool Unit::HasAuraWithName(uint32 name, uint32 skipspell)
 {
 
 	for(uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i)
 	{
-		if(m_auras[ i ] != NULL && m_auras[ i ]->GetSpellProto()->AppliesAura(name))
+		if(m_auras[ i ] != NULL && m_auras[ i ]->GetSpellProto()->Id != skipspell && m_auras[ i ]->GetSpellProto()->AppliesAura(name))
 			return true;
 	}
 
@@ -6302,8 +6302,6 @@ void Unit::EnableFlight()
 
 void Unit::DisableFlight()
 {
-	if(HasFlyingAura())
-		return;
 	if(!IsPlayer() || TO_PLAYER(this)->m_changingMaps)
 	{
 		if(IsCreature())
@@ -6483,7 +6481,8 @@ bool Unit::GetSpeedDecrease()
 {
 	int32 before = m_speedModifier;
 	m_speedModifier -= m_slowdown;
-	m_slowdown = GetTotalAuraModifer(SPELL_AURA_MOD_DECREASE_SPEED);
+	m_slowdown = 0;
+	m_slowdown = (int32)min(m_slowdown, GetTotalAuraModifer(SPELL_AURA_MOD_DECREASE_SPEED));
 	m_speedModifier += m_slowdown;
 	//save bandwidth :P
 	if(m_speedModifier != before)
@@ -8401,29 +8400,26 @@ int32 Unit::GetTotalAuraModifer(uint32 AuraName, bool addone)
 	for(uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i)
 	{
 		if(m_auras[ i ] != NULL && m_auras[ i ]->GetSpellProto()->AppliesAura(AuraName))
-			if(addone)
-				modifer += 1 + m_auras[i]->GetModAmount(m_auras[ i ]->GetSpellProto()->GetApplyAura(AuraName));
-			else
-				modifer += m_auras[i]->GetModAmount(m_auras[ i ]->GetSpellProto()->GetApplyAura(AuraName));
+			modifer += m_auras[i]->GetModAmountByMod() + (addone ?  1 : 0);
 	}
 	return modifer;
 }
 
-bool Unit::HasFlyingAura()
+bool Unit::HasFlyingAura(uint32 skipspell)
 {
-	if(HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT))
+	if(HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT, skipspell))
 		return true;
-	if(HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT2))
+	if(HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT2, skipspell))
 		return true;
-	if(HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT_WITH_UNMOUNTED_SPEED))
+	if(HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT_WITH_UNMOUNTED_SPEED, skipspell))
 		return true;
-	if(HasAuraWithName(SPELL_AURA_ALLOW_FLIGHT))
+	if(HasAuraWithName(SPELL_AURA_ALLOW_FLIGHT, skipspell))
 		return true;
-	if(HasAuraWithName(SPELL_AURA_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS))
+	if(HasAuraWithName(SPELL_AURA_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS, skipspell))
 		return true;
-	if(HasAuraWithName(SPELL_AURA_MOD_VEHICLE_SPEED_ALWAYS))
+	if(HasAuraWithName(SPELL_AURA_MOD_VEHICLE_SPEED_ALWAYS, skipspell))
 		return true;
-	if(HasAuraWithName(SPELL_AURA_MOD_FLIGHT_SPEED_NOT_STACK))
+	if(HasAuraWithName(SPELL_AURA_MOD_FLIGHT_SPEED_NOT_STACK, skipspell))
 		return true;
 	return false;
 }

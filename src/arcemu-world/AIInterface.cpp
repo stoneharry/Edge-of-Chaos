@@ -139,9 +139,9 @@ void AIInterface::Init(Unit* un, AIType at, MovementType mt)
 
 	m_Unit = un;
 
-	m_walkSpeed = m_Unit->m_walkSpeed * 0.001f; //move distance per ms time
-	m_runSpeed = m_Unit->m_runSpeed * 0.001f; //move distance per ms time
-	m_flySpeed = m_Unit->m_flySpeed * 0.001f;
+	m_walkSpeed = m_Unit->m_walkSpeed/* * 0.001f*/; //move distance per ms time
+	m_runSpeed = m_Unit->m_runSpeed /* * 0.001f*/; //move distance per ms time
+	m_flySpeed = m_Unit->m_flySpeed /* * 0.001f*/;
 	/*if(!m_DefaultMeleeSpell)
 	{
 		m_DefaultMeleeSpell = new AI_Spell;
@@ -1888,12 +1888,12 @@ bool AIInterface::IsFlying()
 void AIInterface::UpdateSpeeds()
 {
 	if(HasWalkMode(WALKMODE_SPRINT))
-		m_runSpeed = (m_Unit->m_runSpeed + 5.0f) * 0.001f;
+		m_runSpeed = (m_Unit->m_runSpeed + 5.0f) /* * 0.001f*/;
 	if(HasWalkMode(WALKMODE_RUN))
-		m_runSpeed = m_Unit->m_runSpeed * 0.001f;
+		m_runSpeed = m_Unit->m_runSpeed /* * 0.001f*/;
 
-	m_walkSpeed = m_Unit->m_walkSpeed * 0.001f;
-	m_flySpeed = m_Unit->m_flySpeed * 0.001f;
+	m_walkSpeed = m_Unit->m_walkSpeed /* * 0.001f*/;
+	m_flySpeed = m_Unit->m_flySpeed /* * 0.001f*/;
 	m_Unit->UpdateSpeed();
 }
 
@@ -2312,7 +2312,7 @@ void AIInterface::_UpdateMovement(uint32 p_time)
 				}
 
 				m_creatureState = STOPPED;
-				SetWalk();
+				//SetWalk();
 
 				if(m_MovementType == MOVEMENTTYPE_DONTMOVEWP)
 					m_Unit->SetOrientation(wayO);

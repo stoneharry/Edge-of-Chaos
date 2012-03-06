@@ -7947,7 +7947,8 @@ void Aura::SpellAuraEnableFlight(bool apply)
 	}
 	else
 	{
-		m_target->DisableFlight();
+		if(!m_target->HasFlyingAura(GetSpellId()))
+			m_target->DisableFlight();
 		m_target->m_flyspeedModifier -= mod->m_amount;
 		m_target->UpdateSpeed();
 		if(m_target->IsPlayer())
@@ -8071,7 +8072,10 @@ void Aura::SpellAuraAllowFlight(bool apply)
 	if(apply)
 		m_target->EnableFlight();
 	else
-		m_target->DisableFlight();
+	{
+		if(!m_target->HasFlyingAura(GetSpellId()))
+			m_target->DisableFlight();
+	}
 }
 
 void Aura::SpellAuraFinishingMovesCannotBeDodged(bool apply)
