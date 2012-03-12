@@ -5132,89 +5132,82 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 		return 0;
 
 //------------------------------by school---------------------------------------------------
-	plus_damage += caster->GetDamageDoneMod(school);
-	plus_damage += static_cast< int32 >( base_dmg * (caster->GetDamageDonePctMod(school)-1) ); //value is initialized with 1
+	plus_damage += static_cast< float >( caster->GetDamageDoneMod(school) );
+	plus_damage += static_cast< float >( base_dmg * ( caster->GetDamageDonePctMod(school)-1) ); //value is initialized with 1
 //------------------------------by victim type----------------------------------------------
-	if(!pVictim->IsPlayer() && caster->IsPlayer())
-		plus_damage += TO< Player* >(caster)->IncreaseDamageByType[TO_CREATURE(pVictim)->GetCreatureInfo()->Type];
+	if( !pVictim->IsPlayer() && caster->IsPlayer() )
+		plus_damage += static_cast< float >( TO< Player* >(caster)->IncreaseDamageByType[TO< Creature* >(pVictim)->GetCreatureInfo()->Type] );
 //==========================================================================================
 //==============================+Spell Damage Bonus Modifications===========================
 //==========================================================================================
 //------------------------------by cast duration--------------------------------------------
-	float dmgdoneaffectperc = 1.0f;
-	bool handle = false;
-	if( spellInfo->ap_coef >= 0 && !isdot )
+
+	// do not execute this if plus dmg is 0 or lower
+	if( plus_damage > 0.0f )
 	{
-		plus_damage += float2int32( plus_damage + (spellInfo->ap_coef * caster->GetAttackPower()) );
-		handle = true;
-	}
-	if( spellInfo->ap_dot_coef >= 0 && isdot )
-	{
-		plus_damage += float2int32( plus_damage + (spellInfo->ap_dot_coef * caster->GetAttackPower()) );
-		if( caster->IsPlayer() )
+		bool a = true;
+		if( spellInfo->ap_coef >= 0.0f && !isdot )
 		{
-			int durmod = 0;
-			SM_FIValue(caster->SM_FDur, &durmod, spellInfo->SpellGroupType);
-			plus_damage += plus_damage * durmod / 15000;
+			plus_damage += float2int32(spellInfo->ap_coef * caster->GetAttackPower());
+			a = false;
 		}
-		handle = true;
-	}	
-	if( spellInfo->Dspell_coef_override >= 0 && !isdot )
-	{
-		plus_damage += float2int32( plus_damage * spellInfo->Dspell_coef_override );
-		handle = true;
-	}
-	if( spellInfo->OTspell_coef_override >= 0 && isdot )
-	{
-		plus_damage += float2int32( plus_damage * spellInfo->OTspell_coef_override );
-		handle = true;
-	}
-	//Bonus to DD part
-	if( spellInfo->fixed_dddhcoef >= 0 && !isdot && !handle)
-	{
-		plus_damage += float2int32( plus_damage * spellInfo->fixed_dddhcoef );
-		handle = true;
-	}
-	//Bonus to DoT part
-	if( spellInfo->fixed_hotdotcoef >= 0 && isdot && !handle )
-	{
-		plus_damage += float2int32( plus_damage * spellInfo->fixed_hotdotcoef );
-		if( caster->IsPlayer() )
+		else if( spellInfo->ap_dot_coef >= 0.0f && isdot )
 		{
-			int durmod = 0;
-			SM_FIValue(caster->SM_FDur, &durmod, spellInfo->SpellGroupType);
-			plus_damage += plus_damage * durmod / 15000;
+			plus_damage += float2int32(spellInfo->ap_dot_coef * caster->GetAttackPower());
+			if( caster->IsPlayer() )
+			{
+				int durmod = 0;
+				SM_FIValue(caster->SM_FDur, &durmod, spellInfo->SpellGroupType);
+				plus_damage += plus_damage * durmod / 15000;
+			}
+			a = false;
 		}
-		handle = true;
-	}
-	if(handle == false)
-	{
-		//In case we dont fit in previous cases do old thing
-		plus_damage = float2int32( plus_damage * spellInfo->casttime_coef );
-		float td = float(GetDuration( dbcSpellDuration.LookupEntry( spellInfo->DurationIndex ) ) );
-		if( spellInfo->NameHash == SPELL_HASH_MOONFIRE || spellInfo->NameHash == SPELL_HASH_IMMOLATE || spellInfo->NameHash == SPELL_HASH_ICE_LANCE || spellInfo->NameHash == SPELL_HASH_PYROBLAST )
-			plus_damage = float2int32( plus_damage * ( 1.0f - ( ( td / 15000.0f ) / ( ( td / 15000.0f ) + dmgdoneaffectperc ) ) ) );
+		if( spellInfo->Dspell_coef_override >= 0.0f && !isdot )
+		{
+			plus_damage = plus_damage * spellInfo->Dspell_coef_override;
+			a = false;
+		}
+		else if( spellInfo->OTspell_coef_override >= 0.0f && isdot )
+		{
+			plus_damage = plus_damage * spellInfo->OTspell_coef_override;
+			a = false;
+		}
+		if(a)
+		{
+			//Bonus to DD part
+			if( spellInfo->fixed_dddhcoef >= 0.0f && !isdot )
+				plus_damage = plus_damage * spellInfo->fixed_dddhcoef;
+			//Bonus to DoT part
+			else if( spellInfo->fixed_hotdotcoef >= 0.0f && isdot )
+			{
+				plus_damage = plus_damage * spellInfo->fixed_hotdotcoef;
+				if( caster->IsPlayer() )
+				{
+					int32 durmod = 0;
+					SM_FIValue( caster->SM_FDur, &durmod, spellInfo->SpellGroupType );
+					plus_damage += static_cast< float >( plus_damage * durmod / 15000 );
+				}
+			}
+			//In case we dont fit in previous cases do old thing
+			else
+			{
+				plus_damage = plus_damage * spellInfo->casttime_coef;
+				float td = static_cast< float >( GetDuration( dbcSpellDuration.LookupEntry( spellInfo->DurationIndex ) ) );
+				if( spellInfo->NameHash == SPELL_HASH_MOONFIRE
+					|| spellInfo->NameHash == SPELL_HASH_IMMOLATE
+					|| spellInfo->NameHash == SPELL_HASH_ICE_LANCE
+					|| spellInfo->NameHash == SPELL_HASH_PYROBLAST )
+					plus_damage = plus_damage * ( 1.0f - ( ( td / 15000.0f ) / ( ( td / 15000.0f ) ) ) );
+			}
+		}
 	}
 
-	//------------------------------by downranking----------------------------------------------
-	//DOT-DD (Moonfire-Immolate-IceLance-Pyroblast)(Hack Fix)
-
-	if(spellInfo->baseLevel > 0 && spellInfo->maxLevel > 0)
-	{
-		float downrank1 = 1.0f;
-		if(spellInfo->baseLevel < 20)
-		    downrank1 = 1.0f - (20.0f - float (spellInfo->baseLevel) ) * 0.0375f;
-		float downrank2 = static_cast< float >( (spellInfo->maxLevel + 5.0f) / TO_PLAYER(caster)->getLevel() );
-		if(downrank2 >= 1 || downrank2 < 0)
-		        downrank2 = 1.0f;
-		dmgdoneaffectperc *= downrank1 * downrank2;
-	}
 //==========================================================================================
 //==============================Bonus Adding To Main Damage=================================
 //==========================================================================================
 
-	if( ( pVictim->HasAuraWithMechanics(MECHANIC_ENSNARED) || pVictim->HasAuraWithMechanics(MECHANIC_DAZED) ) && caster->IsPlayer() )
-			plus_damage += static_cast< float >(TO_PLAYER(caster)->m_IncreaseDmgSnaredSlowed);
+	if((pVictim->HasAuraWithMechanics(MECHANIC_ENSNARED) || pVictim->HasAuraWithMechanics(MECHANIC_DAZED)) && caster->IsPlayer())
+		plus_damage += static_cast< float >(TO< Player* >(caster)->m_IncreaseDmgSnaredSlowed);
 
 	if(spellInfo->SpellGroupType)
 	{
@@ -5222,14 +5215,15 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 		SM_FIValue(caster->SM_FPenalty, &bonus_damage, spellInfo->SpellGroupType);
 		SM_FIValue(caster->SM_FDamageBonus, &bonus_damage, spellInfo->SpellGroupType);
 
-		int32 dmg_bonus_pct= 0;
+		int32 dmg_bonus_pct = 0;
 		SM_FIValue(caster->SM_PPenalty, &dmg_bonus_pct, spellInfo->SpellGroupType);
-		SM_FIValue(caster->SM_PDamageBonus,&dmg_bonus_pct,spellInfo->SpellGroupType);
+		SM_FIValue(caster->SM_PDamageBonus, &dmg_bonus_pct, spellInfo->SpellGroupType);
 
 		plus_damage += static_cast< float >( (base_dmg + bonus_damage) * dmg_bonus_pct / 100 );
 	}
-	int32 res = static_cast< int32 >( (base_dmg * dmgdoneaffectperc) + plus_damage );
-	return res;
+	if(plus_damage > 0)
+		plus_damage = objmgr.ApplySpellDamageLimit(spellInfo->Id, plus_damage);
+	return static_cast< int32 >( plus_damage );
 }
 
 void Unit::InterruptSpell()
@@ -5577,7 +5571,7 @@ void Unit::DropAurasOnDeath()
 
 void Unit::UpdateSpeed()
 {
-	if(GetMount() == 0)
+	if(!GetMount())
 	{
 		m_runSpeed = m_base_runSpeed * (1.0f + ((float)m_speedModifier) / 100.0f);
 	}
@@ -5594,9 +5588,7 @@ void Unit::UpdateSpeed()
 	// Limit speed due to effects such as http://www.wowhead.com/?spell=31896 [Judgement of Justice]
 	if(m_maxSpeed && m_runSpeed > m_maxSpeed)
 		m_runSpeed = m_maxSpeed;
-	//int32 slow = GetTotalAuraModifer(SPELL_AURA_MOD_DECREASE_SPEED);
-	//if(slow != 0)
-		//m_runSpeed -= (m_runSpeed * (slow / 100));
+
 	if( IsPlayer() && TO_PLAYER(this)->m_changingMaps )
 		TO< Player* >(this)->resend_speed = true;
 	else
@@ -6482,7 +6474,9 @@ bool Unit::GetSpeedDecrease()
 	int32 before = m_speedModifier;
 	m_speedModifier -= m_slowdown;
 	m_slowdown = 0;
-	m_slowdown = (int32)min(m_slowdown, GetTotalAuraModifer(SPELL_AURA_MOD_DECREASE_SPEED));
+	m_slowdown = GetMinAuraModifer(SPELL_AURA_MOD_DECREASE_SPEED);
+	if(m_slowdown < -100)
+		m_slowdown = 100;
 	m_speedModifier += m_slowdown;
 	//save bandwidth :P
 	if(m_speedModifier != before)
@@ -8401,6 +8395,17 @@ int32 Unit::GetTotalAuraModifer(uint32 AuraName, bool addone)
 	{
 		if(m_auras[ i ] != NULL && m_auras[ i ]->GetSpellProto()->AppliesAura(AuraName))
 			modifer += m_auras[i]->GetModAmountByMod() + (addone ?  1 : 0);
+	}
+	return modifer;
+}
+
+int32 Unit::GetMinAuraModifer(uint32 AuraName)
+{
+	int32 modifer = 0;
+	for(uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i)
+	{
+		if(m_auras[ i ] != NULL && m_auras[ i ]->GetSpellProto()->AppliesAura(AuraName))
+			modifer = (int32)min(modifer, m_auras[i]->GetModAmountByMod());
 	}
 	return modifer;
 }

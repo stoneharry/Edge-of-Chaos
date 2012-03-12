@@ -89,8 +89,8 @@ class SERVER_DECL TaxiMgr :  public Singleton < TaxiMgr >
 	public:
 		TaxiMgr()
 		{
-			_CreateCustomPaths();
-			//_LoadCustomNodes();
+			_LoadTaxiNodes();
+			_LoadTaxiPaths();
 		}
 
 		~TaxiMgr()

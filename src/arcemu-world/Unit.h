@@ -1194,6 +1194,7 @@ class SERVER_DECL Unit : public Object
 		bool SetAurDuration(uint32 spellId, Unit* caster, uint32 duration);
 		bool SetAurDuration(uint32 spellId, uint32 duration);
 		void DropAurasOnDeath();
+		int32 GetMinAuraModifer(uint32 AuraName);
 		int32 GetTotalAuraModifer(uint32 AuraName, bool addone = false);
 
 		//******************************************************
