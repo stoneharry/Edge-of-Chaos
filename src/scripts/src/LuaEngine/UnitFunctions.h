@@ -1958,10 +1958,6 @@ class LuaUnit
 
 		static int SetFlying(lua_State* L, Unit* ptr)
 		{
-			WorldPacket data(SMSG_MOVE_SET_HOVER, 13);
-			data << ptr->GetNewGUID();
-			data << uint32(0);
-			ptr->SendMessageToSet(&data, true);
 			ptr->GetAIInterface()->disable_melee = true;
 			ptr->GetAIInterface()->SetFly();
 			ptr->Emote(EMOTE_ONESHOT_LIFTOFF);
@@ -1970,10 +1966,7 @@ class LuaUnit
 
 		static int Land(lua_State* L, Unit* ptr)
 		{
-			WorldPacket data(SMSG_MOVE_UNSET_HOVER, 13);
-			data << ptr->GetNewGUID();
-			data << uint32(0);
-			ptr->SendMessageToSet(&data, true);
+			ptr->SendMessageToSet(&data, true);*/
 			ptr->GetAIInterface()->StopFlying();
 			ptr->GetAIInterface()->disable_melee = false;
 			ptr->Emote(EMOTE_ONESHOT_LAND);
