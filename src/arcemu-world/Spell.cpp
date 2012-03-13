@@ -4454,6 +4454,8 @@ void Spell::RemoveItems()
 
 int32 Spell::CalculateEffect(uint32 i, Unit* target)
 {
+	if(u_caster && u_caster->IsPlayer())
+		return u_caster->GetSpellDamage(GetProto(), i, forced_basepoints[i]);
 	// TODO: Add ARMOR CHECKS; Add npc that have ranged weapons use them;
 
 	// Range checks

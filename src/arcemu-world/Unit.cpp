@@ -5226,6 +5226,96 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 	return static_cast< int32 >( plus_damage );
 }
 
+int32 Unit::GetSpellDamage(SpellEntry* spellInfo, uint32 i, int32 base_dmg)
+{
+	if(spellInfo == NULL)
+		return 0;
+
+	float basePointsPerLevel = spellInfo->EffectRealPointsPerLevel[i];
+	int32 basePoints = base_dmg ? base_dmg : spellInfo->EffectBasePoints[i];
+	int32 randomPoints = int32(spellInfo->EffectDieSides[i]);
+
+    // base amount modification based on spell lvl vs caster lvl
+	int32 level = int32(getLevel());
+    if (level > int32(spellInfo->maxLevel) && spellInfo->maxLevel > 0)
+        level = int32(spellInfo->maxLevel);
+    else if (level < int32(spellInfo->baseLevel))
+        level = int32(spellInfo->baseLevel);
+    level -= int32(spellInfo->spellLevel);
+    basePoints += int32(level * basePointsPerLevel);
+
+    // roll in a range <1;EffectDieSides> as of patch 3.3.3
+    switch (randomPoints)
+    {
+        case 0: break;
+        case 1: basePoints += 1; break;                     // range 1..1
+        default:
+            int32 randvalue = (randomPoints >= 1)
+                ? rand() % randomPoints
+                : 0;
+
+            basePoints += randvalue;
+            break;
+    }
+
+    float value = float(basePoints);
+
+    // random damage
+    // bonus amount from combo points
+	if (IsPlayer())
+        if (uint8 comboPoints = TO_PLAYER(this)->m_comboPoints)
+			if (float comboDamage = spellInfo->EffectPointsPerComboPoint[i])
+                value += comboDamage* comboPoints;
+
+    value = ApplyEffectModifiers(spellInfo, i);
+
+    // amount multiplication based on caster's level
+    if (!basePointsPerLevel && (spellInfo->Attributes & SPELL_ATTR0_LEVEL_DAMAGE_CALCULATION && spellInfo->spellLevel) &&
+            spellInfo->Effect[i] != SPELL_EFFECT_WEAPON_PERCENT_DAMAGE &&
+            spellInfo->Effect[i] != SPELL_EFFECT_KNOCK_BACK &&
+			spellInfo->EffectApplyAuraName[i] != 129 &&
+            spellInfo->EffectApplyAuraName[i] != 171 &&
+            spellInfo->EffectApplyAuraName[i] != SPELL_AURA_MOD_INCREASE_SPEED &&
+            spellInfo->EffectApplyAuraName[i] != SPELL_AURA_MOD_DECREASE_SPEED)
+                //there are many more: slow speed, -healing pct
+            value *= 0.25f * exp(getLevel() * (70 - spellInfo->spellLevel) / 1000.0f);
+            //value = int32(value * (int32)getLevel() / (int32)(_spellInfo->spellLevel ? _spellInfo->spellLevel : 1));
+
+    return int32(value);
+}
+
+float Unit::ApplyEffectModifiers(SpellEntry * sp, uint8 effect_index) const
+{
+	float value = 0.0f;
+	int32 spell_flat_modifers = 0;
+	int32 spell_pct_modifers = 100;
+
+	SM_FIValue(SM_FMiscEffect, &spell_flat_modifers, sp->SpellGroupType);
+	SM_PIValue(SM_PMiscEffect, &spell_pct_modifers, sp->SpellGroupType);
+
+	SM_FIValue(SM_FEffectBonus, &spell_flat_modifers, sp->SpellGroupType);
+	SM_PIValue(SM_PEffectBonus, &spell_pct_modifers, sp->SpellGroupType);
+	SM_FIValue(SM_FDamageBonus, &spell_flat_modifers, sp->SpellGroupType);
+	SM_PIValue(SM_PDamageBonus, &spell_pct_modifers , sp->SpellGroupType);
+
+	switch(effect_index)
+	{
+		case 0:
+			SM_FIValue(SM_FEffect1_Bonus, &spell_flat_modifers, sp->SpellGroupType);
+			SM_PIValue(SM_PEffect1_Bonus, &spell_pct_modifers, sp->SpellGroupType);
+			break;
+		case 1:
+			SM_FIValue(SM_FEffect2_Bonus, &spell_flat_modifers, sp->SpellGroupType);
+			SM_PIValue(SM_PEffect2_Bonus, &spell_pct_modifers, sp->SpellGroupType);
+			break;
+		case 2:
+			SM_FIValue(SM_FEffect3_Bonus, &spell_flat_modifers, sp->SpellGroupType);
+			SM_PIValue(SM_PEffect3_Bonus, &spell_pct_modifers, sp->SpellGroupType);
+			break;
+	}
+	value = float2int32(value * (float)(spell_pct_modifers / 100.0f)) + spell_flat_modifers;
+	return value;
+}
 void Unit::InterruptSpell()
 {
 	if(m_currentSpell)
