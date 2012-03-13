@@ -5153,7 +5153,7 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 		}
 		if( spellInfo->ap_dot_coef >= 0.0f && isdot )
 		{
-			plus_damage += float2int32(spellInfo->ap_dot_coef * caster->GetAttackPower());
+			plus_damage += float2int32(plus_damage + (spellInfo->ap_dot_coef * caster->GetAttackPower()));
 			if( caster->IsPlayer() )
 			{
 				int durmod = 0;
@@ -5164,23 +5164,29 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 		}
 		if( spellInfo->Dspell_coef_override >= 0.0f && !isdot )
 		{
-			plus_damage += plus_damage * spellInfo->Dspell_coef_override;
+			plus_damage += float2int32(plus_damage + (plus_damage * spellInfo->Dspell_coef_override));
 			a = false;
 		}
 		if( spellInfo->OTspell_coef_override >= 0.0f && isdot )
 		{
-			plus_damage += plus_damage * spellInfo->OTspell_coef_override;
+			plus_damage += float2int32(plus_damage + (plus_damage * spellInfo->OTspell_coef_override));
+			if( caster->IsPlayer() )
+			{
+				int durmod = 0;
+				SM_FIValue(caster->SM_FDur, &durmod, spellInfo->SpellGroupType);
+				plus_damage += plus_damage * durmod / 15000;
+			}
 			a = false;
 		}
 		if(a)
 		{
 			//Bonus to DD part
 			if( spellInfo->fixed_dddhcoef >= 0.0f && !isdot )
-				plus_damage = plus_damage * spellInfo->fixed_dddhcoef;
+				plus_damage = float2int32(plus_damage + (plus_damage * spellInfo->fixed_dddhcoef));
 			//Bonus to DoT part
 			else if( spellInfo->fixed_hotdotcoef >= 0.0f && isdot )
 			{
-				plus_damage = plus_damage * spellInfo->fixed_hotdotcoef;
+				plus_damage = float2int32(plus_damage + (plus_damage * spellInfo->fixed_hotdotcoef));
 				if( caster->IsPlayer() )
 				{
 					int32 durmod = 0;
@@ -5191,7 +5197,7 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 			//In case we dont fit in previous cases do old thing
 			else
 			{
-				plus_damage = plus_damage * spellInfo->casttime_coef;
+				plus_damage += float2int32(plus_damage + (plus_damage * spellInfo->casttime_coef));
 				float td = static_cast< float >( GetDuration( dbcSpellDuration.LookupEntry( spellInfo->DurationIndex ) ) );
 				if( spellInfo->NameHash == SPELL_HASH_MOONFIRE
 					|| spellInfo->NameHash == SPELL_HASH_IMMOLATE
