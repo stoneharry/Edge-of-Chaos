@@ -1966,7 +1966,6 @@ class LuaUnit
 
 		static int Land(lua_State* L, Unit* ptr)
 		{
-			ptr->SendMessageToSet(&data, true);*/
 			ptr->GetAIInterface()->StopFlying();
 			ptr->GetAIInterface()->disable_melee = false;
 			ptr->Emote(EMOTE_ONESHOT_LAND);

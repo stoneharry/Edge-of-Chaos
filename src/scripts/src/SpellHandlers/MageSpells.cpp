@@ -154,7 +154,7 @@ bool MirrorImage(uint32 i, Aura *pAura, bool apply)
 {
 	Unit *caster = pAura->GetUnitCaster();
 	if( caster != NULL && apply && i == 2 )
-		if( caster->GetGUID() == pAura->GetTarget()->IsSummon())
+		if( pAura->GetTarget()->IsSummon() && caster->GetGUID() == pAura->GetTarget()->GetCreatedByGUID())
 			caster->CastSpell( pAura->GetTarget(), pAura->GetSpellProto()->EffectTriggerSpell[i], true );
 
 	return true;
