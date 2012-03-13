@@ -5148,10 +5148,10 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 		bool a = true;
 		if( spellInfo->ap_coef >= 0.0f && !isdot )
 		{
-			plus_damage += float2int32(spellInfo->ap_coef * caster->GetAttackPower());
+			plus_damage += float2int32(plus_damage + (spellInfo->ap_coef * caster->GetAttackPower()));
 			a = false;
 		}
-		else if( spellInfo->ap_dot_coef >= 0.0f && isdot )
+		if( spellInfo->ap_dot_coef >= 0.0f && isdot )
 		{
 			plus_damage += float2int32(spellInfo->ap_dot_coef * caster->GetAttackPower());
 			if( caster->IsPlayer() )
@@ -5164,12 +5164,12 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 		}
 		if( spellInfo->Dspell_coef_override >= 0.0f && !isdot )
 		{
-			plus_damage = plus_damage * spellInfo->Dspell_coef_override;
+			plus_damage += plus_damage * spellInfo->Dspell_coef_override;
 			a = false;
 		}
-		else if( spellInfo->OTspell_coef_override >= 0.0f && isdot )
+		if( spellInfo->OTspell_coef_override >= 0.0f && isdot )
 		{
-			plus_damage = plus_damage * spellInfo->OTspell_coef_override;
+			plus_damage += plus_damage * spellInfo->OTspell_coef_override;
 			a = false;
 		}
 		if(a)
