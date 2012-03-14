@@ -1295,7 +1295,8 @@ bool ChatHandler::HandleCastCommand(const char *args, WorldSession *m_session)
 		u = m_session->GetPlayer();
 	uint32 spell = 0;
 	uint32 triggered = 0;
-	if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+	if( sscanf(args, "%u", &spell) != 1 )
+		if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
 		return false;
 	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
 	if(!sp)
@@ -1305,7 +1306,6 @@ bool ChatHandler::HandleCastCommand(const char *args, WorldSession *m_session)
 	}
 	m_session->GetPlayer()->CastSpell(u,sp, triggered >= 1 ? true : false);
 	BlueSystemMessage(m_session, "Casted spell %u on %s.", spell, GetSelectedUnitName(u));
-	sGMLog.writefromsession(m_session, "Casted spell %u on %s.", spell, GetSelectedUnitName(u));
 	return true;
 }
 
@@ -1316,7 +1316,8 @@ bool ChatHandler::HandleCastBackCommand(const char *args, WorldSession *m_sessio
 		u = m_session->GetPlayer();
 	uint32 spell = 0;
 	uint32 triggered = 0;
-	if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+	if( sscanf(args, "%u", &spell) != 1 )
+		if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
 		return false;
 	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
 	if(!sp)
@@ -1326,7 +1327,6 @@ bool ChatHandler::HandleCastBackCommand(const char *args, WorldSession *m_sessio
 	}
 	u->CastSpell(m_session->GetPlayer(),sp, triggered >= 1 ? true : false);
 	BlueSystemMessage(m_session, "Forcing %s to cast %u on you.", GetSelectedUnitName(u), spell);
-	sGMLog.writefromsession(m_session, "Forced %s to cast spell %u back to self.", GetSelectedUnitName(u), spell);
 	return true;
 }
 
@@ -1337,7 +1337,8 @@ bool ChatHandler::HandleCastSelfCommand(const char *args, WorldSession *m_sessio
 		u = m_session->GetPlayer();
 	uint32 spell = 0;
 	uint32 triggered = 0;
-	if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+	if( sscanf(args, "%u", &spell) != 1 )
+		if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
 		return false;
 	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
 	if(!sp)
@@ -1347,10 +1348,37 @@ bool ChatHandler::HandleCastSelfCommand(const char *args, WorldSession *m_sessio
 	}
 	u->CastSpell(u,sp, triggered >= 1 ? true : false);
 	BlueSystemMessage(m_session, "Forcing %s to cast %u on self.", GetSelectedUnitName(u), spell);
-	sGMLog.writefromsession(m_session, "Forced %s to cast spell %u on self.", GetSelectedUnitName(u), spell);
 	return true;
 }
 
+bool ChatHandler::HandleCastTargetCommand(const char *args, WorldSession *m_session)
+{
+	Unit *u = getSelectedUnit(m_session, false);
+	if(!u) 
+		u = m_session->GetPlayer();
+	uint32 spell = 0;
+	uint32 triggered = 0;
+	if( sscanf(args, "%u", &spell) != 1 )
+		if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+		return false;
+	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
+	if(!sp)
+	{
+		SystemMessage(m_session, "Invalid spell %u", spell);
+		return true;
+	}
+	Unit *ut = u->GetMapMgrUnit(u->GetTargetGUID());
+	if(ut == NULL && u->IsPlayer())
+		ut = getSelectedUnit(TO_PLAYER(u)->GetSession(), false);
+	if(ut == NULL)
+	{
+		RedSystemMessage(m_session, "%s has not target!", u->GetName());
+		return true;
+	}
+	u->CastSpell(u,sp, triggered >= 1 ? true : false);
+	BlueSystemMessage(m_session, "Forcing %s to cast %u at target.", GetSelectedUnitName(u), spell);
+	return true;
+}
 
 bool ChatHandler::HandleCastAOECommand(const char *args, WorldSession *m_session)
 {
@@ -1371,6 +1399,32 @@ bool ChatHandler::HandleCastAOECommand(const char *args, WorldSession *m_session
 	m_session->GetPlayer()->CastSpellAoF(x,y,z ,sp, triggered > 1 ? true : false);
 	BlueSystemMessage(m_session, "Casted aoe spell %u.", spell, GetSelectedUnitName(u));
 	sGMLog.writefromsession(m_session, "Casted aoe spell %u.", spell, GetSelectedUnitName(u));
+	return true;
+}
+
+bool ChatHandler::HandleChannelCommand(const char *args, WorldSession *m_session)
+{
+	Object *u = getSelectedUnit(m_session, false);
+	if(!u) 
+		u = m_session->GetPlayer();
+	Player * p = m_session->GetPlayer();
+	uint32 spell = 0;
+	uint32 usegotarget = 0;
+	if( sscanf(args, "%u", &spell) != 1 )
+		if(sscanf(args, "%u %u", &spell, &usegotarget) != 2)
+		return false;
+	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
+	if(!sp)
+	{
+		SystemMessage(m_session, "Invalid spell %u", spell);
+		return true;
+	}
+	if(usegotarget && p->GetSelectedGo() != NULL)
+		u = p->GetSelectedGo();
+	p->CastSpell(u->GetGUID(), sp, false);
+	p->SetChannelSpellTargetGUID(u->GetGUID());
+	p->SetChannelSpellId(spell);
+	BlueSystemMessage(m_session, "Channeling spell %u on target.", spell);
 	return true;
 }
 
@@ -3753,6 +3807,29 @@ bool ChatHandler::HandleGuildMembersCommand(const char* args, WorldSession* m_se
 		BlueSystemMessage(m_session, "%s (Rank: %s)", member->pPlayer->name, member->pRank->szRankName);
 	}
 	plr->GetGuild()->Unlock();
+	return true;
+}
+
+bool ChatHandler::HandleGuildRankCommand(const char* args, WorldSession* m_session)
+{
+	Player* plr = getSelectedChar(m_session);
+	if(!plr || !plr->GetGuildId() || !plr->GetGuild())
+		return false;
+	uint32 rank = (uint32)atoi(args);
+	if(plr->GetGuild()->SetRankOfMember(plr->getPlayerInfo(), rank))
+		GreenSystemMessage(m_session, "Changed rank successfuly.");
+	else
+		RedSystemMessage(m_session, "Error while setting rank, rank %u not exist?", rank);
+	return true;
+}
+
+bool ChatHandler::HandleGuildKickInactiveCommand(const char* args, WorldSession* m_session)
+{
+	Player* plr = m_session->GetPlayer();
+	if(!plr || !plr->GetGuildId() || !plr->GetGuild())
+		return false;
+
+	plr->GetGuild()->KickInactivePlayers(m_session);
 	return true;
 }
 

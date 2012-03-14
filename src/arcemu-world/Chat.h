@@ -325,6 +325,8 @@ class SERVER_DECL ChatHandler : public Singleton<ChatHandler>
 		bool HandleRenameGuildCommand(const char* args, WorldSession* m_session);
 		bool HandleGuildRemovePlayerCommand(const char* args, WorldSession* m_session);
 		bool HandleGuildDisbandCommand(const char* args, WorldSession* m_session);
+		bool HandleGuildRankCommand(const char* args, WorldSession* m_session);
+		bool HandleGuildKickInactiveCommand(const char* args, WorldSession* m_session);
 
 		// Level 2 commands
 		bool HandleNameCommand(const char* args, WorldSession* m_session);
@@ -466,6 +468,8 @@ class SERVER_DECL ChatHandler : public Singleton<ChatHandler>
 		bool HandleCastBackCommand(const char* args, WorldSession* m_session);
 		bool HandleCastAOECommand(const char* args, WorldSession* m_session);
 		bool HandleCastSelfCommand(const char* args, WorldSession* m_session);
+		bool HandleCastTargetCommand(const char* args, WorldSession* m_session);
+		bool HandleChannelCommand(const char* args, WorldSession* m_session);
 		bool HandleParalyzeCommand(const char* args, WorldSession* m_session);
 		bool HandleUnParalyzeCommand(const char* args, WorldSession* m_session);
 		bool HandleSetMotdCommand(const char* args, WorldSession* m_session);

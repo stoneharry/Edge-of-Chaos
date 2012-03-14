@@ -3901,9 +3901,9 @@ uint32 ObjectMgr::ApplySpellDamageLimit(uint32 spellid, int32 damage)
 	if(QueryResult *q = WorldDatabase.Query("SELECT _limit, range_1, range_2 from spell_bonus_limit where entry = %u", spellid))
 	{
 		Field *f = q->Fetch();
-		uint32 limit = f[0].GetInt32();
-		uint32 range1 = f[1].GetUInt32();
-		uint32 range2 = f[2].GetUInt32();
+		int32 limit = f[0].GetInt32();
+		int32 range1 = f[1].GetInt32();
+		int32 range2 = f[2].GetInt32();
 		if(dmg >= limit)
 		{
 			uint32 val = 0;

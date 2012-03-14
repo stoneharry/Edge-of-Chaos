@@ -367,6 +367,38 @@ void Guild::PromoteGuildMember(PlayerInfo* pMember, WorldSession* pClient)
 	m_lock.Release();
 }
 
+bool Guild::SetRankOfMember(PlayerInfo* pMember, uint32 rank)
+{
+	if(rank > MAX_GUILD_RANKS)
+		return false;
+	GuildRank* newRank = m_ranks[rank];
+
+	if(newRank == NULL)
+		return false;
+
+	GuildMemberMap::iterator itr = m_members.find(pMember);
+	if(itr == m_members.end())
+		return false;
+
+	if(rank == 0)
+		SetGuildMaster(pMember);
+
+	itr->second->pRank = newRank;
+	itr->second->pPlayer->guildRank = newRank;
+
+	// log it
+	LogGuildEvent(GUILD_EVENT_PROMOTION, 3, pMember->name, pMember->name, newRank->szRankName);
+	AddGuildLogEntry(GUILD_LOG_EVENT_PROMOTION, 3, pMember->guid, pMember->guid, newRank->iId);
+
+	// update in the database
+	CharacterDatabase.Execute("UPDATE guild_data SET guildRank = %u WHERE playerid = %u AND guildid = %u", newRank->iId, pMember->guid, m_guildId);
+
+	// if the player is online, update his guildrank
+	if(pMember->m_loggedInPlayer)
+		pMember->m_loggedInPlayer->SetGuildRank(newRank->iId);
+	return true;
+}
+
 void Guild::DemoteGuildMember(PlayerInfo* pMember, WorldSession* pClient)
 {
 	if(pClient->GetPlayer()->getPlayerInfo()->guild != this || pMember->guild != this)
@@ -920,7 +952,8 @@ void Guild::SetOfficerNote(PlayerInfo* pMember, const char* szNewNote, WorldSess
 	}
 	m_lock.Release();
 
-	Guild::SendGuildCommandResult(pClient, GUILD_OFFICER_NOTE_CHANGED_S, pMember->name, 0);
+	SendGuildCommandResult(pClient, GUILD_OFFICER_NOTE_CHANGED_S, pMember->name, 0);
+	SendGuildRosterToAll();
 }
 
 void Guild::RemoveGuildRank(WorldSession* pClient)
@@ -1027,6 +1060,21 @@ void Guild::ChangeGuildMaster(PlayerInfo* pNewMaster, WorldSession* pClient)
 
 	LogGuildEvent(GUILD_EVENT_LEADER_CHANGED, 2, pClient->GetPlayer()->GetName(), pNewMaster->name);
 	//TODO: Figure out the GUILD_LOG_EVENT_LEADER_CHANGED code
+}
+
+void Guild::SetGuildMaster(PlayerInfo* pNewMaster)
+{
+	GuildMemberMap::iterator itr = m_members.find(pNewMaster);
+	ARCEMU_ASSERT(m_ranks[0] != NULL);
+	if(itr == m_members.end())
+		return;
+
+	itr->second->pRank = m_ranks[0];
+	itr->first->guildRank = itr->second->pRank;
+	CharacterDatabase.Execute("UPDATE guild_data SET guildRank = 0 WHERE playerid = %u AND guildid = %u", itr->first->guid, m_guildId);
+	CharacterDatabase.Execute("UPDATE guilds SET leaderGuid = %u WHERE guildId = %u", itr->first->guid, m_guildId);
+	m_guildLeader = itr->first->guid;
+	LogGuildEvent(GUILD_EVENT_LEADER_CHANGED, 2, pNewMaster->name, pNewMaster->name);
 }
 
 uint32 Guild::GenerateGuildLogEventId()
@@ -1151,10 +1199,13 @@ void Guild::SendGuildRoster(WorldSession* pClient)
 
 	myRank = pClient->GetPlayer()->getPlayerInfo()->guildRank;
 	ofnote = myRank->CanPerformCommand(GR_RIGHT_VIEWOFFNOTE);
-
+	uint32 membercount = m_members.size();
+	if(membercount > 800)
+		membercount = 800;
+	uint32 cnt = 0;
 	m_lock.Acquire();
 
-	data << uint32(m_members.size());
+	data << uint32(membercount);
 	if(m_motd)
 		data << m_motd;
 	else
@@ -1197,12 +1248,15 @@ void Guild::SendGuildRoster(WorldSession* pClient)
 
 	for(itr = m_members.begin(); itr != m_members.end(); ++itr)
 	{
+		if(cnt > 800)
+			continue;
+		++cnt;
 		pPlayer = itr->second->pPlayer->m_loggedInPlayer;
 
 		data << itr->first->guid;
 		data << uint32(0);			// highguid
 		data << uint8((pPlayer != NULL) ? 1 : 0);
-		data << itr->first->name;
+		data << (pPlayer ? pPlayer->GetName() : itr->first->name);
 		data << itr->second->pRank->iId;
 		data << uint8(pPlayer ? pPlayer->getLevel() : itr->first->lastLevel);
 		data << uint8(itr->first->cl);
@@ -1658,5 +1712,16 @@ void Guild::SendGuildRosterToAll()
 	{
 		if(itr->second->pPlayer->m_loggedInPlayer)
 			SendGuildRoster(itr->second->pPlayer->m_loggedInPlayer->GetSession());
+	}
+}
+
+void Guild::KickInactivePlayers(WorldSession* kicker)
+{
+	GuildMemberMap::iterator itr;
+	for(itr = m_members.begin(); itr != m_members.end(); ++itr)
+	{
+		if(UNIXTIME - itr->first->lastOnline < 1209600)
+			continue;
+		RemoveGuildMember(itr->first, kicker);
 	}
 }

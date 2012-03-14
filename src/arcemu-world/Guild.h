@@ -388,6 +388,7 @@ class SERVER_DECL Guild
 		 */
 		void PromoteGuildMember(PlayerInfo* pMember, WorldSession* pClient);
 
+		bool SetRankOfMember(PlayerInfo* pMember, uint32 rank);
 		/** Demotes a member of a guild.
 		 * Do not use for changing guild master. Use ChangeGuildMaster() for that instead.
 		 */
@@ -460,6 +461,7 @@ class SERVER_DECL Guild
 		ARCEMU_INLINE const uint8  GetBankTabCount() const { return (uint8) m_bankTabs.size(); }
 		ARCEMU_INLINE const uint64 GetBankBalance() const { return m_bankBalance; }
 		ARCEMU_INLINE const size_t GetNumMembers() const { return m_members.size(); }
+		void SetGuildMaster(PlayerInfo* pNewMaster);
 		/** Creates a guild rank with the specified permissions.
 		 */
 		GuildRank* CreateGuildRank(const char* szRankName, uint32 iPermissions, bool bFullGuildBankPermissions);
@@ -540,6 +542,7 @@ class SERVER_DECL Guild
 		 */
 		void SendGuildInfo(WorldSession* pClient);
 		void SendGuildRosterToAll();
+		void KickInactivePlayers(WorldSession* kicker);
 	protected:
 
 		/** Enables/disables command logging.

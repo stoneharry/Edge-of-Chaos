@@ -395,7 +395,7 @@ void WorldSession::HandleGuildRank(WorldPacket & recv_data)
 	                          pRank->iTabPermissions[4].iFlags, pRank->iTabPermissions[4].iStacksPerDay,
 	                          pRank->iTabPermissions[5].iFlags, pRank->iTabPermissions[5].iStacksPerDay);
 
-	_player->m_playerInfo->guild->SendGuildRoster(this);
+	_player->m_playerInfo->guild->SendGuildRosterToAll();
 }
 
 void WorldSession::HandleGuildAddRank(WorldPacket & recv_data)
@@ -425,7 +425,7 @@ void WorldSession::HandleGuildAddRank(WorldPacket & recv_data)
 
 	// there is probably a command result for this. need to find it.
 	pGuild->SendGuildQuery(NULL);
-	pGuild->SendGuildRoster(this);
+	pGuild->SendGuildRosterToAll();
 }
 
 void WorldSession::HandleGuildDelRank(WorldPacket & recv_data)
@@ -450,7 +450,7 @@ void WorldSession::HandleGuildDelRank(WorldPacket & recv_data)
 
 	// there is probably a command result for this. need to find it.
 	pGuild->SendGuildQuery(NULL);
-	pGuild->SendGuildRoster(this);
+	pGuild->SendGuildRosterToAll();
 }
 
 void WorldSession::HandleGuildSetPublicNote(WorldPacket & recv_data)
