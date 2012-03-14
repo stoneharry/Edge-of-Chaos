@@ -1238,7 +1238,7 @@ class SERVER_DECL Unit : public Object
 		//caller is the caster
 		int32 GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dmg, bool isdot);
 		int32 GetSpellDamage(SpellEntry* spellInfo, uint32 i, int32 base_dmg);
-		float ApplyEffectModifiers(SpellEntry * sp, uint8 effect_index) const;
+		float ApplyEffectModifiers(SpellEntry * sp, uint8 effect_index, float value);
 		uint32 m_addDmgOnce;
 		uint32 m_ObjectSlots[4];
 		uint32 m_triggerSpell;
@@ -1331,80 +1331,6 @@ class SERVER_DECL Unit : public Object
 		float AOEDmgMod;
 		float m_ignoreArmorPctMaceSpec;
 		float m_ignoreArmorPct;
-
-		//SM
-		int32* SM_FDamageBonus; //flat
-		int32* SM_PDamageBonus; //pct
-
-		int32* SM_FDur; //flat
-		int32* SM_PDur; //pct
-
-		int32* SM_FThreat; //flat
-		int32* SM_PThreat; //Pct
-
-		int32* SM_FEffect1_Bonus; //flat
-		int32* SM_PEffect1_Bonus; //Pct
-
-		int32* SM_FCharges; //flat
-		int32* SM_PCharges; //Pct
-
-		int32* SM_FRange; //flat
-		int32* SM_PRange; //pct
-
-		int32* SM_FRadius; //flat
-		int32* SM_PRadius; //pct
-
-		int32* SM_CriticalChance; //flat
-
-		int32* SM_FMiscEffect; //flat
-		int32* SM_PMiscEffect; //pct
-
-		int32* SM_PNonInterrupt; //Pct
-
-		int32* SM_FCastTime; //flat
-		int32* SM_PCastTime; //pct
-
-		int32* SM_FCooldownTime; //flat
-		int32* SM_PCooldownTime; //Pct
-
-		int32* SM_FEffect2_Bonus; //flat
-		int32* SM_PEffect2_Bonus; //Pct
-
-		int32* SM_FCost; //flat
-		int32* SM_PCost; //Pct
-
-		int32* SM_PCriticalDamage; //Pct
-
-		int32* SM_FHitchance; //flat
-
-		int32* SM_FAdditionalTargets; //flat
-
-		int32* SM_FChanceOfSuccess; //flat
-
-		int32* SM_FAmptitude; //flat
-		int32* SM_PAmptitude; //Pct
-
-		int32* SM_PJumpReduce; //Pct
-
-		int32* SM_FGlobalCooldown; //flat
-		int32* SM_PGlobalCooldown; //pct
-
-		int32* SM_FDOT; //flat
-		int32* SM_PDOT; //pct
-
-		int32* SM_FEffect3_Bonus; //flat
-		int32* SM_PEffect3_Bonus; //Pct
-
-		int32* SM_FPenalty; //flat
-		int32* SM_PPenalty; //Pct
-
-		int32* SM_FEffectBonus; //flat
-		int32* SM_PEffectBonus; //pct
-
-		int32* SM_FRezist_dispell; //flat
-		int32* SM_PRezist_dispell; //Pct
-
-		void InheritSMMods(Unit* inherit_from);
 
 		//Events
 		void Emote(EmoteType emote);
@@ -2013,6 +1939,7 @@ class SERVER_DECL Unit : public Object
 		bool HasCreatureCustomFlag(uint32 flag);
 
 		bool HasLoot();
+		Player* GetSpellModOwner();
 };
 
 

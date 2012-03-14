@@ -2698,12 +2698,12 @@ void ApplyNormalFixes()
 		sp = CheckAndReturnSpellEntry( 19559 );
 		if( sp != NULL )
 		{
-			sp->EffectMiscValue[0] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[0] = 8;
 		}
 		sp = CheckAndReturnSpellEntry( 19560 );
 		if( sp != NULL )
 		{
-			sp->EffectMiscValue[0] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[0] = 8;
 		}
 
 		//Hunter : Rapid Killing - might need to add honor trigger too here. I'm guessing you receive Xp too so I'm avoiding double proc
@@ -2822,17 +2822,17 @@ void ApplyNormalFixes()
 		sp = CheckAndReturnSpellEntry( 13975 );
 		if( sp != NULL )
 		{
-			sp->EffectMiscValue[0] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[0] = 8;
 		}
 		sp = CheckAndReturnSpellEntry( 14062 );
 		if( sp != NULL )
 		{
-			sp->EffectMiscValue[0] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[0] = 8;
 		}
 		sp = CheckAndReturnSpellEntry( 14063 );
 		if( sp != NULL )
 		{
-			sp->EffectMiscValue[0] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[0] = 8;
 		}
 
 		//rogue - Vanish : Second Trigger Spell
@@ -2852,7 +2852,7 @@ void ApplyNormalFixes()
 		sp = CheckAndReturnSpellEntry( 36563 );
 		if( sp != NULL )
 		{
-			sp->EffectMiscValue[2] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[2] = 8;
 		}
 		// Still related to shadowstep - prevent the trigger spells from breaking stealth.
 		sp = CheckAndReturnSpellEntry( 44373 );
@@ -3191,31 +3191,31 @@ void ApplyNormalFixes()
 		if( sp != NULL )
 		{
 			sp->EffectApplyAuraName[0] = SPELL_AURA_ADD_PCT_MODIFIER;
-			sp->EffectMiscValue[0] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[0] = 8;
 		}
 		sp = CheckAndReturnSpellEntry( 14525 );
 		if( sp != NULL )
 		{
 			sp->EffectApplyAuraName[0] = SPELL_AURA_ADD_PCT_MODIFIER;
-			sp->EffectMiscValue[0] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[0] = 8;
 		}
 		sp = CheckAndReturnSpellEntry( 14526 );
 		if( sp != NULL )
 		{
 			sp->EffectApplyAuraName[0] = SPELL_AURA_ADD_PCT_MODIFIER;
-			sp->EffectMiscValue[0] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[0] = 8;
 		}
 		sp = CheckAndReturnSpellEntry( 14527 );
 		if( sp != NULL )
 		{
 			sp->EffectApplyAuraName[0] = SPELL_AURA_ADD_PCT_MODIFIER;
-			sp->EffectMiscValue[0] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[0] = 8;
 		}
 		sp = CheckAndReturnSpellEntry( 14528 );
 		if( sp != NULL )
 		{
 			sp->EffectApplyAuraName[0] = SPELL_AURA_ADD_PCT_MODIFIER;
-			sp->EffectMiscValue[0] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[0] = 8;
 		}
 
 		//Priest - Inspiration proc spell
@@ -3592,8 +3592,8 @@ void ApplyNormalFixes()
 		 **********************************************************/
 		sp = CheckAndReturnSpellEntry(16166);
 		if(sp != NULL) {
-			sp->EffectMiscValue[0] = SMT_CRITICAL;
-			sp->EffectMiscValue[1] = SMT_COST;
+			sp->EffectMiscValue[0] = 7;
+			sp->EffectMiscValue[1] = 14;
 			// sp->AuraInterruptFlags = AURA_INTERRUPT_ON_AFTER_CAST_SPELL;
 		}
 
@@ -3721,7 +3721,7 @@ void ApplyNormalFixes()
 		sp = CheckAndReturnSpellEntry( 43339 );
 		if( sp != NULL )
 		{
-			sp->EffectMiscValue[0] = SMT_COST;
+			sp->EffectMiscValue[0] = 14;
 		}
 
 		//shaman - Improved Chain Heal
@@ -3739,25 +3739,25 @@ void ApplyNormalFixes()
 		if( sp != NULL ){
 			sp->EffectApplyAuraName[0]=SPELL_AURA_ADD_PCT_MODIFIER;
 			sp->EffectApplyAuraName[1]=SPELL_AURA_ADD_PCT_MODIFIER;
-			sp->EffectMiscValue[0] = SMT_MISC_EFFECT;
-			sp->EffectMiscValue[1] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[0] = 8;
+			sp->EffectMiscValue[1] = 8;
 		}
 		sp = CheckAndReturnSpellEntry( 29192 );
 		if( sp != NULL ){
 			sp->EffectApplyAuraName[0]=SPELL_AURA_ADD_PCT_MODIFIER;
 			sp->EffectApplyAuraName[1]=SPELL_AURA_ADD_PCT_MODIFIER;
-			sp->EffectMiscValue[0] = SMT_MISC_EFFECT;
-			sp->EffectMiscValue[1] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[0] = 8;
+			sp->EffectMiscValue[1] = 8;
 		}
 
 		// Shaman - Improved Fire Totems
 		sp = CheckAndReturnSpellEntry( 16544 );
 		if( sp != NULL ){
-			sp->EffectMiscValue[0] = SMT_DURATION;
+			sp->EffectMiscValue[0] = 1;
 		}
 		sp = CheckAndReturnSpellEntry( 16086 );
 		if( sp != NULL ){
-			sp->EffectMiscValue[0] = SMT_DURATION;
+			sp->EffectMiscValue[0] = 1;
 		}
 
 		// Shaman Arena totems fix
@@ -3786,18 +3786,18 @@ void ApplyNormalFixes()
 		//shaman - Elemental Weapons
 		sp = CheckAndReturnSpellEntry( 29080 );
 		if( sp != NULL ){
-			sp->EffectMiscValue[1] = SMT_DAMAGE_DONE;
-			sp->EffectMiscValue[2] = SMT_DAMAGE_DONE;
+			sp->EffectMiscValue[1] = 0;
+			sp->EffectMiscValue[2] = 0;
 		}
 		sp = CheckAndReturnSpellEntry( 29079 );
 		if( sp != NULL ){
-			sp->EffectMiscValue[1] = SMT_DAMAGE_DONE;
-			sp->EffectMiscValue[2] = SMT_DAMAGE_DONE;
+			sp->EffectMiscValue[1] = 0;
+			sp->EffectMiscValue[2] = 0;
 		}
 		sp = CheckAndReturnSpellEntry( 16266 );
 		if( sp != NULL ){
-			sp->EffectMiscValue[1] = SMT_DAMAGE_DONE;
-			sp->EffectMiscValue[2] = SMT_DAMAGE_DONE;
+			sp->EffectMiscValue[1] = 0;
+			sp->EffectMiscValue[2] = 0;
 		}
 
 		//Tidal Waves
@@ -4141,13 +4141,13 @@ void ApplyNormalFixes()
 		sp = CheckAndReturnSpellEntry( 35578 );
 		if( sp != NULL )
 		{
-			sp->EffectMiscValue[0] = SMT_CRITICAL_DAMAGE;
+			sp->EffectMiscValue[0] = 15;
 			sp->EffectApplyAuraName[0] = SPELL_AURA_ADD_PCT_MODIFIER;
 		}
 		sp = CheckAndReturnSpellEntry( 35581 );
 		if( sp != NULL )
 		{
-			sp->EffectMiscValue[0] = SMT_CRITICAL_DAMAGE;
+			sp->EffectMiscValue[0] = 15;
 			sp->EffectApplyAuraName[0] = SPELL_AURA_ADD_PCT_MODIFIER;
 		}
 
@@ -4156,19 +4156,19 @@ void ApplyNormalFixes()
 		if( sp != NULL )
 		{
 			sp->EffectApplyAuraName[0] = SPELL_AURA_ADD_PCT_MODIFIER;
-			sp->EffectMiscValue[0] = SMT_COST;
+			sp->EffectMiscValue[0] = 14;
 		}
 		sp = CheckAndReturnSpellEntry( 29439 );
 		if( sp != NULL )
 		{
 			sp->EffectApplyAuraName[0] = SPELL_AURA_ADD_PCT_MODIFIER;
-			sp->EffectMiscValue[0] = SMT_COST;
+			sp->EffectMiscValue[0] = 14;
 		}
 		sp = CheckAndReturnSpellEntry( 29440 );
 		if( sp != NULL )
 		{
 			sp->EffectApplyAuraName[0] = SPELL_AURA_ADD_PCT_MODIFIER;
-			sp->EffectMiscValue[0] = SMT_COST;
+			sp->EffectMiscValue[0] = 14;
 		}
 
 		//Mage - Arcane Blast
@@ -4435,21 +4435,21 @@ void ApplyNormalFixes()
 		sp = CheckAndReturnSpellEntry(11175);
 		if(sp != NULL)
 		{
-			sp->EffectMiscValue[1] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[1] = 8;
 		}
 
 		// Mage - Permafrost Rank 2
 		sp = CheckAndReturnSpellEntry(12569);
 		if(sp != NULL)
 		{
-			sp->EffectMiscValue[1] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[1] = 8;
 		}
 
 		// Mage - Permafrost Rank 3
 		sp = CheckAndReturnSpellEntry(12571);
 		if(sp != NULL)
 		{
-			sp->EffectMiscValue[1] = SMT_MISC_EFFECT;
+			sp->EffectMiscValue[1] = 8;
 		}
 
 		//Improved Counterspell rank 1

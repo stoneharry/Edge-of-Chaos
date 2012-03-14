@@ -480,6 +480,7 @@ Player::Player(uint32 guid)
 	hp_regen_items = 0;
 	block_from_items = 0;
 	confirm_item_send = false;
+	m_spellModTakingSpell = NULL;
 }
 
 void Player::OnLogin()
@@ -6021,21 +6022,8 @@ int32 Player::CanShootRangedWeapon(uint32 spellid, Unit* target, bool autoshot)
 	float minrange = GetMinRange(range);
 	float dist = CalcDistance(this, target);
 	float maxr = GetMaxRange(range) + 2.52f;
+	ApplySpellMod(spellid, SPELLMOD_RANGE, maxr, NULL);
 
-	if(spellinfo->SpellGroupType)
-	{
-		SM_FFValue(this->SM_FRange, &maxr, spellinfo->SpellGroupType);
-		SM_PFValue(this->SM_PRange, &maxr, spellinfo->SpellGroupType);
-	}
-
-	//float bonusRange = 0;
-	// another hackfix: bonus range from hunter talent hawk eye: +2/4/6 yard range to ranged weapons
-	//if(autoshot)
-	//SM_FFValue( SM_FRange, &bonusRange, dbcSpell.LookupEntry( 75 )->SpellGroupType ); // HORRIBLE hackfixes :P
-	// Partha: +2.52yds to max range, this matches the range the client is calculating.
-	// see extra/supalosa_range_research.txt for more info
-	//bonusRange = 2.52f;
-	//sLog.outString( "Bonus range = %f" , bonusRange );
 
 	// check if facing target
 	if(!isInFront(target))
@@ -10829,23 +10817,20 @@ void Player::Cooldown_Add(SpellEntry* pSpell, Item* pItemCaster)
 	if(pSpell->CategoryRecoveryTime > 0 && pSpell->Category)
 	{
 		cool_time = pSpell->CategoryRecoveryTime;
-		if(pSpell->SpellGroupType)
-		{
-			SM_FIValue(SM_FCooldownTime, &cool_time, pSpell->SpellGroupType);
-			SM_PIValue(SM_PCooldownTime, &cool_time, pSpell->SpellGroupType);
-		}
-
+		if (cool_time > 0)
+            ApplySpellMod(pSpell->Id, SPELLMOD_COOLDOWN, cool_time, NULL);
+		if(cool_time < 0)
+			cool_time = 0;
 		_Cooldown_Add(COOLDOWN_TYPE_CATEGORY, pSpell->Category, mstime + cool_time, pSpell->Id, pItemCaster ? pItemCaster->GetProto()->ItemId : 0);
 	}
 
 	if(pSpell->RecoveryTime > 0)
 	{
 		cool_time = pSpell->RecoveryTime;
-		if(pSpell->SpellGroupType)
-		{
-			SM_FIValue(SM_FCooldownTime, &cool_time, pSpell->SpellGroupType);
-			SM_PIValue(SM_PCooldownTime, &cool_time, pSpell->SpellGroupType);
-		}
+		if (cool_time > 0)
+            ApplySpellMod(pSpell->Id, SPELLMOD_COOLDOWN, cool_time, NULL);
+		if(cool_time < 0)
+			cool_time = 0;
 
 		_Cooldown_Add(COOLDOWN_TYPE_SPELL, pSpell->Id, mstime + cool_time, pSpell->Id, pItemCaster ? pItemCaster->GetProto()->ItemId : 0);
 	}
@@ -10864,11 +10849,8 @@ void Player::Cooldown_AddStart(SpellEntry* pSpell)
 	else
 		atime = float2int32(pSpell->StartRecoveryTime * GetCastSpeedMod());
 
-	if(pSpell->SpellGroupType)
-	{
-		SM_FIValue(SM_FGlobalCooldown, &atime, pSpell->SpellGroupType);
-		SM_PIValue(SM_PGlobalCooldown, &atime, pSpell->SpellGroupType);
-	}
+	if (atime > 0)
+		ApplySpellMod(pSpell->Id, SPELLMOD_GLOBAL_COOLDOWN, atime, NULL);
 
 	if(atime < 0)
 		return;
@@ -11760,7 +11742,7 @@ void Player::UpdateGlyphs()
 
 	if(level > 80)
 		level = 80;
-
+	level = 1;
 	// Enable number of glyphs depending on level
 	SetUInt32Value(PLAYER_GLYPHS_ENABLED, glyphMask[level]);
 }
@@ -13972,4 +13954,178 @@ void Player::_StartTaxi(uint32 modelid, uint32 start_node)
 	{
 		sEventMgr.AddEvent(this, &Player::EventTeleportTaxi, (uint32)mapchangeid, mapchangex, mapchangey, mapchangez, EVENT_PLAYER_TELEPORT, traveltime, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 	}
+}
+
+bool Player::IsAffectedBySpellmod(SpellEntry * spellInfo, SpellModifier* mod, Spell* spell)
+{
+    if (!mod || !spellInfo)
+        return false;
+
+    // Mod out of charges
+    if (spell && mod->charges == -1 && spell->m_appliedMods.find(mod->ownerAura) == spell->m_appliedMods.end())
+        return false;
+
+    // +duration to infinite duration spells making them limited
+	if (mod->op == SPELLMOD_DURATION && GetDuration(dbcSpellDuration.LookupEntry( spellInfo->DurationIndex)) <= 0)
+        return false;
+	
+	return IsAffectedBySpellMod(spellInfo, dbcSpell.LookupEntry(mod->spellId), mod->mask);
+}
+
+void Player::AddSpellMod(SpellModifier* mod, bool apply)
+{
+   uint16 Opcode = (mod->type == SPELLMOD_FLAT) ? SMSG_SET_FLAT_SPELL_MODIFIER : SMSG_SET_PCT_SPELL_MODIFIER;
+
+    int i = 0;
+    flag96 _mask = 0;
+    for (int eff = 0; eff < 96; ++eff)
+    {
+        if (eff != 0 && eff%32 == 0)
+            _mask[i++] = 0;
+
+        _mask[i] = uint32(1) << (eff-(32*i));
+        if (mod->mask & _mask)
+        {
+            int32 val = 0;
+            for (SpellModList::iterator itr = m_spellMods[mod->op].begin(); itr != m_spellMods[mod->op].end(); ++itr)
+            {
+                if ((*itr)->type == mod->type && (*itr)->mask & _mask)
+                    val += (*itr)->value;
+            }
+            val += apply ? mod->value : -(mod->value);
+            WorldPacket data(Opcode, (1+1+4));
+            data << uint8(eff);
+            data << uint8(mod->op);
+            data << int32(val);
+			SendPacket(&data);
+        }
+    }
+
+    if (apply)
+        m_spellMods[mod->op].push_back(mod);
+    else
+    {
+        m_spellMods[mod->op].remove(mod);
+        // mods bound to aura will be removed in AuraEffect::~AuraEffect
+        if (!mod->ownerAura)
+            delete mod;
+    }
+}
+
+// Restore spellmods in case of failed cast
+void Player::RestoreSpellMods(Spell* spell, uint32 ownerAuraId, Aura* aura)
+{
+    if (!spell || spell->m_appliedMods.empty())
+        return;
+
+    for (uint8 i=0; i<MAX_SPELLMOD; ++i)
+    {
+        for (SpellModList::iterator itr = m_spellMods[i].begin(); itr != m_spellMods[i].end(); ++itr)
+        {
+            SpellModifier* mod = *itr;
+
+            // spellmods without aura set cannot be charged
+            if (!mod->ownerAura || !m_auraStackCount[ mod->ownerAura->m_visualSlot ])
+                continue;
+
+            // Restore only specific owner aura mods
+			if (ownerAuraId && (ownerAuraId != mod->ownerAura->GetSpellProto()->Id))
+                continue;
+
+            if (aura && mod->ownerAura != aura)
+                continue;
+
+            // check if mod affected this spell
+            // first, check if the mod aura applied at least one spellmod to this spell
+            Spell::UsedSpellMods::iterator iterMod = spell->m_appliedMods.find(mod->ownerAura);
+            if (iterMod == spell->m_appliedMods.end())
+                continue;
+            // secondly, check if the current mod is one of the spellmods applied by the mod aura
+			if (!(mod->mask & spell->m_spellInfo->SpellGroupType))
+                continue;
+
+            // remove from list
+            spell->m_appliedMods.erase(iterMod);
+
+            // add mod charges back to mod
+            if (mod->charges == -1)
+                mod->charges = 1;
+            else
+                mod->charges++;
+
+            // Do not set more spellmods than avalible
+            if (m_auraStackCount[ mod->ownerAura->m_visualSlot ] < mod->charges)
+                mod->charges = m_auraStackCount[ mod->ownerAura->m_visualSlot ];
+
+            // Skip this check for now - aura charges may change due to various reason
+            // TODO: trac these changes correctly
+            //ASSERT (mod->ownerAura->GetCharges() <= mod->charges);
+        }
+    }
+}
+
+void Player::RestoreAllSpellMods(uint32 ownerAuraId, Aura* aura)
+{
+	if(GetCurrentSpell())
+		RestoreSpellMods(GetCurrentSpell(), ownerAuraId, aura);
+}
+
+void Player::RemoveSpellMods(Spell* spell)
+{
+    if (!spell)
+        return;
+
+    if (spell->m_appliedMods.empty())
+        return;
+
+    for (uint8 i=0; i<MAX_SPELLMOD; ++i)
+    {
+        for (SpellModList::const_iterator itr = m_spellMods[i].begin(); itr != m_spellMods[i].end();)
+        {
+            SpellModifier* mod = *itr;
+            ++itr;
+            // spellmods without aura set cannot be charged
+            if (!mod->ownerAura || !m_auraStackCount[ mod->ownerAura->m_visualSlot ])
+                continue;
+
+            // check if mod affected this spell
+            Spell::UsedSpellMods::iterator iterMod = spell->m_appliedMods.find(mod->ownerAura);
+            if (iterMod == spell->m_appliedMods.end())
+                continue;
+
+            // remove from list
+            spell->m_appliedMods.erase(iterMod);
+
+            if (RemoveAura(mod->ownerAura))
+                itr = m_spellMods[i].begin();
+        }
+    }
+}
+
+void Player::DropModCharge(SpellModifier* mod, Spell* spell)
+{
+    // don't handle spells with proc_event entry defined
+    // this is a temporary workaround, because all spellmods should be handled like that
+	//Todo:
+    //if (sSpellMgr->GetSpellProcEvent(mod->spellId))
+        //return;
+
+    if (spell && mod->ownerAura && mod->charges > 0)
+    {
+        if (--mod->charges == 0)
+            mod->charges = -1;
+
+        spell->m_appliedMods.insert(mod->ownerAura);
+    }
+}
+
+void Player::SetSpellModTakingSpell(Spell* spell, bool apply)
+{
+    if (!spell || (m_spellModTakingSpell && m_spellModTakingSpell != spell))
+        return;
+
+    if (apply && spell->getState() == SPELL_STATE_FINISHED)
+        return;
+
+    m_spellModTakingSpell = apply ? spell : NULL;
 }

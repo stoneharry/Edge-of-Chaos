@@ -73,7 +73,7 @@ void TotemSummon::Load(CreatureProto* proto, Unit* owner, LocationVector & posit
 	SetCastSpeedMod(1.0f);
 	SetUInt32Value(UNIT_DYNAMIC_FLAGS, 0);
 
-	InheritSMMods(owner);
+	//InheritSMMods(owner);
 
 	for(uint8 school = 0; school < SCHOOL_COUNT; school++)
 	{

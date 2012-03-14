@@ -1619,7 +1619,6 @@ void Pet::LoadPetAuras(int32 id)
 	*/
 
 	static uint32 mod_auras[9] = { 8875, 19580, 19581, 19582, 19589, 19591, 34666, 34667, 34675 };//Beastmastery Talent's auras.
-	InheritSMMods(m_Owner);
 
 	if(id == -1)  //unload all
 	{

@@ -427,6 +427,7 @@ struct SpellCharge
 };
 
 typedef set< uint64 > AreaAuraList;
+struct SpellModifier;
 
 class SERVER_DECL Aura : public EventableObject
 {
@@ -649,8 +650,6 @@ class SERVER_DECL Aura : public EventableObject
 		void SpellAuraWaterWalk(bool apply);
 		void SpellAuraFeatherFall(bool apply);
 		void SpellAuraHover(bool apply);
-		void SpellAuraAddFlatModifier(bool apply);
-		void SpellAuraAddPctMod(bool apply);
 		void SpellAuraAddClassTargetTrigger(bool apply);
 		void SpellAuraModPowerRegPerc(bool apply);
 		void SpellAuraOverrideClassScripts(bool apply);
@@ -773,8 +772,7 @@ class SERVER_DECL Aura : public EventableObject
 		void SpellAuraConvertRune(bool apply);
 		void SpellAuraPreventResurrection(bool apply);
 		void UpdateAuraModDecreaseSpeed();
-
-		void SendModifierLog(int32** m, int32 v, uint32* mask, uint8 type, bool pct = false);
+		void ApplySpellMod(bool apply);
 		void SendDummyModifierLog(std::map<SpellEntry*, uint32> * m, SpellEntry* spellInfo, uint32 i, bool apply, bool pct = false);
 
 		// Events
@@ -824,7 +822,6 @@ class SERVER_DECL Aura : public EventableObject
 		uint8 m_visualSlot;
 		uint32 pSpellId; // This represents the triggering spell id
 		bool m_castInDuel;
-
 	private:
 		uint32 GetCasterFaction() { return m_casterfaction; }
 		void SetCasterFaction(uint32 faction) { m_casterfaction = faction; }

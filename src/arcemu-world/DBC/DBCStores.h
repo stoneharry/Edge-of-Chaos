@@ -751,7 +751,8 @@ struct SpellEntry
 	uint32 StartRecoveryTime;                                 //207
 	uint32 MaxTargetLevel;                                    //208
 	uint32 SpellFamilyName;                                   //209
-	uint32 SpellGroupType[ MAX_SPELL_EFFECTS ];               //210-212
+	//uint32 SpellGroupType[ MAX_SPELL_EFFECTS ];             //210-212
+	flag96 SpellGroupType;									  //210-212
 	uint32 MaxTargets;                                        //213
 	uint32 Spell_Dmg_Type;                                    //214 dmg_class Integer 0=None, 1=Magic, 2=Melee, 3=Ranged
 	uint32 PreventionType;                                    //215 0,1,2 related to Spell_Dmg_Type I think
@@ -942,6 +943,12 @@ struct SpellEntry
 		}
 		return -1;
 	}
+
+	bool IsAffectedBySpellMods()
+	{
+		return !(AttributesEx3 & 0x20000000);
+	}
+
 
 	SpellEntry()
 	{
@@ -1923,6 +1930,20 @@ ARCEMU_INLINE float GetMinRange(SpellRange* range)
 ARCEMU_INLINE uint32 GetDuration(SpellDuration* dur)
 {
 	return dur->Duration1;
+}
+
+ARCEMU_INLINE bool IsAffectedBySpellMod(SpellEntry *sp, SpellEntry * sp2, flag96 mask)
+{
+	if (!sp->IsAffectedBySpellMods())
+		return false;
+	
+	// False if affect_spell == NULL or spellFamily not equal
+	if (!sp2|| sp2->SpellFamilyName != sp->SpellFamilyName)
+		return false;
+	// true
+	if (mask & sp->SpellGroupType)
+		return true;
+	return false;
 }
 
 #define SAFE_DBC_CODE_RETURNS        /* undefine this to make out of range/nulls return null. */

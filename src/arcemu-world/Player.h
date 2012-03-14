@@ -403,6 +403,64 @@ enum DrunkenState
     DRUNKEN_SMASHED	= 3
 };
 
+
+enum SpellModOp
+{
+    SPELLMOD_DAMAGE                 = 0,
+    SPELLMOD_DURATION               = 1,
+    SPELLMOD_THREAT                 = 2,
+    SPELLMOD_EFFECT1                = 3,
+    SPELLMOD_CHARGES                = 4,
+    SPELLMOD_RANGE                  = 5,
+    SPELLMOD_RADIUS                 = 6,
+    SPELLMOD_CRITICAL_CHANCE        = 7,
+    SPELLMOD_ALL_EFFECTS            = 8,
+    SPELLMOD_NOT_LOSE_CASTING_TIME  = 9,
+    SPELLMOD_CASTING_TIME           = 10,
+    SPELLMOD_COOLDOWN               = 11,
+    SPELLMOD_EFFECT2                = 12,
+    SPELLMOD_IGNORE_ARMOR           = 13,
+    SPELLMOD_COST                   = 14,
+    SPELLMOD_CRIT_DAMAGE_BONUS      = 15,
+    SPELLMOD_RESIST_MISS_CHANCE     = 16,
+    SPELLMOD_JUMP_TARGETS           = 17,
+    SPELLMOD_CHANCE_OF_SUCCESS      = 18,
+    SPELLMOD_ACTIVATION_TIME        = 19,
+    SPELLMOD_DAMAGE_MULTIPLIER      = 20,
+    SPELLMOD_GLOBAL_COOLDOWN        = 21,
+    SPELLMOD_DOT                    = 22,
+    SPELLMOD_EFFECT3                = 23,
+    SPELLMOD_BONUS_MULTIPLIER       = 24,
+    // spellmod 25
+    SPELLMOD_PROC_PER_MINUTE        = 26,
+    SPELLMOD_VALUE_MULTIPLIER       = 27,
+    SPELLMOD_RESIST_DISPEL_CHANCE   = 28,
+    SPELLMOD_CRIT_DAMAGE_BONUS_2    = 29, //one not used spell
+    SPELLMOD_SPELL_COST_REFUND_ON_FAIL = 30
+};
+
+#define MAX_SPELLMOD 32
+
+enum SpellModType
+{
+    SPELLMOD_FLAT         = 107,                            // SPELL_AURA_ADD_FLAT_MODIFIER
+    SPELLMOD_PCT          = 108                             // SPELL_AURA_ADD_PCT_MODIFIER
+};
+
+// Spell modifier (used for modify other spells)
+struct SpellModifier
+{
+    SpellModifier(Aura* _ownerAura = NULL) : charges(0), ownerAura(_ownerAura) {}
+    SpellModOp   op   : 8;
+    SpellModType type : 8;
+    int16 charges     : 16;
+    int32 value;
+    flag96 mask;
+    uint32 spellId;
+    Aura* ownerAura;
+};
+
+
 /**
 	TalentTree table
 
@@ -822,6 +880,7 @@ typedef std::map<uint32, OnHitSpell >               StrikeSpellDmgMap;
 typedef std::map<uint32, PlayerSkill>				SkillMap;
 typedef std::set<Player**>							ReferenceSet;
 typedef std::map<uint32, PlayerCooldown>			PlayerCooldownMap;
+typedef std::list<SpellModifier*> SpellModList;
 
 class SERVER_DECL Player : public Unit
 {
@@ -2275,7 +2334,6 @@ class SERVER_DECL Player : public Unit
 		void SendCastResult(uint32 SpellId, uint8 ErrorMessage, uint8 MultiCast, uint32 Extra);
 		void Gossip_SendPOI(float X, float Y, uint32 Icon, uint32 Flags, uint32 Data, const char* Name);
 		void SendSpellCooldownEvent(uint32 SpellId);
-		void SendSpellModifier(uint8 spellgroup, uint8 spelltype, int32 v, bool is_pct);
 		void SendItemPushResult(bool created, bool recieved, bool sendtoset, bool newitem,  uint8 destbagslot, uint32 destslot, uint32 count, uint32 entry, uint32 suffix, uint32 randomprop, uint32 stack);
 		void SendSetProficiency(uint8 ItemClass, uint32 Proficiency);
 		void SendLoginVerifyWorld(uint32 MapId, float X, float Y, float Z, float O);
@@ -2546,7 +2604,7 @@ class SERVER_DECL Player : public Unit
 		uint8 m_talentActiveSpec;
 
 		PlayerSpec m_specs[MAX_SPEC_COUNT];
-
+		SpellModList m_spellMods[MAX_SPELLMOD];
 	public:
 		void SendTeleportAckMsg(const LocationVector & v);
 		void SendUpdateDataToSet(ByteBuffer* groupbuf, ByteBuffer* nongroupbuf, bool sendtoself);
@@ -2555,7 +2613,64 @@ class SERVER_DECL Player : public Unit
 		bool CanTrainAt(Trainer*);
 
 		Object* GetPlayerOwner() { return this; };
+		//Spell Mods
+        void AddSpellMod(SpellModifier* mod, bool apply);
+        bool IsAffectedBySpellmod(SpellEntry * spellInfo, SpellModifier* mod, Spell* spell = NULL);
+        template <class T> T ApplySpellMod(uint32 spellId, SpellModOp op, T &basevalue, Spell* spell = NULL);
+        void RemoveSpellMods(Spell* spell);
+        void RestoreSpellMods(Spell* spell, uint32 ownerAuraId = 0, Aura* aura = NULL);
+        void RestoreAllSpellMods(uint32 ownerAuraId = 0, Aura* aura = NULL);
+        void DropModCharge(SpellModifier* mod, Spell* spell);
+		void SetSpellModTakingSpell(Spell* spell, bool apply);
+		Spell* m_spellModTakingSpell;
 };
+
+
+// "the bodies of template functions must be made available in a header file"
+template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &basevalue, Spell* spell)
+{
+	SpellEntry * spellInfo = dbcSpell.LookupEntry(spellId);
+    if (!spellInfo)
+        return 0;
+    float totalmul = 1.0f;
+    int32 totalflat = 0;
+
+    // Drop charges for triggering spells instead of triggered ones
+    if (m_spellModTakingSpell)
+        spell = m_spellModTakingSpell;
+
+    for (SpellModList::iterator itr = m_spellMods[op].begin(); itr != m_spellMods[op].end(); ++itr)
+    {
+        SpellModifier* mod = *itr;
+
+        // Charges can be set only for mods with auras
+        if (!mod->ownerAura)
+            ASSERT(mod->charges == 0);
+
+        if (!IsAffectedBySpellmod(spellInfo, mod, spell))
+            continue;
+
+        if (mod->type == SPELLMOD_FLAT)
+            totalflat += mod->value;
+        else if (mod->type == SPELLMOD_PCT)
+        {
+            // skip percent mods for null basevalue (most important for spell mods with charges)
+            if (basevalue == T(0))
+                continue;
+
+            // special case (skip > 10sec spell casts for instant cast setting)
+            if (mod->op == SPELLMOD_CASTING_TIME && basevalue >= T(10000) && mod->value <= -100)
+                continue;
+				
+            totalmul += (1.0f * float(mod->value) / 100.0f);
+        }
+
+        DropModCharge(mod, spell);
+    }
+    float diff = (float)basevalue * (totalmul - 1.0f) + (float)totalflat;
+    basevalue = T((float)basevalue + diff);
+    return T(diff);
+}
 
 class SkillIterator
 {

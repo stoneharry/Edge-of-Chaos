@@ -129,8 +129,8 @@ pSpellAura SpellAuraHandler[TOTAL_SPELL_AURAS] =
 	&Aura::SpellAuraWaterWalk,//SPELL_AURA_WATER_WALK = 104,
 	&Aura::SpellAuraFeatherFall,//SPELL_AURA_FEATHER_FALL = 105,
 	&Aura::SpellAuraHover,//SPELL_AURA_HOVER = 106,
-	&Aura::SpellAuraAddFlatModifier,//SPELL_AURA_ADD_FLAT_MODIFIER = 107,
-	&Aura::SpellAuraAddPctMod,//SPELL_AURA_ADD_PCT_MODIFIER = 108,
+	&Aura::ApplySpellMod,//SPELL_AURA_ADD_FLAT_MODIFIER = 107,
+	&Aura::ApplySpellMod,//SPELL_AURA_ADD_PCT_MODIFIER = 108,
 	&Aura::SpellAuraAddClassTargetTrigger,//SPELL_AURA_ADD_CLASS_TARGET_TRIGGER = 109,
 	&Aura::SpellAuraModPowerRegPerc,//SPELL_AURA_MOD_POWER_REGEN_PERCENT = 110,
 	&Aura::SpellAuraNULL,//SPELL_AURA_ADD_CASTER_HIT_TRIGGER = 111,
@@ -1744,14 +1744,11 @@ void Aura::SpellAuraPeriodicDamage(bool apply)
 				}
 			}
 		}
-		uint32* gr = GetSpellProto()->SpellGroupType;
-		if(gr)
+		
+		if(c != NULL)
 		{
-			if(c != NULL)
-			{
-				SM_FIValue(c->SM_FDOT, (int32*)&dmg, gr);
-				SM_PIValue(c->SM_PDOT, (int32*)&dmg, gr);
-			}
+			if(Player * p = c->GetSpellModOwner())
+				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_DOT, dmg);
 		}
 
 		if(dmg <= 0)
@@ -2148,8 +2145,8 @@ void Aura::SpellAuraPeriodicHeal(bool apply)
 		Unit* c = GetUnitCaster();
 		if(c && GetSpellProto()->SpellGroupType)
 		{
-			SM_FIValue(c->SM_FMiscEffect, &val, GetSpellProto()->SpellGroupType);
-			SM_PIValue(c->SM_PMiscEffect, &val, GetSpellProto()->SpellGroupType);
+			if(Player * p = c->GetSpellModOwner())
+				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_ALL_EFFECTS, val);
 		}
 
 		if(val > 0)
@@ -2204,7 +2201,8 @@ void Aura::EventPeriodicHeal(uint32 amount)
 				if(c->IsPlayer())
 				{
 					int durmod = 0;
-					SM_FIValue(c->SM_FDur, &durmod, m_spellProto->SpellGroupType);
+					if(Player * p = c->GetSpellModOwner())
+						p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_DURATION, durmod);
 					bonus += bonus * durmod / 15000;
 				}
 			}
@@ -2213,23 +2211,9 @@ void Aura::EventPeriodicHeal(uint32 amount)
 
 	if(c != NULL && m_spellProto->SpellGroupType)
 	{
-		/*
-		int penalty_pct = 0;
-		int penalty_flt = 0;
-		SM_FIValue( c->SM_PPenalty, &penalty_pct, GetSpellProto()->SpellGroupType );
-		bonus += bonus * ( penalty_pct / 100 );
-		SM_FIValue( c->SM_FPenalty, &penalty_flt, GetSpellProto()->SpellGroupType );
-		bonus += penalty_flt;
-		*/
-		SM_PIValue(c->SM_PPenalty, &bonus, m_spellProto->SpellGroupType);
-#ifdef COLLECTION_OF_UNTESTED_STUFF_AND_TESTERS
-		int spell_flat_modifers = 0;
-		int spell_pct_modifers = 0;
-		SM_FIValue(c->SM_FPenalty, &spell_flat_modifers, GetSpellProto()->SpellGroupType);
-		SM_FIValue(c->SM_PPenalty, &spell_pct_modifers, GetSpellProto()->SpellGroupType);
-		if(spell_flat_modifers != 0 || spell_pct_modifers != 0)
-			LOG_DEBUG("!!!!!HEAL : spell dmg bonus(p=24) mod flat %d , spell dmg bonus(p=24) pct %d , spell dmg bonus %d, spell group %u", spell_flat_modifers, spell_pct_modifers, bonus, GetSpellProto()->SpellGroupType);
-#endif
+		if(Player * p = c->GetSpellModOwner())
+			p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_BONUS_MULTIPLIER, bonus);
+
 	}
 
 	int amp = m_spellProto->EffectAmplitude[mod->i];
@@ -2274,7 +2258,8 @@ void Aura::EventPeriodicHeal(uint32 amount)
 	{
 		add += float2int32(add * (m_target->HealTakenPctMod[m_spellProto->School] + c->HealDonePctMod[GetSpellProto()->School]));
 		if(m_spellProto->SpellGroupType)
-			SM_PIValue(c->SM_PDOT, &add, m_spellProto->SpellGroupType);
+			if(Player * p = c->GetSpellModOwner())
+				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_DOT, add);
 
 		if(this->DotCanCrit())
 		{
@@ -3041,8 +3026,8 @@ void Aura::SpellAuraPeriodicTriggerSpellWithValue(bool apply)
 		uint32 numticks = GetSpellDuration(m_spellProto, caster) / m_spellProto->EffectAmplitude[mod->i];
 		if(caster != NULL)
 		{
-			SM_FFValue(caster->SM_FAmptitude, &amptitude, m_spellProto->SpellGroupType);
-			SM_PFValue(caster->SM_PAmptitude, &amptitude, m_spellProto->SpellGroupType);
+			if(Player * p = caster->GetSpellModOwner())
+				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_BONUS_MULTIPLIER, amptitude);
 			if(m_spellProto->ChannelInterruptFlags != 0)
 				amptitude *= caster->GetCastSpeedMod();
 		}
@@ -3095,8 +3080,8 @@ void Aura::SpellAuraPeriodicTriggerSpell(bool apply)
 		uint32 numticks = GetSpellDuration(m_spellProto, caster) / m_spellProto->EffectAmplitude[mod->i];
 		if(caster != NULL)
 		{
-			SM_FFValue(caster->SM_FAmptitude, &amptitude, m_spellProto->SpellGroupType);
-			SM_PFValue(caster->SM_PAmptitude, &amptitude, m_spellProto->SpellGroupType);
+			if(Player * p = caster->GetSpellModOwner())
+				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_BONUS_MULTIPLIER, amptitude);
 			if(m_spellProto->ChannelInterruptFlags != 0)
 				amptitude *= caster->GetCastSpeedMod();
 		}
@@ -4020,8 +4005,8 @@ void Aura::SpellAuraProcTriggerSpell(bool apply)
 		Unit* ucaster = GetUnitCaster();
 		if(ucaster != NULL && GetSpellProto()->SpellGroupType)
 		{
-			SM_FIValue(ucaster->SM_FCharges, &charges, GetSpellProto()->SpellGroupType);
-			SM_PIValue(ucaster->SM_PCharges, &charges, GetSpellProto()->SpellGroupType);
+			if(Player * p = ucaster->GetSpellModOwner())
+				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_CHARGES, charges);
 		}
 
 		m_target->AddProcTriggerSpell(spellId, GetSpellProto()->Id, m_casterGuid, GetSpellProto()->procChance, GetSpellProto()->procFlags, charges, groupRelation, NULL);
@@ -4138,7 +4123,6 @@ void Aura::SpellAuraModDodgePerc(bool apply)
 	//if (m_target->GetTypeId() == TYPEID_PLAYER)
 	{
 		int32 amt = mod->m_amount;
-//		SM_FIValue(m_target->SM_FSPELL_VALUE, &amt, GetSpellProto()->SpellGroupType);
 		if(apply)
 		{
 			if(amt < 0)
@@ -4262,8 +4246,8 @@ void Aura::EventPeriodicLeech(uint32 amount)
 
 	if(sp->SpellGroupType)
 	{
-		SM_FIValue(m_caster->SM_FDOT, (int32*)&amount, sp->SpellGroupType);
-		SM_PIValue(m_caster->SM_PDOT, (int32*)&amount, sp->SpellGroupType);
+		if(Player * p = m_caster->GetSpellModOwner())
+			p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_DOT, amount);
 	}
 
 	if(DotCanCrit())
@@ -4386,8 +4370,8 @@ void Aura::SpellAuraModHitChance(bool apply)
 	Unit* c = GetUnitCaster();
 	if(c && GetSpellProto()->SpellGroupType)
 	{
-		SM_FIValue(c->SM_FMiscEffect, &val, GetSpellProto()->SpellGroupType);
-		SM_PIValue(c->SM_PMiscEffect, &val, GetSpellProto()->SpellGroupType);
+		if(Player * p = c->GetSpellModOwner())
+			p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_ALL_EFFECTS, val);
 	}
 
 	if(apply)
@@ -5652,29 +5636,10 @@ void Aura::SpellAuraPeriodicDamagePercent(bool apply)
 {
 	if(apply)
 	{
-		//uint32 gr = GetSpellProto()->SpellGroupType;
-		//if(gr)
-		//{
-		//	Unit*c=GetUnitCaster();
-		//	if(c)
-		//	{
-		//		SM_FIValue(c->SM_FDOT,(int32*)&dmg,gr);
-		//		SM_PIValue(c->SM_PDOT,(int32*)&dmg,gr);
-		//	}
-		//}
 
-		/*if(m_spellProto->Id == 28347) //Dimensional Siphon
-		{
-			uint32 dmg = (m_target->GetMaxHealth()*5)/100;
-			sEventMgr.AddEvent(this, &Aura::EventPeriodicDamagePercent, dmg,
-				EVENT_AURA_PERIODIC_DAMAGE_PERCENT, 1000, 0,EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
-		}
-		else*/
-		{
-			uint32 dmg = mod->m_amount;
-			sEventMgr.AddEvent(this, &Aura::EventPeriodicDamagePercent, dmg,
+		uint32 dmg = mod->m_amount;
+		sEventMgr.AddEvent(this, &Aura::EventPeriodicDamagePercent, dmg,
 			                   EVENT_AURA_PERIODIC_DAMAGE_PERCENT, GetSpellProto()->EffectAmplitude[mod->i], 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
-		}
 		SetNegative();
 	}
 }
@@ -5981,167 +5946,19 @@ void Aura::SpellAuraHover(bool apply)
 
 }
 
-void Aura::SpellAuraAddPctMod(bool apply)
+void Aura::ApplySpellMod(bool apply)
 {
-	int32 val = apply ? mod->m_amount : -mod->m_amount;
-	uint32* AffectedGroups = GetSpellProto()->EffectSpellClassMask[mod->i];
-
-	switch(mod->m_miscValue)  //let's generate warnings for unknown types of modifiers
-	{
-		case SMT_DAMAGE_DONE:
-			SendModifierLog(&m_target->SM_PDamageBonus, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_DURATION:
-			SendModifierLog(&m_target->SM_PDur, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_THREAT_REDUCED:
-			SendModifierLog(&m_target->SM_PThreat, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_EFFECT_1:
-			SendModifierLog(&m_target->SM_PEffect1_Bonus, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_CHARGES:
-			SendModifierLog(&m_target->SM_PCharges, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_RANGE:
-			SendModifierLog(&m_target->SM_PRange, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_RADIUS:
-			SendModifierLog(&m_target->SM_PRadius, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_CRITICAL:
-			SendModifierLog(&m_target->SM_CriticalChance, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_MISC_EFFECT:
-			SendModifierLog(&m_target->SM_PMiscEffect, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_NONINTERRUPT:
-			SendModifierLog(&m_target->SM_PNonInterrupt, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			//SpellAuraResistPushback(true);
-			break;
-
-		case SMT_CAST_TIME:
-			SendModifierLog(&m_target->SM_PCastTime, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_COOLDOWN_DECREASE:
-			SendModifierLog(&m_target->SM_PCooldownTime, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_EFFECT_2:
-			SendModifierLog(&m_target->SM_PEffect2_Bonus, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_COST:
-			SendModifierLog(&m_target->SM_PCost, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_CRITICAL_DAMAGE:
-			SendModifierLog(&m_target->SM_PCriticalDamage, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-			//case SMT_HITCHANCE: - no pct
-			//case SMT_ADDITIONAL_TARGET: - no pct
-			//case SMT_TRIGGER: - todo
-
-		case SMT_AMPTITUDE:
-			SendModifierLog(&m_target->SM_PAmptitude, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_JUMP_REDUCE:
-			SendModifierLog(&m_target->SM_PJumpReduce, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_GLOBAL_COOLDOWN:
-			SendModifierLog(&m_target->SM_PGlobalCooldown, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_SPELL_VALUE_PCT:
-			SendModifierLog(&m_target->SM_PDOT, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_EFFECT_3:
-			SendModifierLog(&m_target->SM_PEffect3_Bonus, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_PENALTY:
-			SendModifierLog(&m_target->SM_PPenalty, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_EFFECT_BONUS:
-			SendModifierLog(&m_target->SM_PEffectBonus, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_RESIST_DISPEL:
-			SendModifierLog(&m_target->SM_PRezist_dispell, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		default://Unknown modifier type
-			LOG_ERROR(
-			    "Unknown spell modifier type %u in spell %u.<<--report this line to the developer",
-			    mod->m_miscValue, GetSpellId());
-			break;
-	}
-}
-
-void Aura::SendModifierLog(int32** m, int32 v, uint32* mask, uint8 type, bool pct)
-{
-	uint32 intbit = 0, groupnum = 0;
-
-	if(*m == 0)
-	{
-		*m = new int32[SPELL_GROUPS];
-		for(uint32 bit = 0; bit < SPELL_GROUPS; ++bit, ++intbit)
-		{
-			if(intbit == 32)
-			{
-				++groupnum;
-				intbit = 0;
-			}
-
-			if((1 << intbit) & mask[groupnum])
-			{
-				(*m)[bit] = v;
-
-				if(!m_target->IsPlayer())
-					continue;
-
-				TO_PLAYER(m_target)->SendSpellModifier(static_cast< uint8 >(bit), type, v, pct);
-			}
-			else
-				(*m)[bit] = 0;
-		}
-	}
-	else
-	{
-		for(uint8 bit = 0; bit < SPELL_GROUPS; ++bit, ++intbit)
-		{
-			if(intbit == 32)
-			{
-				++groupnum;
-				intbit = 0;
-			}
-
-			if((1 << intbit) & mask[groupnum])
-			{
-				(*m)[bit] += v;
-
-				if(!m_target->IsPlayer())
-					continue;
-
-				TO_PLAYER(m_target)->SendSpellModifier(bit, type, (*m)[ bit ], pct);
-			}
-		}
-	}
+	if(!m_target->IsPlayer())
+		return;
+	Player * p = TO_PLAYER(m_target);
+    SpellModifier *smod = new SpellModifier;
+	smod->op = SpellModOp(mod->m_miscValue);
+	smod->value = mod->m_amount;
+	smod->type = SpellModType(mod->m_type);    // SpellModType value == spell aura types
+	smod->spellId = GetSpellProto()->Id;
+	smod->charges = p->GetAuraStackCount(GetSpellProto()->Id);
+    smod->ownerAura = this;
+	p->AddSpellMod(smod, apply);
 }
 
 void Aura::SendDummyModifierLog(std::map< SpellEntry*, uint32 >* m, SpellEntry* spellInfo, uint32 i, bool apply, bool pct)
@@ -6175,7 +5992,7 @@ void Aura::SendDummyModifierLog(std::map< SpellEntry*, uint32 >* m, SpellEntry* 
 			if(p_target == NULL)
 				continue;
 
-			p_target->SendSpellModifier(bit, type, v, pct);
+			//p_target->SendSpellModifier(bit, type, v, pct);
 		}
 	}
 }
@@ -6211,8 +6028,8 @@ void Aura::SpellAuraAddClassTargetTrigger(bool apply)
 		Unit* ucaster = GetUnitCaster();
 		if(ucaster != NULL && GetSpellProto()->SpellGroupType)
 		{
-			SM_FIValue(ucaster->SM_FCharges, &charges, GetSpellProto()->SpellGroupType);
-			SM_PIValue(ucaster->SM_PCharges, &charges, GetSpellProto()->SpellGroupType);
+			if(Player * p = ucaster->GetSpellModOwner())
+				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_CHARGES, charges);
 		}
 
 		m_target->AddProcTriggerSpell(sp->Id, GetSpellProto()->Id, m_casterGuid, GetSpellProto()->EffectBasePoints[mod->i] + 1, PROC_ON_CAST_SPELL, charges, groupRelation, procClassMask);
@@ -6764,13 +6581,6 @@ void Aura::SpellAuraModRangedHaste(bool apply)
 
 	if(p_target != NULL)
 	{
-//		int32 amount = mod->m_amount;
-//		if(GetSpellProto()->Id == 6150)// Quick Shots
-//		{
-//			Unit * pCaster = GetUnitCaster();
-//			if(pCaster)
-//				SM_FIValue(pCaster->SM_FSPELL_VALUE,&amount,0x100000);
-//		}
 
 		if(apply)
 			p_target->ModAttackSpeed(mod->m_amount, MOD_RANGED);
@@ -7325,158 +7135,6 @@ void Aura::SpellAuraModHealingByAP(bool apply)
 	{
 		p_target->ModHealingDoneMod(val);
 		p_target->UpdateChanceFields();
-	}
-}
-
-void Aura::SpellAuraAddFlatModifier(bool apply)
-{
-	int32 val = apply ? mod->m_amount : -mod->m_amount;
-	uint32* AffectedGroups = GetSpellProto()->EffectSpellClassMask[mod->i];
-
-	switch(mod->m_miscValue) //let's generate warnings for unknown types of modifiers
-	{
-		case SMT_DAMAGE_DONE:
-			SendModifierLog(&m_target->SM_FDamageBonus, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_DURATION:
-			SendModifierLog(&m_target->SM_FDur, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_THREAT_REDUCED:
-			SendModifierLog(&m_target->SM_FThreat, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_EFFECT_1:
-			SendModifierLog(&m_target->SM_FEffect1_Bonus, val, AffectedGroups,  static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_CHARGES:
-			SendModifierLog(&m_target->SM_FCharges, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_RANGE:
-			SendModifierLog(&m_target->SM_FRange, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_RADIUS:
-			SendModifierLog(&m_target->SM_FRadius, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_CRITICAL:
-			SendModifierLog(&m_target->SM_CriticalChance, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_MISC_EFFECT:
-			SendModifierLog(&m_target->SM_FMiscEffect, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-			//case SMT_NONINTERRUPT: - no flat
-
-		case SMT_CAST_TIME:
-			SendModifierLog(&m_target->SM_FCastTime, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_COOLDOWN_DECREASE:
-			SendModifierLog(&m_target->SM_FCooldownTime, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_EFFECT_2:
-			SendModifierLog(&m_target->SM_FEffect2_Bonus, val, AffectedGroups,  static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_COST:
-			SendModifierLog(&m_target->SM_FCost, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-			//case SMT_CRITICAL_DAMAGE: - no flat
-
-		case SMT_HITCHANCE:
-			SendModifierLog(&m_target->SM_FHitchance, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_ADDITIONAL_TARGET:
-			SendModifierLog(&m_target->SM_FAdditionalTargets, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_TRIGGER:
-			SendModifierLog(&m_target->SM_FChanceOfSuccess, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_AMPTITUDE:
-			SendModifierLog(&m_target->SM_FAmptitude, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-			//case SMT_JUMP_REDUCE: - no flat
-
-		case SMT_GLOBAL_COOLDOWN:
-			SendModifierLog(&m_target->SM_FGlobalCooldown, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-			//case SMT_SPELL_VALUE_PCT: - pct only?
-			//SendModifierLog(&m_target->SM_FDOT,val,AffectedGroups, static_cast<uint8>( mod->m_miscValue ));
-			//break;
-
-		case SMT_EFFECT_3:
-			SendModifierLog(&m_target->SM_FEffect3_Bonus, val, AffectedGroups,  static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_PENALTY:
-			SendModifierLog(&m_target->SM_FPenalty, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		case SMT_EFFECT_BONUS:
-			SendModifierLog(&m_target->SM_FEffectBonus, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue), true);
-			break;
-
-		case SMT_RESIST_DISPEL:
-			SendModifierLog(&m_target->SM_FRezist_dispell, val, AffectedGroups, static_cast<uint8>(mod->m_miscValue));
-			break;
-
-		default://Unknown modifier type
-			LOG_ERROR(
-			    "Unknown spell modifier type %u in spell %u.<<--report this line to the developer\n",
-			    mod->m_miscValue, GetSpellId());
-			break;
-	}
-
-	//Hunter's BeastMastery talents.
-	if(m_target->IsPlayer())
-	{
-		Pet* p = TO< Player* >(m_target)->GetSummon();
-		if(p)
-		{
-			switch(GetSpellProto()->NameHash)
-			{
-				case SPELL_HASH_UNLEASHED_FURY:
-					p->LoadPetAuras(0);
-					break;
-				case SPELL_HASH_THICK_HIDE:
-					p->LoadPetAuras(1);
-					break;
-				case SPELL_HASH_ENDURANCE_TRAINING:
-					p->LoadPetAuras(2);
-					break;
-				case SPELL_HASH_FERAL_SWIFTNESS:
-					p->LoadPetAuras(3);
-					break;
-				case SPELL_HASH_BESTIAL_DISCIPLINE:
-					p->LoadPetAuras(4);
-					break;
-				case SPELL_HASH_FEROCITY:
-					p->LoadPetAuras(5);
-					break;
-				case SPELL_HASH_ANIMAL_HANDLER:
-					p->LoadPetAuras(6);
-					break;
-				case SPELL_HASH_CATLIKE_REFLEXES:
-					p->LoadPetAuras(7);
-					break;
-				case SPELL_HASH_SERPENT_S_SWIFTNESS:
-					p->LoadPetAuras(8);
-					break;
-			}
-		}
 	}
 }
 
@@ -8797,15 +8455,11 @@ void AbsorbAura::SpellAuraSchoolAbsorb(bool apply)
 	Unit* caster = GetUnitCaster();
 	if(caster != NULL)
 	{
-		if(GetSpellProto()->SpellGroupType)
-		{
-			SM_FIValue(caster->SM_FMiscEffect, &val, GetSpellProto()->SpellGroupType);
-			SM_PIValue(caster->SM_PMiscEffect, &val, GetSpellProto()->SpellGroupType);
-		}
 
 		//This will fix talents that affects damage absorbed.
 		int flat = 0;
-		SM_FIValue(caster->SM_FMiscEffect, &flat, GetSpellProto()->SpellGroupType);
+		if(Player * p = caster->GetSpellModOwner())
+			p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_BONUS_MULTIPLIER, flat);
 		val += val * flat / 100;
 
 		//For spells Affected by Bonus Healing we use Dspell_coef_override.

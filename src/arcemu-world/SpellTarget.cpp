@@ -235,11 +235,13 @@ void Spell::AddChainTargets(uint32 i, uint32 TargetType, float r, uint32 maxtarg
 
 	bool RaidOnly = false;
 	float range = GetMaxRange(dbcSpellRange.LookupEntry(m_spellInfo->rangeIndex));//this is probably wrong,
+	Player* casterFrom = TO< Player* >(u_caster->GetPlayerOwner());
+	if(casterFrom)
+		casterFrom->ApplySpellMod(m_spellInfo->Id, SPELLMOD_RANGE, range, NULL);
 	//this is cast distance, not searching distance
 	range *= range;
 
 	//is this party only?
-	Player* casterFrom = TO< Player* >(u_caster->GetPlayerOwner());
 	Player* pfirstTargetFrom = TO< Player* >(firstTarget->GetPlayerOwner());
 
 	if(casterFrom != NULL && pfirstTargetFrom != NULL && casterFrom->GetGroup() == pfirstTargetFrom->GetGroup())
@@ -251,7 +253,10 @@ void Spell::AddChainTargets(uint32 i, uint32 TargetType, float r, uint32 maxtarg
 	range /= jumps; //hacky, needs better implementation!
 
 	if(m_spellInfo->SpellGroupType && u_caster != NULL)
-		SM_FIValue(u_caster->SM_FAdditionalTargets, (int32*)&jumps, m_spellInfo->SpellGroupType);
+	{
+		if(Player * p = u_caster->GetSpellModOwner())
+			p->ApplySpellMod(m_spellInfo->Id, SPELLMOD_JUMP_TARGETS, jumps);
+	}
 
 	AddTarget(i, TargetType, firstTarget);
 
