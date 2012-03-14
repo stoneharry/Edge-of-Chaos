@@ -2605,6 +2605,8 @@ class SERVER_DECL Player : public Unit
 
 		PlayerSpec m_specs[MAX_SPEC_COUNT];
 		SpellModList m_spellMods[MAX_SPELLMOD];
+		Spell* m_spellModTakingSpell;
+		uint32 m_weaponChangeTimer;
 	public:
 		void SendTeleportAckMsg(const LocationVector & v);
 		void SendUpdateDataToSet(ByteBuffer* groupbuf, ByteBuffer* nongroupbuf, bool sendtoself);
@@ -2622,7 +2624,8 @@ class SERVER_DECL Player : public Unit
         void RestoreAllSpellMods(uint32 ownerAuraId = 0, Aura* aura = NULL);
         void DropModCharge(SpellModifier* mod, Spell* spell);
 		void SetSpellModTakingSpell(Spell* spell, bool apply);
-		Spell* m_spellModTakingSpell;
+		void SendCombatEquipCooldown();
+		void ApplyEquipCooldown(Item* pItem);
 };
 
 

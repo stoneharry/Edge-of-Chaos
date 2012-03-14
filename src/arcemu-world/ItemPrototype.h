@@ -496,11 +496,11 @@ enum ITEM_FLAG
 	ITEM_FLAG_SOULBOUND        = 0x1,      // not used in proto
 	ITEM_FLAG_CONJURED         = 0x2,
 	ITEM_FLAG_LOOTABLE         = 0x4,
-	ITEM_FLAG_WRAPPED          = 0x8,      // not used in proto
+	ITEM_FLAG_HEROIC          = 0x8,      // not used in proto
 	ITEM_FLAG_BROKEN           = 0x10,     // many equipable items and bags
 	ITEM_FLAG_INDESTRUCTIBLE   = 0x20,     // can't destruct this item
 	ITEM_FLAG_UNKNOWN_07       = 0x40,     // many consumables
-	ITEM_FLAG_UNKNOWN_08       = 0x80,     // only 1 wand uses this
+	ITEM_FLAG_NO_EQUIP_COOLDOWN = 0x80,     // Does not apply equip cooldown
 	ITEM_FLAG_UNKNOWN_09       = 0x100,    // some wands & relics
 	ITEM_FLAG_WRAP_GIFT        = 0x200,
 	ITEM_FLAG_CREATE_ITEM      = 0x400,    // probably worng
@@ -518,10 +518,10 @@ enum ITEM_FLAG
 	ITEM_FLAG_THROWN           = 0x400000,
 	ITEM_FLAG_SHAPESHIFT_OK    = 0x800000,
 	ITEM_FLAG_UNKNOWN_25       = 0x1000000,
-	ITEM_FLAG_UNKNOWN_26       = 0x2000000,
-	ITEM_FLAG_UNKNOWN_27       = 0x4000000,
+	ITEM_FLAG_SMART_LOOT       = 0x2000000, // Can only loot if player meets requirements
+	ITEM_FLAG_NOT_USEABLE_IN_ARENA = 0x4000000, //Not useable in arenas
 	ITEM_FLAG_ACCOUNTBOUND     = 0x8000000,
-	ITEM_FLAG_UNKNOWN_29       = 0x10000000,
+	ITEM_FLAG_TRIGGERED_CAST   = 0x10000000,
 	ITEM_FLAG_MILLABLE         = 0x20000000,
 	ITEM_FLAG_UNKNOWN_31       = 0x40000000,
 	ITEM_FLAG_UNKNOWN_32       = 0x80000000
@@ -686,6 +686,25 @@ struct ItemPrototype
 		else
 			return false;
 	}
+    bool CanChangeEquipStateInCombat() const
+    {
+        switch (InventoryType)
+        {
+            case INVTYPE_RELIC:
+            case INVTYPE_SHIELD:
+            case INVTYPE_HOLDABLE:
+                return true;
+        }
+
+        switch (Class)
+        {
+            case ITEM_CLASS_WEAPON:
+            case ITEM_CLASS_PROJECTILE:
+                return true;
+        }
+
+        return false;
+    }
 };
 
 struct ItemName

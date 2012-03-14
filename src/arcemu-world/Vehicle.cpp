@@ -204,7 +204,9 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
 			WorldPacket spells( SMSG_PET_SPELLS, 100 );
 			owner->BuildPetSpellList( spells );
 			passenger->SendPacket( &spells );
-		}		
+		}
+		passenger->AddExtraUnitMovementFlag(GetMoveFlags2());
+		GetOwner()->AddExtraUnitMovementFlag(GetMoveFlags2());
 	}
 
 	seats[ seatid ]->AddPassenger( passenger->GetGUID() );

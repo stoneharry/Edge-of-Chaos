@@ -205,8 +205,8 @@ class SERVER_DECL Item : public Object
 		void Lock() { RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_LOOTABLE); }
 		void UnLock() { SetFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_LOOTABLE); }
 
-		void Wrap() { SetFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_WRAPPED); }
-		void UnWrap() { RemoveFlag(ITEM_FIELD_FLAGS, ITEM_FLAG_WRAPPED); }
+		void Wrap() { SetFlag(ITEM_FIELD_FLAGS, 0x8); }
+		void UnWrap() { RemoveFlag(ITEM_FIELD_FLAGS, 0x8); }
 
 		void ClearFlags() { SetFlag(ITEM_FIELD_FLAGS, 0); }
 

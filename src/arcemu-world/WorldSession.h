@@ -32,7 +32,6 @@ class WorldSocket;
 class WorldSession;
 class MapMgr;
 class Creature;
-class MovementInfo;
 struct TrainerSpell;
 
 //#define SESSION_CAP 5
@@ -78,7 +77,7 @@ enum MovementFlags
     MOVEFLAG_TRANSPORT					= 0x200,
     MOVEFLAG_NO_COLLISION				= 0x400,
     MOVEFLAG_ROOTED	    				= 0x800,		//verified
-    MOVEFLAG_REDIRECTED					= 0x1000,		//Unconfirmed
+    MOVEFLAG_JUMPING					= 0x1000,		//Unconfirmed
     MOVEFLAG_FALLING					= 0x2000,       //verified
     MOVEFLAG_FALLING_FAR				= 0x4000,		//verified
     MOVEFLAG_FREE_FALLING				= 0x8000,		//half verified
@@ -90,13 +89,13 @@ enum MovementFlags
     MOVEFLAG_TB_PENDING_FORWARD			= 0x80000,		// (MOVEFLAG_PENDING_FORWARD)
     MOVEFLAG_TB_PENDING_BACKWARD		= 0x100000,		// (MOVEFLAG_PENDING_BACKWARD)
     MOVEFLAG_SWIMMING          		    = 0x200000,		//  verified
-    MOVEFLAG_FLYING_PITCH_UP	        = 0x400000,		// (half confirmed)(MOVEFLAG_PENDING_STR_RGHT)
-    MOVEFLAG_CAN_FLY					= 0x800000,		// (half confirmed) gets called when landing (MOVEFLAG_MOVED)
+    MOVEFLAG_ASCENDING					= 0x400000,		//  verified
+    MOVEFLAG_DESCENDING					= 0x800000,		//  verified
 
     // Byte 4 (Script Based Flags. Never reset, only turned on or off.)
-    MOVEFLAG_AIR_SUSPENSION	   	 		= 0x1000000,	// confirmed allow body air suspension(good name? lol).
+    MOVEFLAG_CAN_FLY   	 				= 0x1000000,	//  verified
     MOVEFLAG_AIR_SWIMMING				= 0x2000000,	// confirmed while flying.
-    MOVEFLAG_SPLINE_MOVER				= 0x4000000,	// Unconfirmed
+    MOVEFLAG_SPLINE_ELEVATION			= 0x4000000,	//  verified
     MOVEFLAG_SPLINE_ENABLED				= 0x8000000,
     MOVEFLAG_WATER_WALK					= 0x10000000,
     MOVEFLAG_FEATHER_FALL				= 0x20000000,	// Does not negate fall damage.
@@ -115,12 +114,23 @@ enum MovementFlags
     MOVEFLAG_FULL_FALLING_MASK			= 0xE000,
 };
 
-enum MovementFlags2{
+enum MovementFlags2
+{
 	MOVEFLAG2_NO_STRAFING        = 0x01,
 	MOVEFLAG2_NO_JUMPING         = 0x02,
 	MOVEFLAG2_FULLSPEED_TURNING  = 0x08,
 	MOVEFLAG2_FULLSPEED_PITCHING = 0x10,
-	MOVEFLAG2_ALLOW_PITCHING     = 0x20
+	MOVEFLAG2_ALLOW_PITCHING     = 0x20,
+	MOVEFLAG2_UNK7               = 0x040,
+	MOVEFLAG2_UNK8               = 0x080,
+	MOVEFLAG2_UNK9               = 0x0100,
+	MOVEFLAG2_UNK10              = 0x0200,
+	MOVEFLAG2_INTERPOLATED_MOVEMENT = 0x0400,
+	MOVEFLAG2_INTERPOLATED_TURNING  = 0x0800,
+	MOVEFLAG2_INTERPOLATED_PITCHING = 0x01000,
+	MOVEFLAG2_UNK14              = 0x02000,
+	MOVEFLAG2_UNK15              = 0x04000,
+	MOVEFLAG2_UNK16              = 0x08000
 };
 
 struct OpcodeHandler
@@ -135,8 +145,8 @@ enum ObjectUpdateFlags
     UPDATEFLAG_SELF         = 0x01,
     UPDATEFLAG_TRANSPORT    = 0x02,
     UPDATEFLAG_HAS_TARGET   = 0x04,
-    UPDATEFLAG_LOWGUID      = 0x08,
-    UPDATEFLAG_HIGHGUID     = 0x10,
+    UPDATEFLAG_UNKNOWN      = 0x08,
+    UPDATEFLAG_LOWGUID      = 0x10,
     UPDATEFLAG_LIVING       = 0x20,
     UPDATEFLAG_HAS_POSITION = 0x40,
     UPDATEFLAG_VEHICLE      = 0x80,
@@ -179,30 +189,7 @@ typedef struct Cords
 } Cords;
 
 
-class MovementInfo
-{
-	public:
-		uint32 time;
-		float pitch;// -1.55=looking down, 0=looking forward, +1.55=looking up
-		float redirectSin;//on slip 8 is zero, on jump some other number
-		float redirectCos, redirect2DSpeed;//9,10 changes if you are not on foot
-		uint32 unk11, unk12;
-		uint8 unk13;
-		uint32 unklast;//something related to collision
-		uint16 unk_230;
 
-		float x, y, z, orientation;
-		uint32 flags;
-		float redirectVelocity;
-		WoWGuid transGuid;
-		float transX, transY, transZ, transO, transUnk;
-		uint8 transUnk_2;
-
-		MovementInfo();
-
-		void init(WorldPacket & data);
-		void write(WorldPacket & data);
-};
 
 extern OpcodeHandler WorldPacketHandlers[NUM_MSG_TYPES];
 void CapitalizeString(string & arg);
@@ -431,6 +418,10 @@ class SERVER_DECL WorldSession
 		void HandleMoveNotActiveMoverOpcode(WorldPacket & recv_data);
 		void HandleSetActiveMoverOpcode(WorldPacket & recv_data);
 		void HandleMoveTeleportAckOpcode(WorldPacket & recv_data);
+		void HandleMoveKnockBackAck(WorldPacket & recv_data);
+		//Helpers for reading movement info
+        void ReadMovementInfo(WorldPacket& data, MovementInfo* mi);
+        void WriteMovementInfo(WorldPacket* data, MovementInfo* mi);
 
 		/// Opcodes implemented in GroupHandler.cpp:
 		void HandleGroupInviteOpcode(WorldPacket & recvPacket);
@@ -762,7 +753,6 @@ class SERVER_DECL WorldSession
 		void HandleTeleportCheatOpcode(WorldPacket & recv_data);
 		void HandleTeleportToUnitOpcode(WorldPacket & recv_data);
 		void HandleWorldportOpcode(WorldPacket & recv_data);
-		void HandleMoveKnockBackAck(WorldPacket & recv_data);
 		void HandleWrapItemOpcode(WorldPacket & recv_data);
 
 		// VOICECHAT
@@ -812,7 +802,6 @@ class SERVER_DECL WorldSession
 		void LoadPlayerFromDBProc(QueryResultVector & results);
 
 		/* Preallocated buffers for movement handlers */
-		MovementInfo movement_info;
 		uint8 movement_packet[90];
 
 		uint32 _accountId;
@@ -841,8 +830,6 @@ class SERVER_DECL WorldSession
 		uint32 instanceId;
 		uint8 _updatecount;
 	public:
-		MovementInfo* GetMovementInfo() { return &movement_info; }
-		const MovementInfo* GetMovementInfo() const { return &movement_info; }
 		static void InitPacketHandlerTable();
 		uint32 floodLines;
 		time_t floodTime;

@@ -13630,6 +13630,12 @@ void Player::RemoveVehicleComponent(){
 
 void Player::SendAurasForTarget(Unit* target)
 {
+	if(target->HasAuraWithName(SPELL_AURA_HOVER))
+		target->SendHover();
+	if(target->HasAuraWithName(SPELL_AURA_FEATHER_FALL))
+		target->SendFeatherFall();
+	if(target->HasAuraWithName(SPELL_AURA_WATER_WALK))
+		target->SendWaterWalk();
 	WorldPacket data( SMSG_AURA_UPDATE_ALL, 200 );
 
 	data << WoWGuid( target->GetNewGUID() );
@@ -13668,7 +13674,7 @@ void Player::SendAurasForTarget(Unit* target)
 			}
 		}
 	}
-	SendPacket(&data);
+	target->SendMessageToSet(&data, true);
 }
 
 bool Player::InInstance()
@@ -14128,4 +14134,36 @@ void Player::SetSpellModTakingSpell(Spell* spell, bool apply)
         return;
 
     m_spellModTakingSpell = apply ? spell : NULL;
+}
+
+void Player::SendCombatEquipCooldown()
+{
+	uint32 cooldownSpell = getClass() == CLASS_ROGUE ? 6123 : 6119;
+	SpellEntry * spellProto = dbcSpell.LookupEntry(cooldownSpell);
+	WorldPacket data(SMSG_SPELL_COOLDOWN, 8+1+4);
+	data << uint64(GetGUID());
+	data << uint8(1);
+	data << uint32(cooldownSpell);
+	data << uint32(0);
+	GetSession()->SendPacket(&data);
+}
+
+void Player::ApplyEquipCooldown(Item* pItem)
+{
+	uint32 mstime = getMSTime();
+	int32 cool_time = 30*1000;
+    if (pItem->GetProto()->HasFlag(ITEM_FLAG_NO_EQUIP_COOLDOWN))
+        return;
+	for (uint8 i = 0; i < 5; ++i)
+	{
+		ItemSpell* is = &pItem->GetProto()->Spells[i];
+		if(is->Trigger != 0)
+			continue;
+		_Cooldown_Add(COOLDOWN_TYPE_SPELL, is->Id, mstime + cool_time, is->Id,pItem->GetProto()->ItemId);
+
+		WorldPacket data(SMSG_ITEM_COOLDOWN, 12);
+		data << pItem->GetGUID();
+		data << uint32(is->Id);
+		SendPacket(&data);
+	}
 }

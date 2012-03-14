@@ -333,6 +333,7 @@ Unit::Unit()
 	m_noFallDamage = false;
 	z_axisposition = 0.0f;
 	m_safeFall     = 0;
+	movement_info.redirectVelocity = 0;
 }
 
 Unit::~Unit()
@@ -7936,4 +7937,118 @@ Player* Unit::GetSpellModOwner()
 			return TO_PLAYER(GetPlayerOwner());
     }
     return NULL;
+}
+
+void Unit::SendHover()
+{
+    WorldPacket data(MSG_MOVE_HOVER, 64);
+    data.append(GetNewGUID());
+    BuildMovementPacket(&data);
+    SendMessageToSet(&data, true);
+}
+
+void Unit::SendWaterWalk() 
+{
+    WorldPacket data(MSG_MOVE_WATER_WALK, 64);
+    data.append(GetNewGUID());
+    BuildMovementPacket(&data);
+    SendMessageToSet(&data, true);
+}
+
+void Unit::SendFeatherFall()
+{
+    WorldPacket data(MSG_MOVE_FEATHER_FALL, 64);
+    data.append(GetNewGUID());
+    BuildMovementPacket(&data);
+    SendMessageToSet(&data, true);
+}
+
+bool Unit::SetHover(bool enable)
+{
+    if (enable == HasUnitMovementFlag(MOVEFLAG_LEVITATE))
+        return false;
+
+    if (enable)
+    {
+        //! No need to check height on ascent
+        AddUnitMovementFlag(MOVEFLAG_LEVITATE);
+       //if (float hh = GetFloatValue(UNIT_FIELD_HOVERHEIGHT))
+            //UpdateHeight(GetPositionZ() + hh);
+    }
+    else
+    {
+        RemoveUnitMovementFlag(MOVEFLAG_LEVITATE);
+        /*if (float hh = GetFloatValue(UNIT_FIELD_HOVERHEIGHT))
+        {
+            float newZ = GetPositionZ() - hh;
+            UpdateAllowedPositionZ(GetPositionX(), GetPositionY(), newZ);
+            UpdateHeight(newZ);
+        }*/
+    }
+
+    return true;
+}
+
+void Unit::BuildMovementPacket(ByteBuffer *data)
+{
+    *data << uint32(GetUnitMovementFlags());            // movement flags
+    *data << uint16(GetExtraUnitMovementFlags());       // 2.3.0
+    *data << uint32(getMSTime());                       // time / counter
+    *data << GetPositionX();
+    *data << GetPositionY();
+    *data << GetPositionZ();
+    *data << GetOrientation();
+
+    // 0x00000200
+    if (GetUnitMovementFlags() & MOVEFLAG_TRANSPORT)
+    {
+		if(IsPlayer() && TO_PLAYER(this)->m_CurrentTransporter)
+			transporter_info.guid = TO_PLAYER(this)->m_CurrentTransporter->GetGUID();
+		if(Unit * u = GetVehicleBase())
+			transporter_info.guid = u->GetGUID();
+		*data << transporter_info.guid;
+        *data << transporter_info.x;
+        *data << transporter_info.y;
+        *data << transporter_info.z;
+        *data << transporter_info.o;
+        *data << transporter_info.flags;
+		*data << transporter_info.seat;
+
+        if (GetExtraUnitMovementFlags() & MOVEFLAG2_ALLOW_PITCHING)
+			*data << uint32(GetMovementInfo()->transTime2);
+    }
+
+    // 0x02200000
+    if ((GetUnitMovementFlags() & (MOVEFLAG_SWIMMING | MOVEFLAG_AIR_SWIMMING))
+		|| (GetExtraUnitMovementFlags() & MOVEFLAG2_ALLOW_PITCHING))
+        *data << (float)GetMovementInfo()->pitch;
+
+    *data << (uint32)GetMovementInfo()->fallTime;
+
+    // 0x00001000
+    if (GetUnitMovementFlags() & MOVEFLAG_JUMPING)
+    {
+        *data << (float)GetMovementInfo()->redirectVelocity;
+        *data << (float)GetMovementInfo()->redirectSin;
+        *data << (float)GetMovementInfo()->redirectCos;
+        *data << (float)GetMovementInfo()->redirect2DSpeed;
+    }
+
+    // 0x04000000
+    if (GetUnitMovementFlags() & MOVEFLAG_SPLINE_ELEVATION)
+        *data << (float)GetMovementInfo()->splineElevation;
+}
+
+void Unit::SendMovementFlagUpdate()
+{
+    WorldPacket data;
+    BuildHeartBeatMsg(&data);
+    SendMessageToSet(&data, false);
+}
+
+void Unit::BuildHeartBeatMsg(WorldPacket* data)
+{
+    data->Initialize(MSG_MOVE_HEARTBEAT, 32);
+    data->append(GetNewGUID());
+    BuildMovementPacket(data);
 }

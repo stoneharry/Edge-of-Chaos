@@ -33,11 +33,12 @@ class SERVER_DECL WorldPacket : public ByteBuffer
 		__inline WorldPacket(const WorldPacket & packet) : ByteBuffer(packet), m_opcode(packet.m_opcode) {}
 
 		//! Clear packet and set opcode all in one mighty blow
-		__inline void Initialize(uint16 opcode)
-		{
-			clear();
-			m_opcode = opcode;
-		}
+        __inline void Initialize(uint16 opcode, size_t newres=200)
+        {
+            clear();
+            _storage.reserve(newres);
+            m_opcode = opcode;
+        }
 
 		__inline uint16 GetOpcode() const { return m_opcode; }
 		__inline void SetOpcode(uint16 opcode) { m_opcode = opcode; }

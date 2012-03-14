@@ -5341,9 +5341,8 @@ class LuaUnit
 
 		static int GetPlayerMovementVector(lua_State* L, Unit* ptr)
 		{
-			TEST_PLAYER()
-			Player* plr = TO_PLAYER(ptr);
-			MovementInfo* movement_info = plr->GetSession()->GetMovementInfo();
+			TEST_UNIT()
+			MovementInfo* movement_info = ptr->GetMovementInfo();
 			if(movement_info != NULL)
 			{
 				lua_newtable(L);
@@ -5367,8 +5366,8 @@ class LuaUnit
 
 		static int GetPlayerMovementFlags(lua_State* L, Unit* ptr)
 		{
-			TEST_PLAYER()
-			MovementInfo* move_info = TO_PLAYER(ptr)->GetSession()->GetMovementInfo();
+			TEST_UNIT()
+			MovementInfo* move_info = ptr->GetMovementInfo();
 			if(move_info != NULL)
 				lua_pushnumber(L, move_info->flags);
 			else

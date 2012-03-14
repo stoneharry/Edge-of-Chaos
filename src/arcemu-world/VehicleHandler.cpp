@@ -83,16 +83,16 @@ void WorldSession::HandleChangeVehicleSeat( WorldPacket &recv_data ){
 			WoWGuid src_guid;
 			WoWGuid dst_guid;
 			uint8 seat = 0;			
-			MovementInfo mov;
 
 			recv_data >> src_guid;
- 			mov.init( recv_data );
-			recv_data >> dst_guid;
-			recv_data >> seat;
 			
 			Unit *src_vehicle = _player->GetMapMgr()->GetUnit( src_guid.GetOldGuid() );
 			if( src_vehicle == NULL )
 				return;
+			if(_player->GetVehicleBase())
+				ReadMovementInfo(recv_data, &_player->GetVehicleBase()->movement_info);
+			recv_data >> dst_guid;
+			recv_data >> seat;
 			
 			if( src_vehicle->GetVehicleComponent() == NULL )
 				return;

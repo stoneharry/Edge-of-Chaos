@@ -125,7 +125,8 @@ struct TransporterInfo{
 	uint32 flags;
 	uint8 seat;
 
-	TransporterInfo(){
+	TransporterInfo()
+	{
 		guid = 0;
 		x = 0.0f;
 		y = 0.0f;
@@ -278,8 +279,6 @@ class SERVER_DECL Object : public EventableObject
 		void BuildFieldUpdatePacket(ByteBuffer* buf, uint32 Index, uint32 Value);
 
 		virtual void DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint32 unitEvent, uint32 spellId, bool no_remove_auras = false);
-
-		void BuildHeartBeatMsg(WorldPacket* data) const;
 
 		bool SetPosition(float newX, float newY, float newZ, float newOrientation, bool allowPorting = false);
 		bool SetPosition(const LocationVector & v, bool allowPorting = false);
@@ -588,7 +587,7 @@ class SERVER_DECL Object : public EventableObject
 		//
 		////////////////////////////////////////////////////////////////////////
 		virtual void SendPacket(WorldPacket* packet) {};
-
+		void SendMessageToSet(WorldPacket* data, Player * skip);
 		virtual void SendMessageToSet(WorldPacket* data, bool self, bool myteam_only = false);
 		void SendMessageToSet(StackBufferBase* data, bool self) { OutPacketToSet(data->GetOpcode(), static_cast<uint16>(data->GetSize()), data->GetBufferPointer(), self); }
 		virtual void OutPacketToSet(uint16 Opcode, uint16 Len, const void* Data, bool self);

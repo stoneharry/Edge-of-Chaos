@@ -1691,7 +1691,9 @@ void Guild::SetTabardInfo(uint32 EmblemStyle, uint32 EmblemColor, uint32 BorderS
 void Guild::SendGuildInfo(WorldSession* pClient)
 {
 	WorldPacket data(SMSG_GUILD_INFO, 4);
-
+	uint32 memcount = m_members.size();
+	if(memcount > 800)
+		memcount = 800;
 	time_t ct = (time_t)m_creationTimeStamp;
 	tm* pTM = localtime(&ct);
 
@@ -1699,8 +1701,8 @@ void Guild::SendGuildInfo(WorldSession* pClient)
 	data << uint32(pTM->tm_year + 1900);
 	data << uint32(pTM->tm_mon);
 	data << uint32(pTM->tm_mday);
-	data << uint32(m_members.size());
-	data << uint32(m_members.size());
+	data << uint32(memcount);
+	data << uint32(m_members.size()); //should be number of accounts
 
 	pClient->SendPacket(&data);
 }

@@ -483,6 +483,43 @@ class SERVER_DECL ByteBuffer
 		{
 			std::reverse(_storage.begin(), _storage.end());
 		}
+        template<typename T>
+        void read_skip() { read_skip(sizeof(T)); }
+
+        void read_skip(size_t skip)
+        {
+            if (_rpos + skip > size())
+                return;
+            _rpos += skip;
+        }
+
+        void readPackGUID(uint64& guid)
+        {
+            if (rpos() + 1 > size())
+                return;
+
+            guid = 0;
+
+            uint8 guidmark = 0;
+            (*this) >> guidmark;
+
+            for (int i = 0; i < 8; ++i)
+            {
+                if (guidmark & (uint8(1) << i))
+                {
+                    if (rpos() + 1 > size())
+                        return;
+
+                    uint8 bit;
+                    (*this) >> bit;
+                    guid |= (uint64(bit) << (i * 8));
+                }
+            }
+        }
+        void rfinish()
+        {
+            _rpos = wpos();
+        }
 
 	protected:
 		// read and write positions
@@ -566,5 +603,22 @@ template <typename K, typename V> ByteBuffer & operator>>(ByteBuffer & b, std::m
 	}
 	return b;
 }
+template<>
+inline void ByteBuffer::read_skip<char*>()
+{
+    std::string temp;
+    *this >> temp;
+}
 
+template<>
+inline void ByteBuffer::read_skip<char const*>()
+{
+    read_skip<char*>();
+}
+
+template<>
+inline void ByteBuffer::read_skip<std::string>()
+{
+    read_skip<char*>();
+}
 #endif

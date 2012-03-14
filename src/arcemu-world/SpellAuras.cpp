@@ -5878,72 +5878,44 @@ void Aura::SpellAuraModTotalThreat(bool apply)
 
 void Aura::SpellAuraWaterWalk(bool apply)
 {
-	if(p_target != NULL)
-	{
-		WorldPacket data(12);
-		if(apply)
-		{
-			SetPositive();
-			data.SetOpcode(SMSG_MOVE_WATER_WALK);
-			data << p_target->GetNewGUID();
-			data << uint32(8);
-		}
-		else
-		{
-			data.SetOpcode(SMSG_MOVE_LAND_WALK);
-			data << p_target->GetNewGUID();
-			data << uint32(4);
-		}
-		p_target->GetSession()->SendPacket(&data);
-	}
+    if (apply)
+    {
+        m_target->AddUnitMovementFlag(MOVEFLAG_WATER_WALK);
+        m_target->SendWaterWalk();
+    }
+    else
+    {
+        m_target->RemoveUnitMovementFlag(MOVEFLAG_WATER_WALK);
+        m_target->SendMovementFlagUpdate();
+    }
 }
 
 void Aura::SpellAuraFeatherFall(bool apply)
 {
-	//TODO: FIX ME: Find true flag for this
-	if(p_target == NULL)
-		return;
-
-	WorldPacket data(12);
+        
 	if(apply)
 	{
-		SetPositive();
-		data.SetOpcode(SMSG_MOVE_FEATHER_FALL);
-		p_target->m_noFallDamage = true;
+		m_target->AddUnitMovementFlag(MOVEFLAG_FEATHER_FALL);
+		m_target->SendFeatherFall();
+		m_target->m_noFallDamage = true;
 	}
 	else
 	{
-		data.SetOpcode(SMSG_MOVE_NORMAL_FALL);
+		m_target->RemoveUnitMovementFlag(MOVEFLAG_FEATHER_FALL);
 		p_target->m_noFallDamage = false;
+		m_target->SendMovementFlagUpdate();
 	}
-
-	data << m_target->GetNewGUID();
-	data << uint32(0);
-	p_target->SendMessageToSet(&data, true);
 }
 
 void Aura::SpellAuraHover(bool apply)
 {
 	SetPositive();
 
-	WorldPacket data;
-
+	m_target->SetHover(apply);
 	if(apply)
-	{
-		data.Initialize(SMSG_MOVE_SET_HOVER);
-		m_target->SetFloatValue(UNIT_FIELD_HOVERHEIGHT, (float(mod->m_amount) / 2));
-	}
+		m_target->SendHover();
 	else
-	{
-		data.Initialize(SMSG_MOVE_UNSET_HOVER);
-		m_target->SetFloatValue(UNIT_FIELD_HOVERHEIGHT, 0.0f);
-	}
-
-	data << WoWGuid(m_target->GetNewGUID());
-	data << uint32(0);
-
-	m_target->SendMessageToSet(&data, true);
-
+		m_target->SendMovementFlagUpdate();
 }
 
 void Aura::ApplySpellMod(bool apply)

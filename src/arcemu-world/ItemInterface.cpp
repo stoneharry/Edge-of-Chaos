@@ -359,7 +359,12 @@ AddItemResult ItemInterface::m_AddItem(Item* item, int8 ContainerSlot, int16 slo
 		if(m_pOwner->IsInWorld())
 			sEventMgr.AddEvent(item, &Item::SendDurationUpdate, EVENT_SEND_PACKET_TO_PLAYER_AFTER_LOGIN, 0, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 	}
-
+	if(IsEquipped(item->GetEntry()))
+	{
+		if(GetOwner()->getcombatstatus()->IsInCombat() && (item->GetProto()->Class == ITEM_CLASS_WEAPON || item->GetProto()->InventoryType == INVTYPE_RELIC))
+			GetOwner()->SendCombatEquipCooldown();
+		GetOwner()->ApplyEquipCooldown(item);
+	}
 	return ADD_ITEM_RESULT_OK;
 }
 
@@ -2006,7 +2011,7 @@ int8 ItemInterface::CanEquipItemInSlot(int8 DstInvSlot, int8 slot, ItemPrototype
 
 	if((slot < INVENTORY_SLOT_BAG_END && DstInvSlot == INVENTORY_SLOT_NOT_SET) || (slot >= BANK_SLOT_BAG_START && slot < BANK_SLOT_BAG_END && DstInvSlot == INVENTORY_SLOT_NOT_SET))
 	{
-		if(!ignore_combat && m_pOwner->CombatStatus.IsInCombat() && (slot < EQUIPMENT_SLOT_MAINHAND || slot > EQUIPMENT_SLOT_RANGED))
+		if(!ignore_combat && m_pOwner->CombatStatus.IsInCombat() && !proto->CanChangeEquipStateInCombat())
 			return INV_ERR_CANT_DO_IN_COMBAT;
 
 		if(IsEquipped(proto->ItemId) && (proto->Unique || proto->Flags & ITEM_FLAG_UNIQUE_EQUIP))
@@ -4237,6 +4242,9 @@ bool ItemInterface::SwapItems(int8 DstInvSlot, int8 DstSlot, int8 SrcInvSlot, in
 
 		if(DstSlot < INVENTORY_SLOT_BAG_START) // check Superior/Epic achievement
 		{
+			if(GetOwner()->getcombatstatus()->IsInCombat() && (SrcItem->GetProto()->Class == ITEM_CLASS_WEAPON || SrcItem->GetProto()->InventoryType == INVTYPE_RELIC))
+				GetOwner()->SendCombatEquipCooldown();
+			GetOwner()->ApplyEquipCooldown(SrcItem);
 			// Achievement ID:556 description Equip an epic item in every slot with a minimum item level of 213.
 			// "213" value not found in achievement or criteria entries, have to hard-code it here? :(
 			// Achievement ID:557 description Equip a superior item in every slot with a minimum item level of 187.

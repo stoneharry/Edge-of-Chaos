@@ -565,7 +565,7 @@ void AIInterface::_UpdateCombat(uint32 p_time)
 					}
 					else if(TO< Player* >(getNextTarget())->GetSession() != NULL)
 					{
-						MovementInfo* mi = TO_PLAYER(getNextTarget())->GetSession()->GetMovementInfo();
+						MovementInfo* mi = getNextTarget()->GetMovementInfo();
 
 						if(mi->flags & MOVEFLAG_AIR_SWIMMING)
 							HandleEvent(EVENT_LEAVECOMBAT, m_Unit, 0);
@@ -1012,7 +1012,7 @@ void AIInterface::AttackReaction(Unit* pUnit, uint32 damage_dealt, uint32 spellI
 						return;
 					else if(TO< Player* >(pUnit)->GetSession() != NULL)
 					{
-						MovementInfo* mi = TO< Player* >(pUnit)->GetSession()->GetMovementInfo();
+						MovementInfo* mi = pUnit->GetMovementInfo();
 
 						if(mi != NULL && !(mi->flags & MOVEFLAG_FALLING) && !(mi->flags & MOVEFLAG_SWIMMING) && !(mi->flags & MOVEFLAG_LEVITATE))
 							return;
