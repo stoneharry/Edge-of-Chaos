@@ -1963,8 +1963,8 @@ void Creature::SetSpeeds( uint8 type, float speed ){
 	default:
 		return;
 	}
-
 	SendMessageToSet( &data , true );
+	GetAIInterface()->UpdateZeSpeeds();
 }
 
 void Creature::PrepareForRemove()

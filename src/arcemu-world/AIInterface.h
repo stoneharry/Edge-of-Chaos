@@ -404,6 +404,7 @@ class SERVER_DECL AIInterface
 		//void SendMoveToSplinesPacket(std::list<Waypoint> wp, bool run);
 		bool MoveTo(float x, float y, float z, float o);
 		void UpdateSpeeds();
+		void UpdateZeSpeeds();
 
 		//Move flag updating
 		void SetSplineFlag(uint32 flags) { m_splineFlags = flags; }

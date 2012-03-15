@@ -5373,8 +5373,6 @@ uint8 Unit::CastSpell(Unit* Target, SpellEntry* Sp, bool triggered)
 	{
 		newSpell->GenerateTargets(&targets);
 	}
-	//Lets send our auras to everyone around to compensate for aura update bugs.
-	BroadcastAuras();
 	return newSpell->prepare(&targets);
 }
 
@@ -5393,7 +5391,6 @@ uint8 Unit::CastSpell(uint64 targetGuid, SpellEntry* Sp, bool triggered)
 
 	SpellCastTargets targets(targetGuid);
 	Spell* newSpell = sSpellFactoryMgr.NewSpell(this, Sp, triggered, 0);
-	BroadcastAuras();
 	return newSpell->prepare(&targets);
 }
 
@@ -5427,7 +5424,6 @@ uint8 Unit::CastSpell(Unit* Target, SpellEntry* Sp, uint32 forced_basepoints, bo
 	{
 		newSpell->GenerateTargets(&targets);
 	}
-	BroadcastAuras();
 	return newSpell->prepare(&targets);
 }
 
@@ -5454,7 +5450,6 @@ uint8 Unit::CastSpell(Unit* Target, SpellEntry* Sp, uint32 forced_basepoints, in
 	{
 		newSpell->GenerateTargets(&targets);
 	}
-	BroadcastAuras();
 	return newSpell->prepare(&targets);
 }
 
@@ -5469,7 +5464,6 @@ void Unit::CastSpellAoF(float x, float y, float z, SpellEntry* Sp, bool triggere
 	targets.m_destZ = z;
 	targets.m_targetMask = TARGET_FLAG_DEST_LOCATION;
 	Spell* newSpell = sSpellFactoryMgr.NewSpell(this, Sp, triggered, 0);
-	BroadcastAuras();
 	newSpell->prepare(&targets);
 }
 

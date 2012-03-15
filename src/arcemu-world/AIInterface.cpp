@@ -1897,6 +1897,17 @@ void AIInterface::UpdateSpeeds()
 	m_Unit->UpdateSpeed();
 }
 
+void AIInterface::UpdateZeSpeeds()
+{
+	if(HasWalkMode(WALKMODE_SPRINT))
+		m_runSpeed = (m_Unit->m_runSpeed + 5.0f) * 0.001f;
+	if(HasWalkMode(WALKMODE_RUN))
+		m_runSpeed = m_Unit->m_runSpeed * 0.001f;
+
+	m_walkSpeed = m_Unit->m_walkSpeed * 0.001f;
+	m_flySpeed = m_Unit->m_flySpeed * 0.001f;
+}
+
 void AIInterface::UpdateMove()
 {
 	m_creatureState = MOVING;

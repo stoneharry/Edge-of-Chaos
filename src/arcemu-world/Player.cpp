@@ -4386,6 +4386,7 @@ void Player::SetSpeeds( uint8 type, float speed )
 		return;
 	}
 	SendMessageToSet(&data , true);
+	GetAIInterface()->UpdateZeSpeeds();
 }
 
 void Player::BuildPlayerRepop()
