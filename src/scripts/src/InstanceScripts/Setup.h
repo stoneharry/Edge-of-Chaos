@@ -25,7 +25,7 @@
 #define INSTANCE_SCRIPTS_SETUP_H
 
 //Instances
-void SetupArcatraz(ScriptMgr * mgr);
+/*void SetupArcatraz(ScriptMgr * mgr);
 void SetupAuchenaiCrypts(ScriptMgr * mgr);
 void SetupAzjolNerub(ScriptMgr * mgr) ;
 void SetupTheBlackMorass(ScriptMgr * mgr);
@@ -82,7 +82,8 @@ void SetupSunwellPlateau(ScriptMgr* pScriptMgr);
 void SetupWorldBosses(ScriptMgr * mgr);
 void SetupZulAman(ScriptMgr * mgr);
 //other
-//void SetupGenericAI(ScriptMgr * mgr);
+//void SetupGenericAI(ScriptMgr * mgr);*/
+void SetupRubySanctum(ScriptMgr * mgr);
 
 struct ScriptSpell
 {
