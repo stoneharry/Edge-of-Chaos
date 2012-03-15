@@ -7900,7 +7900,6 @@ bool Unit::SetHover(bool enable)
             UpdateHeight(newZ);
         }*/
     }
-
     return true;
 }
 

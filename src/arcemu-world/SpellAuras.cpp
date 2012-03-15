@@ -5879,32 +5879,25 @@ void Aura::SpellAuraModTotalThreat(bool apply)
 void Aura::SpellAuraWaterWalk(bool apply)
 {
     if (apply)
-    {
-        m_target->AddUnitMovementFlag(MOVEFLAG_WATER_WALK);
-        m_target->SendWaterWalk();
-    }
-    else
-    {
-        m_target->RemoveUnitMovementFlag(MOVEFLAG_WATER_WALK);
-        m_target->SendMovementFlagUpdate();
-    }
+       m_target->AddUnitMovementFlag(MOVEFLAG_WATER_WALK);
+   else
+         m_target->RemoveUnitMovementFlag(MOVEFLAG_WATER_WALK);
+	m_target->SendWaterWalk();
 }
 
 void Aura::SpellAuraFeatherFall(bool apply)
 {
-        
 	if(apply)
 	{
 		m_target->AddUnitMovementFlag(MOVEFLAG_FEATHER_FALL);
-		m_target->SendFeatherFall();
 		m_target->m_noFallDamage = true;
 	}
 	else
 	{
 		m_target->RemoveUnitMovementFlag(MOVEFLAG_FEATHER_FALL);
 		p_target->m_noFallDamage = false;
-		m_target->SendMovementFlagUpdate();
 	}
+	m_target->SendFeatherFall();
 }
 
 void Aura::SpellAuraHover(bool apply)
@@ -5912,10 +5905,7 @@ void Aura::SpellAuraHover(bool apply)
 	SetPositive();
 
 	m_target->SetHover(apply);
-	if(apply)
-		m_target->SendHover();
-	else
-		m_target->SendMovementFlagUpdate();
+	m_target->SendHover();
 }
 
 void Aura::ApplySpellMod(bool apply)
