@@ -1169,7 +1169,6 @@ class SERVER_DECL Unit : public Object
 		bool RemoveAuras(uint32* SpellIds);
 		bool RemoveAurasByHeal();
 		bool HasFlyingAura(uint32 skipspell);
-		void SendAuraUpdate(uint32 AuraSlot, bool remove);
 		////////////////////////////////////////////////////////////////////////////////////////
 		//bool AuraActionIf( AuraAction *a, AuraCondition *c )
 		//  Performs the specified action on the auras that meet the specified condition
