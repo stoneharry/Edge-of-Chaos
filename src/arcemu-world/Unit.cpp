@@ -5891,14 +5891,14 @@ uint32 Unit::ModVisualAuraStackCount(Aura* aur, int32 count)
 		m_auraStackCount[slot] = 0;
 		m_auravisuals[slot] = 0;
 
-		RemoveAura(aur);
+		SendAuraUpdate(slot, true);
 	}
 	else
 	{
 		m_auraStackCount[slot] += static_cast<uint8>(count);
 		m_auravisuals[slot] = aur->GetSpellId();
 
-		BroadcastAuras();
+		SendAuraUpdate(slot, false);
 	}
 
 	return m_auraStackCount[slot];
@@ -8014,5 +8014,60 @@ void Unit::BroadcastAuras()
 			}
 		}
 	}
+	SendMessageToSet(&data, true);
+}
+
+void Unit::SendAuraUpdate(uint32 AuraSlot, bool remove)
+{
+	Aura* aur = m_auras[ AuraSlot ];
+
+	ARCEMU_ASSERT(aur != NULL);
+	if(aur->GetSpellProto()->Attributes & SPELL_ATTR0_HIDDEN_CLIENTSIDE)
+		return;
+
+	WorldPacket data(SMSG_AURA_UPDATE, 30);
+
+	if(remove)
+	{
+		data << WoWGuid(GetGUID());
+		data << uint8(aur->m_visualSlot);
+		data << uint32(0);
+	}
+	else
+	{
+		uint8 flags = (AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3);
+
+		if(aur->IsPositive())
+			flags |= AFLAG_CANCELLABLE;
+		else
+			flags |= AFLAG_NEGATIVE;
+
+		if(aur->GetDuration() != 0)
+			flags |= AFLAG_DURATION;
+
+		data << WoWGuid(GetGUID());
+		data << uint8(aur->m_visualSlot);
+
+		data << uint32(aur->GetSpellId());
+		data << uint8(flags);
+
+		Unit* caster = aur->GetUnitCaster();
+		if(caster != NULL)
+			data << uint8(caster->getLevel());
+		else
+			data << uint8(sWorld.m_levelCap);
+
+		data << uint8(m_auraStackCount[ aur->m_visualSlot ]);
+
+		if((flags & AFLAG_NOT_CASTER) == 0)
+			data << WoWGuid(aur->GetCasterGUID());
+
+		if(flags & AFLAG_DURATION)
+		{
+			data << uint32(aur->GetDuration());
+			data << uint32(aur->GetTimeLeft());
+		}
+	}
+
 	SendMessageToSet(&data, true);
 }
