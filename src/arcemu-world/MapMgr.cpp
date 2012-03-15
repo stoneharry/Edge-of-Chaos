@@ -197,19 +197,53 @@ uint32 MapMgr::GetTeamPlayersCount(uint32 teamId)
 
 size_t MapMgr::GetPlayerCount(bool include_gms)
 {
-	uint32 result = m_PlayerStorage.size();
-	if(!include_gms)
+	uint32 result = 0;
+	PlayerStorageMap::iterator itr = m_PlayerStorage.begin();
+	for(; itr != m_PlayerStorage.end(); itr++)
 	{
-		result = 0;
-		PlayerStorageMap::iterator itr = m_PlayerStorage.begin();
-		for(; itr != m_PlayerStorage.end(); itr++)
-		{
-			Player* pPlayer = (itr->second);
-			if(!pPlayer->m_isGmInvisible)
-				result++;
-		}
+		Player* pPlayer = (itr->second);
+		if(!include_gms && (pPlayer->m_isGmInvisible || 
+			pPlayer->HasFlag(PLAYER_FLAGS, PLAYER_FLAG_DEVELOPER ||
+			pPlayer->HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM))))
+			continue;
+		result++;
 	}
 	return result;
+}
+
+void MapMgr::PhaseAllPlayers(uint32 phase)
+{
+	uint32 result = 0;
+	PlayerStorageMap::iterator itr = m_PlayerStorage.begin();
+	for(; itr != m_PlayerStorage.end(); itr++)
+	{
+		Player* pPlayer = (itr->second);
+		pPlayer->Phase(PHASE_SET, phase);
+	}
+}
+
+void MapMgr::CastSpellAllPlayers(Unit * target, uint32 spell, bool triggered)
+{
+	uint32 result = 0;
+	PlayerStorageMap::iterator itr = m_PlayerStorage.begin();
+	for(; itr != m_PlayerStorage.end(); itr++)
+	{
+		Player* pPlayer = (itr->second);
+		if(target == NULL)
+			target = pPlayer;
+		pPlayer->CastSpell(target, spell, triggered);
+	}
+}
+
+void MapMgr::SetAllPlayersFarSight(uint64 guid)
+{
+	uint32 result = 0;
+	PlayerStorageMap::iterator itr = m_PlayerStorage.begin();
+	for(; itr != m_PlayerStorage.end(); itr++)
+	{
+		Player* pPlayer = (itr->second);
+		pPlayer->SetFarsightTarget(guid);
+	}
 }
 
 void MapMgr::PushObject(Object* obj)
@@ -1969,6 +2003,14 @@ uint16 MapMgr::GetAreaID(float x, float y)
 	return itr->second->AreaId;
 }
 
-void MapMgr::Notify( uint32 type, uint32 data1, uint32 data2, uint32 data3 ){
+void MapMgr::Notify( uint32 type, uint32 data1, uint32 data2, uint32 data3 )
+{
 	CALL_MAPMGR_EVENT_HANDLER( this, type, data1, data2, data3 );
+}
+
+void MapMgr::SetInstanceData( uint32 pType, uint32 pIndex, uint32 pData )
+{
+	if(GetScript() == NULL)
+		return;
+	GetScript()->SetInstanceData(pType, pIndex, pData);
 }

@@ -615,6 +615,8 @@ class SERVER_DECL Creature : public Unit
 				return false;
 			return (loot.gold > 0 || !loot.items.empty()); 
 		}
+
+		void ReceiveAction(uint32 action);
 	protected:
 		virtual void SafeDelete();//use DeleteMe() instead of SafeDelete() to avoid crashes like InWorld Creatures deleted.
 	public:
@@ -764,6 +766,8 @@ class SERVER_DECL Creature : public Unit
 		uint32 GetType() { return m_Creature_type; }
 		void SetType(uint32 t) { m_Creature_type = t; }
 		CBattleground* m_bg;
+
+		
 	protected:
 		CreatureAIScript* _myScriptClass;
 		bool m_limbostate;

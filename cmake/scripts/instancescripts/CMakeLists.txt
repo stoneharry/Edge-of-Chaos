@@ -14,6 +14,7 @@ Instance_RubySanctum.cpp
 Setup.cpp )
 
 SET( headers
+Instance_RubySanctum.h
 Setup.h
 ../Common/Base.h
 ../Common/EasyFunctions.h

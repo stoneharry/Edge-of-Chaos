@@ -430,6 +430,12 @@ GameObject* MoonScriptCreatureAI::GetNearestGameObject(uint32 pGameObjectId)
 	return _unit->GetMapMgr()->GetInterface()->GetGameObjectNearestCoords(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), pGameObjectId);
 }
 
+Creature* MoonScriptCreatureAI::FindCreature(uint32 creature)
+{
+	Creature* NearestCreature = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), creature);
+	return NearestCreature;
+}
+
 MoonScriptCreatureAI* MoonScriptCreatureAI::GetNearestCreature(uint32 pCreatureId)
 {
 	Creature* NearestCreature = _unit->GetMapMgr()->GetInterface()->GetCreatureNearestCoords(_unit->GetPositionX(), _unit->GetPositionY(), _unit->GetPositionZ(), pCreatureId);
@@ -1649,3 +1655,11 @@ void EventFunc_RemoveUnitFieldFlags(MoonScriptCreatureAI* pCreatureAI, int32 pMi
 	if( !pCreatureAI->IsInCombat() && !pCreatureAI->HasEvents() && pCreatureAI->GetTimerCount() == 0 )
 		pCreatureAI->RemoveAIUpdateEvent();
 }	
+
+void MoonScriptCreatureAI::RecieveAction(uint32 action)
+{
+}
+
+void MoonScriptCreatureAI::OnReachWP(uint32 iWaypointId, bool bForwards)
+{
+}

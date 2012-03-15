@@ -96,6 +96,7 @@ SET(sources
 	ScriptMgr.cpp 
 	SocialHandler.cpp 
 	SpeedDetector.cpp 
+	ServerPlayedCharacter.cpp
 	SpellAuras.cpp 
 	SpellTarget.cpp 
 	Spell.cpp 
@@ -244,6 +245,7 @@ SET( headers
 	Quest.h
 	QuestMgr.h
 	Rogue.h
+    ServerPlayedCharacter.h
 	ScriptMgr.h
 	ScriptSetup.h
 	Shaman.h

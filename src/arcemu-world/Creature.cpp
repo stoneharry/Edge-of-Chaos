@@ -2403,7 +2403,14 @@ void Creature::AddVehicleComponent( uint32 creature_entry, uint32 vehicleid ){
 	vehicle->Load( this, creature_entry, vehicleid );
 }
 
-void Creature::RemoveVehicleComponent(){
+void Creature::RemoveVehicleComponent()
+{
 	delete vehicle;
 	vehicle = NULL;
+}
+
+void Creature::ReceiveAction(uint32 action)
+{
+	if(GetScript())
+		GetScript()->ReceiveAction(action);
 }

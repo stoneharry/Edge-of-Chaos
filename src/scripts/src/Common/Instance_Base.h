@@ -142,6 +142,9 @@ public:
 	// Player and instance - reimplementation for easier calling
 	bool						HasPlayers();
 	size_t						GetPlayerCount();
+	void PhaseAllPlayers(uint32 phase);
+	void CastSpellAllPlayers(Unit * target, uint32 spell, bool triggered);
+	void SetAllPlayersFarSight(uint64 guid);
 	Player*				GetPlayerByGuid( uint32 pGuid );
 	bool						IsCombatInProgress();
 

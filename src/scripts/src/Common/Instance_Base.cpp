@@ -273,6 +273,21 @@ size_t MoonInstanceScript::GetPlayerCount()
 	return mInstance->GetPlayerCount();
 };
 
+void MoonInstanceScript::PhaseAllPlayers(uint32 phase)
+{
+	mInstance->PhaseAllPlayers(phase);
+}
+
+void MoonInstanceScript::CastSpellAllPlayers(Unit * target, uint32 spell, bool triggered)
+{
+	mInstance->CastSpellAllPlayers(target, spell, triggered);
+}
+
+void MoonInstanceScript::SetAllPlayersFarSight(uint64 guid)
+{
+	mInstance->SetAllPlayersFarSight(guid);
+}
+
 Player* MoonInstanceScript::GetPlayerByGuid( uint32 pGuid )
 {
 	if ( pGuid == 0 )

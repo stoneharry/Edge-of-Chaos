@@ -315,7 +315,7 @@ namespace luaGlobalFunctions
 
 	static int GetArcemuRevision(lua_State* L)
 	{
-		lua_pushnumber(L, BUILD_REVISION);
+		lua_pushnumber(L, atoi(sWorld.GetEmulatorRevision()));
 		return 1;
 	}
 

@@ -257,6 +257,9 @@ class SERVER_DECL MapMgr : public CellHandler <MapCell>, public EventableObject,
 
 		void LoadAllCells();
 		size_t GetPlayerCount(bool include_gms = true);
+		void PhaseAllPlayers(uint32 phase);
+		void CastSpellAllPlayers(Unit * target, uint32 spell, bool triggered);
+		void SetAllPlayersFarSight(uint64 guid);
 		uint32 GetTeamPlayersCount(uint32 teamId);
 
 		void _PerformObjectDuties();
@@ -365,7 +368,7 @@ class SERVER_DECL MapMgr : public CellHandler <MapCell>, public EventableObject,
 		WorldStatesHandler& GetWorldStatesHandler(){ return worldstateshandler; }
 
 		void Notify( uint32 type = 0, uint32 data1 = 0, uint32 data2 = 0, uint32 data3 = 0 );
-
+		void SetInstanceData( uint32 pType, uint32 pIndex, uint32 pData );
 	protected:
 		InstanceScript* mInstanceScript;
 
