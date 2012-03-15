@@ -1934,6 +1934,7 @@ void Pet::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint32 un
 		{
 			if(pVictim->IsCreature())
 			{
+				sQuestMgr.OnPlayerKill(m_Owner, TO_CREATURE(pVictim), true);
 				m_Owner->Reputation_OnKilledUnit(pVictim, false);
 
 #ifdef ENABLE_ACHIEVEMENTS

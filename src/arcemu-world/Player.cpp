@@ -12642,10 +12642,16 @@ void Player::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint32
 		{
 			Unit* uTagger = pVictim->GetMapMgr()->GetUnit(pVictim->GetTaggerGUID());
 
-			if(uTagger != NULL && uTagger->IsPlayer())
+			if(uTagger != NULL && (uTagger->IsPlayer() || uTagger->IsPet() || IsSummon()))
 			{
-				Player* pTagger = TO_PLAYER(uTagger);
-
+				Player* pTagger = NULL;
+				if(uTagger->IsPlayer())
+					TO_PLAYER(uTagger);
+				else
+				{
+					if(uTagger->GetPlayerOwner())
+						pTagger = TO_PLAYER(uTagger->GetPlayerOwner());
+				}
 				if(pTagger != NULL)
 				{
 

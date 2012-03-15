@@ -2056,7 +2056,9 @@ void Creature::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint
 			pVictim->SetHealth(1);
 			return;
 		}
-
+		if(pVictim->IsCreature())
+			if(Player* p = TO< Player* >(GetPlayerOwner()))
+				sQuestMgr.OnPlayerKill(p, TO_CREATURE(pVictim), true);
 		pVictim->Die(this, damage, spellId);
 	}
 	else
