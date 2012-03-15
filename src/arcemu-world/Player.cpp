@@ -4581,6 +4581,7 @@ void Player::ResurrectPlayer()
 
 	if( m_bg != NULL )
 		m_bg->HookOnPlayerResurrect( this );
+	BroadcastAuras();
 }
 
 void Player::KillPlayer()
@@ -8178,14 +8179,6 @@ void Player::EventTeleport(uint32 mapid, float x, float y, float z)
 
 void Player::EventTeleportTaxi(uint32 mapid, float x, float y, float z)
 {
-	if(mapid == 530 && !m_session->HasFlag(ACCOUNT_FLAG_XPACK_01))
-	{
-		WorldPacket msg(CMSG_SERVER_BROADCAST, 50);
-		msg << uint32(3) << "You must have The Burning Crusade Expansion to access this content." << uint8(0);
-		m_session->SendPacket(&msg);
-		RepopAtGraveyard(GetPositionX(), GetPositionY(), GetPositionZ(), GetMapId());
-		return;
-	}
 	_Relocate(mapid, LocationVector(x, y, z), (mapid == GetMapId() ? false : true), true, 0);
 	ForceZoneUpdate();
 }
@@ -8361,22 +8354,6 @@ bool Player::SafeTeleport(uint32 MapID, uint32 InstanceID, const LocationVector 
 	{
 		RemoveAura(flying_aura);
 		flying_aura = 0;
-	}
-
-	// Lookup map info
-	if(mi && mi->flags & WMI_INSTANCE_XPACK_01 && !m_session->HasFlag(ACCOUNT_FLAG_XPACK_01) && !m_session->HasFlag(ACCOUNT_FLAG_XPACK_02))
-	{
-		WorldPacket msg(SMSG_MOTD, 50); // Need to be replaced with correct one !
-		msg << uint32(3) << "You must have The Burning Crusade Expansion to access this content." << uint8(0);
-		m_session->SendPacket(&msg);
-		return false;
-	}
-	if(mi && mi->flags & WMI_INSTANCE_XPACK_02 && !m_session->HasFlag(ACCOUNT_FLAG_XPACK_02))
-	{
-		WorldPacket msg(SMSG_MOTD, 50); // Need to be replaced with correct one !
-		msg << uint32(3) << "You must have Wrath of the Lich King Expansion to access this content." << uint8(0);
-		m_session->SendPacket(&msg);
-		return false;
 	}
 
 	// cebernic: cleanup before teleport
@@ -13630,51 +13607,7 @@ void Player::RemoveVehicleComponent(){
 
 void Player::SendAurasForTarget(Unit* target)
 {
-	if(target->HasAuraWithName(SPELL_AURA_HOVER))
-		target->SendHover();
-	if(target->HasAuraWithName(SPELL_AURA_FEATHER_FALL))
-		target->SendFeatherFall();
-	if(target->HasAuraWithName(SPELL_AURA_WATER_WALK))
-		target->SendWaterWalk();
-	WorldPacket data( SMSG_AURA_UPDATE_ALL, 200 );
-
-	data << WoWGuid( target->GetNewGUID() );
-	for ( uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i )
-	{
-		Aura * aur = target->m_auras[ i ];
-		
-		if( aur != NULL )
-		{
-			if(aur->GetSpellProto()->Attributes & SPELL_ATTR0_HIDDEN_CLIENTSIDE)
-				continue;
-			uint8 Flags = uint8( aur->GetAuraFlags() );
-
-			Flags = ( AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3 );
-		
-			if( aur->IsPositive() )
-				Flags |= AFLAG_CANCELLABLE;
-			else
-				Flags |= AFLAG_NEGATIVE;
-
-			if( aur->GetDuration() != 0 && !(aur->GetSpellProto()->AttributesEx5 & SPELL_ATTR5_HIDE_DURATION))
-				Flags |= AFLAG_DURATION;
-
-			data << uint8( aur->m_visualSlot );
-			data << uint32( aur->GetSpellId() );
-			data << uint8( Flags );
-			data << uint8( getLevel() );
-			data << uint8( m_auraStackCount[ aur->m_visualSlot ] );
-			
-			if( ( Flags & AFLAG_NOT_CASTER ) == 0 )
-				data << WoWGuid(aur->GetCasterGUID());
-
- 		if( Flags & AFLAG_DURATION ){
-				data << uint32( aur->GetDuration() );
-				data << uint32( aur->GetTimeLeft() );
-			}
-		}
-	}
-	target->SendMessageToSet(&data, true);
+	target->BroadcastAuras();
 }
 
 bool Player::InInstance()

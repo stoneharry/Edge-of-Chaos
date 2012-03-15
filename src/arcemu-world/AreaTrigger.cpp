@@ -68,12 +68,6 @@ uint32 CheckTriggerPrerequsites(AreaTrigger* pAreaTrigger, WorldSession* pSessio
 	if(!pMapInfo || !pMapInfo->HasFlag(WMI_INSTANCE_ENABLED))
 		return AREA_TRIGGER_FAILURE_UNAVAILABLE;
 
-	if(pMapInfo->HasFlag(WMI_INSTANCE_XPACK_01) && !pSession->HasFlag(ACCOUNT_FLAG_XPACK_01) && !pSession->HasFlag(ACCOUNT_FLAG_XPACK_02))
-		return AREA_TRIGGER_FAILURE_NO_BC;
-
-	if(pMapInfo->HasFlag(WMI_INSTANCE_XPACK_02) && !pSession->HasFlag(ACCOUNT_FLAG_XPACK_02))
-		return AREA_TRIGGER_FAILURE_NO_WOTLK;
-
 	// These can be overridden by cheats/GM
 	if(pPlayer->TriggerpassCheat)
 		return AREA_TRIGGER_FAILURE_OK;

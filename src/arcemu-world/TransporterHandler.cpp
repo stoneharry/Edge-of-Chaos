@@ -414,13 +414,6 @@ void Transporter::TransportPassengers(uint32 mapid, uint32 oldmap, float x, floa
 			v.z = z + plr->transporter_info.z;
 			v.o = plr->GetOrientation();
 
-			if(mapid == 530 && !plr->GetSession()->HasFlag(ACCOUNT_FLAG_XPACK_01))
-			{
-				// player does not have BC content, repop at graveyard
-				plr->RepopAtGraveyard(plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetMapId());
-				continue;
-			}
-
 			if(mapid == 571 && !plr->GetSession()->HasFlag(ACCOUNT_FLAG_XPACK_02))
 			{
 				plr->RepopAtGraveyard(plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetMapId());

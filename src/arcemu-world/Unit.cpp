@@ -5319,7 +5319,8 @@ void Unit::UpdateSpeed()
 	// Limit speed due to effects such as http://www.wowhead.com/?spell=31896 [Judgement of Justice]
 	if(m_maxSpeed && m_runSpeed > m_maxSpeed)
 		m_runSpeed = m_maxSpeed;
-
+	if(m_runSpeed <= 0)
+		m_runSpeed = PLAYER_NORMAL_RUN_SPEED;
 	if( IsPlayer() && TO_PLAYER(this)->m_changingMaps )
 		TO< Player* >(this)->resend_speed = true;
 	else
@@ -5372,7 +5373,8 @@ uint8 Unit::CastSpell(Unit* Target, SpellEntry* Sp, bool triggered)
 	{
 		newSpell->GenerateTargets(&targets);
 	}
-
+	//Lets send our auras to everyone around to compensate for aura update bugs.
+	BroadcastAuras();
 	return newSpell->prepare(&targets);
 }
 
@@ -5391,6 +5393,7 @@ uint8 Unit::CastSpell(uint64 targetGuid, SpellEntry* Sp, bool triggered)
 
 	SpellCastTargets targets(targetGuid);
 	Spell* newSpell = sSpellFactoryMgr.NewSpell(this, Sp, triggered, 0);
+	BroadcastAuras();
 	return newSpell->prepare(&targets);
 }
 
@@ -5424,7 +5427,7 @@ uint8 Unit::CastSpell(Unit* Target, SpellEntry* Sp, uint32 forced_basepoints, bo
 	{
 		newSpell->GenerateTargets(&targets);
 	}
-
+	BroadcastAuras();
 	return newSpell->prepare(&targets);
 }
 
@@ -5451,7 +5454,7 @@ uint8 Unit::CastSpell(Unit* Target, SpellEntry* Sp, uint32 forced_basepoints, in
 	{
 		newSpell->GenerateTargets(&targets);
 	}
-
+	BroadcastAuras();
 	return newSpell->prepare(&targets);
 }
 
@@ -5466,6 +5469,7 @@ void Unit::CastSpellAoF(float x, float y, float z, SpellEntry* Sp, bool triggere
 	targets.m_destZ = z;
 	targets.m_targetMask = TARGET_FLAG_DEST_LOCATION;
 	Spell* newSpell = sSpellFactoryMgr.NewSpell(this, Sp, triggered, 0);
+	BroadcastAuras();
 	newSpell->prepare(&targets);
 }
 
@@ -5484,13 +5488,22 @@ void Unit::Root()
 		m_aiInterface->m_canMove = false;
 		m_aiInterface->StopMovement(1);
 	}
-
+	RemoveUnitMovementFlag(MOVEFLAG_MASK_MOVING);
+	AddUnitMovementFlag(MOVEFLAG_ROOTED);
 	m_rooted = 1;
-
-	WorldPacket data( SMSG_FORCE_MOVE_ROOT, 12 );
-	data << GetNewGUID();
-	data << uint32( 1 );
-	SendMessageToSet( &data, true, false );
+	if(IsPlayer())
+	{
+		WorldPacket data( SMSG_FORCE_MOVE_ROOT, 12 );
+		data << GetNewGUID();
+		data << uint32( 1 );
+		SendMessageToSet( &data, true);
+	}
+	else
+	{
+		WorldPacket data(SMSG_SPLINE_MOVE_ROOT, 8);
+		data << GetNewGUID();
+		SendMessageToSet(&data, true);
+	}
 }
 
 void Unit::Unroot()
@@ -5499,13 +5512,24 @@ void Unit::Unroot()
 		
 	if( !IsPlayer() )
 		m_aiInterface->m_canMove = true;
-
-	m_rooted = 0;
-
-	WorldPacket data( SMSG_FORCE_MOVE_UNROOT, 12 );
-	data << GetNewGUID();
-	data << uint32( 5 );
-	SendMessageToSet( &data, true, false );
+	if(!IsStunned())
+	{
+		RemoveUnitMovementFlag(MOVEFLAG_ROOTED);
+		m_rooted = 0;
+		if(IsPlayer())
+		{
+			WorldPacket data( SMSG_FORCE_MOVE_UNROOT, 12 );
+			data << GetNewGUID();
+			data << uint32( 5 );
+			SendMessageToSet( &data, true);
+		}
+		else
+		{
+			WorldPacket data(SMSG_SPLINE_MOVE_UNROOT, 8);
+			data << GetNewGUID();
+			SendMessageToSet(&data, true);
+		}
+	}
 }
 
 void Unit::RemoveAurasByBuffType(uint32 buff_type, const uint64 & guid, uint32 skip)
@@ -5859,109 +5883,6 @@ bool Unit::IsPoisoned()
 	return false;
 }
 
-void Unit::SendFullAuraUpdate()
-{
-
-	WorldPacket data(SMSG_AURA_UPDATE_ALL, 200);
-
-	data << WoWGuid(GetNewGUID());
-
-	uint32 Updates = 0;
-
-	for(uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i)
-	{
-		Aura* aur = m_auras[ i ];
-
-		if(aur != NULL)
-		{
-			uint8 Flags = uint8(aur->GetAuraFlags());
-
-			Flags = (AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3);
-
-			if(aur->IsPositive())
-				Flags |= AFLAG_CANCELLABLE;
-			else
-				Flags |= AFLAG_NEGATIVE;
-
-			if(aur->GetDuration() != 0)
-				Flags |= AFLAG_DURATION;
-
-			data << uint8(aur->m_visualSlot);
-			data << uint32(aur->GetSpellId());
-			data << uint8(Flags);
-			data << uint8(getLevel());
-			data << uint8(m_auraStackCount[ aur->m_visualSlot ]);
-
-			if((Flags & AFLAG_NOT_CASTER) == 0)
-				data << WoWGuid(aur->GetCasterGUID());
-
-			if(Flags & AFLAG_DURATION)
-			{
-				data << uint32(aur->GetDuration());
-				data << uint32(aur->GetTimeLeft());
-			}
-
-			++Updates;
-		}
-	}
-	SendMessageToSet(&data, true);
-
-	LOG_DEBUG("Full Aura Update: GUID: "I64FMT" - Updates: %u", GetGUID(), Updates);
-}
-
-void Unit::SendAuraUpdate(uint32 AuraSlot, bool remove)
-{
-	Aura* aur = m_auras[ AuraSlot ];
-
-	ARCEMU_ASSERT(aur != NULL);
-
-	WorldPacket data(SMSG_AURA_UPDATE, 30);
-
-	if(remove)
-	{
-		data << WoWGuid(GetGUID());
-		data << uint8(aur->m_visualSlot);
-		data << uint32(0);
-	}
-	else
-	{
-		uint8 flags = (AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3);
-
-		if(aur->IsPositive())
-			flags |= AFLAG_CANCELLABLE;
-		else
-			flags |= AFLAG_NEGATIVE;
-
-		if(aur->GetDuration() != 0)
-			flags |= AFLAG_DURATION;
-
-		data << WoWGuid(GetGUID());
-		data << uint8(aur->m_visualSlot);
-
-		data << uint32(aur->GetSpellId());
-		data << uint8(flags);
-
-		Unit* caster = aur->GetUnitCaster();
-		if(caster != NULL)
-			data << uint8(caster->getLevel());
-		else
-			data << uint8(sWorld.m_levelCap);
-
-		data << uint8(m_auraStackCount[ aur->m_visualSlot ]);
-
-		if((flags & AFLAG_NOT_CASTER) == 0)
-			data << WoWGuid(aur->GetCasterGUID());
-
-		if(flags & AFLAG_DURATION)
-		{
-			data << uint32(aur->GetDuration());
-			data << uint32(aur->GetTimeLeft());
-		}
-	}
-
-	SendMessageToSet(&data, true);
-}
-
 uint32 Unit::ModVisualAuraStackCount(Aura* aur, int32 count)
 {
 	if(!aur)
@@ -5976,14 +5897,14 @@ uint32 Unit::ModVisualAuraStackCount(Aura* aur, int32 count)
 		m_auraStackCount[slot] = 0;
 		m_auravisuals[slot] = 0;
 
-		SendAuraUpdate(aur->m_auraSlot, true);
+		RemoveAura(aur);
 	}
 	else
 	{
 		m_auraStackCount[slot] += static_cast<uint8>(count);
 		m_auravisuals[slot] = aur->GetSpellId();
 
-		SendAuraUpdate(aur->m_auraSlot, false);
+		BroadcastAuras();
 	}
 
 	return m_auraStackCount[slot];
@@ -8051,4 +7972,53 @@ void Unit::BuildHeartBeatMsg(WorldPacket* data)
     data->Initialize(MSG_MOVE_HEARTBEAT, 32);
     data->append(GetNewGUID());
     BuildMovementPacket(data);
+}
+
+void Unit::BroadcastAuras()
+{
+	if(HasAuraWithName(SPELL_AURA_HOVER))
+		SendHover();
+	if(HasAuraWithName(SPELL_AURA_FEATHER_FALL))
+		SendFeatherFall();
+	if(HasAuraWithName(SPELL_AURA_WATER_WALK))
+		SendWaterWalk();
+	WorldPacket data( SMSG_AURA_UPDATE_ALL, 200 );
+
+	data << WoWGuid( GetNewGUID() );
+	for ( uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i )
+	{
+		Aura * aur = m_auras[ i ];
+		
+		if( aur != NULL )
+		{
+			if(aur->GetSpellProto()->Attributes & SPELL_ATTR0_HIDDEN_CLIENTSIDE)
+				continue;
+			uint8 Flags = uint8( aur->GetAuraFlags() );
+
+			Flags = ( AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3 );
+		
+			if( aur->IsPositive() )
+				Flags |= AFLAG_CANCELLABLE;
+			else
+				Flags |= AFLAG_NEGATIVE;
+
+			if( aur->GetDuration() != 0 && !(aur->GetSpellProto()->AttributesEx5 & SPELL_ATTR5_HIDE_DURATION))
+				Flags |= AFLAG_DURATION;
+
+			data << uint8( aur->m_visualSlot );
+			data << uint32( aur->GetSpellId() );
+			data << uint8( Flags );
+			data << uint8( getLevel() );
+			data << uint8( m_auraStackCount[ aur->m_visualSlot ] );
+			
+			if( ( Flags & AFLAG_NOT_CASTER ) == 0 )
+				data << WoWGuid(aur->GetCasterGUID());
+
+ 		if( Flags & AFLAG_DURATION ){
+				data << uint32( aur->GetDuration() );
+				data << uint32( aur->GetTimeLeft() );
+			}
+		}
+	}
+	SendMessageToSet(&data, true);
 }

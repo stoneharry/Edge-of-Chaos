@@ -968,12 +968,12 @@ void Aura::ApplyModifiers(bool apply)
 #endif
 			if(apply)
 			{
-				if(m_spellProto->Attributes & SPELL_ATTR0_NEGATIVE_1)
-					SetNegative(100);
 				if(m_spellProto->c_is_flags & SPELL_FLAG_IS_FORCEDDEBUFF)
 					SetNegative(100);
 				if(m_spellProto->c_is_flags & SPELL_FLAG_IS_FORCEDBUFF)
 					SetPositive(100);
+				if(m_spellProto->Attributes & SPELL_ATTR0_NEGATIVE_1)
+					SetNegative(100);
 			}
 
 		}
@@ -8316,9 +8316,10 @@ void Aura::ResetDuration()
 	sEventMgr.ModifyEventTimeLeft(this, EVENT_AURA_REMOVE, GetDuration());
 }
 
-void Aura::Refresh(){
+void Aura::Refresh()
+{
 	ResetDuration();
-	m_target->SendAuraUpdate( m_auraSlot, false );
+	m_target->BroadcastAuras();
 }
 
 bool Aura::DotCanCrit()
