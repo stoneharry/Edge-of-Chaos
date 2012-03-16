@@ -14073,3 +14073,18 @@ void Player::ApplyEquipCooldown(Item* pItem)
 		SendPacket(&data);
 	}
 }
+
+void Player::SetBattlegroundEntryPoint()
+{
+	m_bgEntryPointInstance = GetInstanceID();
+	m_bgEntryPointMap = GetMapId();
+	m_bgEntryPointX = GetPositionX();
+	m_bgEntryPointY = GetPositionY();
+	m_bgEntryPointZ = GetPositionZ();
+	m_bgEntryPointO = GetOrientation();
+}
+
+void Player::RewardQuest(uint32 id)
+{
+	sQuestMgr.OnQuestFinished(this, QuestStorage.LookupEntry(id), NULL, 0);
+}

@@ -162,8 +162,7 @@ void WorldSession::HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& /*recv_data
 			qRew = QuestStorage.LookupEntry(reward->reward[0].questId);
 			if (qRew)
 			{
-				uint8 status = sQuestMgr.CalcQuestStatus(NULL, _player, qRew, qRew->type, true);
-				done = status == QMGR_QUEST_FINISHED;
+				done = sQuestMgr.CalcQuestStatus(NULL, _player, qRew, qRew->type, true) == QMGR_QUEST_FINISHED;
 				if (done)
 					qRew = QuestStorage.LookupEntry(reward->reward[1].questId);
 			}

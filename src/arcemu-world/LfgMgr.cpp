@@ -1708,60 +1708,35 @@ void LfgMgr::TeleportPlayer(Player* player, bool out, bool fromOpcode /*= false*
 			error = LFG_TELEPORTERROR_INVALID_LOCATION;
 		else if (player->GetMapId() != uint32(dungeon->map))  // Do not teleport players in dungeon to the entrance
 		{
-			/*
+			
 			uint32 mapid = 0;
 			float x = 0;
 			float y = 0;
 			float z = 0;
 			float orientation = 0;
 
-			if (!fromOpcode)
-			{
-				// Select a player inside to be teleported to
-				for (GroupReference* itr = grp->GetFirstMember(); itr != NULL && !mapid; itr = itr->next())
-				{
-					Player* plrg = itr->getSource();
-					if (plrg && plrg != player && plrg->GetMapId() == uint32(dungeon->map))
-					{
-						mapid = plrg->GetMapId();
-						x = plrg->GetPositionX();
-						y = plrg->GetPositionY();
-						z = plrg->GetPositionZ();
-						orientation = plrg->GetOrientation();
-					}
-				}
-			}
-
 			if (!mapid)
 			{
-				AreaTrigger const* at = sObjectMgr->GetMapEntranceTrigger(dungeon->map);
+				AreaTrigger * at = AreaTriggerStorage.LookupEntry(dungeon->map);
 				if (!at)
 					error = LFG_TELEPORTERROR_INVALID_LOCATION;
 				else
 				{
-					mapid = at->target_mapId;
-					x = at->target_X;
-					y = at->target_Y;
-					z = at->target_Z;
-					orientation = at->target_Orientation;
+					mapid = at->Mapid;
+					x = at->x;
+					y = at->y;
+					z = at->z;
+					orientation = at->o;
 				}
 			}
 
 			if (error == LFG_TELEPORTERROR_OK)
 			{
-				if (!player->GetMap()->IsDungeon() && !player->GetMap()->IsRaid())
-					player->SetBattlegroundEntryPoint();
-
+				player->SetBattlegroundEntryPoint();
 				player->Dismount();
-
-				if (player->SafeTeleport(mapid, 0, x, y, z, orientation))
-					// FIXME - HACK - this should be done by teleport, when teleporting far
-					player->RemoveAllAuraType(SPELL_AURA_MOUNTED);
-				else
-				{
+				if(!player->SafeTeleport(mapid, 0, x, y, z, orientation))
 					error = LFG_TELEPORTERROR_INVALID_LOCATION;
-				}
-			}*/
+			}
 		}
 	}
 
@@ -1808,10 +1783,10 @@ void LfgMgr::RewardDungeonDoneFor(const uint32 dungeonId, Player* player)
 		return;
 
 	uint8 index = 0;
-	Quest const* qReward = QuestStorage.LookupEntry(reward->reward[index].questId);
+	Quest* qReward = QuestStorage.LookupEntry(reward->reward[index].questId);
 	if (!qReward)
 		return;
-
+	bool done = sQuestMgr.CalcQuestStatus(NULL, player, qReward, qReward->type, true) == QMGR_QUEST_FINISHED;
 	// if we can take the quest, means that we haven't done this kind of "run", IE: First Heroic Random of Day.
 /*	if (player->CanRewardQuest(qReward, false))
 		player->RewardQuest(qReward, 0, NULL, false);
@@ -1908,6 +1883,18 @@ LfgState LfgMgr::GetState(uint64 guid)
 		return m_Players[guid].GetState();
 	else
 		return m_Groups[guid].GetState();
+}
+
+void GetInstanceEntrance(uint32 mapid, float &x, float &y, float &z, float &o)
+{
+	QueryResult * r = WorldDatabase.Query("Select * from world_instance_entrance where mapid = %u", mapid);
+	if(!r)
+		return;
+	Field * f = r->Fetch();
+	x = f[1].GetFloat();
+	y = f[2].GetFloat();
+	z = f[3].GetFloat();
+	o = f[4].GetFloat();
 }
 
 uint32 LfgMgr::GetDungeon(uint64 guid, bool asId /*= true*/)

@@ -556,7 +556,7 @@ void QuestMgr::BuildQuestComplete(Player* plr, Quest* qst)
 	uint32 rewardtalents = qst->rewardtalents;
 	uint32 playerlevel = plr->getLevel();
 
-	if(playerlevel <= plr->GetMaxLevel())
+	if(playerlevel < plr->GetMaxLevel())
 	{
 		xp = GenerateQuestXP(plr, qst);
 		plr->GiveXP(xp, 0, false);
@@ -1094,7 +1094,7 @@ void QuestMgr::OnQuestFinished(Player* plr, Quest* qst, Object* qst_giver, uint3
 	qle->Finish();
 
 
-	if(qst_giver->IsCreature())
+	if(qst_giver && qst_giver->IsCreature())
 	{
 		if(!TO< Creature* >(qst_giver)->HasQuest(qst->id, 2))
 		{

@@ -477,6 +477,7 @@ class LfgMgr : public Singleton<LfgMgr>, public EventableObject
         const LfgDungeonSet& GetDungeonsByRandom(uint32 randomdungeon);
         LfgType GetDungeonType(uint32 dungeon);
         std::string ConcatenateGuids(LfgGuidList check);
+		void GetInstanceEntrance(uint32 mapid, float &x, float &y, float &z, float &o);
 		int32 event_GetInstanceId() { return -1; }
 		private:
         // General variables

@@ -2618,10 +2618,14 @@ class SERVER_DECL Player : public Unit
         void RestoreAllSpellMods(uint32 ownerAuraId = 0, Aura* aura = NULL);
         void DropModCharge(SpellModifier* mod, Spell* spell);
 		void SetSpellModTakingSpell(Spell* spell, bool apply);
+
+
 		void SendCombatEquipCooldown();
 		void ApplyEquipCooldown(Item* pItem);
 		void SetRoles(uint8 role) { m_roles = role; }
 		uint8 GetRoles() { return m_roles; }
+		void SetBattlegroundEntryPoint();
+		void RewardQuest(uint32 id);
 };
 
 
