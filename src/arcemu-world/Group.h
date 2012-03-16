@@ -20,7 +20,7 @@
 
 #ifndef _GROUP_H_
 #define _GROUP_H_
-
+#define MAXGROUPSIZE 5
 enum PartyErrors
 {
     ERR_PARTY_NO_ERROR					= 0,
@@ -41,7 +41,8 @@ enum GroupTypes
     GROUP_TYPE_BG						= 0x1,
     GROUP_TYPE_RAID						= 0x2,
     GROUP_TYPE_BGRAID					= GROUP_TYPE_BG | GROUP_TYPE_RAID,
-    GROUP_TYPE_LFD						= 0x8,
+	GROUP_TYPE_UNK						= 0x4,
+    GROUP_TYPE_LFG						= 0x8,
 };
 
 enum MaxGroupCount
@@ -252,6 +253,20 @@ class SERVER_DECL Group
 		void UpdateAchievementCriteriaForInrange(Object* o, AchievementCriteriaTypes type, int32 miscvalue1, int32 miscvalue2, uint32 time);
 #endif
 		void Teleport(uint32 map, uint32 instanceid, float x, float y, float z, float o = 0.0f);
+		bool isLFGGroup() 
+		{ 
+			if(m_GroupType & GROUP_TYPE_LFG)
+				return true;
+			return false;
+		}
+		void ConvertToLFG();
+		uint64 GetLeaderGUID();
+		uint32 GetMembersCount() { return m_MemberCount; }
+
+		uint64 GetGUID() { return uint64(GetID()); }
+		SubGroup* m_SubGroups[8];
+		uint8 m_SubGroupCount;
+
 	protected:
 		PlayerInfo* m_Leader;
 		PlayerInfo* m_Looter;
@@ -264,12 +279,11 @@ class SERVER_DECL Group
 		uint8 m_GroupType;
 		uint32 m_Id;
 
-		SubGroup* m_SubGroups[8];
-		uint8 m_SubGroupCount;
 		uint32 m_MemberCount;
 		Mutex m_groupLock;
 		bool m_dirty;
 		bool m_updateblock;
+		
 	public:
 		uint8 m_difficulty;
 		uint8 m_raiddifficulty;

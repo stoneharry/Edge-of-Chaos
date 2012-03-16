@@ -934,13 +934,7 @@ class SERVER_DECL Player : public Unit
 		void _ModifySkillMaximum(uint32 SkillLine, uint32 NewMax);
 		void _LearnSkillSpells(uint32 SkillLine, uint32 Current);
 
-
 		void RecalculateHonor();
-
-		LfgMatch* m_lfgMatch;
-		uint32 m_lfgInviterGuid;
-
-		void EventTimeoutLfgInviter();
 
 		// Summon and Appear Blocking
 		void DisableSummon(bool disable) { disableSummon = disable; }
@@ -2606,7 +2600,7 @@ class SERVER_DECL Player : public Unit
 		PlayerSpec m_specs[MAX_SPEC_COUNT];
 		SpellModList m_spellMods[MAX_SPELLMOD];
 		Spell* m_spellModTakingSpell;
-		uint32 m_weaponChangeTimer;
+		uint8 m_roles;
 	public:
 		void SendTeleportAckMsg(const LocationVector & v);
 		void SendUpdateDataToSet(ByteBuffer* groupbuf, ByteBuffer* nongroupbuf, bool sendtoself);
@@ -2626,6 +2620,8 @@ class SERVER_DECL Player : public Unit
 		void SetSpellModTakingSpell(Spell* spell, bool apply);
 		void SendCombatEquipCooldown();
 		void ApplyEquipCooldown(Item* pItem);
+		void SetRoles(uint8 role) { m_roles = role; }
+		uint8 GetRoles() { return m_roles; }
 };
 
 

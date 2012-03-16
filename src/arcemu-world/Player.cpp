@@ -417,8 +417,6 @@ Player::Player(uint32 guid)
 	m_CurrentTaxiPath = NULL;
 	m_setflycheat = false;
 	m_fallDisabledUntil = 0;
-	m_lfgMatch = NULL;
-	m_lfgInviterGuid = 0;
 	m_indoorCheckTimer = 0;
 	m_taxiMapChangeNode = 0;
 	this->OnLogin();
@@ -10506,9 +10504,9 @@ void Player::CopyAndSendDelayedPacket(WorldPacket* data)
 
 void Player::SendMeetingStoneQueue(uint32 DungeonId, uint8 Status)
 {
-	WorldPacket data(SMSG_MEETINGSTONE_SETQUEUE, 5);
+/*	WorldPacket data(SMSG_MEETINGSTONE_SETQUEUE, 5);
 	data << DungeonId << Status;
-	m_session->SendPacket(&data);
+	m_session->SendPacket(&data);*/
 }
 
 void Player::PartLFGChannel()

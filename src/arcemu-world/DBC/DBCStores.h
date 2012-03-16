@@ -1666,29 +1666,6 @@ struct NameGenEntry
 	uint32 unk2;
 };
 
-struct LFGDungeonEntry
-{
-	uint32  ID;                                             // 0
-	//char*   name[16];                                     // 1-17 Name lang
-	uint32  minlevel;                                       // 18
-	uint32  maxlevel;                                       // 19
-	uint32  reclevel;                                       // 20
-	uint32  recminlevel;                                    // 21
-	uint32  recmaxlevel;                                    // 22
-	int32  map;                                             // 23
-	uint32  difficulty;                                     // 24
-	//uint32  unk;                                          // 25
-	uint32  type;                                           // 26
-	//uint32  unk2;                                         // 27
-	//char*   unk3;                                         // 28
-	uint32  expansion;                                      // 29
-	//uint32  unk4;                                         // 30
-	uint32  grouptype;                                      // 31
-	//char*   desc[16];                                     // 32-47 Description
-	// Helpers
-	uint32 Entry() const { return ID + (type << 24); }
-};
-
 
 #define MAX_VEHICLE_SEATS 8
 
@@ -1907,6 +1884,29 @@ struct CreatureModelDataEntry
     float CollisionHeight;
     float MountHeight;                                       // Used in calculation of unit collision data when mounted
     //float Unks[11]
+};
+
+struct LFGDungeonEntry
+{
+    uint32  ID;                                             // 0
+    //char*   name[16];                                     // 1-17 Name lang
+    uint32  minlevel;                                       // 18
+    uint32  maxlevel;                                       // 19
+    uint32  reclevel;                                       // 20
+    uint32  recminlevel;                                    // 21
+    uint32  recmaxlevel;                                    // 22
+    int32   map;                                            // 23
+    uint32  difficulty;                                     // 24
+    //uint32  flags;                                        // 25
+    uint32  type;                                           // 26
+    //uint32  unk;                                          // 27
+    //char*   iconname;                                     // 28
+    uint32  expansion;                                      // 29
+    //uint32  unk4;                                         // 30
+    uint32  grouptype;                                      // 31
+    //char*   desc[16];                                     // 32-47 Description
+    // Helpers
+    uint32 Entry() const { return ID + (type << 24); }
 };
 
 #pragma pack(pop)
@@ -2308,12 +2308,12 @@ extern SERVER_DECL DBCStorage<MailTemplateEntry> dbcMailTemplateEntry;
 extern SERVER_DECL DBCStorage<WMOAreaTableEntry> dbcWMOAreaTable;
 extern SERVER_DECL DBCStorage< SummonPropertiesEntry > dbcSummonProperties;
 extern SERVER_DECL DBCStorage< NameGenEntry > dbcNameGen;
-extern SERVER_DECL DBCStorage< LFGDungeonEntry > dbcLFGDungeon;
 extern SERVER_DECL DBCStorage< VehicleEntry > dbcVehicle;
 extern SERVER_DECL DBCStorage< VehicleSeatEntry > dbcVehicleSeat;
 extern SERVER_DECL DBCStorage< DestructibleModelDataEntry > dbcDestructibleModelDataEntry;
 extern SERVER_DECL DBCStorage< CreatureDisplayInfoEntry > dbcCreatureDisplayInfoEntry;
 extern SERVER_DECL DBCStorage< CreatureModelDataEntry > dbcCreatureModelDataEntry;
+extern SERVER_DECL DBCStorage< LFGDungeonEntry > dbcLFGDungeonEntry;
 
 bool LoadDBCs();
 

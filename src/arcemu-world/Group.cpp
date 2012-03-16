@@ -234,7 +234,7 @@ void Group::Update()
 				{
 					continue;
 				}
-
+				Player * p = (*itr1)->m_loggedInPlayer;
 				data.Initialize(SMSG_GROUP_LIST);
 				data << uint8(m_GroupType);
 				data << uint8((*itr1)->subGroup);
@@ -247,19 +247,15 @@ void Group::Update()
 				if((*itr1) == m_mainAssist)
 					flags |= 4;
 				data << uint8(flags);
+				data << uint8(p->GetRoles());
 
-				if(m_Leader != NULL && m_Leader->m_loggedInPlayer != NULL && m_Leader->m_loggedInPlayer->IsInBg())
-					data << uint8(1);   //if the leader is in a BG, then the group is a BG group
-				else
-					data << uint8(0);
-
-				if(m_GroupType & GROUP_TYPE_LFD)
+				if(m_GroupType & GROUP_TYPE_LFG)
 				{
-					data << uint8(0);	// unk
-					data << uint32(0);	// unk
+					data << uint8(sLfgMgr.GetState(GetID()) == LFG_STATE_FINISHED_DUNGEON ? 2 : 0); // FIXME - Dungeon save status? 2 = done
+					data << uint32(sLfgMgr.GetDungeon(GetID()));
 				}
 
-				data << uint64(0x500000000004BC0CULL);
+				data << uint64(GetID());
 				data << uint32(0);		// 3.3 - increments every time a group list update is being sent to client
 				data << uint32(m_MemberCount - 1);	// we don't include self
 
@@ -277,9 +273,12 @@ void Group::Update()
 							// should never happen but just in case
 							if((*itr2) == NULL)
 								continue;
-
-							data << (*itr2)->name;
-							data << (*itr2)->guid << uint32(0);	// highguid
+							Player * p2 = (*itr2)->m_loggedInPlayer;
+							data << (p2 ? p2->GetName() : (*itr2)->name);
+							if(p2)
+								data << p->GetGUID();
+							else
+								data << (*itr2)->guid << uint32(0);	// highguid
 
 							if((*itr2)->m_loggedInPlayer != NULL)
 								data << uint8(1);
@@ -298,20 +297,26 @@ void Group::Update()
 								flags |= 4;
 
 							data << uint8(flags);
-							data << uint8(0); // 3.3 - may have some use
+							data << uint8(p2 ? p2->GetRoles() : 0);
 						}
 					}
 				}
 
 				if(m_Leader != NULL)
-					data << m_Leader->guid << uint32(0);
+					if(m_Leader->m_loggedInPlayer)
+						data << m_Leader->m_loggedInPlayer->GetGUID();
+					else
+						data << m_Leader->guid << uint32(0);
 				else
 					data << uint64(0);
 
 				data << uint8(m_LootMethod);
 
 				if(m_Looter != NULL)
-					data << m_Looter->guid << uint32(0);
+					if(m_Looter->m_loggedInPlayer)
+						data << m_Looter->m_loggedInPlayer->GetGUID();
+					else
+						data << m_Looter->guid << uint32(0);
 				else
 					data << uint64(0);
 
@@ -939,7 +944,7 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, uint32 Flags, bool Distribut
 
 	if( Flags & GROUP_UPDATE_FLAG_VEHICLE_SEAT ){
 		if( pPlayer->GetCurrentVehicle() != NULL )
-			*data << uint32( pPlayer->GetCurrentVehicle()->GetVehicleInfo()->seatID[pPlayer->transporter_info.seat] );
+			*data << uint32( pPlayer->GetCurrentVehicle()->GetVehicleInfo()->seatID[pPlayer->GetMovementInfo()->transSeat] );
 	}
 
 	if(Flags & GROUP_UPDATE_TYPE_FULL_REQUEST_REPLY)
@@ -1364,4 +1369,18 @@ void Group::Teleport(uint32 map, uint32 instanceid, float x, float y, float z, f
 		}
 	}
 	m_groupLock.Release();
+}
+
+void Group::ConvertToLFG()
+{
+    m_GroupType = GroupTypes(m_GroupType | GROUP_TYPE_LFG | GROUP_TYPE_UNK);
+	SaveToDB();
+    Update();
+}
+
+uint64 Group::GetLeaderGUID()
+{
+	if(m_Leader && m_Leader->m_loggedInPlayer)
+		return m_Leader->m_loggedInPlayer->GetGUID();
+	return (uint64)m_Leader->guid;
 }

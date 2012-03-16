@@ -449,21 +449,6 @@ class SERVER_DECL WorldSession
 		void HandleReadyCheckOpcode(WorldPacket & recv_data);
 		void HandleGroupPromote(WorldPacket & recv_data);
 
-		// LFG opcodes
-		void HandleEnableAutoJoin(WorldPacket & recvPacket);
-		void HandleDisableAutoJoin(WorldPacket & recvPacket);
-		void HandleEnableAutoAddMembers(WorldPacket & recvPacket);
-		void HandleDisableAutoAddMembers(WorldPacket & recvPacket);
-		void HandleSetLookingForGroupComment(WorldPacket & recvPacket);
-		void HandleMsgLookingForGroup(WorldPacket & recvPacket);
-		void HandleSetLookingForGroup(WorldPacket & recvPacket);
-		void HandleSetLookingForMore(WorldPacket & recvPacket);
-		void HandleSetLookingForNone(WorldPacket & recvPacket);
-		void HandleLfgClear(WorldPacket & recvPacket);
-		void HandleMeetingStoneInfo(WorldPacket & recvPacket);
-		void HandleLfgInviteAccept(WorldPacket & recvPacket);
-		void HandleLfgInviteDeny(WorldPacket & recvPacket);
-
 		/// Taxi opcodes (TaxiHandler.cpp)
 		void HandleTaxiNodeStatusQueryOpcode(WorldPacket & recvPacket);
 		void HandleTaxiQueryAvaibleNodesOpcode(WorldPacket & recvPacket);
@@ -771,13 +756,38 @@ class SERVER_DECL WorldSession
 		void HandleRemoveGlyph(WorldPacket & recv_data);
 
 		void HandleSetFactionInactiveOpcode(WorldPacket & recv_data);
+		//LFG
+        void HandleLfgSetCommentOpcode(WorldPacket& recv_data);
+        void HandleLfgPlayerLockInfoRequestOpcode(WorldPacket& recv_data);
+        void HandleLfgPartyLockInfoRequestOpcode(WorldPacket& recv_data);
+        void HandleLfgJoinOpcode(WorldPacket& recv_data);
+        void HandleLfgLeaveOpcode(WorldPacket& recv_data);
+        void HandleLfgSetRolesOpcode(WorldPacket& recv_data);
+        void HandleLfgProposalResultOpcode(WorldPacket& recv_data);
+        void HandleLfgSetBootVoteOpcode(WorldPacket& recv_data);
+        void HandleLfgTeleportOpcode(WorldPacket& recv_data);
+        void HandleLfrSearchOpcode(WorldPacket& recv_data);
+        void HandleLfrLeaveOpcode(WorldPacket& recv_data);
 
-		//MISC
+ 		//MISC
 		void HandleWorldStateUITimerUpdate(WorldPacket & recv_data);
 		void HandleSetTaxiBenchmarkOpcode(WorldPacket & recv_data);
 		void HandleMirrorImageOpcode(WorldPacket & recv_data);
 
 	public:
+       void SendLfgUpdatePlayer(const LfgUpdateData& updateData);
+        void SendLfgUpdateParty(const LfgUpdateData& updateData);
+        void SendLfgRoleChosen(uint64 guid, uint8 roles);
+        void SendLfgRoleCheckUpdate(const LfgRoleCheck* pRoleCheck);
+        void SendLfgUpdateSearch(bool update);
+        void SendLfgJoinResult(const LfgJoinResultData& joinData);
+        void SendLfgQueueStatus(uint32 dungeon, int32 waitTime, int32 avgWaitTime, int32 waitTimeTanks, int32 waitTimeHealer, int32 waitTimeDps, uint32 queuedTime, uint8 tanks, uint8 healers, uint8 dps);
+        void SendLfgPlayerReward(uint32 rdungeonEntry, uint32 sdungeonEntry, uint8 done, const LfgReward* reward, const Quest *qRew);
+        void SendLfgBootPlayer(const LfgPlayerBoot* pBoot);
+        void SendLfgUpdateProposal(uint32 proposalId, const LfgProposal *pProp);
+        void SendLfgDisabled();
+        void SendLfgOfferContinue(uint32 dungeonEntry);
+        void SendLfgTeleportError(uint8 err);
 
 		void SendInventoryList(Creature* pCreature);
 		void SendTrainerList(Creature* pCreature);

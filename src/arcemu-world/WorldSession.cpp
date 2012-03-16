@@ -339,8 +339,6 @@ void WorldSession::LogoutPlayer(bool Save)
 
 		_player->GetItemInterface()->EmptyBuyBack();
 
-		sLfgMgr.RemovePlayerFromLfgQueues(_player);
-
 		// Save HP/Mana
 		_player->load_health = _player->GetUInt32Value(UNIT_FIELD_HEALTH);
 		_player->load_mana = _player->GetPower(POWER_TYPE_MANA);
@@ -834,25 +832,25 @@ void WorldSession::InitPacketHandlerTable()
 
 	// LFG System
 	WorldPacketHandlers[CMSG_SET_LFG_COMMENT].handler =
-	    &WorldSession::HandleSetLookingForGroupComment;
-	WorldPacketHandlers[MSG_LOOKING_FOR_GROUP].handler =
-	    &WorldSession::HandleMsgLookingForGroup;
-	WorldPacketHandlers[CMSG_SET_LOOKING_FOR_GROUP].handler =
-	    &WorldSession::HandleSetLookingForGroup;
-	WorldPacketHandlers[CMSG_SET_LOOKING_FOR_MORE].handler =
-	    &WorldSession::HandleSetLookingForMore;
-	WorldPacketHandlers[CMSG_LFG_SET_AUTOJOIN].handler =
-	    &WorldSession::HandleEnableAutoJoin;
-	WorldPacketHandlers[CMSG_LFG_CLEAR_AUTOJOIN].handler =
-	    &WorldSession::HandleDisableAutoJoin;
-	WorldPacketHandlers[CMSG_LFM_SET_AUTOFILL].handler =
-	    &WorldSession::HandleEnableAutoAddMembers;
-	WorldPacketHandlers[CMSG_LFM_CLEAR_AUTOFILL].handler =
-	    &WorldSession::HandleDisableAutoAddMembers;
-	WorldPacketHandlers[CMSG_CLEAR_LOOKING_FOR_GROUP].handler =
-	    &WorldSession::HandleLfgClear;
-	WorldPacketHandlers[CMSG_MEETINGSTONE_INFO].handler =
-	    &WorldSession::HandleMeetingStoneInfo;
+	    &WorldSession::HandleLfgSetCommentOpcode;
+	WorldPacketHandlers[CMSG_LFG_JOIN].handler =
+	    &WorldSession::HandleLfgJoinOpcode;
+	WorldPacketHandlers[CMSG_LFG_LEAVE].handler =
+	    &WorldSession::HandleLfgLeaveOpcode;
+	WorldPacketHandlers[CMSG_SEARCH_LFG_LEAVE].handler =
+	    &WorldSession::HandleLfrLeaveOpcode;
+	WorldPacketHandlers[CMSG_LFG_PROPOSAL_RESULT].handler =
+	    &WorldSession::HandleLfgProposalResultOpcode;
+	WorldPacketHandlers[CMSG_LFG_SET_ROLES].handler =
+	    &WorldSession::HandleLfgSetRolesOpcode;
+	WorldPacketHandlers[CMSG_LFG_SET_BOOT_VOTE].handler =
+	    &WorldSession::HandleLfgSetBootVoteOpcode;
+	WorldPacketHandlers[CMSG_LFD_PLAYER_LOCK_INFO_REQUEST].handler =
+	    &WorldSession::HandleLfgPlayerLockInfoRequestOpcode;
+	WorldPacketHandlers[CMSG_LFG_TELEPORT].handler =
+	    &WorldSession::HandleLfgTeleportOpcode;
+	WorldPacketHandlers[CMSG_LFD_PARTY_LOCK_INFO_REQUEST].handler =
+	    &WorldSession::HandleLfgPartyLockInfoRequestOpcode;
 
 	// Taxi / NPC Interaction
 	WorldPacketHandlers[CMSG_ENABLETAXI].handler =
