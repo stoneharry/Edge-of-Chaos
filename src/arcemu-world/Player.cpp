@@ -8843,11 +8843,9 @@ void Player::CompleteLoading()
 
 		if(sp->procCharges > 0 && (*i).charges > 0)
 		{
-			for(uint32 x = 0; x < (*i).charges - 1; x++)
-			{
-				Aura* a = sSpellFactoryMgr.NewAura(sp, (*i).dur, this, this, false);
-				this->AddAura(a);
-			}
+			Aura* a = sSpellFactoryMgr.NewAura(sp, (*i).dur, this, this, false);
+			AddAura(a);
+			a->ModifyCharges((*i).charges - 1);
 			if(m_chargeSpells.find(sp->Id) == m_chargeSpells.end() && !(sp->procFlags & PROC_REMOVEONUSE))
 			{
 				SpellCharge charge;
@@ -13939,7 +13937,7 @@ void Player::RestoreSpellMods(Spell* spell, uint32 ownerAuraId, Aura* aura)
             SpellModifier* mod = *itr;
 
             // spellmods without aura set cannot be charged
-            if (!mod->ownerAura || !m_auraStackCount[ mod->ownerAura->m_visualSlot ])
+			if (!mod->ownerAura)
                 continue;
 
             // Restore only specific owner aura mods
@@ -13968,8 +13966,8 @@ void Player::RestoreSpellMods(Spell* spell, uint32 ownerAuraId, Aura* aura)
                 mod->charges++;
 
             // Do not set more spellmods than avalible
-            if (m_auraStackCount[ mod->ownerAura->m_visualSlot ] < mod->charges)
-                mod->charges = m_auraStackCount[ mod->ownerAura->m_visualSlot ];
+			if (mod->ownerAura->GetCharges() < mod->charges)
+                mod->charges = mod->ownerAura->GetCharges();
 
             // Skip this check for now - aura charges may change due to various reason
             // TODO: trac these changes correctly
@@ -13999,7 +13997,7 @@ void Player::RemoveSpellMods(Spell* spell)
             SpellModifier* mod = *itr;
             ++itr;
             // spellmods without aura set cannot be charged
-            if (!mod->ownerAura || !m_auraStackCount[ mod->ownerAura->m_visualSlot ])
+            if (!mod->ownerAura)
                 continue;
 
             // check if mod affected this spell

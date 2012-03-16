@@ -1051,6 +1051,17 @@ uint8 Spell::prepare(SpellCastTargets* targets)
 	}
 	else
 		cast(false);
+	if(u_caster)
+	{
+		if (const std::vector<int32> *spell_triggered = objmgr.GetSpellLinked(m_spellInfo->Id))
+		{
+			for (std::vector<int32>::const_iterator i = spell_triggered->begin(); i != spell_triggered->end(); ++i)
+			    if (*i < 0)
+					u_caster->RemoveAura(-(*i));
+			    else
+					u_caster->CastSpell(m_targets.m_unitTarget ? m_targets.m_unitTarget : u_caster->GetGUID(), *i, true);
+		}
+	}
 
 	return ccr;
 }
@@ -2832,6 +2843,17 @@ void Spell::HandleEffects(uint64 guid, uint32 i)
 		LOG_ERROR("SPELL: unknown effect %u spellid %u", id, GetProto()->Id);
 
 	DoAfterHandleEffect(unitTarget, i);
+	if(unitTarget && u_caster)
+	{
+		// trigger linked auras remove/apply
+		// TODO: remove/cleanup this, as this table is not documented and people are doing stupid things with it
+		if (std::vector<int32> const* spellTriggered = objmgr.GetSpellLinked(m_spellInfo->Id + SPELL_LINK_HIT))
+		    for (std::vector<int32>::const_iterator i = spellTriggered->begin(); i != spellTriggered->end(); ++i)
+		        if (*i < 0)
+					unitTarget->RemoveAura(-(*i));
+		        else
+		           u_caster->CastSpell(unitTarget, *i, true);
+	}
 	DecRef();
 }
 
@@ -2990,11 +3012,9 @@ void Spell::HandleAddAura(uint64 guid)
 			if(Player *p = u_caster->GetSpellModOwner())
 				p->ApplySpellMod(GetProto()->Id, SPELLMOD_CHARGES, charges, this);
 		}
-		for(int i = 0; i < (charges - 1); ++i)
-		{
-			Aura* staur = sSpellFactoryMgr.NewAura(aur->GetSpellProto(), aur->GetDuration(), aur->GetCaster(), aur->GetTarget(), m_triggeredSpell, i_caster);
-			Target->AddAura(staur);
-		}
+		Aura* staur = sSpellFactoryMgr.NewAura(aur->GetSpellProto(), aur->GetDuration(), aur->GetCaster(), aur->GetTarget(), m_triggeredSpell, i_caster);
+		Target->AddAura(staur);
+		staur->ModifyCharges(charges - 1);
 		if(!(aur->GetSpellProto()->procFlags & PROC_REMOVEONUSE))
 		{
 			SpellCharge charge;
@@ -3007,7 +3027,18 @@ void Spell::HandleAddAura(uint64 guid)
 	}
 
 	Target->AddAura(aur); // the real spell is added last so the modifier is removed last
-
+	aur->SetNegative();
+	if (std::vector<int32> const* spellTriggered = objmgr.GetSpellLinked(GetProto()->Id + SPELL_LINK_AURA))
+	{
+		for (std::vector<int32>::const_iterator itr = spellTriggered->begin(); itr != spellTriggered->end(); ++itr)
+		{
+			/*if (*itr < 0)
+				Target->ApplySpellImmune(GetId(), IMMUNITY_ID, -(*itr), true);
+			else*/ //if (caster)
+			if(*itr > 0)
+				Target->AddAura(m_caster, *itr);
+		}
+	}
 	DecRef();
 }
 

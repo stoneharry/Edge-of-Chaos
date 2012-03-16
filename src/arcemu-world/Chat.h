@@ -533,8 +533,6 @@ class SERVER_DECL ChatHandler : public Singleton<ChatHandler>
 		// Castall
 		bool HandleCastAllCommand(const char* args, WorldSession* m_session);
 
-		bool HandleForceLoginCommand(const char* args, WorldSession* m_session);
-
 		// Recall (Teleport)
 		bool HandleRecallListCommand(const char* args, WorldSession* m_session);
 		bool HandleRecallGoCommand(const char* args, WorldSession* m_session);

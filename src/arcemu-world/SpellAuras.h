@@ -822,6 +822,8 @@ class SERVER_DECL Aura : public EventableObject
 		uint8 m_visualSlot;
 		uint32 pSpellId; // This represents the triggering spell id
 		bool m_castInDuel;
+		int32 GetCharges() { return procCharges; }
+		void ModifyCharges(int32 amt);
 	private:
 		uint32 GetCasterFaction() { return m_casterfaction; }
 		void SetCasterFaction(uint32 faction) { m_casterfaction = faction; }
@@ -838,7 +840,6 @@ class SERVER_DECL Aura : public EventableObject
 			r += t * t;
 			return (r <= square_r);
 		}
-
 	protected:
 		uint32 m_casterfaction;
 		Unit* m_target;
@@ -856,7 +857,7 @@ class SERVER_DECL Aura : public EventableObject
 		void SendInterrupted(uint8 result, Object* m_caster);
 		void SendChannelUpdate(uint32 time, Object* m_caster);
 		void SendTickImmune(Unit* target, Unit* caster);
-
+		int32 procCharges;
 	public:
 		bool m_temporary;	// Skip saving
 		bool m_deleted;

@@ -379,6 +379,16 @@ typedef HM_NAMESPACE::hash_map<string, PlayerInfo*> PlayerNameStringIndexMap;
 typedef HM_NAMESPACE::hash_map<string, PlayerInfo*> PlayerNameStringIndexMap;
 
 #endif
+typedef std::map<int32, std::vector<int32> > SpellLinkedMap;
+#define SPELL_LINKED_MAX_SPELLS  200000
+
+enum SpellLinkedType
+{
+    SPELL_LINK_CAST     = 0,            // +: cast; -: remove
+    SPELL_LINK_HIT      = 1 * 200000,
+    SPELL_LINK_AURA     = 2 * 200000,   // +: aura; -: immune
+    SPELL_LINK_REMOVE   = 0,
+};
 
 class PlayerCache;
 class SERVER_DECL ObjectMgr : public Singleton < ObjectMgr >, public EventableObject
@@ -684,6 +694,8 @@ class SERVER_DECL ObjectMgr : public Singleton < ObjectMgr >, public EventableOb
 		void ReloadSpellCoef();
 		void ReloadSpellDbc();
 		void CreateDummySpell(uint32 id, const char * name);
+		void LoadSpellLinked();
+		const std::vector<int32> *GetSpellLinked(int32 spell_id) const;
 
 #undef ENABLE_ALWAYS_SERIOUS_MODE_GCC_STL_HACK
 
@@ -808,7 +820,7 @@ class SERVER_DECL ObjectMgr : public Singleton < ObjectMgr >, public EventableOb
 #endif
 		std::map< uint32, std::vector< VehicleAccessoryEntry* >* > vehicle_accessories;
 		std::map< uint32, std::multimap< uint32, WorldState >* > worldstate_templates;
-
+		SpellLinkedMap	mSpellLinkedMap;
 };
 
 

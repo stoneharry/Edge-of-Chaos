@@ -3076,66 +3076,6 @@ void ApplyNormalFixes()
 		if( sp != NULL )
 			sp->AttributesEx3 |= SPELL_ATTR3_DEATH_PERSISTENT;
 
-		/**********************************************************
-		 *	Holy Nova
-		 **********************************************************/
-		sp = CheckAndReturnSpellEntry( 15237 );
-		if( sp != NULL )
-		{
-			sp->Effect[1] = SPELL_EFFECT_TRIGGER_SPELL;
-			sp->EffectTriggerSpell[1] = 23455;
-		}
-		sp = CheckAndReturnSpellEntry( 15430 );
-		if( sp != NULL )
-		{
-			sp->Effect[1] = SPELL_EFFECT_TRIGGER_SPELL;
-			sp->EffectTriggerSpell[1] = 23458;
-		}
-		sp = CheckAndReturnSpellEntry( 15431 );
-		if( sp != NULL )
-		{
-			sp->Effect[1] = SPELL_EFFECT_TRIGGER_SPELL;
-			sp->EffectTriggerSpell[1] = 23459;
-		}
-		sp = CheckAndReturnSpellEntry( 27799 );
-		if( sp != NULL )
-		{
-			sp->Effect[1] = SPELL_EFFECT_TRIGGER_SPELL;
-			sp->EffectTriggerSpell[1] = 27803;
-		}
-		sp = CheckAndReturnSpellEntry( 27800 );
-		if( sp != NULL )
-		{
-			sp->Effect[1] = SPELL_EFFECT_TRIGGER_SPELL;
-			sp->EffectTriggerSpell[1] = 27804;
-		}
-		sp = CheckAndReturnSpellEntry( 27801 );
-		if( sp != NULL )
-		{
-			sp->Effect[1] = SPELL_EFFECT_TRIGGER_SPELL;
-			sp->EffectTriggerSpell[1] = 27805;
-		}
-		sp = CheckAndReturnSpellEntry( 25331 );
-		if( sp != NULL )
-		{
-			sp->Effect[1] = SPELL_EFFECT_TRIGGER_SPELL;
-			sp->EffectTriggerSpell[1] = 25329;
-		}
-
-		// Holy Nova
-		sp = CheckAndReturnSpellEntry( 48077 );
-		if( sp != NULL )
-		{
-			sp->Effect[1] = SPELL_EFFECT_TRIGGER_SPELL;
-			sp->EffectTriggerSpell[1] = 48075;
-		}
-		sp = CheckAndReturnSpellEntry( 48078 );
-		if( sp != NULL )
-		{
-			sp->Effect[1] = SPELL_EFFECT_TRIGGER_SPELL;
-			sp->EffectTriggerSpell[1] = 48076;
-		}
-
 		//Priest: Blessed Recovery
 		sp = CheckAndReturnSpellEntry(27811);
 		if(sp != NULL)

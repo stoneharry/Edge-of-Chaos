@@ -795,7 +795,7 @@ bool LfgMgr::CheckCompatibility(LfgGuidList check, LfgProposal*& pProposal)
 	LfgAnswer answer = GetCompatibles(strGuids);
 	if (answer != LFG_ANSWER_PENDING)
 	{
-		return bool(answer);
+		return bool(answer ? true : false);
 	}
 
 	// Check all but new compatiblitity

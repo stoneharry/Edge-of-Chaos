@@ -2219,7 +2219,11 @@ uint32 Unit::HandleProc(uint32 flag, Unit* victim, SpellEntry* CastingSpell, boo
 		if(iter != m_chargeSpells.end())
 		{
 			if(iter->second.count > 1)
+			{
+				Aura * ab = FindAura(iter->second.spellId);
 				--iter->second.count;
+				ab->ModifyCharges(--iter->second.count);
+			}
 			else
 				m_chargeSpells.erase(iter);
 		}
@@ -4316,6 +4320,15 @@ void Unit::AddAura(Aura* aur)
 		flag |= AURASTATE_FLAG_JUDGEMENT;
 
 	SetFlag(UNIT_FIELD_AURASTATE, flag);
+}
+
+void Unit::AddAura(Object * caster, uint32 aur)
+{
+	SpellEntry * sp = dbcSpell.LookupEntry(aur);
+	if(sp == NULL)
+		return;
+	Aura * a = sSpellFactoryMgr.NewAura(sp, GetDuration(dbcSpellDuration.LookupEntry(sp->DurationIndex)), caster, this);
+	AddAura(a);
 }
 
 bool Unit::RemoveAura(Aura* aur)
@@ -8002,7 +8015,7 @@ void Unit::BroadcastAuras()
 			data << uint32( aur->GetSpellId() );
 			data << uint8( Flags );
 			data << uint8( getLevel() );
-			data << uint8( m_auraStackCount[ aur->m_visualSlot ] );
+			data << uint8(aur->GetSpellProto()->maxstack ? m_auraStackCount[ aur->m_visualSlot ] : aur->GetCharges());
 			
 			if( ( Flags & AFLAG_NOT_CASTER ) == 0 )
 				data << WoWGuid(aur->GetCasterGUID());
@@ -8056,7 +8069,7 @@ void Unit::SendAuraUpdate(uint32 AuraSlot, bool remove)
 		else
 			data << uint8(sWorld.m_levelCap);
 
-		data << uint8(m_auraStackCount[ aur->m_visualSlot ]);
+		data << uint8(aur->GetSpellProto()->maxstack ? m_auraStackCount[ aur->m_visualSlot ] : aur->GetCharges());
 
 		if((flags & AFLAG_NOT_CASTER) == 0)
 			data << WoWGuid(aur->GetCasterGUID());
@@ -8069,4 +8082,61 @@ void Unit::SendAuraUpdate(uint32 AuraSlot, bool remove)
 	}
 
 	SendMessageToSet(&data, true);
+}
+
+void Unit::SendAuraUpdate(Aura * aur)
+{
+	if(aur->GetSpellProto()->Attributes & SPELL_ATTR0_HIDDEN_CLIENTSIDE)
+		return;
+
+	WorldPacket data(SMSG_AURA_UPDATE, 30);
+	uint8 flags = (AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3);
+
+	if(aur->IsPositive())
+		flags |= AFLAG_CANCELLABLE;
+	else
+		flags |= AFLAG_NEGATIVE;
+	if( aur->GetDuration() != 0 && !(aur->GetSpellProto()->AttributesEx5 & SPELL_ATTR5_HIDE_DURATION))
+		flags |= AFLAG_DURATION;
+	data << WoWGuid(GetGUID());
+	data << uint8(aur->m_visualSlot);
+
+	data << uint32(aur->GetSpellId());
+	data << uint8(flags);
+
+	Unit* caster = aur->GetUnitCaster();
+	if(caster != NULL)
+		data << uint8(caster->getLevel());
+	else
+		data << uint8(sWorld.m_levelCap);
+	data << uint8(aur->GetSpellProto()->maxstack ? m_auraStackCount[ aur->m_visualSlot ] : aur->GetCharges());
+
+	if((flags & AFLAG_NOT_CASTER) == 0)
+		data << WoWGuid(aur->GetCasterGUID());
+
+	if(flags & AFLAG_DURATION)
+	{
+		data << uint32(aur->GetDuration());
+		data << uint32(aur->GetTimeLeft());
+	}
+
+	SendMessageToSet(&data, true);
+}
+
+bool Unit::IsFlying()
+{
+	if(GetAIInterface()->Flying())
+		return true;
+	if(HasFlyingAura(0))
+		return true;
+	if(HasUnitMovementFlag(MOVEFLAG_AIR_SWIMMING))
+		return true;
+	if(HasUnitMovementFlag(MOVEFLAG_CAN_FLY))
+		return true;
+	if(HasUnitMovementFlag(MOVEFLAG_NO_COLLISION))
+		return true;
+	//This shouldn't be reached due to plays would have a flying movement flag when forced to fly
+	if(IsPlayer() && TO_PLAYER(this)->FlyCheat)
+		return true;
+	return false;
 }

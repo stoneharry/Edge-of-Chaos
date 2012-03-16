@@ -3646,12 +3646,15 @@ PlayerCache* ObjectMgr::GetPlayerCache(const char* name, bool caseSensitive /*= 
 	return ret;
 }
 
-void ObjectMgr::LoadVehicleAccessories(){
+void ObjectMgr::LoadVehicleAccessories()
+{
 	QueryResult *result = WorldDatabase.Query( "SELECT creature_entry, accessory_entry, seat FROM vehicle_accessories;" );
 
-	if( result != NULL ){
+	if( result != NULL )
+	{
 		
-		do{
+		do
+		{
 			Field *row = result->Fetch();
 			VehicleAccessoryEntry *entry = new VehicleAccessoryEntry();
 			uint32 creature_entry = 0;
@@ -3663,9 +3666,10 @@ void ObjectMgr::LoadVehicleAccessories(){
 			std::map< uint32, std::vector< VehicleAccessoryEntry* >* >::iterator itr
 				= vehicle_accessories.find( creature_entry );
 
-			if( itr != vehicle_accessories.end() ){
+			if( itr != vehicle_accessories.end() )
 				itr->second->push_back( entry );
-			}else{
+			else
+			{
 				std::vector< VehicleAccessoryEntry* >* v = new std::vector< VehicleAccessoryEntry* >();
 				v->push_back( entry );
 				vehicle_accessories.insert( std::make_pair( creature_entry, v ) );
@@ -3922,4 +3926,60 @@ uint32 ObjectMgr::ApplySpellDamageLimit(uint32 spellid, int32 damage)
 	if(dmg <= 0)
 		dmg = 1;
 	return dmg;
+}
+
+void ObjectMgr::LoadSpellLinked()
+{
+	uint32 oldMSTime = getMSTime();
+	
+	mSpellLinkedMap.clear();
+	QueryResult *result = WorldDatabase.Query("SELECT spell_trigger, spell_effect, type FROM spell_linked_spell");
+	if (!result)
+	{
+		sLog.outString(">> Loaded 0 linked spells. DB table `spell_linked_spell` is empty.");
+		return;
+	}
+
+	uint32 count = 0;
+
+	do
+	{
+		Field* fields = result->Fetch();
+
+		int32 trigger = fields[0].GetInt32();
+		int32 effect =  fields[1].GetInt32();
+		int32 type =	fields[2].GetInt32();
+
+		SpellEntry* spellInfo = dbcSpell.LookupEntry(trigger);
+		if (!spellInfo)
+		{
+			sLog.outError("Spell %u listed in `spell_linked_spell` does not exist", abs(trigger));
+			continue;
+		}
+		spellInfo = dbcSpell.LookupEntry(effect);
+		if (!spellInfo)
+		{
+			sLog.outError("Spell %u listed in `spell_linked_spell` does not exist", abs(effect));
+			continue;
+		}
+
+		if (type) //we will find a better way when more types are needed
+		{
+			if (trigger > 0)
+				trigger += SPELL_LINKED_MAX_SPELLS * type;
+			else
+				trigger -= SPELL_LINKED_MAX_SPELLS * type;
+		}
+		mSpellLinkedMap[trigger].push_back(effect);
+
+		++count;
+	} while (result->NextRow());
+
+	sLog.outString(">> Loaded %u linked spells.", count);
+}
+
+const std::vector<int32>* ObjectMgr::GetSpellLinked(int32 spell_id) const
+{
+    SpellLinkedMap::const_iterator itr = mSpellLinkedMap.find(spell_id);
+    return itr != mSpellLinkedMap.end() ? &(itr->second) : NULL;
 }

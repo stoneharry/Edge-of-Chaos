@@ -1295,8 +1295,8 @@ bool ChatHandler::HandleCastCommand(const char *args, WorldSession *m_session)
 		u = m_session->GetPlayer();
 	uint32 spell = 0;
 	uint32 triggered = 0;
-	if( sscanf(args, "%u", &spell) != 1 )
-		if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+	if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+		if( sscanf(args, "%u", &spell) != 1 )	
 		return false;
 	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
 	if(!sp)
@@ -1316,8 +1316,8 @@ bool ChatHandler::HandleCastBackCommand(const char *args, WorldSession *m_sessio
 		u = m_session->GetPlayer();
 	uint32 spell = 0;
 	uint32 triggered = 0;
-	if( sscanf(args, "%u", &spell) != 1 )
-		if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+	if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+		if( sscanf(args, "%u", &spell) != 1 )	
 		return false;
 	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
 	if(!sp)
@@ -1337,8 +1337,8 @@ bool ChatHandler::HandleCastSelfCommand(const char *args, WorldSession *m_sessio
 		u = m_session->GetPlayer();
 	uint32 spell = 0;
 	uint32 triggered = 0;
-	if( sscanf(args, "%u", &spell) != 1 )
-		if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+	if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+		if( sscanf(args, "%u", &spell) != 1 )	
 		return false;
 	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
 	if(!sp)
@@ -1358,8 +1358,8 @@ bool ChatHandler::HandleCastTargetCommand(const char *args, WorldSession *m_sess
 		u = m_session->GetPlayer();
 	uint32 spell = 0;
 	uint32 triggered = 0;
-	if( sscanf(args, "%u", &spell) != 1 )
-		if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+	if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+		if( sscanf(args, "%u", &spell) != 1 )	
 		return false;
 	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
 	if(!sp)
@@ -1389,14 +1389,26 @@ bool ChatHandler::HandleCastAOECommand(const char *args, WorldSession *m_session
 	uint32 triggered = 0;
 	float x,y,z = 0.0f;
 	if( sscanf(args, "%u %f %f %f %u", &spell, &x, &y, &z, &triggered) != 5)
+		if(sscanf(args, "%u %u", &spell, &triggered) != 2)
 		return false;
+	if(x == y)
+	{
+		if(Unit * u = getSelectedUnit(m_session, false))
+		{
+			x = u->GetPositionX();
+			y = u->GetPositionY();
+			z = u->GetPositionZ();
+		}
+		else
+			return false;
+	}
 	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
 	if(!sp)
 	{
 		SystemMessage(m_session, "Invalid spell %u", spell);
 		return true;
 	}
-	m_session->GetPlayer()->CastSpellAoF(x,y,z ,sp, triggered > 1 ? true : false);
+	m_session->GetPlayer()->CastSpellAoF(x,y,z ,sp, triggered >= 1 ? true : false);
 	BlueSystemMessage(m_session, "Casted aoe spell %u.", spell, GetSelectedUnitName(u));
 	sGMLog.writefromsession(m_session, "Casted aoe spell %u.", spell, GetSelectedUnitName(u));
 	return true;
@@ -1410,8 +1422,8 @@ bool ChatHandler::HandleChannelCommand(const char *args, WorldSession *m_session
 	Player * p = m_session->GetPlayer();
 	uint32 spell = 0;
 	uint32 usegotarget = 0;
-	if( sscanf(args, "%u", &spell) != 1 )
-		if(sscanf(args, "%u %u", &spell, &usegotarget) != 2)
+	if(sscanf(args, "%u %u", &spell, &usegotarget) != 2)
+		if( sscanf(args, "%u", &spell) != 1 )
 		return false;
 	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
 	if(!sp)
@@ -1444,22 +1456,12 @@ bool ChatHandler::HandleParalyzeCommand(const char* args, WorldSession* m_sessio
 {
 	//Player *plr = getSelectedChar(m_session, true);
 	//if(!plr) return false;
-	Unit* plr = m_session->GetPlayer()->GetMapMgr()->GetUnit(m_session->GetPlayer()->GetSelection());
-	if(!plr || !plr->IsPlayer())
-	{
-		RedSystemMessage(m_session, "Invalid target.");
+	Unit* plr = getSelectedUnit(m_session);
+	if(!plr)
 		return true;
-	}
 
 	BlueSystemMessage(m_session, "Rooting target.");
-	BlueSystemMessageToPlr(TO< Player* >(plr), "You have been rooted by %s.", m_session->GetPlayer()->GetName());
-	sGMLog.writefromsession(m_session, "rooted player %s", TO< Player* >(plr)->GetName());
-	WorldPacket data;
-	data.Initialize(SMSG_FORCE_MOVE_ROOT);
-	data << plr->GetNewGUID();
-	data << uint32(1);
-
-	plr->SendMessageToSet(&data, true);
+	plr->Root();
 	return true;
 }
 
@@ -1467,22 +1469,12 @@ bool ChatHandler::HandleUnParalyzeCommand(const char* args, WorldSession* m_sess
 {
 	//Player *plr = getSelectedChar(m_session, true);
 	//if(!plr) return false;
-	Unit* plr = m_session->GetPlayer()->GetMapMgr()->GetUnit(m_session->GetPlayer()->GetSelection());
-	if(!plr || !plr->IsPlayer())
-	{
-		RedSystemMessage(m_session, "Invalid target.");
+	Unit* plr = getSelectedUnit(m_session);
+	if(!plr)
 		return true;
-	}
 
 	BlueSystemMessage(m_session, "Unrooting target.");
-	BlueSystemMessageToPlr(TO< Player* >(plr), "You have been unrooted by %s.", m_session->GetPlayer()->GetName());
-	sGMLog.writefromsession(m_session, "unrooted player %s", TO< Player* >(plr)->GetName());
-	WorldPacket data;
-	data.Initialize(SMSG_FORCE_MOVE_UNROOT);
-	data << plr->GetNewGUID();
-	data << uint32(5);
-
-	plr->SendMessageToSet(&data, true);
+	plr->Unroot();
 	return true;
 }
 
@@ -1732,14 +1724,14 @@ bool ChatHandler::HandleShowCheatsCommand(const char* args, WorldSession* m_sess
 
 bool ChatHandler::HandleFlyCommand(const char* args, WorldSession* m_session)
 {
-	Player* chr = getSelectedChar(m_session);
+	Unit* chr = getSelectedUnit(m_session);
 
 	if(!chr)
 		chr = m_session->GetPlayer();
 
 	if(!*args)
 	{
-		if(chr->FlyCheat)
+		if(chr->IsFlying())
 			args = "off";
 		else
 			args = "on";
@@ -1747,23 +1739,29 @@ bool ChatHandler::HandleFlyCommand(const char* args, WorldSession* m_session)
 
 	if(stricmp(args, "on") == 0)
 	{
-		WorldPacket fly(835, 13);
-		chr->m_setflycheat = true;
-		fly << chr->GetNewGUID();
-		fly << uint32(2);
-		chr->SendMessageToSet(&fly, true);
-		BlueSystemMessage(chr->GetSession(), "Flying mode enabled.");
+		chr->EnableFlight();
+		if(chr->IsPlayer())
+		{
+			TO_PLAYER(chr)->FlyCheat = true;
+			TO_PLAYER(chr)->m_setflycheat = true;
+		}
+		BlueSystemMessage(m_session, "Enabled flight for %s.", chr->GetName());
+		if(chr->IsPlayer() && chr->GetGUID() != m_session->GetPlayer()->GetGUID())
+			BlueSystemMessage(TO_PLAYER(chr)->GetSession(), "%s enabled flight.", m_session->GetPlayer()->GetName());
 		if(chr != m_session->GetPlayer())
 			sGMLog.writefromsession(m_session, "enabled flying mode for %s", chr->GetName());
 	}
 	else if(stricmp(args, "off") == 0)
 	{
-		WorldPacket fly(836, 13);
-		chr->m_setflycheat = false;
-		fly << chr->GetNewGUID();
-		fly << uint32(5);
-		chr->SendMessageToSet(&fly, true);
-		BlueSystemMessage(chr->GetSession(), "Flying mode disabled.");
+		chr->DisableFlight();
+		if(chr->IsPlayer())
+		{
+			TO_PLAYER(chr)->FlyCheat = false;
+			TO_PLAYER(chr)->m_setflycheat = false;
+		}
+		BlueSystemMessage(m_session, "Disabled flight for %s.", chr->GetName());
+		if(chr->IsPlayer() && chr->GetGUID() != m_session->GetPlayer()->GetGUID())
+			BlueSystemMessage(TO_PLAYER(chr)->GetSession(), "%s disabled flight.", m_session->GetPlayer()->GetName());
 		if(chr != m_session->GetPlayer())
 			sGMLog.writefromsession(m_session, "disabled flying mode for %s", chr->GetName());
 	}
@@ -2307,48 +2305,37 @@ bool ChatHandler::HandleKillByIPCommand(const char* args, WorldSession* m_sessio
 
 bool ChatHandler::HandleMassSummonCommand(const char* args, WorldSession* m_session)
 {
-	PlayerStorageMap::const_iterator itr;
-	objmgr._playerslock.AcquireReadLock();
 	Player* summoner = m_session->GetPlayer();
 	Player* plr;
 	uint32 level = 0;
-	if( sscanf(args, "%u", &level) != 1)
-		return false;
+	uint32 forced = 0;
+	if(sscanf(args, "%u %u", &level, &forced) != 2)
+		if( sscanf(args, "%u", &level) != 1)
+			return false;
 	uint32 c = 0;
-
+	PlayerStorageMap::const_iterator itr;
+	objmgr._playerslock.AcquireReadLock();
 	for(itr = objmgr._players.begin(); itr != objmgr._players.end(); itr++)
 	{
 		plr = itr->second;
 		if(plr->GetSession() && plr->IsInWorld() && plr->getLevel() >= level)
 		{
-			GreenSystemMessageToPlr(plr,"%s requested a mass summon of players %u level and above.",summoner->GetName(), level);
-			plr->SummonRequest(summoner->GetLowGUID(), summoner->GetZoneId(), summoner->GetMapId(), summoner->GetInstanceID(), summoner->GetPosition());
+			if(!forced)
+			{
+				GreenSystemMessageToPlr(plr,"%s requested a mass summon of players %u level and above.",summoner->GetName(), level);
+				plr->SummonRequest(summoner->GetLowGUID(), summoner->GetZoneId(), summoner->GetMapId(), summoner->GetInstanceID(), summoner->GetPosition());
+			}
+			else
+			{
+				GreenSystemMessageToPlr(plr,"%s forced a mass summon of players %u level and above.",summoner->GetName(), level);
+				plr->SafeTeleport(summoner->GetMapMgr(), summoner->GetPosition());
+			}
 			++c;
 		}
 	}
-	sGMLog.writefromsession(m_session, "requested a mass summon of %u players.", c);
 	objmgr._playerslock.ReleaseReadLock();
-	return true;
-}
-
-bool ChatHandler::HandleForceLoginCommand(const char* args, WorldSession* m_session)
-{
-	uint32 accountid = 0;
-	if( sscanf(args, "%u", &accountid) != 1)
-		return false;
-	QueryResult * r = WorldDatabase.Query("select login, password from `%s`.`accounts` where acct = %u", Config.MainConfig.GetStringDefault("Server", "LogonDatabaseName", "zlogon").c_str(), accountid);
-	if(r == NULL)
-	{
-		RedSystemMessage(m_session, "%u is an invalid account", accountid);
-		return true;
-	}
-	Field *f = r->Fetch();
-	const char* accountname = f[0].GetString();
-	const char* password = f[1].GetString();
-	//m_session->SetForcedAccountId(accountid);
-	//Temp for now.
-	GreenSystemMessage(m_session, "Account Name %s, Password %s", accountname, password);
-	sGMLog.writefromsession(m_session, "Force loged into account id %u.", accountid);
+	BlueSystemMessage(m_session, "%s mass summon of %u players", c);
+	sGMLog.writefromsession(m_session, "requested a mass summon of %u players.", c);
 	return true;
 }
 

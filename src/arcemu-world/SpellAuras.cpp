@@ -779,6 +779,7 @@ Aura::Aura(SpellEntry* proto, int32 duration, Object* caster, Unit* target, bool
 	m_auraSlot = 0xffff;
 	m_interrupted = -1;
 	m_flags = 0;
+	procCharges = m_spellProto->procCharges;
 	//fixed_amount = 0;//used only por percent values to be able to recover value correctly.No need to init this if we are not using it
 }
 
@@ -789,8 +790,31 @@ Aura::~Aura()
 
 void Aura::Remove()
 {
-	sEventMgr.RemoveEvents(this);
+	if(GetCharges() > 0 && m_spellProto->proc_interval == 0)
+	{
+		if(m_target->m_chargeSpellsInUse)
+		{
+			m_target->m_chargeSpellRemoveQueue.push_back(GetSpellId());
+		}
+		else
+		{
+			std::map< uint32, struct SpellCharge >::iterator iter;
+			iter = m_target->m_chargeSpells.find(GetSpellId());
+			if(iter != m_target->m_chargeSpells.end())
+			{
+				if(iter->second.count > 1)
+				{
+					--iter->second.count;
+					ModifyCharges(--iter->second.count);
+					return;
+				}
+				else
+					m_target->m_chargeSpells.erase(iter);
+			}
+		}
+	}
 
+	sEventMgr.RemoveEvents(this);
 	//TODO: Check this condition - consider there are 3 aura modifiers and m_deleted can be set to true by first one,
 	// other two mods are normally applied, but cant un-apply (?)
 	if(m_deleted)
@@ -822,25 +846,6 @@ void Aura::Remove()
 			ClearAATargets();
 	}
 
-	if(m_spellProto->procCharges > 0 && m_spellProto->proc_interval == 0)
-	{
-		if(m_target->m_chargeSpellsInUse)
-		{
-			m_target->m_chargeSpellRemoveQueue.push_back(GetSpellId());
-		}
-		else
-		{
-			std::map< uint32, struct SpellCharge >::iterator iter;
-			iter = m_target->m_chargeSpells.find(GetSpellId());
-			if(iter != m_target->m_chargeSpells.end())
-			{
-				if(iter->second.count > 1)
-					--iter->second.count;
-				else
-					m_target->m_chargeSpells.erase(iter);
-			}
-		}
-	}
 
 	//maybe we are removing it without even assigning it. Example when we are refreshing an aura
 	if(m_auraSlot != 0xFFFF)
@@ -920,6 +925,16 @@ void Aura::Remove()
 		Unit* charm = caster->GetMapMgr()->GetUnit(caster->GetCharmedUnitGUID());
 		if((charm != NULL) && (charm->GetCreatedBySpell() == m_spellProto->Id))
 			TO< Player* >(caster)->UnPossess();
+	}
+	if (std::vector<int32> const* spellTriggered = objmgr.GetSpellLinked(GetSpellId() + SPELL_LINK_AURA))
+	{
+		for (std::vector<int32>::const_iterator itr = spellTriggered->begin(); itr != spellTriggered->end(); ++itr)
+		{
+			//if (*itr < 0)
+				//m_target->ApplySpellImmune(GetSpellId(), IMMUNITY_ID, -(*itr), false);
+			if (*itr > 0)
+				m_target->RemoveAura(*itr, GetCasterGUID());
+		}
 	}
 }
 
@@ -8555,4 +8570,13 @@ void Aura::SpellAuraPreventResurrection(bool apply)
 
 void Aura::SpellAuraModExperinceGain(bool apply)
 {
+}
+
+void Aura::ModifyCharges(int32 amt)
+{
+	procCharges = amt;
+	if(amt > 0)
+		Remove();
+	else
+		m_target->SendAuraUpdate(this);
 }

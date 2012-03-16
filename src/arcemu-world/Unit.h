@@ -1161,6 +1161,7 @@ class SERVER_DECL Unit : public Object
 		uint32 GetAuraCountWithDispelType(uint32 dispel_type, uint64 guid);
 
 		void AddAura(Aura* aur);
+		void AddAura(Object * caster, uint32 aur);
 		bool RemoveAura(Aura* aur);
 		bool RemoveAura(uint32 spellId);
 		bool RemoveAura(uint32 spellId, uint64 guid);
@@ -1656,6 +1657,7 @@ class SERVER_DECL Unit : public Object
 		uint8 m_auraStackCount[MAX_NEGATIVE_VISUAL_AURAS_END];
 
 		void SendAuraUpdate(uint32 AuraSlot, bool remove);
+		void SendAuraUpdate(Aura * aur);
 		void BroadcastAuras();
 		uint32 ModVisualAuraStackCount(Aura* aur, int32 count);
 		uint8 FindVisualSlot(uint32 SpellId, bool IsPos);
@@ -2011,6 +2013,7 @@ class SERVER_DECL Unit : public Object
 		void SendMovementFlagUpdate();
 		MovementInfo movement_info;
 		void BuildHeartBeatMsg(WorldPacket* data);
+		bool IsFlying();
 };
 
 
