@@ -1674,3 +1674,38 @@ bool ChatHandler::HandleStartTaxiCommand(const char *args, WorldSession *m_sessi
 	p->TaxiStart(taxipath, modelid, 0);
 	return true;
 }
+
+bool ChatHandler::HandleCameraShakeCommand(const char *args, WorldSession *m_session)
+{
+	uint32 index = 0;
+	uint32 unk = 0;
+	if(sscanf(args, "%u %u", &index, &unk) != 2)
+		return false;
+	Player * p = getSelectedChar(m_session, false);
+	if(!p)
+		p = m_session->GetPlayer();
+	WorldPacket data(SMSG_CAMERA_SHAKE, 200);
+	data << uint32(index);
+	data << uint32(unk);
+	p->GetSession()->SendPacket(&data);
+	return true;
+}
+
+bool ChatHandler::HandleLightOverrideCommand(const char *args, WorldSession *m_session)
+{
+	uint32 index = 0;
+	uint32 index2 = 0;
+	uint32 fadetime = 0;
+	if(sscanf(args, "%u %u %u", &index, &index2, &fadetime) != 3)
+		return false;
+	Player * p = getSelectedChar(m_session, false);
+	if(!p)
+		p = m_session->GetPlayer();
+
+	WorldPacket data(SMSG_OVERRIDE_LIGHT, 12);
+	data << uint32(index);
+	data << uint32(index2);
+	data << uint32(fadetime);
+	p->GetSession()->SendPacket(&data);
+	return true;
+}
