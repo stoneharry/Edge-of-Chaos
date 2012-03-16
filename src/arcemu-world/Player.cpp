@@ -4308,82 +4308,52 @@ void Player::SetSpeeds( uint8 type, float speed )
 	if( speed < 0.1f )
 		speed = 0.1f;
 
-	WorldPacket data(SMSG_FORCE_RUN_SPEED_CHANGE, 400);
-
-	if( type != SWIMBACK )
-	{
-		data << GetNewGUID();
-		data << uint32(m_speedChangeCounter++);
-		if( type == RUN )
-			data << uint8(1);
-
-		data << speed;
-	}
-	else
-	{
-		data << GetNewGUID();
-		data << uint32(m_speedChangeCounter++);
-		data << uint8(0);
-		data << uint32(getMSTime());
-		data << m_position.x;
-		data << m_position.y;
-		data << m_position.z;
-		data << m_position.o;
-		data << uint32(0);
-		data << speed;
-	}
-
-	switch(type)
-	{
-	case WALK:
-		{
-			data.SetOpcode(SMSG_FORCE_WALK_SPEED_CHANGE);
-			m_walkSpeed = speed;
-		}break;
-	case RUN:
-		{
-			data.SetOpcode(SMSG_FORCE_RUN_SPEED_CHANGE);
+	 WorldPacket data;
+	 switch (type)
+	 {
+		case WALK:
+			 data.Initialize(MSG_MOVE_SET_WALK_SPEED, 8+4+2+4+4+4+4+4+4+4);
+			 m_walkSpeed = speed;
+			 break;
+		case RUN:
+			data.Initialize(MSG_MOVE_SET_RUN_SPEED, 8+4+2+4+4+4+4+4+4+4);
 			m_runSpeed = speed;
-		}break;
-	case RUNBACK:
-		{
-			data.SetOpcode(SMSG_FORCE_RUN_BACK_SPEED_CHANGE);
+			break;
+		case RUNBACK:
+			data.Initialize(MSG_MOVE_SET_RUN_BACK_SPEED, 8+4+2+4+4+4+4+4+4+4);
 			m_backWalkSpeed = speed;
-		}break;
-	case SWIM:
-		{
-			data.SetOpcode(SMSG_FORCE_SWIM_SPEED_CHANGE);
+			break;
+		case SWIM:
+			data.Initialize(MSG_MOVE_SET_SWIM_SPEED, 8+4+2+4+4+4+4+4+4+4);
 			m_swimSpeed = speed;
-		}break;
-	case SWIMBACK:
-		{
-			data.SetOpcode(SMSG_FORCE_SWIM_BACK_SPEED_CHANGE);
+			break;
+		case SWIMBACK:
+			data.Initialize(MSG_MOVE_SET_SWIM_BACK_SPEED, 8+4+2+4+4+4+4+4+4+4);
 			m_backSwimSpeed = speed;
-		}break;
-	case TURN:
-		{
-			data.SetOpcode(SMSG_FORCE_TURN_RATE_CHANGE);
+			break;
+		case TURN:
+			data.Initialize(MSG_MOVE_SET_TURN_RATE, 8+4+2+4+4+4+4+4+4+4);
 			m_turnRate = speed;
-		}break;
-	case FLY:
-		{
-			data.SetOpcode(SMSG_FORCE_FLIGHT_SPEED_CHANGE);
+			break;
+		case FLY:
+			data.Initialize(MSG_MOVE_SET_FLIGHT_SPEED, 8+4+2+4+4+4+4+4+4+4);
 			m_flySpeed = speed;
-		}break;
-	case FLYBACK:
-		{
-			data.SetOpcode(SMSG_FORCE_FLIGHT_BACK_SPEED_CHANGE);
+			break;
+		case FLYBACK:
+			data.Initialize(MSG_MOVE_SET_FLIGHT_BACK_SPEED, 8+4+2+4+4+4+4+4+4+4);
 			m_backFlySpeed = speed;
-		}break;
-	case PITCH:
-		{
-			data.SetOpcode(SMSG_FORCE_PITCH_RATE_CHANGE);
+			break;
+		case PITCH:
+			data.Initialize(MSG_MOVE_SET_PITCH_RATE, 8+4+2+4+4+4+4+4+4+4);
 			m_pitchRate = speed;
-		}break;
-	default:
-		return;
+			break;
+			default:
+				 return;
 	}
-	SendMessageToSet(&data , true);
+
+	BuildMovementPacket(&data);
+	data << float(GetSpeed(type));
+	SendMessageToSet(&data, true);
 	GetAIInterface()->UpdateZeSpeeds();
 }
 

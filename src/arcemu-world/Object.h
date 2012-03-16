@@ -795,7 +795,7 @@ class SERVER_DECL Object : public EventableObject
 		Spell* m_currentSpell;
 		Spell* GetCurrentSpell() {return m_currentSpell;}
 		void SetCurrentSpell(Spell* cSpell) { m_currentSpell = cSpell; }
-
+		float GetSpeed(uint8 type);
 		//Andy's crap
 		virtual Object* GetPlayerOwner();
 		std::set<Spell*> m_pendingSpells;
