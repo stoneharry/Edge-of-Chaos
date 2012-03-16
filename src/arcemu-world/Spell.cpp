@@ -209,14 +209,6 @@ Spell::Spell(Object* Caster, SpellEntry* info, bool triggered, Aura* aur)
 				p_caster = TO< Player* >(Caster);
 				if(p_caster->GetDuelState() == DUEL_STATE_STARTED)
 					duelSpell = true;
-
-#ifdef GM_Z_DEBUG_DIRECTLY
-				// cebernic added it
-				if(p_caster->GetSession() && p_caster->GetSession()->CanUseCommand('z')  && p_caster->IsInWorld())
-					sChatHandler.BlueSystemMessage(p_caster->GetSession(), "[%sSystem%s] |rSpell::Spell: %s ID:%u,Category%u,CD:%u,DisType%u,Field4:%u,etA0=%u,etA1=%u,etA2=%u,etB0=%u,etB1=%u,etB2=%u", MSG_COLOR_WHITE, MSG_COLOR_LIGHTBLUE, MSG_COLOR_SUBWHITE,
-					                               info->Id, info->Category, info->RecoveryTime, info->DispelType, info->castUI, info->EffectImplicitTargetA[0], info->EffectImplicitTargetA[1], info->EffectImplicitTargetA[2], info->EffectImplicitTargetB[0], info->EffectImplicitTargetB[1], info->EffectImplicitTargetB[2]);
-#endif
-
 			}
 			break;
 
@@ -714,6 +706,11 @@ uint8 Spell::DidHit(uint32 effindex, Unit* target)
 	if(u_caster == u_victim)
 		return SPELL_DID_HIT_SUCCESS;
 
+	/************************************************************************/
+	/* You can't miss training dummies.                                     */
+	/************************************************************************/
+	if(u_victim->isTrainingDummy())
+		return SPELL_DID_HIT_SUCCESS;
 	/************************************************************************/
 	/* Check if the unit is evading                                         */
 	/************************************************************************/
