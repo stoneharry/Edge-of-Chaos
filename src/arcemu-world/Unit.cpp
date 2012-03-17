@@ -8035,7 +8035,6 @@ void Unit::SendAuraUpdate(uint32 AuraSlot, bool remove)
 {
 	Aura* aur = m_auras[ AuraSlot ];
 
-	ARCEMU_ASSERT(aur != NULL);
 	if(aur == NULL)
 		return;
 	if(!aur->GetSpellProto())
