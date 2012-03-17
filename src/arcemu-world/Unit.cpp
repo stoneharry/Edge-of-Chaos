@@ -7325,7 +7325,7 @@ void Unit::SendPeriodicHealAuraLog(const WoWGuid & CasterGUID, const WoWGuid & T
 	data << uint32(FLAG_PERIODIC_HEAL);
 	data << uint32(healed);
 	data << uint32(over_healed);
-	data << uint32(0);		// I don't know what it is. maybe something related to absorbed heal?
+	data << uint32(0);		// heal absorb
 	data << uint8(is_critical);
 
 	SendMessageToSet(&data, true);
@@ -7997,6 +7997,8 @@ void Unit::BroadcastAuras()
 		
 		if( aur != NULL )
 		{
+			if(!aur->GetSpellProto())
+				continue;
 			if(aur->GetSpellProto()->Attributes & SPELL_ATTR0_HIDDEN_CLIENTSIDE)
 				continue;
 			uint8 Flags = uint8( aur->GetAuraFlags() );
@@ -8034,6 +8036,8 @@ void Unit::SendAuraUpdate(uint32 AuraSlot, bool remove)
 	Aura* aur = m_auras[ AuraSlot ];
 
 	ARCEMU_ASSERT(aur != NULL);
+	if(!aur->GetSpellProto())
+		return;
 	if(aur->GetSpellProto()->Attributes & SPELL_ATTR0_HIDDEN_CLIENTSIDE)
 		return;
 
@@ -8086,6 +8090,11 @@ void Unit::SendAuraUpdate(uint32 AuraSlot, bool remove)
 
 void Unit::SendAuraUpdate(Aura * aur)
 {
+	if(aur == NULL)
+		return;
+
+	if(!aur->GetSpellProto())
+		return;
 	if(aur->GetSpellProto()->Attributes & SPELL_ATTR0_HIDDEN_CLIENTSIDE)
 		return;
 
