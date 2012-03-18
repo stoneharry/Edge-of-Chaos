@@ -120,13 +120,13 @@ bool Reincarnation( uint32 i, Aura *a, bool apply ){
 
 bool WeaponEffects( uint32 i, Spell *s )
 {
-	s->m_caster->SpellNonMeleeDamageLog(s->GetUnitTarget(), s->GetProto()->Id, RandomUInt(30, 40), !s->m_triggeredSpell, false);
+	s->m_caster->SpellNonMeleeDamageLog(s->GetUnitTarget(), s->GetProto()->Id, 35, !s->m_triggeredSpell, false);
 	return true;
 }
 
 bool ShieldNerf( uint32 i, Spell *s )
 {
-	s->m_caster->SpellNonMeleeDamageLog(s->GetUnitTarget(), s->GetProto()->Id, RandomUInt(20, 45), !s->m_triggeredSpell, false);
+	s->m_caster->SpellNonMeleeDamageLog(s->GetUnitTarget(), s->GetProto()->Id, 30, !s->m_triggeredSpell, false);
 	return true;
 }
 
