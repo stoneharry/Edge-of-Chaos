@@ -2400,39 +2400,3 @@ bool Object::GetPoint(float angle, float rad, float & outx, float & outy, float 
 
 	return true;
 }
-
-float Object::GetSpeed(uint8 type)
-{
-	float ret = 0.0f;
-	switch(type)
-	{
-	case WALK:
-		ret = m_walkSpeed;
-		break;
-	case RUN:
-		ret = m_runSpeed;
-		break;
-	case RUNBACK:
-		ret = m_backWalkSpeed;
-		break;
-	case SWIM:
-		ret = m_swimSpeed;
-		break;
-	case SWIMBACK:
-		ret = m_backSwimSpeed;
-		break;
-	case TURN:
-		ret = m_turnRate;
-		break;
-	case FLY:
-		ret = m_flySpeed;
-		break;
-	case FLYBACK:
-		ret = m_backFlySpeed;
-		break;
-	case PITCH:
-		ret = m_pitchRate;
-		break;
-	}
-	return ret;
-}
