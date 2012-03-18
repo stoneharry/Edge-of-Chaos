@@ -790,7 +790,7 @@ Aura::~Aura()
 
 void Aura::Remove()
 {
-	if(GetCharges() > 0 && m_spellProto->proc_interval == 0)
+	if(GetCharges() >= 0)
 	{
 		if(m_target->m_chargeSpellsInUse)
 		{
