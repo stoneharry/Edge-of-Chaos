@@ -5903,16 +5903,16 @@ uint32 Unit::ModVisualAuraStackCount(Aura* aur, int32 count)
 	{
 		m_auraStackCount[slot] = 0;
 		m_auravisuals[slot] = 0;
-
-		SendAuraUpdate(slot, true);
+		//SendAuraUpdate(slot, true);
 	}
 	else
 	{
 		m_auraStackCount[slot] += static_cast<uint8>(count);
 		m_auravisuals[slot] = aur->GetSpellId();
 
-		SendAuraUpdate(slot, false);
+		//SendAuraUpdate(slot, false);
 	}
+	BroadcastAuras();
 
 	return m_auraStackCount[slot];
 }

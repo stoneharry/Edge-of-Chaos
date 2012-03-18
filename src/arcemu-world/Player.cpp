@@ -4519,7 +4519,7 @@ void Player::ResurrectPlayer()
 
 	if( m_bg != NULL )
 		m_bg->HookOnPlayerResurrect( this );
-	BroadcastAuras();
+	SendAurasForTarget(this);
 }
 
 void Player::KillPlayer()
@@ -13549,7 +13549,54 @@ void Player::RemoveVehicleComponent(){
 
 void Player::SendAurasForTarget(Unit* target)
 {
-	target->BroadcastAuras();
+	if(HasAuraWithName(SPELL_AURA_HOVER))
+		SendHover();
+	if(HasAuraWithName(SPELL_AURA_FEATHER_FALL))
+		SendFeatherFall();
+	if(HasAuraWithName(SPELL_AURA_WATER_WALK))
+		SendWaterWalk();
+	WorldPacket data( SMSG_AURA_UPDATE_ALL, 200 );
+
+	data << WoWGuid( target->GetNewGUID() );
+	for ( uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i )
+	{
+		Aura * aur = target->m_auras[ i ];
+		
+		if( aur != NULL )
+		{
+			if(!aur->GetSpellProto())
+				continue;
+			if(aur->GetSpellProto()->Attributes & SPELL_ATTR0_HIDDEN_CLIENTSIDE)
+				continue;
+			uint8 Flags = uint8( aur->GetAuraFlags() );
+
+			Flags = ( AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3 );
+		
+			if( aur->IsPositive() )
+				Flags |= AFLAG_CANCELLABLE;
+			else
+				Flags |= AFLAG_NEGATIVE;
+
+			if( aur->GetDuration() != 0 && !(aur->GetSpellProto()->AttributesEx5 & SPELL_ATTR5_HIDE_DURATION))
+				Flags |= AFLAG_DURATION;
+
+			data << uint8( aur->m_visualSlot );
+			data << uint32( aur->GetSpellId() );
+			data << uint8( Flags );
+			data << uint8( getLevel() );
+			data << uint8(aur->GetSpellProto()->maxstack ? m_auraStackCount[ aur->m_visualSlot ] : aur->GetCharges());
+			
+			if( ( Flags & AFLAG_NOT_CASTER ) == 0 )
+				data << WoWGuid(aur->GetCasterGUID());
+
+ 		if( Flags & AFLAG_DURATION ){
+				data << uint32( aur->GetDuration() );
+				data << uint32( aur->GetTimeLeft() );
+			}
+		}
+	}
+	SendPacket(&data);
+	//SendMessageToSet(&data, true);
 }
 
 bool Player::InInstance()
