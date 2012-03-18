@@ -936,6 +936,8 @@ void Aura::Remove()
 				m_target->RemoveAura(*itr, GetCasterGUID());
 		}
 	}
+	if(m_target)
+		m_target->BroadcastAuras();
 }
 
 void Aura::AddMod(uint32 t, int32 a, uint32 miscValue, uint32 i)

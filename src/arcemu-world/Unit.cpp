@@ -8028,7 +8028,9 @@ void Unit::BroadcastAuras()
 			}
 		}
 	}
-	SendMessageToSet(&data, true);
+	SendMessageToSet(&data, false);
+	if(IsPlayer())
+		TO_PLAYER(this)->SendPacket(&data);
 }
 
 void Unit::SendAuraUpdate(uint32 AuraSlot, bool remove)
