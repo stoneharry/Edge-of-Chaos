@@ -8577,7 +8577,7 @@ void Aura::SpellAuraModExperinceGain(bool apply)
 void Aura::ModifyCharges(int32 amt)
 {
 	procCharges = amt;
-	if(amt > 0)
+	if(amt >= 0)
 		Remove();
 	else
 		m_target->SendAuraUpdate(this);
