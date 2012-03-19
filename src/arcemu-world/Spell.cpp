@@ -3012,9 +3012,11 @@ void Spell::HandleAddAura(uint64 guid)
 			if(Player *p = u_caster->GetSpellModOwner())
 				p->ApplySpellMod(GetProto()->Id, SPELLMOD_CHARGES, charges, this);
 		}
-		Aura* staur = sSpellFactoryMgr.NewAura(aur->GetSpellProto(), aur->GetDuration(), aur->GetCaster(), aur->GetTarget(), m_triggeredSpell, i_caster);
-		Target->AddAura(staur);
-		staur->ModifyCharges(charges - 1);
+		for(int i = 0; i < (charges - 1); ++i)
+		{
+			Aura* staur = sSpellFactoryMgr.NewAura(aur->GetSpellProto(), aur->GetDuration(), aur->GetCaster(), aur->GetTarget(), m_triggeredSpell, i_caster);
+			Target->AddAura(staur);
+		}
 		if(!(aur->GetSpellProto()->procFlags & PROC_REMOVEONUSE))
 		{
 			SpellCharge charge;
@@ -3027,7 +3029,6 @@ void Spell::HandleAddAura(uint64 guid)
 	}
 
 	Target->AddAura(aur); // the real spell is added last so the modifier is removed last
-	aur->SetNegative();
 	if (std::vector<int32> const* spellTriggered = objmgr.GetSpellLinked(GetProto()->Id + SPELL_LINK_AURA))
 	{
 		for (std::vector<int32>::const_iterator itr = spellTriggered->begin(); itr != spellTriggered->end(); ++itr)

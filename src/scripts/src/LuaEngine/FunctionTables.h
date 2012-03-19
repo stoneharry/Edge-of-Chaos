@@ -558,6 +558,11 @@ RegType<Unit> UnitMethods[] =
 	{ "AIDisableCombat", &LuaUnit::DisableCombat },
 	{ "_CreateTaxi",&LuaUnit::_CreateTaxi },
 	{ "_AddPathNode", &LuaUnit::_AddPathNode },
+	{ "AddMovementFlag", &LuaUnit::AddMovementFlag },
+	{ "AddExtraMovementFlag", &LuaUnit::AddExtraMovementFlag },
+	{ "RemoveMovementFlag", &LuaUnit::RemoveMovementFlag },
+	{ "RemoveExtraMovementFlag", &LuaUnit::RemoveExtraMovementFlag },
+	{ "SendMovementFlagUpdate", &LuaUnit::SendMovementFlagUpdate },
 	{ "_StartTaxi", &LuaUnit::_StartTaxi },
 	{ NULL, NULL },
 };

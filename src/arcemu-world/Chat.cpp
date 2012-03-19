@@ -377,6 +377,7 @@ void CommandTableStorage::Init()
 		{ "disband",      'm', &ChatHandler::HandleGuildDisbandCommand,      "Disbands the guild of your target.",  NULL, 0, 0, 0 },
 		{ "rank",         'm', &ChatHandler::HandleGuildRankCommand,		 "Changes the guild rank of your target.",  NULL, 0, 0, 0 },
 		{ "disband",      'm', &ChatHandler::HandleGuildDisbandCommand,      "Removes players that haven't logged in 2 weeks from your guild.",  NULL, 0, 0, 0 },
+		{ "kickinactive",      'z', &ChatHandler::HandleGuildKickInactiveCommand,      "Kicks inactive players from guild.",  NULL, 0, 0, 0 },
 		{ NULL,           '0', NULL,                                         "",                                    NULL, 0, 0, 0 }
 	};
 	dupe_command_table(GuildCommandTable, _GuildCommandTable);

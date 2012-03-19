@@ -267,12 +267,12 @@ float TileMap::GetHeight(float x, float y)
 
 void TileMap::Load(char* filename)
 {
-	sLog.Debug("Terrain", "Loading %s", filename);
+	//sLog.Debug("Terrain", "Loading %s", filename);
 	FILE* f = fopen(filename, "rb");
 
 	if(f == NULL)
 	{
-		sLog.Error("Terrain", "%s does not exist", filename);
+		//sLog.Error("Terrain", "%s does not exist", filename);
 		return;
 	}
 

@@ -283,7 +283,7 @@ class SERVER_DECL Group
 		Mutex m_groupLock;
 		bool m_dirty;
 		bool m_updateblock;
-		
+		uint32 updatecounter;
 	public:
 		uint8 m_difficulty;
 		uint8 m_raiddifficulty;

@@ -479,6 +479,7 @@ Player::Player(uint32 guid)
 	block_from_items = 0;
 	confirm_item_send = false;
 	m_spellModTakingSpell = NULL;
+	m_roles = 0;
 }
 
 void Player::OnLogin()
@@ -8842,9 +8843,11 @@ void Player::CompleteLoading()
 
 		if(sp->procCharges > 0 && (*i).charges > 0)
 		{
-			Aura* a = sSpellFactoryMgr.NewAura(sp, (*i).dur, this, this, false);
-			AddAura(a);
-			a->ModifyCharges((*i).charges - 1);
+			for(uint32 x = 0; x < (*i).charges - 1; x++)
+			{
+				Aura* a = sSpellFactoryMgr.NewAura(sp, (*i).dur, this, this, false);
+				this->AddAura(a);
+			}
 			if(m_chargeSpells.find(sp->Id) == m_chargeSpells.end() && !(sp->procFlags & PROC_REMOVEONUSE))
 			{
 				SpellCharge charge;
@@ -13579,7 +13582,58 @@ void Player::RemoveVehicleComponent(){
 
 void Player::SendAurasForTarget(Unit* target)
 {
-	target->BroadcastAuras();
+	if(target->HasAuraWithName(SPELL_AURA_HOVER))
+		target->SendHover(true);
+	if(target->HasAuraWithName(SPELL_AURA_FEATHER_FALL))
+		target->SendFeatherFall(true);
+	if(target->HasAuraWithName(SPELL_AURA_WATER_WALK))
+		target->SendWaterWalk(true);
+	WorldPacket data( SMSG_AURA_UPDATE_ALL, 200 );
+
+	data << WoWGuid( target->GetNewGUID() );
+	for ( uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i )
+	{
+		Aura * aur = target->m_auras[ i ];
+		
+		if( aur != NULL )
+		{
+			if(aur->GetSpellProto()->Attributes & SPELL_ATTR0_HIDDEN_CLIENTSIDE)
+				continue;
+			uint8 Flags = uint8( aur->GetAuraFlags() );
+
+			Flags = ( AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3 );
+		
+			if( aur->IsPositive() )
+				Flags |= AFLAG_CANCELLABLE;
+			else
+				Flags |= AFLAG_NEGATIVE;
+
+			if( aur->GetDuration() != 0 && !(aur->GetSpellProto()->AttributesEx5 & SPELL_ATTR5_HIDE_DURATION))
+				Flags |= AFLAG_DURATION;
+
+			data << uint8( aur->m_visualSlot );
+			data << uint32( aur->GetSpellId() );
+			data << uint8( Flags );
+			data << uint8( getLevel() );
+			uint8 count;
+			std::map< uint32, struct SpellCharge >::iterator iter;
+			iter = target->m_chargeSpells.find(aur->GetSpellId());
+			if(iter != target->m_chargeSpells.end())
+				count = iter->second.count;
+			else
+				count = m_auraStackCount[ aur->m_visualSlot ];
+			data << uint8(count);
+			
+			if( ( Flags & AFLAG_NOT_CASTER ) == 0 )
+				data << WoWGuid(aur->GetCasterGUID());
+
+ 		if( Flags & AFLAG_DURATION ){
+				data << uint32( aur->GetDuration() );
+				data << uint32( aur->GetTimeLeft() );
+			}
+		}
+	}
+	SendPacket(&data);
 }
 
 bool Player::InInstance()
@@ -13936,7 +13990,7 @@ void Player::RestoreSpellMods(Spell* spell, uint32 ownerAuraId, Aura* aura)
             SpellModifier* mod = *itr;
 
             // spellmods without aura set cannot be charged
-			if (!mod->ownerAura)
+            if (!mod->ownerAura || !m_auraStackCount[ mod->ownerAura->m_visualSlot ])
                 continue;
 
             // Restore only specific owner aura mods
@@ -13965,8 +14019,8 @@ void Player::RestoreSpellMods(Spell* spell, uint32 ownerAuraId, Aura* aura)
                 mod->charges++;
 
             // Do not set more spellmods than avalible
-			if (mod->ownerAura->GetCharges() < mod->charges)
-                mod->charges = mod->ownerAura->GetCharges();
+            if (m_auraStackCount[ mod->ownerAura->m_visualSlot ] < mod->charges)
+                mod->charges = m_auraStackCount[ mod->ownerAura->m_visualSlot ];
 
             // Skip this check for now - aura charges may change due to various reason
             // TODO: trac these changes correctly
@@ -13996,7 +14050,7 @@ void Player::RemoveSpellMods(Spell* spell)
             SpellModifier* mod = *itr;
             ++itr;
             // spellmods without aura set cannot be charged
-            if (!mod->ownerAura)
+            if (!mod->ownerAura || !m_auraStackCount[ mod->ownerAura->m_visualSlot ])
                 continue;
 
             // check if mod affected this spell

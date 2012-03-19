@@ -779,7 +779,6 @@ Aura::Aura(SpellEntry* proto, int32 duration, Object* caster, Unit* target, bool
 	m_auraSlot = 0xffff;
 	m_interrupted = -1;
 	m_flags = 0;
-	procCharges = m_spellProto->procCharges;
 	//fixed_amount = 0;//used only por percent values to be able to recover value correctly.No need to init this if we are not using it
 }
 
@@ -790,30 +789,6 @@ Aura::~Aura()
 
 void Aura::Remove()
 {
-	if(GetCharges() > 0 && m_spellProto->proc_interval == 0)
-	{
-		if(m_target->m_chargeSpellsInUse)
-		{
-			m_target->m_chargeSpellRemoveQueue.push_back(GetSpellId());
-		}
-		else
-		{
-			std::map< uint32, struct SpellCharge >::iterator iter;
-			iter = m_target->m_chargeSpells.find(GetSpellId());
-			if(iter != m_target->m_chargeSpells.end())
-			{
-				if(iter->second.count > 1)
-				{
-					--iter->second.count;
-					ModifyCharges(--iter->second.count);
-					return;
-				}
-				else
-					m_target->m_chargeSpells.erase(iter);
-			}
-		}
-	}
-
 	sEventMgr.RemoveEvents(this);
 	//TODO: Check this condition - consider there are 3 aura modifiers and m_deleted can be set to true by first one,
 	// other two mods are normally applied, but cant un-apply (?)
@@ -846,6 +821,25 @@ void Aura::Remove()
 			ClearAATargets();
 	}
 
+	if(m_spellProto->procCharges > 0 && m_spellProto->proc_interval == 0)
+	{
+		if(m_target->m_chargeSpellsInUse)
+		{
+			m_target->m_chargeSpellRemoveQueue.push_back(GetSpellId());
+		}
+		else
+		{
+			std::map< uint32, struct SpellCharge >::iterator iter;
+			iter = m_target->m_chargeSpells.find(GetSpellId());
+			if(iter != m_target->m_chargeSpells.end())
+			{
+				if(iter->second.count > 1)
+					--iter->second.count;
+				else
+					m_target->m_chargeSpells.erase(iter);
+			}
+		}
+	}
 
 	//maybe we are removing it without even assigning it. Example when we are refreshing an aura
 	if(m_auraSlot != 0xFFFF)
@@ -936,8 +930,8 @@ void Aura::Remove()
 				m_target->RemoveAura(*itr, GetCasterGUID());
 		}
 	}
-	//if(m_target)
-		//m_target->BroadcastAuras();
+	if(m_target)
+		m_target->BroadcastAuras();
 }
 
 void Aura::AddMod(uint32 t, int32 a, uint32 miscValue, uint32 i)
@@ -997,6 +991,8 @@ void Aura::ApplyModifiers(bool apply)
 		else
 			LOG_ERROR("Unknown Aura id %d", m_modList[x].m_type);
 	}
+	if(m_target)
+		m_target->BroadcastAuras();
 }
 
 void Aura::UpdateModifiers()
@@ -5895,15 +5891,17 @@ void Aura::SpellAuraModTotalThreat(bool apply)
 
 void Aura::SpellAuraWaterWalk(bool apply)
 {
-    if (apply)
-       m_target->AddUnitMovementFlag(MOVEFLAG_WATER_WALK);
-   else
-         m_target->RemoveUnitMovementFlag(MOVEFLAG_WATER_WALK);
-	m_target->SendWaterWalk();
+    if(apply)
+		m_target->AddUnitMovementFlag(MOVEFLAG_WATER_WALK);
+	else
+		m_target->RemoveUnitMovementFlag(MOVEFLAG_WATER_WALK);
+	m_target->SendWaterWalk(apply);
 }
 
 void Aura::SpellAuraFeatherFall(bool apply)
 {
+	if(m_target->HasAuraWithName(SPELL_AURA_FEATHER_FALL, GetSpellId()))
+		return;
 	if(apply)
 	{
 		m_target->AddUnitMovementFlag(MOVEFLAG_FEATHER_FALL);
@@ -5914,7 +5912,7 @@ void Aura::SpellAuraFeatherFall(bool apply)
 		m_target->RemoveUnitMovementFlag(MOVEFLAG_FEATHER_FALL);
 		p_target->m_noFallDamage = false;
 	}
-	m_target->SendFeatherFall();
+	m_target->SendFeatherFall(apply);
 }
 
 void Aura::SpellAuraHover(bool apply)
@@ -5922,7 +5920,7 @@ void Aura::SpellAuraHover(bool apply)
 	SetPositive();
 
 	m_target->SetHover(apply);
-	m_target->SendHover();
+	m_target->SendHover(apply);
 }
 
 void Aura::ApplySpellMod(bool apply)
@@ -5938,42 +5936,6 @@ void Aura::ApplySpellMod(bool apply)
 	smod->charges = p->GetAuraStackCount(GetSpellProto()->Id);
     smod->ownerAura = this;
 	p->AddSpellMod(smod, apply);
-}
-
-void Aura::SendDummyModifierLog(std::map< SpellEntry*, uint32 >* m, SpellEntry* spellInfo, uint32 i, bool apply, bool pct)
-{
-	int32 v = spellInfo->EffectBasePoints[i] + 1;
-	uint32* mask = spellInfo->EffectSpellClassMask[i];
-	uint8 type = static_cast<uint8>(spellInfo->EffectMiscValue[i]);
-
-	if(apply)
-	{
-		m->insert(make_pair(spellInfo, i));
-	}
-	else
-	{
-		v = -v;
-		std::map<SpellEntry*, uint32>::iterator itr = m->find(spellInfo);
-		if(itr != m->end())
-			m->erase(itr);
-	}
-
-	uint32 intbit = 0, groupnum = 0;
-	for(uint8 bit = 0; bit < SPELL_GROUPS; ++bit, ++intbit)
-	{
-		if(intbit == 32)
-		{
-			++groupnum;
-			intbit = 0;
-		}
-		if((1 << intbit) & mask[groupnum])
-		{
-			if(p_target == NULL)
-				continue;
-
-			//p_target->SendSpellModifier(bit, type, v, pct);
-		}
-	}
 }
 
 void Aura::SpellAuraAddClassTargetTrigger(bool apply)
@@ -8572,13 +8534,4 @@ void Aura::SpellAuraPreventResurrection(bool apply)
 
 void Aura::SpellAuraModExperinceGain(bool apply)
 {
-}
-
-void Aura::ModifyCharges(int32 amt)
-{
-	procCharges = amt;
-	if(amt > 0)
-		Remove();
-	else
-		m_target->SendAuraUpdate(this);
 }

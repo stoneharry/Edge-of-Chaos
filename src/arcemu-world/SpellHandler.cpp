@@ -482,12 +482,18 @@ void WorldSession::HandleCancelAuraOpcode(WorldPacket & recvPacket)
 	else
 	{
 		SpellEntry* info = dbcSpell.LookupEntryForced(spellId);
-
-		if(info != NULL && !(info->Attributes & static_cast<uint32>(SPELL_ATTR0_CANT_CANCEL)))
+		Aura * a = _player->FindAura(spellId);
+		if(a)
 		{
-			_player->RemoveAllAuraById(spellId);
-			LOG_DEBUG("Removing all auras with ID: %u", spellId);
+			if(!a->IsPositive())
+				return;
+			if(info->Attributes & SPELL_ATTR0_NEGATIVE_1)
+				return;
 		}
+		if(info->Attributes & static_cast<uint32>(SPELL_ATTR0_CANT_CANCEL))
+			return;
+		if(info != NULL)
+			_player->RemoveAllAuraById(spellId);
 	}
 }
 
@@ -503,9 +509,7 @@ void WorldSession::HandleCancelChannellingOpcode(WorldPacket & recvPacket)
 	if(!plyr)
 		return;
 	if(plyr->m_currentSpell)
-	{
 		plyr->m_currentSpell->cancel();
-	}
 }
 
 void WorldSession::HandleCancelAutoRepeatSpellOpcode(WorldPacket & recv_data)

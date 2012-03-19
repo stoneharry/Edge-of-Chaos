@@ -6279,5 +6279,40 @@ class LuaUnit
 			plr->_StartTaxi(mount_id, 0);
 			return 0;
 		}
+
+		static int AddMovementFlag(lua_State* L, Unit* ptr)
+		{
+			TEST_UNIT();
+			uint32 flag = luaL_checkint(L, 1);
+			ptr->AddUnitMovementFlag(flag);
+			return 0;
+		}
+		static int AddExtraMovementFlag(lua_State* L, Unit* ptr)
+		{
+			TEST_UNIT();
+			uint32 flag = luaL_checkint(L, 1);
+			ptr->AddExtraUnitMovementFlag(flag);
+			return 0;
+		}
+		static int RemoveMovementFlag(lua_State* L, Unit* ptr)
+		{
+			TEST_UNIT();
+			uint32 flag = luaL_checkint(L, 1);
+			ptr->RemoveUnitMovementFlag(flag);
+			return 0;
+		}
+		static int RemoveExtraMovementFlag(lua_State* L, Unit* ptr)
+		{
+			TEST_UNIT();
+			uint32 flag = luaL_checkint(L, 1);
+			ptr->RemoveExtraUnitMovementFlag(flag);
+			return 0;
+		}
+		static int SendMovementFlagUpdate(lua_State* L, Unit* ptr)
+		{
+			TEST_UNIT();
+			ptr->SendMovementFlagUpdate();
+			return 0;
+		}
 };
 #endif

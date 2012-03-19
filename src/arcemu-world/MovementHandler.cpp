@@ -176,6 +176,10 @@ void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSessio
 		{
 			if((movement_info.z + _player->m_noseLevel) > pSession->m_wLevel)
 			{
+				_player->m_UnderwaterTime = 0;
+				_player->m_UnderwaterMaxTime = 0;
+				_player->m_UnderwaterState = UNDERWATERSTATE_NONE;
+				_player->StopMirrorTimer(TIMER_BREATH);
 				_player->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_LEAVE_WATER);
 
 				// unset swim session water level
@@ -484,6 +488,9 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 	/************************************************************************/
 	/* Hack Detection by Classic	                                        */
 	/************************************************************************/
+
+	/*
+	This stuff doesn't even work :/
 	if(!movementInfo.transGuid && recv_data.GetOpcode() != MSG_MOVE_JUMP && !_player->FlyCheat && !_player->flying_aura && !(movementInfo.flags & MOVEFLAG_SWIMMING || movementInfo.flags & MOVEFLAG_FALLING) && movementInfo.z > _player->GetPositionZ() && movementInfo.x == _player->GetPositionX() && movementInfo.y == _player->GetPositionY())
 	{
 		WorldPacket data(SMSG_MOVE_UNSET_CAN_FLY, 13);
@@ -498,7 +505,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 		data << _player->GetNewGUID();
 		data << uint32(5);
 		SendPacket(&data);
-	}
+	}*/
 
 	/************************************************************************/
 	/* Falling damage checks                                                */
@@ -531,7 +538,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 
 			//checks that player has fallen more than 12 units, otherwise no damage will be dealt
 			//falltime check is also needed here, otherwise sudden changes in Z axis position, such as using !recall, may result in death
-			if(_player->isAlive() && !_player->bInvincible && !_player->GodModeCheat && falldistance > 12 && (UNIXTIME >= _player->m_fallDisabledUntil) /*&& movement_info.FallTime > 1000*/ && !_player->m_noFallDamage)
+			if(_player->isAlive() && !_player->bInvincible && !_player->GodModeCheat && falldistance > 12 && (UNIXTIME >= _player->m_fallDisabledUntil) /*&& movement_info.FallTime > 1000*/ && !_player->m_noFallDamage && !_player->IsFlying() && !_player->HasAuraWithName(SPELL_AURA_FEATHER_FALL))
 			{
 				// 1.7% damage for each unit fallen on Z axis over 13
 				uint32 health_loss = float2int32(_player->GetUInt32Value(UNIT_FIELD_MAXHEALTH) * (falldistance - 12) * 0.017f);
@@ -852,7 +859,7 @@ void WorldSession::ReadMovementInfo(WorldPacket &data, MovementInfo* mi)
 	}
 	if(mi->HasMovementFlag(MOVEFLAG_SPLINE_ELEVATION))
 		data >> mi->splineElevation;
-
+	/*
     // This must be a packet spoofing attempt. MOVEMENTFLAG_ROOT sent from the client is not valid,
     // and when used in conjunction with any of the moving movement flags such as MOVEMENTFLAG_FORWARD
     // it will freeze clients that receive this player's movement info.
@@ -881,7 +888,7 @@ void WorldSession::ReadMovementInfo(WorldPacket &data, MovementInfo* mi)
 
     // Cannot move forwards and backwards at the same time
     if (mi->HasMovementFlag(MOVEFLAG_MOVE_FORWARD) && mi->HasMovementFlag(MOVEFLAG_MOVE_BACKWARD))
-        mi->flags &= ~(MOVEFLAG_MOVE_FORWARD | MOVEFLAG_MOVE_BACKWARD);
+        mi->flags &= ~(MOVEFLAG_MOVE_FORWARD | MOVEFLAG_MOVE_BACKWARD);*/
 }
 
 void WorldSession::WriteMovementInfo(WorldPacket* data, MovementInfo* mi)

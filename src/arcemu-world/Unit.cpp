@@ -2219,11 +2219,7 @@ uint32 Unit::HandleProc(uint32 flag, Unit* victim, SpellEntry* CastingSpell, boo
 		if(iter != m_chargeSpells.end())
 		{
 			if(iter->second.count > 1)
-			{
-				Aura * ab = FindAura(iter->second.spellId);
 				--iter->second.count;
-				ab->ModifyCharges(--iter->second.count);
-			}
 			else
 				m_chargeSpells.erase(iter);
 		}
@@ -5890,6 +5886,67 @@ bool Unit::IsPoisoned()
 	return false;
 }
 
+
+void Unit::SendAuraUpdate(uint32 AuraSlot, bool remove)
+{
+	BroadcastAuras();
+/*	Aura* aur = m_auras[ AuraSlot ];
+
+	ARCEMU_ASSERT(aur != NULL);
+
+	WorldPacket data(SMSG_AURA_UPDATE, 30);
+
+	if(remove)
+	{
+		data << WoWGuid(GetGUID());
+		data << uint8(aur->m_visualSlot);
+		data << uint32(0);
+	}
+	else
+	{
+		uint8 flags = (AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3);
+
+		if(aur->IsPositive())
+			flags |= AFLAG_CANCELLABLE;
+		else
+			flags |= AFLAG_NEGATIVE;
+
+		if( aur->GetDuration() != 0 && !(aur->GetSpellProto()->AttributesEx5 & SPELL_ATTR5_HIDE_DURATION))
+			flags |= AFLAG_DURATION;
+
+		data << WoWGuid(GetGUID());
+		data << uint8(aur->m_visualSlot);
+
+		data << uint32(aur->GetSpellId());
+		data << uint8(flags);
+
+		Unit* caster = aur->GetUnitCaster();
+		if(caster != NULL)
+			data << uint8(caster->getLevel());
+		else
+			data << uint8(sWorld.m_levelCap);
+		uint8 count;
+		std::map< uint32, struct SpellCharge >::iterator iter;
+		iter = m_chargeSpells.find(aur->GetSpellId());
+		if(iter != m_chargeSpells.end())
+			count = iter->second.count;
+		else
+			count = m_auraStackCount[ aur->m_visualSlot ];
+		data << uint8(count);
+
+		if((flags & AFLAG_NOT_CASTER) == 0)
+			data << WoWGuid(aur->GetCasterGUID());
+
+		if(flags & AFLAG_DURATION)
+		{
+			data << uint32(aur->GetDuration());
+			data << uint32(aur->GetTimeLeft());
+		}
+	}
+
+	SendMessageToSet(&data, true);*/
+}
+
 uint32 Unit::ModVisualAuraStackCount(Aura* aur, int32 count)
 {
 	if(!aur)
@@ -7867,28 +7924,54 @@ Player* Unit::GetSpellModOwner()
     return NULL;
 }
 
-void Unit::SendHover()
+void Unit::SendHover(bool apply)
 {
-    WorldPacket data(MSG_MOVE_HOVER, 64);
-    data.append(GetNewGUID());
-    BuildMovementPacket(&data);
-    SendMessageToSet(&data, true);
+	if(GetFloatValue(UNIT_FIELD_HOVERHEIGHT) <= 0)
+		SetFloatValue(UNIT_FIELD_HOVERHEIGHT, 1.0f);
+	WorldPacket data;
+	if(apply)
+	{
+		data.Initialize(MSG_MOVE_HOVER, 64);
+		data.append(GetNewGUID());
+		BuildMovementPacket(&data);
+		SendMessageToSet(&data, true);
+	}
+	data.Initialize(apply ? SMSG_MOVE_SET_HOVER : SMSG_MOVE_UNSET_HOVER);
+	data << GetNewGUID();
+	data << uint32(0);
+	SendMessageToSet(&data, true);
 }
 
-void Unit::SendWaterWalk() 
+void Unit::SendWaterWalk(bool apply) 
 {
-    WorldPacket data(MSG_MOVE_WATER_WALK, 64);
-    data.append(GetNewGUID());
-    BuildMovementPacket(&data);
-    SendMessageToSet(&data, true);
+	WorldPacket data;
+	if(apply)
+	{
+		data.Initialize(MSG_MOVE_WATER_WALK, 64);
+		data.append(GetNewGUID());
+		BuildMovementPacket(&data);
+		SendMessageToSet(&data, true);
+	}
+	data.Initialize(apply ? SMSG_MOVE_WATER_WALK : SMSG_MOVE_LAND_WALK);
+	data << GetNewGUID();
+	data << uint32(apply ? 8 : 4);
+	SendMessageToSet(&data, true);
 }
 
-void Unit::SendFeatherFall()
+void Unit::SendFeatherFall(bool apply)
 {
-    WorldPacket data(MSG_MOVE_FEATHER_FALL, 64);
-    data.append(GetNewGUID());
-    BuildMovementPacket(&data);
-    SendMessageToSet(&data, true);
+    WorldPacket data;
+	if(apply)
+	{
+		data.Initialize(MSG_MOVE_FEATHER_FALL, 64);
+		data.append(GetNewGUID());
+		BuildMovementPacket(&data);
+		SendMessageToSet(&data, true);
+	}
+	data.Initialize(apply ? SMSG_MOVE_FEATHER_FALL : SMSG_MOVE_NORMAL_FALL);
+	data << GetNewGUID();
+	data << uint32(0);
+	SendMessageToSet(&data, true);
 }
 
 bool Unit::SetHover(bool enable)
@@ -7983,11 +8066,11 @@ void Unit::BuildHeartBeatMsg(WorldPacket* data)
 void Unit::BroadcastAuras()
 {
 	if(HasAuraWithName(SPELL_AURA_HOVER))
-		SendHover();
+		SendHover(true);
 	if(HasAuraWithName(SPELL_AURA_FEATHER_FALL))
-		SendFeatherFall();
+		SendFeatherFall(true);
 	if(HasAuraWithName(SPELL_AURA_WATER_WALK))
-		SendWaterWalk();
+		SendWaterWalk(true);
 	WorldPacket data( SMSG_AURA_UPDATE_ALL, 200 );
 
 	data << WoWGuid( GetNewGUID() );
@@ -8015,7 +8098,14 @@ void Unit::BroadcastAuras()
 			data << uint32( aur->GetSpellId() );
 			data << uint8( Flags );
 			data << uint8( getLevel() );
-			data << uint8(aur->GetSpellProto()->maxstack ? m_auraStackCount[ aur->m_visualSlot ] : aur->GetCharges());
+			uint8 count;
+			std::map< uint32, struct SpellCharge >::iterator iter;
+			iter = m_chargeSpells.find(aur->GetSpellId());
+			if(iter != m_chargeSpells.end())
+				count = iter->second.count;
+			else
+				count = m_auraStackCount[ aur->m_visualSlot ];
+			data << uint8(count);
 			
 			if( ( Flags & AFLAG_NOT_CASTER ) == 0 )
 				data << WoWGuid(aur->GetCasterGUID());
@@ -8029,100 +8119,6 @@ void Unit::BroadcastAuras()
 	SendMessageToSet(&data, false);
 	if(IsPlayer())
 		TO_PLAYER(this)->SendPacket(&data);
-}
-
-void Unit::SendAuraUpdate(uint32 AuraSlot, bool remove)
-{
-	Aura* aur = m_auras[ AuraSlot ];
-
-	ARCEMU_ASSERT(aur != NULL);
-	if(aur->GetSpellProto()->Attributes & SPELL_ATTR0_HIDDEN_CLIENTSIDE)
-		return;
-
-	WorldPacket data(SMSG_AURA_UPDATE, 30);
-
-	if(remove)
-	{
-		data << WoWGuid(GetGUID());
-		data << uint8(aur->m_visualSlot);
-		data << uint32(0);
-	}
-	else
-	{
-		uint8 flags = (AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3);
-
-		if(aur->IsPositive())
-			flags |= AFLAG_CANCELLABLE;
-		else
-			flags |= AFLAG_NEGATIVE;
-
-		if(aur->GetDuration() != 0)
-			flags |= AFLAG_DURATION;
-
-		data << WoWGuid(GetGUID());
-		data << uint8(aur->m_visualSlot);
-
-		data << uint32(aur->GetSpellId());
-		data << uint8(flags);
-
-		Unit* caster = aur->GetUnitCaster();
-		if(caster != NULL)
-			data << uint8(caster->getLevel());
-		else
-			data << uint8(sWorld.m_levelCap);
-
-		data << uint8(aur->GetSpellProto()->maxstack ? m_auraStackCount[ aur->m_visualSlot ] : aur->GetCharges());
-
-		if((flags & AFLAG_NOT_CASTER) == 0)
-			data << WoWGuid(aur->GetCasterGUID());
-
-		if(flags & AFLAG_DURATION)
-		{
-			data << uint32(aur->GetDuration());
-			data << uint32(aur->GetTimeLeft());
-		}
-	}
-
-	SendMessageToSet(&data, true);
-}
-
-void Unit::SendAuraUpdate(Aura * aur)
-{
-	if(aur->GetSpellProto()->Attributes & SPELL_ATTR0_HIDDEN_CLIENTSIDE)
-		return;
-
-	WorldPacket data(SMSG_AURA_UPDATE, 30);
-	uint8 flags = (AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3);
-
-	if(aur->IsPositive())
-		flags |= AFLAG_CANCELLABLE;
-	else
-		flags |= AFLAG_NEGATIVE;
-	if( aur->GetDuration() != 0 && !(aur->GetSpellProto()->AttributesEx5 & SPELL_ATTR5_HIDE_DURATION))
-		flags |= AFLAG_DURATION;
-	data << WoWGuid(GetGUID());
-	data << uint8(aur->m_visualSlot);
-
-	data << uint32(aur->GetSpellId());
-	data << uint8(flags);
-
-	Unit* caster = aur->GetUnitCaster();
-	if(caster != NULL)
-		data << uint8(caster->getLevel());
-	else
-		data << uint8(sWorld.m_levelCap);
-	data << uint8(aur->GetSpellProto()->maxstack ? m_auraStackCount[ aur->m_visualSlot ] : aur->GetCharges());
-
-	if((flags & AFLAG_NOT_CASTER) == 0)
-		data << WoWGuid(aur->GetCasterGUID());
-
-	if(flags & AFLAG_DURATION)
-	{
-		data << uint32(aur->GetDuration());
-		data << uint32(aur->GetTimeLeft());
-	}
-
-	SendMessageToSet(&data, true);
 }
 
 bool Unit::IsFlying()

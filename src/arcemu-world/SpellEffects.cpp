@@ -4963,12 +4963,14 @@ void Spell::SpellEffectSpellSteal(uint32 i)
 							aura->AddMod(aura->GetSpellProto()->EffectApplyAuraName[j], aura->GetSpellProto()->EffectBasePoints[j] + 1, aura->GetSpellProto()->EffectMiscValue[j], j);
 						}
 					}
-					if(aura->GetCharges() > 0)
+					if(aura->GetSpellProto()->procCharges > 0)
 					{
 						Aura* aur2;
-						aur2 = sSpellFactoryMgr.NewAura(aura->GetSpellProto(), aurdur, u_caster, u_caster);
-						u_caster->AddAura(aur2);
-						aur->ModifyCharges(aura->GetCharges());
+						for(uint32 j = 0; j < aur_removed - 1; j++)
+						{
+							aur2 = sSpellFactoryMgr.NewAura(aura->GetSpellProto(), aurdur, u_caster, u_caster);
+							u_caster->AddAura(aur2);
+						}
 						if(!(aura->GetSpellProto()->procFlags & PROC_REMOVEONUSE))
 						{
 							SpellCharge charge;

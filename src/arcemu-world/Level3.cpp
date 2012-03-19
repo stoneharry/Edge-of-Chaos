@@ -1423,8 +1423,21 @@ bool ChatHandler::HandleChannelCommand(const char *args, WorldSession *m_session
 	uint32 spell = 0;
 	uint32 usegotarget = 0;
 	if(sscanf(args, "%u %u", &spell, &usegotarget) != 2)
+	{
 		if( sscanf(args, "%u", &spell) != 1 )
-		return false;
+		{
+			if(p->GetChannelSpellTargetGUID() || p->GetChannelSpellId())
+			{
+				p->SetChannelSpellTargetGUID(0);
+				p->SetChannelSpellId(0);
+				if(p->GetCurrentSpell())
+					p->GetCurrentSpell()->cancel();
+				SystemMessage(m_session, "Stopped Channel.");
+				return true;
+			}
+			return false;
+		}
+	}
 	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
 	if(!sp)
 	{

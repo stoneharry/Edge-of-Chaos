@@ -176,8 +176,9 @@ namespace VMAP
 		float maxDist = (pPos2 - pPos1).magnitude();
 		// valid map coords should *never ever* produce float overflow, but this would produce NaNs too:
 		
-		if( maxDist > std::numeric_limits<float>::max() ){
-			printf( "maxDist is out of range, aborting." );
+		if( maxDist > std::numeric_limits<float>::max() )
+		{
+			//printf( "maxDist is out of range, aborting." );
 			((void(*)())0)();
 		}
 
@@ -274,7 +275,7 @@ namespace VMAP
 
 	bool StaticMapTree::InitMap(const std::string & fname, VMapManager2* vm)
 	{
-		printf("Initializing StaticMapTree '%s'", fname.c_str());
+		//printf("Initializing StaticMapTree '%s'", fname.c_str());
 		bool success = true;
 		std::string fullname = iBasePath + fname;
 		FILE* rf = fopen(fullname.c_str(), "rb");
@@ -307,7 +308,7 @@ namespace VMAP
 			if(!iIsTiled && ModelSpawn::readFromFile(rf, spawn))
 			{
 				WorldModel* model = vm->acquireModelInstance(iBasePath, spawn.name);
-				printf("StaticMapTree::InitMap(): loading %s", spawn.name.c_str());
+				//printf("StaticMapTree::InitMap(): loading %s", spawn.name.c_str());
 				if(model)
 				{
 					// assume that global model always is the first and only tree value (could be improved...)
@@ -317,7 +318,7 @@ namespace VMAP
 				else
 				{
 					success = false;
-					printf("StaticMapTree::InitMap() could not acquire WorldModel pointer for '%s'!", spawn.name.c_str());
+					//printf("StaticMapTree::InitMap() could not acquire WorldModel pointer for '%s'!", spawn.name.c_str());
 				}
 			}
 
@@ -353,7 +354,7 @@ namespace VMAP
 		}
 		if(!iTreeValues)
 		{
-			printf("StaticMapTree::LoadMapTile(): Tree has not been initialized! [%u,%u]", tileX, tileY);
+			//printf("StaticMapTree::LoadMapTile(): Tree has not been initialized! [%u,%u]", tileX, tileY);
 			return false;
 		}
 		bool result = true;
@@ -377,8 +378,8 @@ namespace VMAP
 				{
 					// acquire model instance
 					WorldModel* model = vm->acquireModelInstance(iBasePath, spawn.name);
-					if(!model)
-						printf("StaticMapTree::LoadMapTile() could not acquire WorldModel pointer for '%s'!", spawn.name.c_str());
+					//if(!model)
+						//printf("StaticMapTree::LoadMapTile() could not acquire WorldModel pointer for '%s'!", spawn.name.c_str());
 
 					// update tree
 					G3D::uint32 referencedVal;
@@ -424,7 +425,7 @@ namespace VMAP
 		loadedTileMap::iterator tile = iLoadedTiles.find(tileID);
 		if(tile == iLoadedTiles.end())
 		{
-			printf("StaticMapTree::UnloadMapTile(): Trying to unload non-loaded tile. Map:%u X:%u Y:%u", iMapID, tileX, tileY);
+			//printf("StaticMapTree::UnloadMapTile(): Trying to unload non-loaded tile. Map:%u X:%u Y:%u", iMapID, tileX, tileY);
 			return;
 		}
 		if(tile->second)  // file associated with tile
@@ -456,7 +457,7 @@ namespace VMAP
 						fread(&referencedNode, sizeof(G3D::uint32), 1, tf);
 						if(!iLoadedSpawns.count(referencedNode))
 						{
-							printf("Trying to unload non-referenced model '%s' (ID:%u)", spawn.name.c_str(), spawn.ID);
+							//printf("Trying to unload non-referenced model '%s' (ID:%u)", spawn.name.c_str(), spawn.ID);
 						}
 						else if(--iLoadedSpawns[referencedNode] == 0)
 						{

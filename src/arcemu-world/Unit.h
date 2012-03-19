@@ -1657,7 +1657,6 @@ class SERVER_DECL Unit : public Object
 		uint8 m_auraStackCount[MAX_NEGATIVE_VISUAL_AURAS_END];
 
 		void SendAuraUpdate(uint32 AuraSlot, bool remove);
-		void SendAuraUpdate(Aura * aur);
 		void BroadcastAuras();
 		uint32 ModVisualAuraStackCount(Aura* aur, int32 count);
 		uint8 FindVisualSlot(uint32 SpellId, bool IsPos);
@@ -1993,9 +1992,9 @@ class SERVER_DECL Unit : public Object
 
 		bool HasLoot();
 		Player* GetSpellModOwner();
-		void SendHover();
-		void SendWaterWalk();
-		void SendFeatherFall();
+		void SendHover(bool apply);
+		void SendWaterWalk(bool apply);
+		void SendFeatherFall(bool apply);
 		bool SetHover(bool enable);
 		void BuildMovementPacket(ByteBuffer *data);
 		MovementInfo* GetMovementInfo() { return &movement_info; }

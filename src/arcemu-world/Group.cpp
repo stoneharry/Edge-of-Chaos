@@ -51,6 +51,7 @@ Group::Group(bool Assign)
 	m_difficulty = 0;
 	m_raiddifficulty = 0;
 	m_assistantLeader = m_mainAssist = m_mainTank = NULL;
+	updatecounter = 0;
 }
 
 Group::~Group()
@@ -234,7 +235,7 @@ void Group::Update()
 				{
 					continue;
 				}
-				Player * p = (*itr1)->m_loggedInPlayer;
+
 				data.Initialize(SMSG_GROUP_LIST);
 				data << uint8(m_GroupType);
 				data << uint8((*itr1)->subGroup);
@@ -247,7 +248,11 @@ void Group::Update()
 				if((*itr1) == m_mainAssist)
 					flags |= 4;
 				data << uint8(flags);
-				data << uint8(p->GetRoles());
+
+				if(m_Leader != NULL && m_Leader->m_loggedInPlayer != NULL && m_Leader->m_loggedInPlayer->IsInBg())
+					data << uint8(1);   //if the leader is in a BG, then the group is a BG group
+				else
+					data << uint8(0);
 
 				if(m_GroupType & GROUP_TYPE_LFG)
 				{
@@ -255,8 +260,8 @@ void Group::Update()
 					data << uint32(sLfgMgr.GetDungeon(GetID()));
 				}
 
-				data << uint64(GetID());
-				data << uint32(0);		// 3.3 - increments every time a group list update is being sent to client
+				data << uint64(GetID()); //Group Guid, but we don't have group guid's implmented
+				data << uint32(updatecounter++);		// 3.3 - increments every time a group list update is being sent to client
 				data << uint32(m_MemberCount - 1);	// we don't include self
 
 				for(j = 0; j < m_SubGroupCount; j++)
@@ -273,10 +278,11 @@ void Group::Update()
 							// should never happen but just in case
 							if((*itr2) == NULL)
 								continue;
-							Player * p2 = (*itr2)->m_loggedInPlayer;
-							data << (p2 ? p2->GetName() : (*itr2)->name);
-							if(p2)
-								data << p->GetGUID();
+							Player * plr = (*itr2)->m_loggedInPlayer;
+
+							data << (plr ? plr->GetName() : (*itr2)->name);
+							if(plr)
+								data << plr->GetGUID();
 							else
 								data << (*itr2)->guid << uint32(0);	// highguid
 
@@ -297,26 +303,20 @@ void Group::Update()
 								flags |= 4;
 
 							data << uint8(flags);
-							data << uint8(p2 ? p2->GetRoles() : 0);
+							data << uint8(plr ? plr->GetRoles() : 0); // 3.3 - may have some use
 						}
 					}
 				}
 
 				if(m_Leader != NULL)
-					if(m_Leader->m_loggedInPlayer)
-						data << m_Leader->m_loggedInPlayer->GetGUID();
-					else
-						data << m_Leader->guid << uint32(0);
+					data << m_Leader->guid << uint32(0);
 				else
 					data << uint64(0);
 
 				data << uint8(m_LootMethod);
 
 				if(m_Looter != NULL)
-					if(m_Looter->m_loggedInPlayer)
-						data << m_Looter->m_loggedInPlayer->GetGUID();
-					else
-						data << m_Looter->guid << uint32(0);
+					data << m_Looter->guid << uint32(0);
 				else
 					data << uint64(0);
 

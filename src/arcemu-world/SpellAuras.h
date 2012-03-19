@@ -773,8 +773,6 @@ class SERVER_DECL Aura : public EventableObject
 		void SpellAuraPreventResurrection(bool apply);
 		void UpdateAuraModDecreaseSpeed();
 		void ApplySpellMod(bool apply);
-		void SendDummyModifierLog(std::map<SpellEntry*, uint32> * m, SpellEntry* spellInfo, uint32 i, bool apply, bool pct = false);
-
 		// Events
 		void EventPeriodicDamage(uint32);
 		void EventPeriodicDamagePercent(uint32);
@@ -822,8 +820,6 @@ class SERVER_DECL Aura : public EventableObject
 		uint8 m_visualSlot;
 		uint32 pSpellId; // This represents the triggering spell id
 		bool m_castInDuel;
-		int32 GetCharges() { return procCharges; }
-		void ModifyCharges(int32 amt);
 	private:
 		uint32 GetCasterFaction() { return m_casterfaction; }
 		void SetCasterFaction(uint32 faction) { m_casterfaction = faction; }
@@ -857,7 +853,6 @@ class SERVER_DECL Aura : public EventableObject
 		void SendInterrupted(uint8 result, Object* m_caster);
 		void SendChannelUpdate(uint32 time, Object* m_caster);
 		void SendTickImmune(Unit* target, Unit* caster);
-		int32 procCharges;
 	public:
 		bool m_temporary;	// Skip saving
 		bool m_deleted;
