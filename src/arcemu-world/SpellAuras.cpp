@@ -790,7 +790,7 @@ Aura::~Aura()
 
 void Aura::Remove()
 {
-	if(GetCharges() >= 0)
+	if(GetCharges() > 0 && m_spellProto->proc_interval == 0)
 	{
 		if(m_target->m_chargeSpellsInUse)
 		{
@@ -936,8 +936,8 @@ void Aura::Remove()
 				m_target->RemoveAura(*itr, GetCasterGUID());
 		}
 	}
-	if(m_target)
-		m_target->BroadcastAuras();
+	//if(m_target)
+		//m_target->BroadcastAuras();
 }
 
 void Aura::AddMod(uint32 t, int32 a, uint32 miscValue, uint32 i)
@@ -8577,7 +8577,7 @@ void Aura::SpellAuraModExperinceGain(bool apply)
 void Aura::ModifyCharges(int32 amt)
 {
 	procCharges = amt;
-	if(amt >= 0)
+	if(amt > 0)
 		Remove();
 	else
 		m_target->SendAuraUpdate(this);

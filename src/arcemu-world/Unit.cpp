@@ -2222,8 +2222,7 @@ uint32 Unit::HandleProc(uint32 flag, Unit* victim, SpellEntry* CastingSpell, boo
 			{
 				Aura * ab = FindAura(iter->second.spellId);
 				--iter->second.count;
-				if(ab)
-					ab->ModifyCharges(--iter->second.count);
+				ab->ModifyCharges(--iter->second.count);
 			}
 			else
 				m_chargeSpells.erase(iter);
