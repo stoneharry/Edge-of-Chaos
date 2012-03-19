@@ -152,7 +152,7 @@ void ScriptMgr::LoadScripts()
 
 	std::string Path;
 	std::string FileMask;
-	Path = PREFIX;
+	Path = "server_scripts";
 	Path += '/';
 #ifdef WIN32
 	/*Path = Config.MainConfig.GetStringDefault( "Script", "BinaryLocation", "script_bin" );
