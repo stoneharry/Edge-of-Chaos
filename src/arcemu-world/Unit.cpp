@@ -333,7 +333,7 @@ Unit::Unit()
 	m_noFallDamage = false;
 	z_axisposition = 0.0f;
 	m_safeFall     = 0;
-	movement_info.redirectVelocity = 0;
+	movement_info.Init();
 }
 
 Unit::~Unit()
@@ -3470,6 +3470,7 @@ void Unit::Strike(Unit* pVictim, uint32 weapon_damage_type, SpellEntry* ability,
 	if(pVictim->IsCreature())
 	{
 		if(pVictim->GetAIInterface() && (pVictim->GetAIInterface()->getAIState() == STATE_EVADE ||
+										 pVictim->GetAIInterface()->getAIState() == STATE_EVADE_TIMING_OUT ||
 		                                 (pVictim->GetAIInterface()->GetIsSoulLinked() && pVictim->GetAIInterface()->getSoullinkedWith() != this)))
 		{
 			vstate = EVADE;
@@ -7468,6 +7469,8 @@ void Unit::RemoveCurrentUnitForSingleTargetAura(uint32 name_hash)
 
 bool Unit::InParty(Unit* u)
 {
+	if(u == NULL)
+		return false;
 	Player* p = TO< Player* >(GetPlayerOwner());
 	Player* uFrom = TO< Player* >(u->GetPlayerOwner());
 
@@ -7485,6 +7488,8 @@ bool Unit::InParty(Unit* u)
 
 bool Unit::InRaid(Unit* u)
 {
+	if(u == NULL)
+		return false;
 	Player* p = TO< Player* >(GetPlayerOwner());
 	Player* uFrom = TO< Player* >(u->GetPlayerOwner());
 
@@ -8049,6 +8054,57 @@ void Unit::BuildMovementPacket(ByteBuffer *data)
         *data << (float)GetMovementInfo()->splineElevation;
 }
 
+
+void Unit::BuildMovementPacket(ByteBuffer *data, float x, float y, float z, float o)
+{
+    *data << uint32(GetUnitMovementFlags());            // movement flags
+    *data << uint16(GetExtraUnitMovementFlags());       // 2.3.0
+    *data << uint32(getMSTime());                       // time / counter
+    *data << x;
+    *data << y;
+    *data << z;
+    *data << o;
+
+    // 0x00000200
+    if (GetUnitMovementFlags() & MOVEFLAG_TRANSPORT)
+    {
+		if(IsPlayer() && TO_PLAYER(this)->m_CurrentTransporter)
+			transporter_info.guid = TO_PLAYER(this)->m_CurrentTransporter->GetGUID();
+		if(Unit * u = GetVehicleBase())
+			transporter_info.guid = u->GetGUID();
+		*data << transporter_info.guid;
+        *data << transporter_info.x;
+        *data << transporter_info.y;
+        *data << transporter_info.z;
+        *data << transporter_info.o;
+        *data << transporter_info.flags;
+		*data << transporter_info.seat;
+
+        if (GetExtraUnitMovementFlags() & MOVEFLAG2_ALLOW_PITCHING)
+			*data << uint32(GetMovementInfo()->transTime2);
+    }
+
+    // 0x02200000
+    if ((GetUnitMovementFlags() & (MOVEFLAG_SWIMMING | MOVEFLAG_AIR_SWIMMING))
+		|| (GetExtraUnitMovementFlags() & MOVEFLAG2_ALLOW_PITCHING))
+        *data << (float)GetMovementInfo()->pitch;
+
+    *data << (uint32)GetMovementInfo()->fallTime;
+
+    // 0x00001000
+    if (GetUnitMovementFlags() & MOVEFLAG_JUMPING)
+    {
+        *data << (float)GetMovementInfo()->redirectVelocity;
+        *data << (float)GetMovementInfo()->redirectSin;
+        *data << (float)GetMovementInfo()->redirectCos;
+        *data << (float)GetMovementInfo()->redirect2DSpeed;
+    }
+
+    // 0x04000000
+    if (GetUnitMovementFlags() & MOVEFLAG_SPLINE_ELEVATION)
+        *data << (float)GetMovementInfo()->splineElevation;
+}
+
 void Unit::SendMovementFlagUpdate()
 {
     WorldPacket data;
@@ -8137,4 +8193,14 @@ bool Unit::IsFlying()
 	if(IsPlayer() && TO_PLAYER(this)->FlyCheat)
 		return true;
 	return false;
+}
+
+void Unit::RestoreSpeed()
+{
+	UpdateSpeed();
+	SetSpeeds(FLYBACK, 4.5f);
+	SetSpeeds(SWIM, 4.722222f);
+	SetSpeeds(SWIMBACK, 2.5f);
+	SetSpeeds(TURN, M_PI_FLOAT);
+	SetSpeeds(PITCH, M_PI_FLOAT);
 }

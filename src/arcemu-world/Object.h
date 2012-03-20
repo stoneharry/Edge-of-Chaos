@@ -267,6 +267,7 @@ class SERVER_DECL Object : public EventableObject
 		bool IsGameObject() { return m_objectTypeId == TYPEID_GAMEOBJECT; }
 		bool IsCorpse() { return m_objectTypeId == TYPEID_CORPSE; }
 		bool IsContainer() { return m_objectTypeId == TYPEID_CONTAINER; }
+		bool IsDynObj() { return m_objectTypeId == TYPEID_DYNAMICOBJECT; }
 
 		//! This includes any nested objects we have, inventory for example.
 		virtual uint32  BuildCreateUpdateBlockForPlayer(ByteBuffer* data, Player* target);
@@ -282,6 +283,8 @@ class SERVER_DECL Object : public EventableObject
 
 		bool SetPosition(float newX, float newY, float newZ, float newOrientation, bool allowPorting = false);
 		bool SetPosition(const LocationVector & v, bool allowPorting = false);
+		void Relocate(LocationVector &pos)
+		{ m_position.x = pos.x; m_position.y = pos.y; m_position.z = pos.z; m_position.o = pos.o; }
 
 		const float & GetPositionX() const { return m_position.x; }
 		const float & GetPositionY() const { return m_position.y; }

@@ -2602,7 +2602,6 @@ class SERVER_DECL Player : public Unit
 		Spell* m_spellModTakingSpell;
 		uint8 m_roles;
 	public:
-		void SendTeleportAckMsg(const LocationVector & v);
 		void SendUpdateDataToSet(ByteBuffer* groupbuf, ByteBuffer* nongroupbuf, bool sendtoself);
 
 		bool CanBuyAt(VendorRestrictionEntry* vendor);
@@ -2626,6 +2625,9 @@ class SERVER_DECL Player : public Unit
 		uint8 GetRoles() { return m_roles; }
 		void SetBattlegroundEntryPoint();
 		void RewardQuest(uint32 id);
+		void SendTeleportPacket(float x, float y, float z, float o);
+		void SendTeleportAckPacket(float x, float y, float z, float o);
+		void EventLoginAuras();
 };
 
 

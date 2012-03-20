@@ -968,15 +968,6 @@ void Aura::ApplyModifiers(bool apply)
 			LOG_DEBUG("WORLD: target=%u, Spell Aura id=%u (%s), SpellId=%u, i=%u, apply=%s, duration=%u, miscValue=%d, damage=%d",
 			          m_target->GetLowGUID(), mod->m_type, SpellAuraNames[mod->m_type], m_spellProto->Id, mod->i, apply ? "true" : "false", GetDuration(), mod->m_miscValue, mod->m_amount);
 			(*this.*SpellAuraHandler[mod->m_type])(apply);
-
-#ifdef GM_Z_DEBUG_DIRECTLY
-			if(m_target->IsPlayer() && m_target->IsInWorld() && x == 0)
-			{
-				if(TO< Player* >(m_target)->GetSession() && TO< Player* >(m_target)->GetSession()->CanUseCommand('z'))
-					sChatHandler.BlueSystemMessage(TO< Player* >(m_target)->GetSession(), "[%sSystem%s] |rAura::ApplyModifiers: %s Target = %u, Spell Aura id = %u, SpellId = %u, modi=%u, apply = [%d], duration = %u, damage = %d, GiverGUID: %u.", MSG_COLOR_WHITE, MSG_COLOR_LIGHTBLUE, MSG_COLOR_SUBWHITE,
-					                               m_target->GetLowGUID(), mod->m_type, m_spellProto->Id, mod->i, apply , GetDuration(), mod->m_amount, m_casterGuid);
-			}
-#endif
 			if(apply)
 			{
 				if(m_spellProto->c_is_flags & SPELL_FLAG_IS_FORCEDDEBUFF)
@@ -991,7 +982,7 @@ void Aura::ApplyModifiers(bool apply)
 		else
 			LOG_ERROR("Unknown Aura id %d", m_modList[x].m_type);
 	}
-	if(m_target)
+	if(apply && m_target)
 		m_target->BroadcastAuras();
 }
 

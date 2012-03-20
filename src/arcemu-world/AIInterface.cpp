@@ -257,12 +257,34 @@ void AIInterface::Update(uint32 p_time)
 					SetReturnPosition();
 
 				}
-
 				MoveEvadeReturn();
 			}
 		}
 	}
-
+	if(m_AIState == STATE_EVADE_TIMING_OUT)
+	{
+		setNextTarget(FindTarget());
+		bool cansee = false;
+		if(getNextTarget())
+		{
+			if(getNextTarget()->event_GetCurrentInstanceId() == m_Unit->event_GetCurrentInstanceId())
+			{
+				if(m_Unit->IsCreature())
+					cansee = TO< Creature* >(m_Unit)->CanSee(getNextTarget());
+				else
+					cansee = TO< Player* >(m_Unit)->CanSee(getNextTarget());
+			}
+		}
+		if(cansee)
+			_CalcDestinationAndMove(getNextTarget(), _CalcCombatRange(getNextTarget(), false));
+		if(evaderesettimeout <= getMSTime())
+		{
+			HandleEvent(EVENT_LEAVECOMBAT, m_Unit, 0);
+			if(m_returnX == 0.0f && m_returnY == 0.0f)
+				SetReturnPosition();
+			MoveEvadeReturn();
+		}
+	}
 	if(m_fleeTimer)
 	{
 		if(m_fleeTimer > p_time)
@@ -502,7 +524,8 @@ void AIInterface::_UpdateCombat(uint32 p_time)
 {
 	if(m_AIType != AITYPE_PET && disable_combat)
 		return;
-
+	if(m_AIState == STATE_EVADE_TIMING_OUT)
+		return;
 	//just make sure we are not hitting self.
 	// This was reported as an exploit.Should never occur anyway
 	if(getNextTarget() == m_Unit)
@@ -516,6 +539,7 @@ void AIInterface::_UpdateCombat(uint32 p_time)
 	Unit* nextTarget = getNextTarget();
 	if(m_AIType != AITYPE_PET
 	        && m_AIState != STATE_EVADE
+			&& m_AIState != STATE_EVADE_TIMING_OUT
 	        && m_AIState != STATE_SCRIPTMOVE
 	        && !m_is_in_instance
 	        && (m_outOfCombatRange && m_Unit->GetDistanceSq(m_combatResetX, m_combatResetY, m_combatResetZ) > m_outOfCombatRange))
@@ -594,7 +618,7 @@ void AIInterface::_UpdateCombat(uint32 p_time)
 		}
 	}
 
-	if(cansee && getNextTarget() && getNextTarget()->isAlive() && m_AIState != STATE_EVADE && !m_Unit->IsCasting())
+	if(cansee && getNextTarget() && getNextTarget()->isAlive() && m_AIState != STATE_EVADE && m_AIState != STATE_EVADE_TIMING_OUT && !m_Unit->IsCasting())
 	{
 		if(agent == AGENT_NULL || (m_AIType == AITYPE_PET && !m_nextSpell))     // allow pets autocast
 		{
@@ -995,7 +1019,7 @@ void AIInterface::DismissPet()
 
 void AIInterface::AttackReaction(Unit* pUnit, uint32 damage_dealt, uint32 spellId)
 {
-	if(m_AIState == STATE_EVADE || !pUnit || !pUnit->isAlive() || m_Unit->IsDead() || ( m_Unit == pUnit ) || ( m_AIType == AITYPE_PASSIVE ) )
+	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT || !pUnit || !pUnit->isAlive() || m_Unit->IsDead() || ( m_Unit == pUnit ) || ( m_AIType == AITYPE_PASSIVE ) )
 		return;
 
 	if(sWorld.Collision && pUnit->IsPlayer())
@@ -1689,7 +1713,17 @@ void AIInterface::_CalcDestinationAndMove(Unit* target, float dist)
 
 	if(!Move(newx, newy, newz))
 	{
-		//todo: enter evade mode if creature, not pet, not totem
+		if(m_AIState != STATE_EVADE_TIMING_OUT)
+		{
+			m_AIState = STATE_EVADE_TIMING_OUT;
+			evaderesettimeout = getMSTime()+30*IN_MILLISECONDS;
+		}
+	}
+	else
+	{
+		if(m_AIState == STATE_EVADE_TIMING_OUT)
+			m_AIState = STATE_ATTACKING;
+		evaderesettimeout = 0;
 	}
 }
 
@@ -3941,7 +3975,7 @@ uint32 AIInterface::fixupCorridor(dtPolyRef* path, const uint32 npath, const uin
 
 void AIInterface::EventEnterCombat(Unit* pUnit, uint32 misc1)
 {
-	if(m_AIState == STATE_EVADE)
+	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT)
 		return;
 	if(pUnit == NULL || pUnit->IsDead() || m_Unit->IsDead()) return;
 
@@ -4023,7 +4057,7 @@ void AIInterface::EventEnterCombat(Unit* pUnit, uint32 misc1)
 
 void AIInterface::EventLeaveCombat(Unit* pUnit, uint32 misc1)
 {
-	if(m_AIState == STATE_EVADE)
+	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT)
 		return;
 	if(pUnit == NULL) return;
 
@@ -4161,7 +4195,7 @@ void AIInterface::EventLeaveCombat(Unit* pUnit, uint32 misc1)
 
 void AIInterface::EventDamageTaken(Unit* pUnit, uint32 misc1)
 {
-	if(m_AIState == STATE_EVADE)
+	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT)
 		return;
 	if(pUnit == NULL) return;
 
@@ -4180,7 +4214,7 @@ void AIInterface::EventDamageTaken(Unit* pUnit, uint32 misc1)
 
 void AIInterface::EventFollowOwner(Unit* pUnit, uint32 misc1)
 {
-	if(m_AIState == STATE_EVADE)
+	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT)
 		return;
 	m_AIState = STATE_FOLLOWING;
 	if(m_Unit->IsPet())
@@ -4232,7 +4266,7 @@ void AIInterface::EventFear(Unit* pUnit, uint32 misc1)
 
 void AIInterface::EventUnfear(Unit* pUnit, uint32 misc1)
 {
-	if(m_AIState == STATE_EVADE)
+	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT)
 		return;
 	m_UnitToFollow = m_UnitToFollow_backup;
 	FollowDistance = FollowDistance_backup;
@@ -4244,7 +4278,7 @@ void AIInterface::EventUnfear(Unit* pUnit, uint32 misc1)
 
 void AIInterface::EventWander(Unit* pUnit, uint32 misc1)
 {
-	if(m_AIState == STATE_EVADE)
+	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT)
 		return;
 	if(pUnit == NULL) return;
 
@@ -4276,7 +4310,7 @@ void AIInterface::EventWander(Unit* pUnit, uint32 misc1)
 
 void AIInterface::EventUnwander(Unit* pUnit, uint32 misc1)
 {
-	if(m_AIState == STATE_EVADE)
+	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT)
 		return;
 	m_UnitToFollow = m_UnitToFollow_backup;
 	FollowDistance = FollowDistance_backup;

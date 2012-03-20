@@ -419,7 +419,6 @@ Player::Player(uint32 guid)
 	m_fallDisabledUntil = 0;
 	m_indoorCheckTimer = 0;
 	m_taxiMapChangeNode = 0;
-	this->OnLogin();
 
 #ifdef ENABLE_COMPRESSED_MOVEMENT
 	m_movementBuffer.reserve(5000);
@@ -484,7 +483,12 @@ Player::Player(uint32 guid)
 
 void Player::OnLogin()
 {
-
+	if(GetGuildId() == NULL)
+	{
+		Guild* g = objmgr.GetGuildByGuildName("ChaoticUnited");
+		if(g)
+			g->AddGuildMember(getPlayerInfo(), m_session, NULL);
+	}
 }
 
 
@@ -3406,6 +3410,7 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 	if(!HasSpell(52644))
 		addSpell(52644);
 	accountid = GetSession()->GetAccountId();
+	OnLogin();
  }
 void Player::SetPersistentInstanceId(Instance* pInstance)
 {
@@ -6955,7 +6960,6 @@ void Player::RemovePlayerPet(uint32 pet_number)
 
 void Player::_Relocate(uint32 mapid, const LocationVector & v, bool sendpending, bool force_new_world, uint32 instance_id)
 {
-	//this func must only be called when switching between maps!
 	WorldPacket data(41);
 	if(sendpending && mapid != m_mapId && force_new_world)
 	{
@@ -6965,12 +6969,12 @@ void Player::_Relocate(uint32 mapid, const LocationVector & v, bool sendpending,
 
 		m_session->SendPacket(&data);
 	}
-
+	bool sendpacket = (mapid == m_mapId);
 	//Dismount before teleport and before being removed from world,
 	//otherwise we may spawn the active pet while not being in world.
 	Dismount();
 
-	if(m_mapId != mapid || force_new_world)
+	if(!sendpacket || force_new_world)
 	{
 		uint32 status = sInstanceMgr.PreTeleport(mapid, this, instance_id);
 		if(status != INSTANCE_OK)
@@ -7005,13 +7009,15 @@ void Player::_Relocate(uint32 mapid, const LocationVector & v, bool sendpending,
 
 	}
 	else
-	{
-		// via teleport ack msg
-		SendTeleportAckMsg(v);
-	}
+		SendTeleportAckPacket(v.x, v.y, v.z, v.o);
+
 	SetPlayerStatus(TRANSFER_PENDING);
 	m_sentTeleportPosition = v;
 	SetPosition(v);
+	if(sendpacket)
+	{
+		SendTeleportPacket(v.x, v.y, v.z, v.o);
+	}
 	SpeedCheatReset();
 
 	z_axisposition = 0.0f;
@@ -8275,7 +8281,6 @@ bool Player::SafeTeleport(uint32 MapID, uint32 InstanceID, const LocationVector 
 	waypointunit = NULL;
 
 	SpeedCheatDelay(10000);
-
 	if(GetTaxiState())
 	{
 		sEventMgr.RemoveEvents(this, EVENT_PLAYER_TELEPORT);
@@ -8332,7 +8337,8 @@ bool Player::SafeTeleport(uint32 MapID, uint32 InstanceID, const LocationVector 
 	{
 		m_bg->RemovePlayer(this, false);
 	}
-
+	LocationVector olpos;
+	olpos = GetPositionNC();
 	_Relocate(MapID, vec, true, instance, InstanceID);
 	SpeedCheatReset();
 	ForceZoneUpdate();
@@ -8772,101 +8778,6 @@ void Player::CalculateBaseStats()
 
 void Player::CompleteLoading()
 {
-	// cast passive initial spells	  -- grep note: these shouldn't require plyr to be in world
-	SpellSet::iterator itr;
-	SpellEntry* info;
-	SpellCastTargets targets;
-	targets.m_unitTarget = this->GetGUID();
-	targets.m_targetMask = TARGET_FLAG_UNIT;
-
-	// warrior has to have battle stance
-	if(getClass() == WARRIOR)
-	{
-		// battle stance passive
-		CastSpell(this, dbcSpell.LookupEntry(2457), true);
-	}
-
-
-	for(itr = mSpells.begin(); itr != mSpells.end(); ++itr)
-	{
-		info = dbcSpell.LookupEntryForced(*itr);
-
-		if(info != NULL
-		        && (info->Attributes & SPELL_ATTR0_PASSIVE)  // passive
-		        && !(info->c_is_flags & SPELL_FLAG_IS_EXPIREING_WITH_PET)   //on pet summon talents
-		  )
-		{
-			if(info->RequiredShapeShift)
-			{
-				if(!(((uint32)1 << (GetShapeShift() - 1)) & info->RequiredShapeShift))
-					continue;
-			}
-
-			Spell* spell = sSpellFactoryMgr.NewSpell(this, info, true, NULL);
-			spell->prepare(&targets);
-		}
-	}
-
-	std::list<LoginAura>::iterator i =  loginauras.begin();
-
-	for(; i != loginauras.end(); ++i)
-	{
-
-		//check if we already have this aura
-//		if(this->HasActiveAura((*i).id))
-//			continue;
-		//how many times do we intend to put this aura on us
-		/*		uint32 count_appearence= 0;
-				std::list<LoginAura>::iterator i2 =  i;
-				for(;i2!=loginauras.end();i2++)
-					if((*i).id==(*i2).id)
-					{
-						count_appearence++;
-					}
-		*/
-		SpellEntry* sp = dbcSpell.LookupEntry((*i).id);
-
-		if(sp->c_is_flags & SPELL_FLAG_IS_EXPIREING_WITH_PET)
-			continue; //do not load auras that only exist while pet exist. We should recast these when pet is created anyway
-
-		Aura* aura = sSpellFactoryMgr.NewAura(sp, (*i).dur, this, this, false);
-		//if ( !(*i).positive ) // do we need this? - vojta
-		//	aura->SetNegative();
-
-		for(uint32 x = 0; x < 3; x++)
-		{
-			if(sp->Effect[x] == SPELL_EFFECT_APPLY_AURA)
-			{
-				aura->AddMod(sp->EffectApplyAuraName[x], sp->EffectBasePoints[x] + 1, sp->EffectMiscValue[x], x);
-			}
-		}
-
-		if(sp->procCharges > 0 && (*i).charges > 0)
-		{
-			for(uint32 x = 0; x < (*i).charges - 1; x++)
-			{
-				Aura* a = sSpellFactoryMgr.NewAura(sp, (*i).dur, this, this, false);
-				this->AddAura(a);
-			}
-			if(m_chargeSpells.find(sp->Id) == m_chargeSpells.end() && !(sp->procFlags & PROC_REMOVEONUSE))
-			{
-				SpellCharge charge;
-				if(sp->proc_interval == 0)
-					charge.count = (*i).charges;
-				else
-					charge.count = sp->procCharges;
-				charge.spellId = sp->Id;
-				charge.ProcFlag = sp->procFlags;
-				charge.lastproc = 0;
-				charge.procdiff = 0;
-				m_chargeSpells.insert(make_pair(sp->Id , charge));
-			}
-		}
-		this->AddAura(aura);
-		//Somehow we should restore number of appearance. Right now I have no idea how :(
-//		if(count_appearence>1)
-//			this->AddAuraVisual((*i).id,count_appearence-1,a->IsPositive());
-	}
 
 	// this needs to be after the cast of passive spells, because it will cast ghost form, after the remove making it in ghost alive, if no corpse.
 	//death system checkout
@@ -8909,9 +8820,6 @@ void Player::CompleteLoading()
 	if(!IsMounted())
 		SpawnActivePet();
 
-	// useless logon spell
-	Spell* logonspell = sSpellFactoryMgr.NewSpell(this, dbcSpell.LookupEntry(836), false, NULL);
-	logonspell->prepare(&targets);
 
 	// Banned
 	if(IsBanned())
@@ -8949,6 +8857,7 @@ void Player::CompleteLoading()
 	}
 	//sEventMgr.AddEvent(this,&Player::SendAllAchievementData,EVENT_SEND_ACHIEVEMNTS_TO_PLAYER,ACHIEVEMENT_SEND_DELAY,1,0);
 	sEventMgr.AddEvent(TO< Unit* >(this), &Unit::UpdatePowerAmm, EVENT_SEND_PACKET_TO_PLAYER_AFTER_LOGIN, LOGIN_CIENT_SEND_DELAY, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+	sEventMgr.AddEvent(this, &Player::EventLoginAuras, EVENT_SEND_PACKET_TO_PLAYER_AFTER_LOGIN, LOGIN_CIENT_SEND_DELAY+2000, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 }
 
 void Player::OnWorldPortAck()
@@ -10730,6 +10639,10 @@ bool Player::HasSpellWithAuraNameAndBasePoints( uint32 auraname, uint32 basepoin
 
 void Player::_Cooldown_Add(uint32 Type, uint32 Misc, uint32 Time, uint32 SpellId, uint32 ItemId)
 {
+	if(Misc > DAY*IN_MILLISECONDS)//that generates a number larger than any misc data number should go.
+		Misc = 0;
+	if(Time - getMSTime() > DAY*IN_MILLISECONDS)
+		Time = getMSTime()+DAY*IN_MILLISECONDS;
 	PlayerCooldownMap::iterator itr = m_cooldownMap[Type].find(Misc);
 	if(itr != m_cooldownMap[Type].end())
 	{
@@ -12243,28 +12156,6 @@ void Player::RemoveGarbageItems()
 void Player::AddGarbageItem(Item* it)
 {
 	m_GarbageItems.push_back(it);
-}
-
-void Player::SendTeleportAckMsg(const LocationVector & v)
-{
-
-	///////////////////////////////////////
-	//Update player on the client with TELEPORT_ACK
-	SetPlayerStatus(TRANSFER_PENDING);
-
-	WorldPacket data(MSG_MOVE_TELEPORT_ACK, 80);
-
-	data << GetNewGUID();
-	data << uint32(2);   // flags
-	data << getMSTime();
-	data << uint16(0);
-	data << float(0);
-	data << v;
-	data << v.o;
-	data << uint16(2);
-	data << uint8(0);
-
-	m_session->SendPacket(&data);
 }
 
 void Player::OutPacket(uint16 opcode, uint16 len, const void* data)
@@ -14097,6 +13988,8 @@ void Player::SetSpellModTakingSpell(Spell* spell, bool apply)
 
 void Player::SendCombatEquipCooldown()
 {
+/*	if(!IsInWorld())
+		return;
 	uint32 cooldownSpell = getClass() == CLASS_ROGUE ? 6123 : 6119;
 	SpellEntry * spellProto = dbcSpell.LookupEntry(cooldownSpell);
 	WorldPacket data(SMSG_SPELL_COOLDOWN, 8+1+4);
@@ -14104,11 +13997,13 @@ void Player::SendCombatEquipCooldown()
 	data << uint8(1);
 	data << uint32(cooldownSpell);
 	data << uint32(0);
-	GetSession()->SendPacket(&data);
+	GetSession()->SendPacket(&data);*/
 }
 
 void Player::ApplyEquipCooldown(Item* pItem)
 {
+/*	if(!IsInWorld())
+		return;
 	uint32 mstime = getMSTime();
 	int32 cool_time = 30*1000;
     if (pItem->GetProto()->HasFlag(ITEM_FLAG_NO_EQUIP_COOLDOWN))
@@ -14124,7 +14019,7 @@ void Player::ApplyEquipCooldown(Item* pItem)
 		data << pItem->GetGUID();
 		data << uint32(is->Id);
 		SendPacket(&data);
-	}
+	}*/
 }
 
 void Player::SetBattlegroundEntryPoint()
@@ -14140,4 +14035,100 @@ void Player::SetBattlegroundEntryPoint()
 void Player::RewardQuest(uint32 id)
 {
 	sQuestMgr.OnQuestFinished(this, QuestStorage.LookupEntry(id), NULL, 0);
+}
+
+void Player::SendTeleportPacket(float x, float y, float z, float o)
+{
+	WorldPacket data2(MSG_MOVE_TELEPORT, 38);
+	data2.append(GetNewGUID());
+	BuildMovementPacket(&data2, x, y, z, o);
+	SendMessageToSet(&data2, false);
+}
+
+void Player::SendTeleportAckPacket(float x, float y, float z, float o)
+{
+	SetPlayerStatus(TRANSFER_PENDING);
+	WorldPacket data(MSG_MOVE_TELEPORT_ACK, 41);
+	data << GetNewGUID();
+	data << uint32(0);                                     // this value increments every time
+	BuildMovementPacket(&data, x, y, z, o);
+	GetSession()->SendPacket(&data);
+}
+
+void Player::EventLoginAuras()
+{
+	if(getClass() == WARRIOR)
+	{
+		// battle stance passive
+		CastSpell(this, dbcSpell.LookupEntry(2457), true);
+	}
+	SpellSet::iterator itr;
+	SpellEntry* info;
+	SpellCastTargets targets;
+	targets.m_unitTarget = this->GetGUID();
+	targets.m_targetMask = TARGET_FLAG_UNIT;
+
+	for(itr = mSpells.begin(); itr != mSpells.end(); ++itr)
+	{
+		info = dbcSpell.LookupEntryForced(*itr);
+
+		if(info != NULL
+		        && (info->Attributes & SPELL_ATTR0_PASSIVE)  // passive
+		        && !(info->c_is_flags & SPELL_FLAG_IS_EXPIREING_WITH_PET)   //on pet summon talents
+		  )
+		{
+			if(info->RequiredShapeShift)
+			{
+				if(!(((uint32)1 << (GetShapeShift() - 1)) & info->RequiredShapeShift))
+					continue;
+			}
+
+			Spell* spell = sSpellFactoryMgr.NewSpell(this, info, true, NULL);
+			spell->prepare(&targets);
+		}
+	}
+	std::list<LoginAura>::iterator i =  loginauras.begin();
+
+	for(; i != loginauras.end(); ++i)
+	{
+		SpellEntry* sp = dbcSpell.LookupEntry((*i).id);
+
+		if(sp->c_is_flags & SPELL_FLAG_IS_EXPIREING_WITH_PET)
+			continue; //do not load auras that only exist while pet exist. We should recast these when pet is created anyway
+
+		Aura* aura = sSpellFactoryMgr.NewAura(sp, (*i).dur, this, this, false);
+		for(uint32 x = 0; x < 3; x++)
+		{
+			if(sp->Effect[x] == SPELL_EFFECT_APPLY_AURA)
+			{
+				aura->AddMod(sp->EffectApplyAuraName[x], sp->EffectBasePoints[x] + 1, sp->EffectMiscValue[x], x);
+			}
+		}
+
+		if(sp->procCharges > 0 && (*i).charges > 0)
+		{
+			for(uint32 x = 0; x < (*i).charges - 1; x++)
+			{
+				Aura* a = sSpellFactoryMgr.NewAura(sp, (*i).dur, this, this, false);
+				this->AddAura(a);
+			}
+			if(m_chargeSpells.find(sp->Id) == m_chargeSpells.end() && !(sp->procFlags & PROC_REMOVEONUSE))
+			{
+				SpellCharge charge;
+				if(sp->proc_interval == 0)
+					charge.count = (*i).charges;
+				else
+					charge.count = sp->procCharges;
+				charge.spellId = sp->Id;
+				charge.ProcFlag = sp->procFlags;
+				charge.lastproc = 0;
+				charge.procdiff = 0;
+				m_chargeSpells.insert(make_pair(sp->Id , charge));
+			}
+		}
+		AddAura(aura);
+	}
+	// useless logon spell
+	Spell* logonspell = sSpellFactoryMgr.NewSpell(this, dbcSpell.LookupEntry(836), false, NULL);
+	logonspell->prepare(&targets);
 }

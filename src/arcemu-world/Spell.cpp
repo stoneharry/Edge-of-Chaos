@@ -714,7 +714,7 @@ uint8 Spell::DidHit(uint32 effindex, Unit* target)
 	/************************************************************************/
 	/* Check if the unit is evading                                         */
 	/************************************************************************/
-	if(u_victim->IsCreature() && u_victim->GetAIInterface()->getAIState() == STATE_EVADE)
+	if(u_victim->IsCreature() && (u_victim->GetAIInterface()->getAIState() == STATE_EVADE || u_victim->GetAIInterface()->getAIState() == STATE_EVADE_TIMING_OUT))
 		return SPELL_DID_HIT_EVADE;
 
 	/************************************************************************/ 

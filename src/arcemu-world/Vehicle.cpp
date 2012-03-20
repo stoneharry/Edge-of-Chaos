@@ -207,6 +207,11 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
 		}
 		passenger->AddExtraUnitMovementFlag(GetMoveFlags2());
 		GetOwner()->AddExtraUnitMovementFlag(GetMoveFlags2());
+		GetOwner()->SetSpeeds(TURN, vehicle_info->turnSpeed);
+		GetOwner()->SetSpeeds(PITCH, vehicle_info->pitchSpeed);
+		GetOwner()->AddExtraUnitMovementFlag(GetMoveFlags2());
+		passenger->SetSpeeds(TURN, vehicle_info->turnSpeed);
+		passenger->SetSpeeds(PITCH, vehicle_info->pitchSpeed);
 	}
 
 	seats[ seatid ]->AddPassenger( passenger->GetGUID() );
@@ -314,6 +319,7 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 	passenger->SendHopOffVehicle( owner, landposition );
 	passenger->SetPosition( landposition );	
 	passenger->Unroot();
+	passenger->RestoreSpeed();
 	seats[ seatid ]->RemovePassenger();
 	passenger->SetCurrentVehicle( NULL );
 	passenger->RemoveFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NOT_ATTACKABLE_2 );

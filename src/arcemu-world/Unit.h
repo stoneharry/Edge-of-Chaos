@@ -1017,6 +1017,26 @@ struct MovementInfo
 		transTime2= 0;
 		transSeat= 0;
 	}
+	void Init()
+	{
+		guid= 0;
+		time= 0;
+		pitch= 0;// -1.55=looking down, 0=looking forward, +1.55=looking up
+		redirectSin= 0;//on slip 8 is zero, on jump some other number
+		redirectCos, redirect2DSpeed= 0;//9,10 changes if you are not on foot
+		fallTime= 0;
+		splineElevation= 0;
+		flags2= 0;
+
+		x, y, z, orientation= 0;
+		flags= 0;
+		redirectVelocity= 0;
+		transGuid= 0;
+		transX, transY, transZ, transO= 0;
+		transTime= 0;
+		transTime2= 0;
+		transSeat= 0;
+	}
 	bool HasMovementFlag(uint32 flag) 
 	{
 		if(flags & flag)
@@ -1897,7 +1917,7 @@ class SERVER_DECL Unit : public Object
 		void AddGarbagePet(Pet* pet);
 
 		virtual void BuildPetSpellList(WorldPacket & data);
-
+		void RestoreSpeed();
 	protected:
 		Unit();
 		void RemoveGarbage();
@@ -1997,6 +2017,7 @@ class SERVER_DECL Unit : public Object
 		void SendFeatherFall(bool apply);
 		bool SetHover(bool enable);
 		void BuildMovementPacket(ByteBuffer *data);
+		void BuildMovementPacket(ByteBuffer *data, float x, float y, float z, float o);
 		MovementInfo* GetMovementInfo() { return &movement_info; }
         void AddUnitMovementFlag(uint32 f) { movement_info.flags |= f; }
         void RemoveUnitMovementFlag(uint32 f) { movement_info.flags &= ~f; }

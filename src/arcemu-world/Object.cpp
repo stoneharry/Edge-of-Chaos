@@ -111,12 +111,8 @@ uint32 Object::BuildCreateUpdateBlockForPlayer(ByteBuffer* data, Player* target)
 	uint32 flags2 = 0;
 
 	uint8 updatetype = UPDATETYPE_CREATE_OBJECT;
-	if(IsCorpse())
-	{
-		if(TO< Corpse* >(this)->GetDisplayId() == 0)
-			return 0;
+	if(IsCorpse() || m_objectTypeId == TYPEID_DYNAMICOBJECT || IsPlayer())
 		updatetype = UPDATETYPE_CREATE_YOURSELF;
-	}
 
 	// any other case
 	switch(m_objectTypeId)
@@ -336,37 +332,79 @@ uint32 TimeStamp();
 void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags, uint32 flags2, Player* target)
 {
 	ByteBuffer* splinebuf = (m_objectTypeId == TYPEID_UNIT) ? target->GetAndRemoveSplinePacket(GetGUID()) : 0;
-
-	if(splinebuf != NULL)
-	{
-		flags2 |= MOVEFLAG_SPLINE_ENABLED | MOVEFLAG_MOVE_FORWARD;	   //1=move forward
-		if(GetTypeId() == TYPEID_UNIT)
-		{
-			if(TO_UNIT(this)->GetAIInterface()->HasWalkMode(WALKMODE_WALK))
-				flags2 |= MOVEFLAG_WALK;
-		}
-	}
-
-
 	*data << (uint16)flags;
 
-	Player* pThis = NULL;
 	if(IsPlayer())
 	{
-		pThis = TO< Player* >(this);
 		if(target == this)
 		{
 			// Updating our last speeds.
-			pThis->UpdateLastSpeeds();
+			TO_PLAYER(this)->UpdateLastSpeeds();
 		}
 	}
-	Creature* uThis = NULL;
-	if(IsCreature())
-		uThis = TO< Creature* >(this);
-
+	Unit* uThis = NULL;
+	if(IsUnit())
+		uThis = TO< Unit* >(this);
+	MovementInfo* mi;
+	if(uThis)
+		mi = uThis->GetMovementInfo();
 	if(flags & UPDATEFLAG_LIVING)  //0x20
 	{
-		((Unit*)this)->BuildMovementPacket(data);
+		flags2 = mi->flags;
+		uint32 moveflags2 = mi->flags2;
+		if(splinebuf != NULL)
+		{
+			if(!(flags2 & MOVEFLAG_SPLINE_ENABLED))
+				flags2 |= MOVEFLAG_SPLINE_ENABLED;
+			if(!(flags2 & MOVEFLAG_MOVE_FORWARD))
+				flags2 |= MOVEFLAG_MOVE_FORWARD;
+			if(GetTypeId() == TYPEID_UNIT)
+			if(uThis->GetAIInterface()->HasWalkMode(WALKMODE_WALK) && !(flags2 & MOVEFLAG_WALK))
+				flags2 |= MOVEFLAG_WALK;
+		}
+		if(uThis->GetAIInterface()->IsFlying() && !(flags2 & MOVEFLAG_NO_COLLISION))
+			flags2 |= MOVEFLAG_NO_COLLISION;
+		if(uThis->GetAIInterface()->onGameobject && !(flags2 & MOVEFLAG_ROOTED))
+			flags2 |= MOVEFLAG_ROOTED;
+		if(uThis->isRooted() && !(flags2 & MOVEFLAG_ROOTED))
+			flags2 |= MOVEFLAG_ROOTED;
+		if(IsVehicle() && uThis->GetVehicleComponent() != NULL)
+			moveflags2 = uThis->GetVehicleComponent()->GetMoveFlags2();
+		*data << flags2;
+
+		*data << (uint16)moveflags2;
+
+		*data << getMSTime(); // this appears to be time in ms but can be any thing. Maybe packet serializer ?
+		//Send position data, every living thing has these
+		*data << (float)m_position.x;
+		*data << (float)m_position.y;
+		*data << (float)m_position.z;
+		*data << (float)m_position.o;
+
+		if(flags2 & MOVEFLAG_TRANSPORT) //0x0200
+		{
+			*data << WoWGuid( transporter_info.guid );
+			*data << float( transporter_info.x );
+			*data << float( transporter_info.y );
+			*data << float( transporter_info.z );
+			*data << float( transporter_info.o );
+			*data << uint32( transporter_info.flags );
+			*data << uint8( transporter_info.seat );
+		}
+
+
+		if((flags2 & (MOVEFLAG_SWIMMING | MOVEFLAG_AIR_SWIMMING)) || (moveflags2 & MOVEFLAG2_ALLOW_PITCHING))   // 0x2000000+0x0200000 flying/swimming, || sflags & SMOVE_FLAG_ENABLE_PITCH
+			*data << mi->pitch;
+
+		*data << mi->fallTime;
+
+		if(flags2 & MOVEFLAG_JUMPING)   // 0x00001000
+		{
+			*data << mi->redirectVelocity;
+			*data << mi->redirectSin;
+			*data << mi->redirectCos;
+			*data << mi->redirect2DSpeed;
+		}
 
 		*data << m_walkSpeed;	// walk speed
 		*data << m_runSpeed;	// run speed
@@ -388,13 +426,26 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags, uint32 flags2,
 	{
 		if(flags & UPDATEFLAG_POSITION)   //0x0100
 		{
-			*data << uint8(0);   //some say it is like parent guid ?
+			Transporter* pTrans = objmgr.GetTransporter(Arcemu::Util::GUID_LOPART(transporter_info.guid));
+			if(pTrans)
+				*data << pTrans->GetNewGUID();
+			else
+				*data << uint8(0);
 			*data << (float)m_position.x;
 			*data << (float)m_position.y;
 			*data << (float)m_position.z;
-			*data << (float)m_position.x;
-			*data << (float)m_position.y;
-			*data << (float)m_position.z;
+			if(pTrans)
+			{
+				*data << transporter_info.x;
+				*data << transporter_info.y;
+				*data << transporter_info.z;
+			}
+			else
+			{
+				*data << (float)m_position.x;
+				*data << (float)m_position.y;
+				*data << (float)m_position.z;
+			}
 			*data << (float)m_position.o;
 
 			if(IsCorpse())
@@ -404,61 +455,26 @@ void Object::_BuildMovementUpdate(ByteBuffer* data, uint16 flags, uint32 flags2,
 		}
 		else if(flags & UPDATEFLAG_HAS_POSITION)  //0x40
 		{
-			if(flags & UPDATEFLAG_TRANSPORT && m_uint32Values[GAMEOBJECT_BYTES_1] == GAMEOBJECT_TYPE_MO_TRANSPORT)
-			{
-				*data << (float)0;
-				*data << (float)0;
-				*data << (float)0;
-			}
-			else
-			{
-				*data << (float)m_position.x;
-				*data << (float)m_position.y;
-				*data << (float)m_position.z;
-			}
+			*data << (float)m_position.x;
+			*data << (float)m_position.y;
+			*data << (float)m_position.z;
 			*data << (float)m_position.o;
 		}
 	}
 
-
 	if(flags & UPDATEFLAG_LOWGUID)   //0x08
-	{
-        switch (GetTypeId())
-        {
-            case TYPEID_OBJECT:
-            case TYPEID_ITEM:
-            case TYPEID_CONTAINER:
-            case TYPEID_GAMEOBJECT:
-            case TYPEID_DYNAMICOBJECT:
-            case TYPEID_CORPSE:
-                *data << uint32(GetLowGUID());              // GetGUIDLow()
-                break;
-            //! Unit, Player and default here are sending wrong values.
-            //! TODO: Research the proper formula
-            case TYPEID_UNIT:
-                *data << uint32(0x0000000B);                // unk
-                break;
-            case TYPEID_PLAYER:
-                if (flags & UPDATEFLAG_SELF)
-                    *data << uint32(0x0000002F);            // unk
-                else
-                    *data << uint32(0x00000008);            // unk
-                break;
-            default:
-                *data << uint32(0x00000000);                // unk
-                break;
-        }
-	}
+		*data << GetLowGUID();
+
+	if(flags & UPDATEFLAG_HIGHGUID)   //0x10
+		*data << GetHighGUID();
 
 	if(flags & UPDATEFLAG_HAS_TARGET)   //0x04
 	{
-		Unit * u = NULL;
 		if(IsUnit())
-			u = GetMapMgrUnit(TO_UNIT(this)->GetTargetGUID());
-
-		*data << (u ? u->GetNewGUID() : uint64(0));
+			FastGUIDPack(*data, TO_UNIT(this)->GetTargetGUID());	//some compressed GUID
+		else
+			*data << uint64(0);
 	}
-
 
 	if(flags & UPDATEFLAG_TRANSPORT)   //0x2
        *data << getMSTime();
@@ -651,9 +667,7 @@ void Object::_BuildValuesUpdate(ByteBuffer* data, UpdateMask* updateMask, Player
 	for(uint32 index = 0; index < values_count; index ++)
 	{
 		if(updateMask->GetBit(index))
-		{
 			*data << m_uint32Values[ index ];
-		}
 	}
 
 	if(reset)

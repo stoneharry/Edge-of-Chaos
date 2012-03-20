@@ -193,7 +193,8 @@ enum AI_State
     STATE_WANDER,
     STATE_STOPPED,
     STATE_SCRIPTMOVE,
-    STATE_SCRIPTIDLE
+    STATE_SCRIPTIDLE,
+	STATE_EVADE_TIMING_OUT,
 };
 
 enum MovementState
@@ -657,6 +658,7 @@ class SERVER_DECL AIInterface
 		//specifies if m_waypoints was loaded from DB, so shared between other AIInterface instances.
 		bool m_waypointsLoadedFromDB;
 		WayPointMap* m_waypoints;
+		uint32 evaderesettimeout;
 	public:
 		bool m_is_in_instance;
 		bool skip_reset_hp;
