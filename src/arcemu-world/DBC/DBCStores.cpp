@@ -348,8 +348,8 @@ const char* summonpropertiesformat = "uuuuuu";
 const char* namegenentryformat = "usuu";
 const char* DestructibleModelDataFormat = "uxxuxxxuxxxuxxxuxxx";
 const char* CreatureDisplayInfoFormat = "nixxfxxxxxxxxxxx";
-const char* CreatureModelDataFormat ="nxxxfxxxxxxxxxxffxxxxxxxxxxx";
-const char LFGDungeonEntryFormat[]="nxxxxxxxxxxxxxxxxxiiiiiiixixxixixxxxxxxxxxxxxxxxx";
+const char* CreatureModelDataFormat ="uxxxfxxxxxxxxxxffxxxxxxxxxxx";
+const char LFGDungeonEntryFormat[]="uxxxxxxxxxxxxxxxxxiiiiiiixixxixixxxxxxxxxxxxxxxxx";
 
 template<class T>
 bool loader_stub(const char* filename, const char* format, bool ind, T & l, bool loadstrs)

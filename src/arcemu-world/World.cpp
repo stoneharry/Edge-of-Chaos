@@ -1234,7 +1234,7 @@ void World::Rehash(bool load)
 	if(load)
 	{
 		Config.MainConfig.SetSource("configs/world.conf", true);
-		Config.OptionalConfig.SetSource(CONFDIR "configs/optional.conf", true);
+		Config.OptionalConfig.SetSource("configs/optional.conf", true);
 	}
 	if(!ChannelMgr::getSingletonPtr())
 		new ChannelMgr;

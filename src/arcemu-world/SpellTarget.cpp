@@ -483,7 +483,7 @@ bool Spell::AddTarget(uint32 i, uint32 TargetType, Object* obj)
 			}*/
 		}
 
-		if(!CollideInterface.CheckLOS(m_caster->GetMapId(), x, y, z + 2, obj->GetPositionX(), obj->GetPositionY(), obj->GetPositionZ() + 2))
+		if(!(GetProto()->AttributesEx2 & SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS) && !CollideInterface.CheckLOS(m_caster->GetMapId(), x, y, z + 2, obj->GetPositionX(), obj->GetPositionY(), obj->GetPositionZ() + 2))
 			return false;
 	}
 
@@ -641,7 +641,7 @@ bool Spell::GenerateTargets(SpellCastTargets* t)
 				t->m_destZ = m_caster->GetMapMgr()->GetLandHeight(t->m_destX, t->m_destY, m_caster->GetPositionZ() + 2.0f);
 				t->m_targetMask = TARGET_FLAG_DEST_LOCATION;
 			}
-			while(sWorld.Collision && !CollideInterface.CheckLOS(m_caster->GetMapId(), m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), t->m_destX, t->m_destY, t->m_destZ));
+			while(sWorld.Collision && !(GetProto()->AttributesEx2 & SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS) && !CollideInterface.CheckLOS(m_caster->GetMapId(), m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), t->m_destX, t->m_destY, t->m_destZ));
 			result = true;
 		}
 		else if(TargetType & SPELL_TARGET_AREA)  //targetted aoe

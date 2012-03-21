@@ -923,26 +923,8 @@ class LuaUnit
 			if(proto == NULL)
 				return 0;
 
-			Item* add = plr->GetItemInterface()->FindItemLessMax(id, count, false);
-			if(add == NULL)
-			{
-				add = objmgr.CreateItem(id, plr);
-				add->SetStackCount(count);
-				if(plr->GetItemInterface()->AddItemToFreeSlot(add))
-					plr->SendItemPushResult(false, true, false, true, plr->GetItemInterface()->LastSearchItemBagSlot(),
-					                        plr->GetItemInterface()->LastSearchItemSlot(), count, add->GetEntry(), add->GetItemRandomSuffixFactor(),
-					                        add->GetItemRandomPropertyId(), add->GetStackCount());
-				else
-					delete add;
-			}
-			else
-			{
-				add->ModStackCount(count);
-				plr->SendItemPushResult(false, true, false, false,
-				                        static_cast<uint8>(plr->GetItemInterface()->GetBagSlotByGuid(add->GetGUID())), 0xFFFFFFFF,
-				                        count , add->GetEntry(), add->GetItemRandomSuffixFactor(), add->GetItemRandomPropertyId(), add->GetStackCount());
-			}
-			PUSH_ITEM(L, add);
+			plr->GetItemInterface()->AddItemById(id, count, 0);
+			PUSH_ITEM(L, plr->GetItemInterface()->GetItem(id));
 			return 1;
 		}
 		static int GetInstanceID(lua_State* L, Unit* ptr)

@@ -1267,9 +1267,12 @@ class SERVER_DECL Unit : public Object
 		bool SetAurDuration(uint32 spellId, Unit* caster, uint32 duration);
 		bool SetAurDuration(uint32 spellId, uint32 duration);
 		void DropAurasOnDeath();
-		int32 GetMinAuraModifer(uint32 AuraName);
 		int32 GetTotalAuraModifer(uint32 AuraName, bool addone = false);
-
+		int32 GetMaxPositiveAuraModifier(uint32 AuraName, uint32 ignorerspell = 0);
+		float GetTotalAuraMultiplier(uint32 AuraName, uint32 ignorerspell = 0);
+		int32 GetTotalAuraModifier(uint32 AuraName, uint32 ignorerspell = 0);
+		int32 GetMaxNegativeAuraModifier(uint32 AuraName, uint32 ignorerspell = 0);
+		bool IsControlledByPlayer();
 		//******************************************************
 		// Auras that can affect only one target at a time
 		//******************************************************
@@ -1562,13 +1565,12 @@ class SERVER_DECL Unit : public Object
 		int32  m_detectRangeMOD[5];
 		// Affect Speed
 		int32 m_speedModifier;
-		int32 m_slowdown;
 		float m_maxSpeed;
-		bool GetSpeedDecrease();
 		int32 m_mountedspeedModifier;
 		int32 m_flyspeedModifier;
 		virtual void SetSpeeds( uint8 type, float speed ){}
-		void UpdateSpeed();
+		void UpdateSpeed(uint32 ignorerspell = 0);
+		void UpdateSpeedType(uint32 type, uint32 ignorerspell = 0);
 		void EnableFlight();
 		void DisableFlight();
 		bool IsTauntable();
@@ -1918,6 +1920,8 @@ class SERVER_DECL Unit : public Object
 
 		virtual void BuildPetSpellList(WorldPacket & data);
 		void RestoreSpeed();
+		uint32 GetModelForForm(uint32 form);
+
 	protected:
 		Unit();
 		void RemoveGarbage();

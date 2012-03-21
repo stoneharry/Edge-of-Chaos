@@ -3397,12 +3397,6 @@ void Aura::SpellAuraModDecreaseSpeed(bool apply)
 	//there can not be 2 slow downs only most powerful is applied
 	if(apply)
 	{
-		// Check Mechanic Immunity
-		if(m_target->MechanicsDispels[MECHANIC_ENSNARED])
-		{
-			m_flags |= 1 << mod->i;
-			return;
-		}
 		switch(m_spellProto->NameHash)
 		{
 			case SPELL_HASH_STEALTH:			// Stealth
@@ -3411,12 +3405,6 @@ void Aura::SpellAuraModDecreaseSpeed(bool apply)
 
 			case SPELL_HASH_DAZED:			// Dazed
 				SetNegative();
-				break;
-
-			default:
-				/* burlex: this would be better as a if(caster is hostile to target) then effect = negative) */
-				if(m_casterGuid != m_target->GetGUID())
-					SetNegative();
 				break;
 		}
 
@@ -3431,7 +3419,6 @@ void Aura::SpellAuraModDecreaseSpeed(bool apply)
 				TO< Unit* >(m_target)->EventChill(caster, true);
 		}
 	}
-	m_target->GetSpeedDecrease();
 	m_target->UpdateSpeed();
 }
 
@@ -3554,10 +3541,7 @@ void Aura::SpellAuraModShapeshift(bool apply)
 
 	uint32 spellId = 0;
 	uint32 spellId2 = 0;
-	uint32 modelId = (uint32)(apply ? ssf->modelId : 0);
-
 	bool freeMovements = false;
-
 	switch(ssf->id)
 	{
 		case FORM_CAT:
@@ -3570,8 +3554,6 @@ void Aura::SpellAuraModShapeshift(bool apply)
 					m_target->SetPowerType(POWER_TYPE_ENERGY);
 					m_target->SetMaxPower(POWER_TYPE_ENERGY, 100);  //100 Energy
 					m_target->SetPower(POWER_TYPE_ENERGY, 0);  //0 Energy
-					if(m_target->getRace() != RACE_NIGHTELF)//TAUREN
-						modelId = 8571;
 
 				}
 				else
@@ -3591,8 +3573,7 @@ void Aura::SpellAuraModShapeshift(bool apply)
 		case FORM_TREE:
 			{
 				freeMovements = true;
-				spellId = 34123; // this is area aura
-				//spellId2 = 5420;
+				spellId = 34123; 
 			}
 			break;
 		case FORM_TRAVEL:
@@ -3614,29 +3595,15 @@ void Aura::SpellAuraModShapeshift(bool apply)
 				//druid only
 				freeMovements = true;
 				spellId = 1178;
+				spellId2 = 21178;
 				if(apply)
 				{
 					m_target->SetPowerType(POWER_TYPE_RAGE);
 					m_target->SetMaxPower(POWER_TYPE_RAGE, 1000);
 					m_target->SetPower(POWER_TYPE_RAGE, 0); //0 rage
-
-					if(m_target->getRace() != RACE_NIGHTELF)   //TAUREN
-						modelId = 2289;
-
-					//some say there is a second effect
-					SpellEntry* spellInfo = dbcSpell.LookupEntry(21178);
-
-					Spell* sp = sSpellFactoryMgr.NewSpell(m_target, spellInfo, true, NULL);
-					SpellCastTargets tgt;
-					tgt.m_unitTarget = m_target->GetGUID();
-					sp->prepare(&tgt);
 				}
 				else
-				{
-					//reset back to mana
 					m_target->SetPowerType(POWER_TYPE_MANA);
-					m_target->RemoveAura(21178);   // remove Bear Form (Passive2)
-				}
 			}
 			break;
 		case FORM_DIREBEAR:
@@ -3644,13 +3611,12 @@ void Aura::SpellAuraModShapeshift(bool apply)
 				//druid only
 				freeMovements = true;
 				spellId = 9635;
+				spellId2 = 21178;
 				if(apply)
 				{
 					m_target->SetPowerType(POWER_TYPE_RAGE);
 					m_target->SetMaxPower(POWER_TYPE_RAGE, 1000);
 					m_target->SetPower(POWER_TYPE_RAGE, 0); //0 rage
-					if(m_target->getRace() != RACE_NIGHTELF)   //TAUREN
-						modelId = 2289;
 				}
 				else //reset back to mana
 					m_target->SetPowerType(POWER_TYPE_MANA);
@@ -3673,11 +3639,8 @@ void Aura::SpellAuraModShapeshift(bool apply)
 			break;
 		case FORM_SHADOW:
 			{
-				if(apply)
-				{
-					TO< Player* >(m_target)->SendSpellCooldownEvent(m_spellProto->Id);
-				}
 				spellId = 49868;
+				spellId2 = 71167;
 			}
 			break;
 		case FORM_FLIGHT:
@@ -3685,11 +3648,7 @@ void Aura::SpellAuraModShapeshift(bool apply)
 				// druid
 				freeMovements = true;
 				spellId = 33948;
-				if(apply)
-				{
-					if(m_target->getRace() != RACE_NIGHTELF)
-						modelId = 20872;
-				}
+				spellId2 = 34764;
 			}
 			break;
 		case FORM_STEALTH:
@@ -3705,39 +3664,27 @@ void Aura::SpellAuraModShapeshift(bool apply)
 				//druid
 				freeMovements = true;
 				spellId = 24905;
-				if(apply)
-				{
-					if(m_target->getRace() != RACE_NIGHTELF)
-						modelId = ssf->modelId2; // Lol, why is this the only one that has it in ShapeShift DBC? =/ lameeee...
-				}
+				spellId2 = 69366;
 			}
 			break;
-		case FORM_SWIFT: //not tested yet, right now going on trust
+		case FORM_SWIFT:
 			{
 				// druid
 				freeMovements = true;
-				spellId = 40121; //Swift Form Passive
-				if(apply)
-				{
-					if(m_target->getRace() != RACE_NIGHTELF)//TAUREN
-						modelId = 21244;
-				}
+				spellId = 40122; //Swift Form Passive
+				spellId2 = 40121;
 			}
 			break;
 		case FORM_SPIRITOFREDEMPTION:
 			{
-				spellId = 27795;
-				modelId = 12824; // Smaller spirit healer, heehee :3
+				spellId = 27792;
+				spellId2 = 27795;
 			}
 			break;
-		case FORM_GHOUL:
-		case FORM_SKELETON:
-		case FORM_ZOMBIE:
+			case FORM_GHOSTWOLF:
 			{
-				if(p_target != NULL)
-					p_target->SendAvailSpells(ssf, apply);
-			}
-			break;
+				spellId = 67116;
+			}break;
 		case FORM_METAMORPHOSIS:
 			{
 				spellId = 59673;
@@ -3747,6 +3694,7 @@ void Aura::SpellAuraModShapeshift(bool apply)
 
 	if(apply)
 	{
+		uint32 modelid = m_target->GetModelForForm(ssf->id);
 		if(p_target != NULL)
 		{
 			if(p_target->getClass() == WARRIOR && p_target->GetPower(POWER_TYPE_RAGE) > p_target->m_retainedrage)
@@ -3785,11 +3733,8 @@ void Aura::SpellAuraModShapeshift(bool apply)
 			}
 		}
 
-		if(modelId != 0)
-		{
-			m_target->SetDisplayId(modelId);
-			m_target->EventModelChange();
-		}
+        if (modelid > 0)
+            m_target->SetDisplayId(modelid);
 
 		m_target->SetShapeShift(mod->m_miscValue);
 

@@ -52,6 +52,7 @@ Group::Group(bool Assign)
 	m_raiddifficulty = 0;
 	m_assistantLeader = m_mainAssist = m_mainTank = NULL;
 	updatecounter = 0;
+	m_guid = 0;
 }
 
 Group::~Group()
@@ -63,7 +64,7 @@ Group::~Group()
 			delete sub;
 	}
 
-	ObjectMgr::getSingleton().RemoveGroup(this);
+	objmgr.RemoveGroup(this);
 }
 
 SubGroup::~SubGroup()

@@ -194,7 +194,7 @@ void Player::SendItemPushResult(bool created, bool recieved, bool sendtoset, boo
 		GetGroup()->SendPacketToAll(&data);
 	else
 		m_session->SendPacket(&data);
-	GetItemInterface()->mSaveItemsToDatabase(false, NULL);
+	//GetItemInterface()->mSaveItemsToDatabase(false, NULL);
 }
 
 void Player::SendSetProficiency(uint8 ItemClass, uint32 Proficiency)

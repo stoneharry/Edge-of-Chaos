@@ -2300,8 +2300,7 @@ class SERVER_DECL Player : public Unit
 		{
 			ResurrectPlayer();
 			SetMovement(MOVE_UNROOT, 5);
-			SetSpeeds(RUN, PLAYER_NORMAL_RUN_SPEED);
-			SetSpeeds(SWIM, PLAYER_NORMAL_SWIM_SPEED);
+			UpdateSpeed();
 			SetMovement(MOVE_LAND_WALK, 8);
 			SetHealth(GetUInt32Value(UNIT_FIELD_MAXHEALTH));
 		}
@@ -2650,7 +2649,8 @@ template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &bas
 
         // Charges can be set only for mods with auras
         if (!mod->ownerAura)
-            ASSERT(mod->charges == 0);
+			continue;
+            //ASSERT(mod->charges == 0);
 
         if (!IsAffectedBySpellmod(spellInfo, mod, spell))
             continue;

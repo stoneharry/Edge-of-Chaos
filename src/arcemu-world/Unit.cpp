@@ -112,7 +112,29 @@ static float AttackToRageConversionTable[PLAYER_LEVEL_CAP + 1] =
 	0.0136512559131f,
 #endif
 };
-
+float baseMoveSpeed[9] =
+{
+    2.5f,                  // MOVE_WALK
+    7.0f,                  // MOVE_RUN
+    4.5f,                  // MOVE_RUN_BACK
+    4.722222f,             // MOVE_SWIM
+    2.5f,                  // MOVE_SWIM_BACK
+    3.141594f,             // MOVE_TURN_RATE
+    7.0f,                  // MOVE_FLIGHT
+    4.5f,                  // MOVE_FLIGHT_BACK
+    3.14f                  // MOVE_PITCH_RATE
+};
+float playerBaseMoveSpeed[9] = {
+    2.5f,                  // MOVE_WALK
+    7.0f,                  // MOVE_RUN
+    4.5f,                  // MOVE_RUN_BACK
+    4.722222f,             // MOVE_SWIM
+    2.5f,                  // MOVE_SWIM_BACK
+    3.141594f,             // MOVE_TURN_RATE
+    7.0f,                  // MOVE_FLIGHT
+    4.5f,                  // MOVE_FLIGHT_BACK
+    3.14f                  // MOVE_PITCH_RATE
+};
 Unit::Unit()
 {
 	int i;
@@ -144,7 +166,6 @@ Unit::Unit()
 		PctPowerRegenModifier[i] = 1;
 	}
 	m_speedModifier = 0;
-	m_slowdown = 0;
 	m_mountedspeedModifier = 0;
 	m_maxSpeed = 0;
 	for(i = 0; i < 32 ; i++)
@@ -2660,11 +2681,11 @@ uint32 Unit::GetSpellDidHitResult(Unit* pVictim, uint32 weapon_damage_type, Spel
 			hitchance = std::max(hitchance, 100.0f + vsk * 0.6f + hitmodifier);   //not wowwiki but more balanced
 	}
 
-	if(ability && ability->SpellGroupType)
+	/*if(ability && ability->SpellGroupType)
 	{
 		if(Player * p = GetSpellModOwner())
 			p->ApplySpellMod(ability->Id, SPELLMOD_RESIST_MISS_CHANCE, hitchance);
-	}
+	}*/
 
 	if(ability && ability->Attributes & SPELL_ATTR0_IMPOSSIBLE_DODGE_PARRY_BLOCK)
 	{
@@ -4803,12 +4824,12 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 		bool a = true;
 		if( spellInfo->ap_coef >= 0.0f && !isdot )
 		{
-			plus_damage += float2int32(plus_damage + (spellInfo->ap_coef * caster->GetAttackPower()));
+			plus_damage += float2int32(/*plus_damage + (*/spellInfo->ap_coef * caster->GetAttackPower());
 			a = false;
 		}
 		if( spellInfo->ap_dot_coef >= 0.0f && isdot )
 		{
-			plus_damage += float2int32(plus_damage + (spellInfo->ap_dot_coef * caster->GetAttackPower()));
+			plus_damage += float2int32(/*plus_damage + (*/spellInfo->ap_dot_coef * caster->GetAttackPower());
 			if( caster->IsPlayer() )
 			{
 				int durmod = 0;
@@ -4820,13 +4841,13 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 		}
 		if( spellInfo->Dspell_coef_override >= 0.0f && !isdot )
 		{
-			plus_damage += float2int32(plus_damage + (plus_damage * spellInfo->Dspell_coef_override));
+			plus_damage += float2int32(/*plus_damage + (*/plus_damage * spellInfo->Dspell_coef_override);
 			a = false;
 		}
 		if( spellInfo->OTspell_coef_override >= 0.0f && isdot )
 		{
-			plus_damage += float2int32(plus_damage + (plus_damage * spellInfo->OTspell_coef_override));
-			if( caster->IsPlayer() )
+			plus_damage += float2int32(/*plus_damage + (*/plus_damage * spellInfo->OTspell_coef_override);
+			if( caster->IsPlayer() && a)
 			{
 				int durmod = 0;
 				if(Player * p = GetSpellModOwner())
@@ -4839,11 +4860,11 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 		{
 			//Bonus to DD part
 			if( spellInfo->fixed_dddhcoef >= 0.0f && !isdot )
-				plus_damage = float2int32(plus_damage + (plus_damage * spellInfo->fixed_dddhcoef));
+				plus_damage = float2int32(plus_damage * spellInfo->fixed_dddhcoef);
 			//Bonus to DoT part
 			else if( spellInfo->fixed_hotdotcoef >= 0.0f && isdot )
 			{
-				plus_damage = float2int32(plus_damage + (plus_damage * spellInfo->fixed_hotdotcoef));
+				plus_damage = float2int32(plus_damage * spellInfo->fixed_hotdotcoef);
 				if( caster->IsPlayer() )
 				{
 					int32 durmod = 0;
@@ -5310,9 +5331,12 @@ void Unit::DropAurasOnDeath()
 		}
 }
 
-void Unit::UpdateSpeed()
+void Unit::UpdateSpeed(uint32 ignorerspell)
 {
-	if(!GetMount())
+	UpdateSpeedType(RUN, ignorerspell);
+	UpdateSpeedType(FLY, ignorerspell);
+	UpdateSpeedType(SWIM, ignorerspell);
+	/*if(!GetMount())
 	{
 		m_runSpeed = m_base_runSpeed * (1.0f + ((float)m_speedModifier) / 100.0f);
 	}
@@ -5337,9 +5361,121 @@ void Unit::UpdateSpeed()
 	{
 		SetSpeeds( RUN, m_runSpeed );
 		SetSpeeds( FLY, m_flySpeed );
-	}
+	}*/
 }
 
+void Unit::UpdateSpeedType(uint32 type, uint32 ignorerspell)
+{
+	int32 main_speed_mod  = 0;
+	float stack_bonus     = 1.0f;
+	float non_stack_bonus = 1.0f;
+
+    switch (type)
+    {
+        // Only apply debuffs
+        case FLYBACK:
+        case RUNBACK:
+        case SWIMBACK:
+            break;
+        case WALK:
+            return;
+        case RUN:
+        {
+			if (GetMount()) // Use on mount auras
+            {
+                main_speed_mod  = GetMaxPositiveAuraModifier(SPELL_AURA_MOD_INCREASE_MOUNTED_SPEED, ignorerspell);
+                stack_bonus     = GetTotalAuraMultiplier(SPELL_AURA_MOD_MOUNTED_SPEED_ALWAYS, ignorerspell);
+                non_stack_bonus += GetMaxPositiveAuraModifier(172, ignorerspell) / 100.0f;
+            }
+            else
+            {
+                main_speed_mod  = GetMaxPositiveAuraModifier(SPELL_AURA_MOD_INCREASE_SPEED, ignorerspell);
+                stack_bonus     = GetTotalAuraMultiplier(129, ignorerspell);
+                non_stack_bonus += GetMaxPositiveAuraModifier(171, ignorerspell) / 100.0f;
+            }
+            break;
+        }
+        case SWIM:
+        {
+            main_speed_mod  = GetMaxPositiveAuraModifier(SPELL_AURA_MOD_INCREASE_SWIM_SPEED, ignorerspell);
+            break;
+        }
+        case FLY:
+        {
+			if (GetTypeId() == TYPEID_UNIT && IsControlledByPlayer()) // not sure if good for pet
+            {
+                main_speed_mod  = GetMaxPositiveAuraModifier(206, ignorerspell);
+                stack_bonus     = GetTotalAuraMultiplier(SPELL_AURA_MOD_VEHICLE_SPEED_ALWAYS, ignorerspell);
+
+                // for some spells this mod is applied on vehicle owner
+                int32 owner_speed_mod = 0;
+
+				//if (Unit* owner = GetMapMgrUnit(GetCharmedByGUID()))
+                    //owner_speed_mod = owner->GetMaxPositiveAuraModifier(206);
+
+                main_speed_mod = std::max(main_speed_mod, owner_speed_mod);
+            }
+            else if (GetMount())
+            {
+                main_speed_mod  = GetMaxPositiveAuraModifier(207, ignorerspell);
+                stack_bonus     = GetTotalAuraMultiplier(SPELL_AURA_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS, ignorerspell);
+            }
+            else             // Use not mount (shapeshift for example) auras (should stack)
+                main_speed_mod  = GetTotalAuraModifier(208) + GetTotalAuraModifier(206, ignorerspell);
+
+            non_stack_bonus += GetMaxPositiveAuraModifier(SPELL_AURA_MOD_FLIGHT_SPEED_NOT_STACK, ignorerspell) / 100.0f;
+
+            // Update speed for vehicle if available
+            //if (GetTypeId() == TYPEID_PLAYER && GetVehicleBase())
+               // GetVehicleBase()->UpdateSpeedType(FLY);
+            break;
+        }
+        default:
+            sLog.outError("Unit::UpdateSpeed: Unsupported move type (%d)", type);
+            return;
+    }
+
+    // now we ready for speed calculation
+    float speed = std::max(non_stack_bonus, stack_bonus);
+    if (main_speed_mod)
+        AddPctN(speed, main_speed_mod);
+
+    switch (type)
+    {
+        case RUN:
+        case SWIM:
+        case FLY:
+        {
+            // Normalize speed by 191 aura SPELL_AURA_USE_NORMAL_MOVEMENT_SPEED if need
+            // TODO: possible affect only on MOVE_RUN
+            if (int32 normalization = GetMaxPositiveAuraModifier(191, ignorerspell))
+            {
+                // Use speed from aura
+				float max_speed = normalization / (IsControlledByPlayer() ? playerBaseMoveSpeed[type] : baseMoveSpeed[type]);
+                if (speed > max_speed)
+                    speed = max_speed;
+            }
+            break;
+        }
+        default:
+            break;
+    }
+
+    // Apply strongest slow aura mod to speed
+    int32 slow = GetMaxNegativeAuraModifier(SPELL_AURA_MOD_DECREASE_SPEED, ignorerspell);
+    if (slow)
+    {
+        AddPctN(speed, slow);
+        if (float minSpeedMod = (float)GetMaxPositiveAuraModifier(305, ignorerspell))
+        {
+            float min_speed = minSpeedMod / 100.0f;
+            if (speed < min_speed)
+                speed = min_speed;
+        }
+    }
+	SetSpeeds(type, (speed*(IsControlledByPlayer() ? playerBaseMoveSpeed[type] : baseMoveSpeed[type])));
+    //SetSpeed(type, speed, forced);
+}
 bool Unit::HasBuff(uint32 spellid) // cebernic:it does not check passive auras & must be visible auras
 {
 	for(uint32 x = MAX_POSITIVE_AURAS_EXTEDED_START; x < MAX_POSITIVE_AURAS_EXTEDED_END; x++)
@@ -5516,23 +5652,21 @@ void Unit::Unroot()
 		
 	if( !IsPlayer() )
 		m_aiInterface->m_canMove = true;
-	if(!IsStunned())
+
+	RemoveUnitMovementFlag(MOVEFLAG_ROOTED);
+	m_rooted = 0;
+	if(IsPlayer())
 	{
-		RemoveUnitMovementFlag(MOVEFLAG_ROOTED);
-		m_rooted = 0;
-		if(IsPlayer())
-		{
-			WorldPacket data( SMSG_FORCE_MOVE_UNROOT, 12 );
-			data << GetNewGUID();
-			data << uint32( 5 );
-			SendMessageToSet( &data, true);
-		}
-		else
-		{
-			WorldPacket data(SMSG_SPLINE_MOVE_UNROOT, 8);
-			data << GetNewGUID();
-			SendMessageToSet(&data, true);
-		}
+		WorldPacket data( SMSG_FORCE_MOVE_UNROOT, 12 );
+		data << GetNewGUID();
+		data << uint32( 5 );
+		SendMessageToSet( &data, true);
+	}
+	else
+	{
+		WorldPacket data(SMSG_SPLINE_MOVE_UNROOT, 8);
+		data << GetNewGUID();
+		SendMessageToSet(&data, true);
 	}
 }
 
@@ -6184,21 +6318,6 @@ int32 Unit::GetRAP()
 	if(totalap >= 0)
 		return float2int32(totalap);
 	return	0;
-}
-
-bool Unit::GetSpeedDecrease()
-{
-	int32 before = m_speedModifier;
-	m_speedModifier -= m_slowdown;
-	m_slowdown = 0;
-	m_slowdown = GetMinAuraModifer(SPELL_AURA_MOD_DECREASE_SPEED);
-	if(m_slowdown < -100)
-		m_slowdown = 100;
-	m_speedModifier += m_slowdown;
-	//save bandwidth :P
-	if(m_speedModifier != before)
-		return true;
-	return false;
 }
 
 void Unit::EventCastSpell(Unit* Target, SpellEntry* Sp)
@@ -7845,13 +7964,70 @@ int32 Unit::GetTotalAuraModifer(uint32 AuraName, bool addone)
 	return modifer;
 }
 
-int32 Unit::GetMinAuraModifer(uint32 AuraName)
+int32 Unit::GetMaxPositiveAuraModifier(uint32 AuraName, uint32 ignorerspell)
 {
 	int32 modifer = 0;
 	for(uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i)
 	{
-		if(m_auras[ i ] != NULL && m_auras[ i ]->GetSpellProto()->AppliesAura(AuraName))
-			modifer = (int32)min(modifer, m_auras[i]->GetModAmountByMod());
+		if(m_auras[ i ] != NULL && m_auras[ i ]->GetSpellProto()->AppliesAura(AuraName) && !(m_auras[i]->GetSpellId() == ignorerspell))
+		{
+			for(uint32 x = 0; x < MAX_SPELL_EFFECTS; ++x)
+			{
+				if(m_auras[i]->GetSpellProto()->EffectApplyAuraName[x] == AuraName && m_auras[i]->GetModAmount(x) > modifer)
+					modifer = m_auras[i]->GetModAmount(x);
+			}
+		}
+	}
+	return modifer;
+}
+
+float Unit::GetTotalAuraMultiplier(uint32 AuraName, uint32 ignorerspell)
+{
+	float multiplier = 1.0f;
+	for(uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i)
+	{
+		if(m_auras[ i ] != NULL && m_auras[ i ]->GetSpellProto()->AppliesAura(AuraName) && !(m_auras[i]->GetSpellId() == ignorerspell))
+		{
+			for(uint32 x = 0; x < MAX_SPELL_EFFECTS; ++x)
+			{
+				if(m_auras[i]->GetSpellProto()->EffectApplyAuraName[x] == AuraName)
+					AddPctN(multiplier, m_auras[i]->GetModAmount(x));
+			}
+		}
+	}
+	return multiplier;
+}
+
+int32 Unit::GetTotalAuraModifier(uint32 AuraName, uint32 ignorerspell)
+{
+	int32 modifer = 0;
+	for(uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i)
+	{
+		if(m_auras[ i ] != NULL && m_auras[ i ]->GetSpellProto()->AppliesAura(AuraName) && !(m_auras[i]->GetSpellId() == ignorerspell))
+		{
+			for(uint32 x = 0; x < MAX_SPELL_EFFECTS; ++x)
+			{
+				if(m_auras[i]->GetSpellProto()->EffectApplyAuraName[x] == AuraName)
+					modifer += m_auras[i]->GetModAmount(x);
+			}
+		}
+	}
+	return modifer;
+}
+
+int32 Unit::GetMaxNegativeAuraModifier(uint32 AuraName, uint32 ignorerspell)
+{
+	int32 modifer = 0;
+	for(uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i)
+	{
+		if(m_auras[ i ] != NULL && m_auras[ i ]->GetSpellProto()->AppliesAura(AuraName) && !(m_auras[i]->GetSpellId() == ignorerspell))
+		{
+			for(uint32 x = 0; x < MAX_SPELL_EFFECTS; ++x)
+			{
+				if(m_auras[i]->GetSpellProto()->EffectApplyAuraName[x] == AuraName && m_auras[i]->GetModAmount(x) < modifer)
+					modifer = m_auras[i]->GetModAmount(x);
+			}
+		}
 	}
 	return modifer;
 }
@@ -8203,4 +8379,209 @@ void Unit::RestoreSpeed()
 	SetSpeeds(SWIMBACK, 2.5f);
 	SetSpeeds(TURN, M_PI_FLOAT);
 	SetSpeeds(PITCH, M_PI_FLOAT);
+}
+
+
+uint32 Unit::GetModelForForm(uint32 form)
+{
+    switch (form)
+    {
+        case FORM_CAT:
+            // Based on Hair color
+            if (getRace() == RACE_NIGHTELF)
+            {
+				uint8 hairColor = GetByte(PLAYER_BYTES, 3);
+                switch (hairColor)
+                {
+                    case 7: // Violet
+                    case 8:
+                        return 29405;
+                    case 3: // Light Blue
+                        return 29406;
+                    case 0: // Green
+                    case 1: // Light Green
+                    case 2: // Dark Green
+                        return 29407;
+                    case 4: // White
+                        return 29408;
+                    default: // original - Dark Blue
+                        return 892;
+                }
+            }
+            // Based on Skin color
+            else if (getRace() == RACE_TAUREN)
+            {
+                uint8 skinColor = GetByte(PLAYER_BYTES, 0);
+                // Male
+                if (getGender() == GENDER_MALE)
+                {
+                    switch (skinColor)
+                    {
+                        case 12: // White
+                        case 13:
+                        case 14:
+                        case 18: // Completly White
+                            return 29409;
+                        case 9: // Light Brown
+                        case 10:
+                        case 11:
+                            return 29410;
+                        case 6: // Brown
+                        case 7:
+                        case 8:
+                            return 29411;
+                        case 0: // Dark
+                        case 1:
+                        case 2:
+                        case 3: // Dark Grey
+                        case 4:
+                        case 5:
+                            return 29412;
+                        default: // original - Grey
+                            return 8571;
+                    }
+                }
+                // Female
+                else switch (skinColor)
+                {
+                    case 10: // White
+                        return 29409;
+                    case 6: // Light Brown
+                    case 7:
+                        return 29410;
+                    case 4: // Brown
+                    case 5:
+                        return 29411;
+                    case 0: // Dark
+                    case 1:
+                    case 2:
+                    case 3:
+                        return 29412;
+                    default: // original - Grey
+                        return 8571;
+                }
+            }
+			else if (GetTeam() == TEAM_ALLIANCE)
+                return 892;
+            else
+                return 8571;
+        case FORM_DIREBEAR:
+        case FORM_BEAR:
+            // Based on Hair color
+            if (getRace() == RACE_NIGHTELF)
+            {
+                uint8 hairColor = GetByte(PLAYER_BYTES, 3);
+                switch (hairColor)
+                {
+                    case 0: // Green
+                    case 1: // Light Green
+                    case 2: // Dark Green
+                        return 29413; // 29415?
+                    case 6: // Dark Blue
+                        return 29414;
+                    case 4: // White
+                        return 29416;
+                    case 3: // Light Blue
+                        return 29417;
+                    default: // original - Violet
+                        return 2281;
+                }
+            }
+            // Based on Skin color
+            else if (getRace() == RACE_TAUREN)
+            {
+                uint8 skinColor = GetByte(PLAYER_BYTES, 0);
+                // Male
+                if (getGender() == GENDER_MALE)
+                {
+                    switch (skinColor)
+                    {
+                        case 0: // Dark (Black)
+                        case 1:
+                        case 2:
+                            return 29418;
+                        case 3: // White
+                        case 4:
+                        case 5:
+                        case 12:
+                        case 13:
+                        case 14:
+                            return 29419;
+                        case 9: // Light Brown/Grey
+                        case 10:
+                        case 11:
+                        case 15:
+                        case 16:
+                        case 17:
+                            return 29420;
+                        case 18: // Completly White
+                            return 29421;
+                        default: // original - Brown
+                            return 2289;
+                    }
+                }
+                // Female
+                else switch (skinColor)
+                {
+                    case 0: // Dark (Black)
+                    case 1:
+                        return 29418;
+                    case 2: // White
+                    case 3:
+                        return 29419;
+                    case 6: // Light Brown/Grey
+                    case 7:
+                    case 8:
+                    case 9:
+                        return 29420;
+                    case 10: // Completly White
+                        return 29421;
+                    default: // original - Brown
+                        return 2289;
+                }
+            }
+            else if (GetTeam() == TEAM_ALLIANCE)
+                return 2281;
+            else
+                return 2289;
+        case FORM_FLIGHT:
+            if (GetTeam() == TEAM_ALLIANCE)
+                return 20857;
+            return 20872;
+        case FORM_SWIFT:
+            if (GetTeam() == TEAM_ALLIANCE)
+                return 21243;
+            return 21244;
+        default:
+            break;
+    }
+
+    uint32 modelid = 0;
+    SpellShapeshiftForm * formEntry = dbcSpellShapeshiftForm.LookupEntry(form);
+	if (formEntry && formEntry->modelId)
+    {
+        // Take the alliance modelid as default
+        if (GetTypeId() != TYPEID_PLAYER)
+            return formEntry->modelId;
+        else
+        {
+            if (GetTeam() == TEAM_ALLIANCE)
+                modelid = formEntry->modelId;
+            else
+                modelid = formEntry->modelId2;
+
+            // If the player is horde but there are no values for the horde modelid - take the alliance modelid
+            if (!modelid && GetTeam() == TEAM_HORDE)
+                modelid = formEntry->modelId;
+        }
+    }
+
+    return modelid;
+}
+
+bool Unit::IsControlledByPlayer()
+{
+	if(IS_PLAYER_GUID(GetCharmedByGUID()) || IsPlayer())
+		return true;
+	return false;
 }

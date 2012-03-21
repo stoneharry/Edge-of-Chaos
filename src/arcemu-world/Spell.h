@@ -1908,11 +1908,11 @@ class SERVER_DECL Spell : public EventableObject
 						}
 					}
 
-					if(GetProto()->SpellGroupType && u_caster)
+					/*if(GetProto()->SpellGroupType && u_caster)
 					{
 						if(Player * p = u_caster->GetSpellModOwner())
 							p->ApplySpellMod(GetProto()->Id, SPELLMOD_DURATION, Dur, this);
-					}
+					}*/
 				}
 				else
 				{

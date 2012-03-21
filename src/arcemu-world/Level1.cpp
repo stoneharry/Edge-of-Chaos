@@ -664,8 +664,12 @@ bool ChatHandler::HandleModifySpeedCommand(const char* args, WorldSession* m_ses
 		u = m_session->GetPlayer();
 
 	if(Speed == 0.0f)
-		Speed = u->m_base_runSpeed*(1.0f + ((float)u->m_speedModifier)/100.0f);
-
+	{
+		BlueSystemMessage(m_session, "You reset %s's speed.", u->GetName());
+		return true;
+		if(u->IsPlayer() && TO_PLAYER(u) != m_session->GetPlayer())
+			SystemMessage(TO_PLAYER(u)->GetSession(), "%s reset your speed.", m_session->GetPlayer()->GetName());
+	}
 	BlueSystemMessage(m_session, "You set the %s speed of %s to %2.2f.", speedname.c_str(),  u->GetName(), Speed);
 	if(u->IsPlayer() && TO_PLAYER(u) != m_session->GetPlayer())
 		SystemMessage(TO_PLAYER(u)->GetSession(), "%s set your %s speed to %2.2f.", speedname.c_str(),  m_session->GetPlayer()->GetName(), Speed);

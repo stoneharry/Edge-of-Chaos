@@ -747,8 +747,8 @@ uint8 Spell::DidHit(uint32 effindex, Unit* target)
 
 	{
 		// Immune - IF, and ONLY IF, there is no damage component!
-		bool no_damage_component = true;
-		for(int x = 0 ; x <= 2 ; x ++)
+		bool no_damage_component = false;
+		for(int x = 0 ; x < 3 ; x ++)
 		{
 			if(GetProto()->Effect[x] == SPELL_EFFECT_SCHOOL_DAMAGE
 			        || GetProto()->Effect[x] == SPELL_EFFECT_WEAPON_PERCENT_DAMAGE
@@ -760,7 +760,7 @@ uint8 Spell::DidHit(uint32 effindex, Unit* target)
 			            ))
 			  )
 			{
-				no_damage_component = false;
+				no_damage_component = true;
 				break;
 			}
 		}
@@ -1176,8 +1176,11 @@ void Spell::cast(bool check)
 				// on next attack - we don't take the mana till it actually attacks.
 				if(!HasPower())
 				{
-					SendInterrupted(SPELL_FAILED_NO_POWER);
-					SendCastResult(SPELL_FAILED_NO_POWER);
+					if(GetProto()->powerType != POWER_TYPE_HEALTH)
+					{
+						SendInterrupted(SPELL_FAILED_NO_POWER);
+						SendCastResult(SPELL_FAILED_NO_POWER);
+					}
 					finish(false);
 					return;
 				}
@@ -2561,6 +2564,11 @@ bool Spell::HasPower()
 	//FIXME:DK:if field value < cost what happens
 	if(powerField == UNIT_FIELD_HEALTH)
 	{
+		if(cost >= (int32)u_caster->GetHealth())
+		{
+			SendCastResult(SPELL_FAILED_CUSTOM_ERROR, SPELL_CUSTOM_ERROR_NOT_ENOUGH_HEALTH);
+			return false;
+		}
 		return true;
 	}
 	else
@@ -5959,6 +5967,7 @@ void Spell::SpellEffectJumpTarget(uint32 i)
 
 		if(uobj == NULL || !uobj->IsUnit())
 			return;
+
 		Unit* un = TO_UNIT(uobj);
 		float x, y, z;
 		float rad = unitTarget->GetBoundingRadius() - u_caster->GetBoundingRadius();

@@ -954,6 +954,106 @@ uint32 ItemInterface::GetItemCount(uint32 itemid, bool IncBank)
 	return cnt;
 }
 
+Item * ItemInterface::GetItem(uint32 itemid, bool IncBank)
+{
+	uint32 i;
+	for(i = EQUIPMENT_SLOT_START; i < INVENTORY_SLOT_ITEM_END; i++)
+	{
+		Item* item = GetInventoryItem(static_cast<int16>(i));
+
+		if(item)
+		{
+			if(item->GetEntry() == itemid && item->wrapped_item_id == 0)
+			{
+				return item;
+			}
+		}
+	}
+
+	for(i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; i++)
+	{
+		Item* item = GetInventoryItem(static_cast<int16>(i));
+		if(item && item->IsContainer())
+		{
+			for(uint32 j = 0; j < item->GetProto()->ContainerSlots; j++)
+			{
+				Item* item2 = TO< Container* >(item)->GetItem(static_cast<int16>(j));
+				if(item2)
+				{
+					if(item2->GetEntry() == itemid && item->wrapped_item_id == 0)
+					{
+						return item2;
+					}
+				}
+			}
+
+		}
+	}
+
+	for(i = INVENTORY_KEYRING_START; i < INVENTORY_KEYRING_END; i++)
+	{
+		Item* item = GetInventoryItem(static_cast<int16>(i));
+
+		if(item)
+		{
+			if(item->GetProto()->ItemId == itemid && item->wrapped_item_id == 0)
+			{
+				return item;
+			}
+		}
+	}
+
+	for(i = CURRENCYTOKEN_SLOT_START; i < CURRENCYTOKEN_SLOT_END; i++)
+	{
+		Item* item = GetInventoryItem(static_cast<int16>(i));
+
+		if(item)
+		{
+			if(item->GetProto()->ItemId == itemid && item->wrapped_item_id == 0)
+			{
+				return item;
+			}
+		}
+	}
+
+	if(IncBank)
+	{
+		for(i = BANK_SLOT_ITEM_START; i < BANK_SLOT_BAG_END; i++)
+		{
+			Item* item = GetInventoryItem(static_cast<int16>(i));
+			if(item)
+			{
+				if(item->GetProto()->ItemId == itemid && item->wrapped_item_id == 0)
+				{
+					return item;
+				}
+			}
+		}
+
+		for(i = BANK_SLOT_BAG_START; i < BANK_SLOT_BAG_END; i++)
+		{
+			Item* item = GetInventoryItem(static_cast<int16>(i));
+			if(item)
+			{
+				if(item->IsContainer())
+				{
+					for(uint32 j = 0; j < item->GetProto()->ContainerSlots; j++)
+					{
+						Item* item2 = TO< Container* >(item)->GetItem(static_cast<int16>(j));
+						if(item2)
+						{
+							if(item2->GetProto()->ItemId == itemid && item->wrapped_item_id == 0)
+							{
+								return item2;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return NULL;
+}
 //-------------------------------------------------------------------//
 //Description: Removes a ammount of items from inventory
 //-------------------------------------------------------------------//

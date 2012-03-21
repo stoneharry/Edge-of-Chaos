@@ -4210,7 +4210,11 @@ void Spell::SpellEffectKnockBack(uint32 i)
 {
 	if(unitTarget == NULL || !unitTarget->isAlive())
 		return;
-
+	if(unitTarget->IsCreature())
+	{
+		if(TO_CREATURE(unitTarget)->GetProto()->modImmunities & 262144)
+			return;
+	}
 	unitTarget->HandleKnockback(m_caster, GetProto()->EffectMiscValue[i] / 10, damage / 10);
 }
 
@@ -4219,6 +4223,11 @@ void Spell::SpellEffectKnockBack2(uint32 i)
 	if(unitTarget == NULL || !unitTarget->isAlive())
 		return;
 
+	if(unitTarget->IsCreature())
+	{
+		if(TO_CREATURE(unitTarget)->GetProto()->modImmunities & 262144)
+			return;
+	}
 	unitTarget->HandleKnockback(m_caster, GetProto()->EffectMiscValue[i] / 10, damage / 10);
 }
 
@@ -4859,11 +4868,16 @@ void Spell::SpellEffectStartTaxi(uint32 i)
 
 void Spell::SpellEffectPlayerPull(uint32 i)
 {
-	if(!unitTarget || !unitTarget->isAlive() || !unitTarget->IsPlayer())
+	if(!unitTarget || !unitTarget->isAlive())
 		return;
 
 	if(u_caster == NULL)
 		return;
+	if(unitTarget->IsCreature())
+	{
+		if(TO_CREATURE(unitTarget)->GetProto()->modImmunities & 262144)
+			return;
+	}
 	if(m_targets.m_targetMask & TARGET_FLAG_UNIT)
 	{
 		float x, y, z;

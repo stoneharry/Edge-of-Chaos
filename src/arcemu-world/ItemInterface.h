@@ -107,6 +107,7 @@ class SERVER_DECL ItemInterface
 
 		Item* FindItemLessMax(uint32 itemid, uint32 cnt, bool IncBank);
 		uint32 GetItemCount(uint32 itemid, bool IncBank = false);
+		Item * GetItem(uint32 itemid, bool IncBank = false);
 		uint32 RemoveItemAmt(uint32 id, uint32 amt);
 		uint32 RemoveItemAmt_ProtectPointer(uint32 id, uint32 amt, Item** pointer);
 		uint32 RemoveItemAmtByGuid(uint64 guid, uint32 amt);

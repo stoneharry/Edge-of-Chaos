@@ -350,4 +350,63 @@ template <class C> typename C::value_type const& SelectRandomContainerElement(C 
     std::advance(it, RandomUInt(0, container.size() - 1));
     return *it;
 }
+template <class T>
+inline T CalculatePctF(T base, float pct)
+{
+    return T(base * pct / 100.0f);
+}
+
+template <class T>
+inline T CalculatePctN(T base, int32 pct)
+{
+    return T(base * float(pct) / 100.0f);
+}
+
+template <class T>
+inline T CalculatePctU(T base, uint32 pct)
+{
+    return T(base * float(pct) / 100.0f);
+}
+
+template <class T>
+inline T AddPctF(T& base, float pct)
+{
+    return base += CalculatePctF(base, pct);
+}
+
+template <class T>
+inline T AddPctN(T& base, int32 pct)
+{
+    return base += CalculatePctN(base, pct);
+}
+
+template <class T>
+inline T AddPctU(T& base, uint32 pct)
+{
+    return base += CalculatePctU(base, pct);
+}
+
+template <class T>
+inline T ApplyPctF(T& base, float pct)
+{
+    return base = CalculatePctF(base, pct);
+}
+
+template <class T>
+inline T ApplyPctN(T& base, int32 pct)
+{
+    return base = CalculatePctN(base, pct);
+}
+
+template <class T>
+inline T ApplyPctU(T& base, uint32 pct)
+{
+    return base = CalculatePctU(base, pct);
+}
+
+template <class T>
+inline T RoundToInterval(T& num, T floor, T ceil)
+{
+    return num = std::min(std::max(num, floor), ceil);
+}
 #endif

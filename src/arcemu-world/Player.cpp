@@ -1118,7 +1118,7 @@ void Player::EventDismount(uint32 money, float x, float y, float z)
 	RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNTED_TAXI);
 	RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
 
-	SetSpeeds(RUN, m_runSpeed);
+	UpdateSpeed();
 
 	sEventMgr.RemoveEvents(this, EVENT_PLAYER_TAXI_INTERPOLATE);
 
@@ -4283,30 +4283,14 @@ void Player::SetSpeeds( uint8 type, float speed )
 	if( speed < 0.1f )
 		speed = 0.1f;
 
-	WorldPacket data(SMSG_FORCE_RUN_SPEED_CHANGE, 400);
+	WorldPacket data(SMSG_FORCE_RUN_SPEED_CHANGE, 17);
 
-	if( type != SWIMBACK )
-	{
-		data << GetNewGUID();
-		data << uint32(m_speedChangeCounter++);
-		if( type == RUN )
-			data << uint8(1);
-
-		data << speed;
-	}
-	else
-	{
-		data << GetNewGUID();
-		data << uint32(m_speedChangeCounter++);
+	data << GetNewGUID();
+	data << uint32(0);
+	if( type == RUN )
 		data << uint8(0);
-		data << uint32(getMSTime());
-		data << m_position.x;
-		data << m_position.y;
-		data << m_position.z;
-		data << m_position.o;
-		data << uint32(0);
-		data << speed;
-	}
+	data << speed;
+
 
 	switch(type)
 	{
@@ -6345,6 +6329,9 @@ void Player::Reset_Talents()
 				spellInfo = dbcSpell.LookupEntryForced(tmpTalent->RankID[j]);
 				if(spellInfo != NULL)
 				{
+					QueryResult * q = WorldDatabase.Query("select * from spells_not_reset where Id = %u", spellInfo->Id);
+					if(q != NULL)
+						continue;
 					for(k = 0; k < 3; ++k)
 					{
 						if(spellInfo->Effect[k] == SPELL_EFFECT_LEARN_SPELL)
@@ -6387,7 +6374,8 @@ void Player::Reset_Talents()
 	smsg_TalentsInfo(false); //VLack: should we send this as Aspire? Yes...
 }
 
-void Player::Reset_AllTalents(){
+void Player::Reset_AllTalents()
+{
 	uint32 originalspec = m_talentActiveSpec;
 	Reset_Talents();
 	
@@ -6750,7 +6738,7 @@ void Player::JumpToEndTaxiNode(TaxiPath* path)
 	RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNTED_TAXI);
 	RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
 
-	SetSpeeds(RUN, m_runSpeed);
+	UpdateSpeed();
 
 	SafeTeleport(pathnode->mapid, 0, LocationVector(pathnode->x, pathnode->y, pathnode->z));
 
@@ -7435,9 +7423,7 @@ void Player::ProcessPendingUpdates()
 	// resend speed if needed
 	if(resend_speed)
 	{
-		SetSpeeds(RUN, m_runSpeed);
-		SetSpeeds(FLY, m_flySpeed);
-		resend_speed = false;
+		UpdateSpeed();
 	}
 }
 
@@ -10708,8 +10694,8 @@ void Player::Cooldown_AddStart(SpellEntry* pSpell)
 	else
 		atime = float2int32(pSpell->StartRecoveryTime * GetCastSpeedMod());
 
-	if (atime > 0)
-		ApplySpellMod(pSpell->Id, SPELLMOD_GLOBAL_COOLDOWN, atime, NULL);
+	if (atime > 0 && pSpell->StartRecoveryCategory && pSpell->StartRecoveryCategory != 133)
+		ApplySpellMod(pSpell->Id,  SPELLMOD_COOLDOWN, atime, NULL);
 
 	if(atime < 0)
 		return;
@@ -10720,6 +10706,8 @@ void Player::Cooldown_AddStart(SpellEntry* pSpell)
 	//_Cooldown_Add( COOLDOWN_TYPE_CATEGORY, pSpell->Category, mstime + pSpell->StartRecoveryTime, pSpell->Id, 0 );
 	else									// no category, so it's a gcd
 	{
+		if (atime > 0)
+			ApplySpellMod(pSpell->Id,  SPELLMOD_GLOBAL_COOLDOWN, atime, NULL);
 		//Log.Debug("Cooldown", "Global cooldown adding: %u ms", atime );
 		m_globalCooldown = mstime + atime;
 
@@ -12501,19 +12489,13 @@ void Player::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint32
 		{
 			Unit* uTagger = pVictim->GetMapMgr()->GetUnit(pVictim->GetTaggerGUID());
 
-			if(uTagger != NULL && (uTagger->IsPlayer() || uTagger->IsPet() || IsSummon()))
+			if(uTagger != NULL)
 			{
-				Player* pTagger = NULL;
-				if(uTagger->IsPlayer())
-					TO_PLAYER(uTagger);
-				else
-				{
-					if(uTagger->GetPlayerOwner())
-						pTagger = TO_PLAYER(uTagger->GetPlayerOwner());
-				}
+				Player* pTagger = TO_PLAYER(uTagger);
+				if(pTagger == NULL && (uTagger->IsPet() || uTagger->IsSummon()) && uTagger->GetPlayerOwner())
+					pTagger = TO_PLAYER(uTagger->GetPlayerOwner());
 				if(pTagger != NULL)
 				{
-
 					if(pTagger->InGroup())
 						pTagger->GiveGroupXP(pVictim, pTagger);
 					else if(IsUnit())

@@ -284,6 +284,7 @@ class SERVER_DECL Group
 		bool m_dirty;
 		bool m_updateblock;
 		uint32 updatecounter;
+		uint64 m_guid;
 	public:
 		uint8 m_difficulty;
 		uint8 m_raiddifficulty;
