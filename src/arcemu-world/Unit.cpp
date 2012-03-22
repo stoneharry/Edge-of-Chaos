@@ -354,6 +354,7 @@ Unit::Unit()
 	m_noFallDamage = false;
 	z_axisposition = 0.0f;
 	m_safeFall     = 0;
+	m_auraRaidUpdateMask = 0;
 	movement_info.Init();
 }
 
@@ -4261,7 +4262,6 @@ void Unit::AddAura(Aura* aur)
 	if(!aur->IsPassive() || (aur->m_spellProto->AttributesEx & 1024))
 		visualslot = FindVisualSlot(aur->GetSpellId(), aur->IsPositive());
 	aur->m_visualSlot = visualslot;
-
 	// Zack : No idea how a new aura can already have a slot. Leaving it for compatibility
 	if(aur->m_auraSlot != 0xffff)
 		m_auras[ aur->m_auraSlot ] = NULL;
@@ -4269,6 +4269,7 @@ void Unit::AddAura(Aura* aur)
 	aur->m_auraSlot = AuraSlot;
 
 	m_auras[ AuraSlot ] = aur;
+	UpdateAuraForGroup(AuraSlot);
 
 	ModVisualAuraStackCount(aur, 1);
 
@@ -4629,10 +4630,10 @@ void Unit::RemoveAllNonPersistentAuras()
 }
 
 //ex:to remove morph spells
-void Unit::RemoveAllAuraType(uint32 auratype)
+void Unit::RemoveAllAuraType(uint32 auratype, uint32 skip)
 {
 	for(uint32 x = MAX_TOTAL_AURAS_START; x < MAX_TOTAL_AURAS_END; x++)
-		if(m_auras[x] && m_auras[x]->HasModType(auratype))
+		if(m_auras[x] && m_auras[x]->HasModType(auratype) && m_auras[x]->GetSpellId() != skip)
 			m_auras[x]->Remove();//remove all morph auras containing to this spell (like wolf morph also gives speed)
 }
 
@@ -5310,6 +5311,17 @@ bool Unit::HasAura(uint32 spellid)
 	return false;
 }
 
+Aura* Unit::GetAuraWithSlot(uint32 slot)
+{
+	for(uint32 x = MAX_TOTAL_AURAS_START; x < MAX_TOTAL_AURAS_END; x++)
+		if(m_auras[x] && m_auras[x]->m_auraSlot == (uint16)slot)
+		{
+			return m_auras[x];
+		}
+
+	return NULL;
+}
+
 uint16 Unit::GetAuraStackCount(uint32 spellid)
 {
 	uint16 count = 0;
@@ -5369,7 +5381,24 @@ void Unit::UpdateSpeedType(uint32 type, uint32 ignorerspell)
 	int32 main_speed_mod  = 0;
 	float stack_bonus     = 1.0f;
 	float non_stack_bonus = 1.0f;
-
+	float basespeed = (IsControlledByPlayer() ? playerBaseMoveSpeed[type] : baseMoveSpeed[type]);
+	if(IsCreature())
+	{
+		Creature * c = TO_CREATURE(this);
+		switch(type)
+		{
+			case WALK:
+			{
+				if(basespeed != m_base_walkSpeed)
+					basespeed = m_base_walkSpeed;
+			}break;
+			case RUN:
+			{
+				if(basespeed != m_base_runSpeed)
+					basespeed = m_base_runSpeed;
+			}break;
+		};
+	}
     switch (type)
     {
         // Only apply debuffs
@@ -5451,7 +5480,7 @@ void Unit::UpdateSpeedType(uint32 type, uint32 ignorerspell)
             if (int32 normalization = GetMaxPositiveAuraModifier(191, ignorerspell))
             {
                 // Use speed from aura
-				float max_speed = normalization / (IsControlledByPlayer() ? playerBaseMoveSpeed[type] : baseMoveSpeed[type]);
+				float max_speed = normalization / basespeed;
                 if (speed > max_speed)
                     speed = max_speed;
             }
@@ -5473,7 +5502,7 @@ void Unit::UpdateSpeedType(uint32 type, uint32 ignorerspell)
                 speed = min_speed;
         }
     }
-	SetSpeeds(type, (speed*(IsControlledByPlayer() ? playerBaseMoveSpeed[type] : baseMoveSpeed[type])));
+	SetSpeeds(type, (speed*basespeed));
     //SetSpeed(type, speed, forced);
 }
 bool Unit::HasBuff(uint32 spellid) // cebernic:it does not check passive auras & must be visible auras
@@ -7404,7 +7433,7 @@ uint64 Unit::GetTaggerGUID()
 
 bool Unit::isLootable()
 {
-	if(IsTagged() && !IsPet() && !isCritter() && HasLoot() && !HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_LOOT) && ( GetCreatedByGUID() == 0 ) && !IsVehicle())
+	if(IsTagged() && !IsPet() && !isCritter() && HasLoot() && !HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_LOOT) && ( GetCreatedByGUID() == 0 ))
 		return true;
 	else
 		return false;
@@ -7889,9 +7918,9 @@ void Unit::SendHopOffVehicle( Unit *vehicleowner, LocationVector &landposition )
 }
 
 
-void Unit::EnterVehicle( uint64 guid, uint32 delay ){
+void Unit::EnterVehicle( uint64 guid, uint32 delay, uint32 seat ){
 	if( delay != 0 ){
-		sEventMgr.AddEvent( this, &Unit::EnterVehicle, guid, uint32( 0 ), 0, delay, 1, 0 );
+		sEventMgr.AddEvent( this, &Unit::EnterVehicle, guid, uint32( 0 ), seat, 0, delay, 1, 0 );
 		return;
 	}
 
@@ -7905,8 +7934,10 @@ void Unit::EnterVehicle( uint64 guid, uint32 delay ){
 
 	if( currentvehicle != NULL )
 		return;
-
-	u->GetVehicleComponent()->AddPassenger( this );
+	if(seat != 0)
+		u->GetVehicleComponent()->AddPassengerToSeatIfCan(this, seat, true);
+	else
+		u->GetVehicleComponent()->AddPassenger( this );
 }
 
 Unit* Unit::GetVehicleBase(){
@@ -8584,4 +8615,95 @@ bool Unit::IsControlledByPlayer()
 	if(IS_PLAYER_GUID(GetCharmedByGUID()) || IsPlayer())
 		return true;
 	return false;
+}
+
+void Unit::UpdateAuraForGroup(uint8 slot)
+{
+    if (slot >= 64)                        // slot not found, return
+        return;
+    if (IsPlayer())
+    {
+		Player * player = TO_PLAYER(this);
+        if (player->GetGroup())
+        {
+			player->AddGroupUpdateFlag(GROUP_UPDATE_FLAG_AURAS);
+            player->SetAuraUpdateMaskForRaid(slot);
+        }
+    }
+    else if (GetPlayerOwner())
+    {
+		if (GetPlayerOwner())
+        {
+            Player* owner = TO_PLAYER(GetPlayerOwner());
+            if (owner->GetGroup())
+            {
+                owner->AddGroupUpdateFlag(GROUP_UPDATE_FLAG_PET_AURAS);
+                SetAuraUpdateMaskForRaid(slot);
+            }
+        }
+    }
+}
+
+void Unit::HandleUpdateFieldChange(uint32 Index)
+{
+	Player * player = NULL;
+	bool pet = false;
+	if(!IsInWorld())
+		return;
+	if(IsPlayer())
+		player = TO_PLAYER(this);
+	else if(GetPlayerOwner())
+	{
+		player = TO_PLAYER(GetPlayerOwner());
+		pet = true;
+	}
+	if(player == NULL || !player->IsInWorld() || !player->GetGroup())
+		return;
+	uint32 Flags = 0;
+	switch(Index)
+	{
+		case UNIT_FIELD_HEALTH:
+			Flags = pet ? GROUP_UPDATE_FLAG_PET_CUR_HP : GROUP_UPDATE_FLAG_CUR_HP;
+			break;
+
+		case UNIT_FIELD_MAXHEALTH:
+			Flags = pet ? GROUP_UPDATE_FLAG_PET_MAX_HP : GROUP_UPDATE_FLAG_MAX_HP;
+			break;
+
+		case UNIT_FIELD_POWER1:
+		case UNIT_FIELD_POWER2:
+		case UNIT_FIELD_POWER3:
+		case UNIT_FIELD_POWER4:
+		case UNIT_FIELD_POWER5:
+		case UNIT_FIELD_POWER6:
+		case UNIT_FIELD_POWER7:
+			Flags = pet ? GROUP_UPDATE_FLAG_PET_CUR_POWER : GROUP_UPDATE_FLAG_CUR_POWER;
+			break;
+
+		case UNIT_FIELD_MAXPOWER1:
+		case UNIT_FIELD_MAXPOWER2:
+		case UNIT_FIELD_MAXPOWER3:
+		case UNIT_FIELD_MAXPOWER4:
+		case UNIT_FIELD_MAXPOWER5:
+		case UNIT_FIELD_MAXPOWER6:
+		case UNIT_FIELD_MAXPOWER7:
+			Flags = pet ? GROUP_UPDATE_FLAG_PET_CUR_POWER : GROUP_UPDATE_FLAG_MAX_POWER;
+			break;
+
+		case UNIT_FIELD_DISPLAYID:
+			Flags = pet ? GROUP_UPDATE_FLAG_PET_MODEL_ID : 0;
+		case UNIT_FIELD_LEVEL:
+			Flags = pet ? 0 : GROUP_UPDATE_FLAG_LEVEL;
+			break;
+		case UNIT_FIELD_BYTES_0:
+			Flags = pet ? GROUP_UPDATE_FLAG_PET_POWER_TYPE : GROUP_UPDATE_FLAG_POWER_TYPE;
+			break;
+		case UNIT_FIELD_BYTES_2:
+		case PLAYER_FLAGS:
+			Flags = pet ? 0 : GROUP_UPDATE_FLAG_STATUS;
+			break;
+		default:
+			break;
+	}
+	player->AddGroupUpdateFlag(Flags);
 }

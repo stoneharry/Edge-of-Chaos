@@ -50,9 +50,6 @@ WorldSession::WorldSession(uint32 id, string Name, WorldSocket* sock):
 	instanceId(0),
 	_updatecount(0), floodLines(0), floodTime(UNIXTIME), language(0), m_muted(0), item_info_sent(false)
 {
-	memset(movement_packet, 0, sizeof(movement_packet));
-
-
 	for(uint8 x = 0; x < 8; x++)
 		sAccountData[x].data = NULL;
 
@@ -630,15 +627,17 @@ void WorldSession::InitPacketHandlerTable()
 	    &WorldSession::HandleSetActiveMoverOpcode;
 	WorldPacketHandlers[CMSG_MOVE_CHNG_TRANSPORT].handler =
 	    &WorldSession::HandleMovementOpcodes;
+	WorldPacketHandlers[CMSG_MOVE_FALL_RESET].handler =
+		&WorldSession::HandleMovementOpcodes;
 	// ACK
 	WorldPacketHandlers[MSG_MOVE_TELEPORT_ACK].handler =
 	    &WorldSession::HandleMoveTeleportAckOpcode;
 	WorldPacketHandlers[CMSG_FORCE_WALK_SPEED_CHANGE_ACK].handler =
 	    &WorldSession::HandleAcknowledgementOpcodes;
 	WorldPacketHandlers[CMSG_MOVE_FEATHER_FALL_ACK].handler =
-	    &WorldSession::HandleAcknowledgementOpcodes;
+	    &WorldSession::HandleFeatherFallAck;
 	WorldPacketHandlers[CMSG_MOVE_WATER_WALK_ACK].handler =
-	    &WorldSession::HandleAcknowledgementOpcodes;
+	    &WorldSession::HandleMoveWaterWalkAck;
 	WorldPacketHandlers[CMSG_FORCE_SWIM_BACK_SPEED_CHANGE_ACK].handler =
 	    &WorldSession::HandleAcknowledgementOpcodes;
 	WorldPacketHandlers[CMSG_FORCE_TURN_RATE_CHANGE_ACK].handler =
@@ -654,12 +653,12 @@ void WorldSession::InitPacketHandlerTable()
 	WorldPacketHandlers[CMSG_FORCE_MOVE_UNROOT_ACK].handler =
 	    &WorldSession::HandleAcknowledgementOpcodes;
 	WorldPacketHandlers[CMSG_MOVE_HOVER_ACK].handler =
-	    &WorldSession::HandleAcknowledgementOpcodes;
+	    &WorldSession::HandleMoveHoverAck;
 	WorldPacketHandlers[CMSG_MOVE_SET_CAN_FLY_ACK].handler =
 	    &WorldSession::HandleAcknowledgementOpcodes;
 	WorldPacketHandlers[MSG_MOVE_START_DESCEND].handler =
 	    &WorldSession::HandleMovementOpcodes;
-	//WorldPacketHandlers[CMSG_MOVE_KNOCK_BACK_ACK].handler = &WorldSession::HandleMoveKnockBackAck;
+	WorldPacketHandlers[CMSG_MOVE_KNOCK_BACK_ACK].handler = &WorldSession::HandleMoveKnockBackAck;
 
 	WorldPacketHandlers[CMSG_FORCE_FLIGHT_SPEED_CHANGE_ACK].handler =
 	    &WorldSession::HandleAcknowledgementOpcodes;

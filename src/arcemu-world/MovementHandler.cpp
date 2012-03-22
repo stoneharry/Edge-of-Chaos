@@ -731,7 +731,13 @@ void WorldSession::HandleSetActiveMoverOpcode(WorldPacket & recv_data)
 
 void WorldSession::HandleMoveSplineCompleteOpcode(WorldPacket & recvPacket)
 {
+    uint64 guid; // used only for proper packet read
+    recvPacket.readPackGUID(guid);
 
+    MovementInfo movementInfo;                              // used only for proper packet read
+    ReadMovementInfo(recvPacket, &movementInfo);
+
+    recvPacket.read_skip<uint32>();                          // unk
 }
 
 void WorldSession::HandleMountSpecialAnimOpcode(WorldPacket & recvdata)
@@ -924,4 +930,35 @@ void WorldSession::WriteMovementInfo(WorldPacket* data, MovementInfo* mi)
 	}
 	if(mi->HasMovementFlag(MOVEFLAG_SPLINE_ELEVATION))
 		*data << mi->splineElevation;
+}
+
+void WorldSession::HandleMoveHoverAck(WorldPacket & recv_data)
+{
+    uint64 guid;                                            // guid - unused
+    recv_data.readPackGUID(guid);
+
+    recv_data.read_skip<uint32>();                          // unk
+
+    MovementInfo movementInfo;
+    ReadMovementInfo(recv_data, &movementInfo);
+
+    recv_data.read_skip<uint32>();                          // unk2
+}
+
+void WorldSession::HandleMoveWaterWalkAck(WorldPacket & recv_data)
+{
+    uint64 guid;                                            // guid - unused
+    recv_data.readPackGUID(guid);
+
+    recv_data.read_skip<uint32>();                          // unk
+
+    MovementInfo movementInfo;
+    ReadMovementInfo(recv_data, &movementInfo);
+
+    recv_data.read_skip<uint32>();                          // unk2
+}
+
+void WorldSession::HandleFeatherFallAck(WorldPacket & recv_data)
+{
+	recv_data.rfinish();
 }

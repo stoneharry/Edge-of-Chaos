@@ -485,19 +485,93 @@ void WorldSession::HandlePartyMemberStatsOpcode(WorldPacket & recv_data)
 	uint64 guid;
 	recv_data >> guid;
 
-	Player* plr = _player->GetMapMgr()->GetPlayer((uint32)guid);
+	Player* player = _player->GetMapMgr()->GetPlayer((uint32)guid);
 
-	if(!_player->GetGroup() || !plr)
-		return;
+	if(!_player->GetGroup() || !player)
+    {
+        WorldPacket data(SMSG_PARTY_MEMBER_STATS_FULL, 3+4+2);
+        data << uint8(0);                                   // only for SMSG_PARTY_MEMBER_STATS_FULL, probably arena/bg related
+        data.appendPackGUID(guid);
+        data << (uint32) GROUP_UPDATE_FLAG_STATUS;
+        data << (uint16) MEMBER_STATUS_OFFLINE;
+        SendPacket(&data);
+        return;
+    }
 
-	WorldPacket data(200);
-	if(!_player->GetGroup()->HasMember(plr))
+	if(!_player->GetGroup()->HasMember(player))
 		return;			// invalid player
 
-	if(_player->IsVisible(plr->GetGUID()))
+	if(_player->IsVisible(player->GetGUID()))
 		return;
 
-	_player->GetGroup()->UpdateOutOfRangePlayer(plr, GROUP_UPDATE_TYPE_FULL_CREATE | GROUP_UPDATE_TYPE_FULL_REQUEST_REPLY, false, &data);
-	data.SetOpcode(SMSG_PARTY_MEMBER_STATS_FULL);
-	SendPacket(&data);
+    Pet* pet = player->GetSummon();
+
+    WorldPacket data(SMSG_PARTY_MEMBER_STATS_FULL, 4+2+2+2+1+2*6+8+1+8);
+    data << uint8(0);                                       // only for SMSG_PARTY_MEMBER_STATS_FULL, probably arena/bg related
+	data.append(player->GetNewGUID());
+
+    uint32 mask1 = 0x00040BFF;                              // common mask, real flags used 0x000040BFF
+    if (pet)
+        mask1 = 0x7FFFFFFF;                                 // for hunters and other classes with pets
+
+    uint8 powerType = player->GetPowerType();
+    data << (uint32) mask1;                                 // group update mask
+    data << (uint16) MEMBER_STATUS_ONLINE;                  // member's online status
+    data << (uint32) player->GetHealth();                   // GROUP_UPDATE_FLAG_CUR_HP
+    data << (uint32) player->GetMaxHealth();                // GROUP_UPDATE_FLAG_MAX_HP
+    data << (uint8)  powerType;                             // GROUP_UPDATE_FLAG_POWER_TYPE
+    data << (uint16) player->GetPower(powerType);           // GROUP_UPDATE_FLAG_CUR_POWER
+    data << (uint16) player->GetMaxPower(powerType);        // GROUP_UPDATE_FLAG_MAX_POWER
+    data << (uint16) player->getLevel();                    // GROUP_UPDATE_FLAG_LEVEL
+    data << (uint16) player->GetZoneId();                   // GROUP_UPDATE_FLAG_ZONE
+    data << (uint16) player->GetPositionX();                // GROUP_UPDATE_FLAG_POSITION
+    data << (uint16) player->GetPositionY();                // GROUP_UPDATE_FLAG_POSITION
+
+    uint64 auramask = 0;
+    size_t maskPos = data.wpos();
+    data << (uint64) auramask;                              // placeholder
+    for (uint8 i = 0; i < 64; ++i)
+    {
+		if (Aura * aurApp = player->GetAuraWithSlot(i))
+        {
+            auramask |= (uint64(1) << i);
+			data << (uint32) aurApp->GetSpellId();
+            data << (uint8)  1;
+        }
+    }
+    data.put<uint64>(maskPos, auramask);                     // GROUP_UPDATE_FLAG_AURAS
+
+    if (pet)
+    {
+        uint8 petpowertype = pet->GetPowerType();
+        data << (uint64) pet->GetGUID();                    // GROUP_UPDATE_FLAG_PET_GUID
+        data << pet->GetName();                             // GROUP_UPDATE_FLAG_PET_NAME
+        data << (uint16) pet->GetDisplayId();               // GROUP_UPDATE_FLAG_PET_MODEL_ID
+        data << (uint32) pet->GetHealth();                  // GROUP_UPDATE_FLAG_PET_CUR_HP
+        data << (uint32) pet->GetMaxHealth();               // GROUP_UPDATE_FLAG_PET_MAX_HP
+        data << (uint8)  petpowertype;                      // GROUP_UPDATE_FLAG_PET_POWER_TYPE
+        data << (uint16) pet->GetPower(petpowertype);       // GROUP_UPDATE_FLAG_PET_CUR_POWER
+        data << (uint16) pet->GetMaxPower(petpowertype);    // GROUP_UPDATE_FLAG_PET_MAX_POWER
+
+        uint64 petauramask = 0;
+        size_t petMaskPos = data.wpos();
+        data << (uint64) petauramask;                       // placeholder
+        for (uint8 i = 0; i < 64; ++i)
+        {
+			if (Aura * auraApp = pet->GetAuraWithSlot(i))
+            {
+                petauramask |= (uint64(1) << i);
+				data << (uint32) auraApp->GetSpellId();
+                data << (uint8)  1;
+            }
+        }
+        data.put<uint64>(petMaskPos, petauramask);           // GROUP_UPDATE_FLAG_PET_AURAS
+    }
+    else
+    {
+        data << (uint8)  0;                                 // GROUP_UPDATE_FLAG_PET_NAME
+        data << (uint64) 0;                                 // GROUP_UPDATE_FLAG_PET_AURAS
+    }
+
+    SendPacket(&data);
 }

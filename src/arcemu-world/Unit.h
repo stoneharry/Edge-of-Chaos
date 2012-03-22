@@ -1179,7 +1179,7 @@ class SERVER_DECL Unit : public Object
 		uint32 GetAuraCountWithName(uint32 name);
 		uint32 FindAuraCountByHash(uint32 HashName, uint32 maxcount = 0);
 		uint32 GetAuraCountWithDispelType(uint32 dispel_type, uint64 guid);
-
+		Aura * GetAuraWithSlot(uint32 slot);
 		void AddAura(Aura* aur);
 		void AddAura(Object * caster, uint32 aur);
 		bool RemoveAura(Aura* aur);
@@ -1247,7 +1247,7 @@ class SERVER_DECL Unit : public Object
 		void RemoveAllAuras();
 		void RemoveAllNonPersistentAuras();
 		bool RemoveAllAuras(uint32 spellId, uint64 guid); //remove stacked auras but only if they come from the same caster. Shaman purge If GUID = 0 then removes all auras with this spellid
-		void RemoveAllAuraType(uint32 auratype);//ex:to remove morph spells
+		void RemoveAllAuraType(uint32 auratype, uint32 skip = 0);//ex:to remove morph spells
 		void RemoveAllAuraFromSelfType2(uint32 auratype, uint32 butskip_hash);//ex:to remove morph spells
 		uint32 RemoveAllAuraByNameHash(uint32 namehash);//required to remove weaker instances of a spell
 		uint32 RemoveAllAuraById(uint32 Id); // DuKJIoHuyC: Remove an aura by it's id
@@ -1921,7 +1921,11 @@ class SERVER_DECL Unit : public Object
 		virtual void BuildPetSpellList(WorldPacket & data);
 		void RestoreSpeed();
 		uint32 GetModelForForm(uint32 form);
-
+        uint64 GetAuraUpdateMaskForRaid() const { return m_auraRaidUpdateMask; }
+		void ResetAuraUpdateMaskForRaid() { m_auraRaidUpdateMask = 0; }
+        void SetAuraUpdateMaskForRaid(uint8 slot) { m_auraRaidUpdateMask |= (uint64(1) << slot); }
+        void UpdateAuraForGroup(uint8 slot);
+		void HandleUpdateFieldChange(uint32 Index);
 	protected:
 		Unit();
 		void RemoveGarbage();
@@ -1984,9 +1988,10 @@ class SERVER_DECL Unit : public Object
 
 		Vehicle *currentvehicle;  // The vehicle the unit is attached to
 		Vehicle *vehicle;         // The Unit's own vehicle component
+		uint64 m_auraRaidUpdateMask;
 	public:
 		void SetCurrentVehicle( Vehicle *v ){ currentvehicle = v; }
-		void EnterVehicle( uint64 guid, uint32 delay );
+		void EnterVehicle( uint64 guid, uint32 delay, uint32 seat = 0);
 		Vehicle* GetCurrentVehicle(){ return currentvehicle; }
 		Vehicle* GetVehicleComponent(){ return vehicle; }
 		virtual void AddVehicleComponent( uint32 creature_entry, uint32 vehicleid ){}

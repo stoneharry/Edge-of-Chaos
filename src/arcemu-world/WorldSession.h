@@ -703,7 +703,9 @@ class SERVER_DECL WorldSession
 		//Acknowledgements
 		void HandleAcknowledgementOpcodes(WorldPacket & recv_data);
 		void HandleMountSpecialAnimOpcode(WorldPacket & recv_data);
-
+		void HandleMoveHoverAck(WorldPacket & recv_data);
+		void HandleFeatherFallAck(WorldPacket & recv_data);
+		void HandleMoveWaterWalkAck(WorldPacket & recv_data);
 		void HandleSelfResurrectOpcode(WorldPacket & recv_data);
 		void HandleUnlearnSkillOpcode(WorldPacket & recv_data);
 		void HandleRandomRollOpcode(WorldPacket & recv_data);
@@ -815,10 +817,6 @@ class SERVER_DECL WorldSession
 
 		// Used to know race on login
 		void LoadPlayerFromDBProc(QueryResultVector & results);
-
-		/* Preallocated buffers for movement handlers */
-		uint8 movement_packet[90];
-
 		uint32 _accountId;
 		uint32 _forcedaccountid;
 		uint32 _accountFlags;

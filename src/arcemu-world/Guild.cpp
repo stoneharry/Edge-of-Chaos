@@ -1709,21 +1709,23 @@ void Guild::SendGuildInfo(WorldSession* pClient)
 
 void Guild::SendGuildRosterToAll()
 {
-	GuildMemberMap::iterator itr;
-	for(itr = m_members.begin(); itr != m_members.end(); ++itr)
+	m_lock.Acquire();
+	for(GuildMemberMap::iterator itr = m_members.begin(); itr != m_members.end(); ++itr)
 	{
 		if(itr->second->pPlayer->m_loggedInPlayer)
 			SendGuildRoster(itr->second->pPlayer->m_loggedInPlayer->GetSession());
 	}
+	m_lock.Release();
 }
 
 void Guild::KickInactivePlayers(WorldSession* kicker)
 {
-	GuildMemberMap::iterator itr;
-	for(itr = m_members.begin(); itr != m_members.end(); ++itr)
+	m_lock.Acquire();
+	for(GuildMemberMap::iterator itr = m_members.begin(); itr != m_members.end(); ++itr)
 	{
 		if(UNIXTIME - itr->first->lastOnline < 1209600)
 			continue;
 		RemoveGuildMember(itr->first, kicker);
 	}
+	m_lock.Release();
 }

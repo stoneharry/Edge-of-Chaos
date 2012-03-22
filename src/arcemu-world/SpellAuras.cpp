@@ -905,6 +905,7 @@ void Aura::Remove()
 
 	// We will delete this on the next update, eluding some spell crashes :|
 	m_target->AddGarbageAura(this);
+	m_target->UpdateAuraForGroup(m_auraSlot);
 	m_target->m_auras[ m_auraSlot ] = NULL;
 
 	//only remove channel stuff if caster == target, then it's not removed twice, for example, arcane missiles applies a dummy aura to target
@@ -3340,7 +3341,7 @@ void Aura::SpellAuraModIncreaseSpeed(bool apply)
 	else
 		m_target->m_speedModifier -= mod->m_amount;
 
-	m_target->UpdateSpeed();
+	m_target->UpdateSpeed(!apply ? GetSpellId() : 0);
 }
 
 void Aura::SpellAuraModIncreaseMountedSpeed(bool apply)
@@ -3364,7 +3365,7 @@ void Aura::SpellAuraModIncreaseMountedSpeed(bool apply)
 	}
 	else
 		m_target->m_mountedspeedModifier -= mod->m_amount;
-	m_target->UpdateSpeed();
+	m_target->UpdateSpeed(!apply ? GetSpellId() : 0);
 }
 
 void Aura::SpellAuraModCreatureRangedAttackPower(bool apply)
@@ -3419,7 +3420,7 @@ void Aura::SpellAuraModDecreaseSpeed(bool apply)
 				TO< Unit* >(m_target)->EventChill(caster, true);
 		}
 	}
-	m_target->UpdateSpeed();
+	m_target->UpdateSpeed(!apply ? GetSpellId() : 0);
 }
 
 void Aura::UpdateAuraModDecreaseSpeed()
@@ -5139,7 +5140,7 @@ void Aura::SpellAuraMounted(bool apply)
 		}
 
 		u_target->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_MOUNT);
-
+		u_target->RemoveAllAuraType(SPELL_AURA_MOUNTED, GetSpellId());
 		CreatureInfo* ci = CreatureNameStorage.LookupEntry(mod->m_miscValue);
 		if(!ci) 
 			return;
@@ -5180,6 +5181,7 @@ void Aura::SpellAuraMounted(bool apply)
 	}
 	else
 	{
+		u_target->RemoveAllAuraType(SPELL_AURA_MOUNTED);
 		if(p_target)
 		{
 			p_target->SetCollisionHeight(false);
@@ -6233,7 +6235,7 @@ void Aura::SpellAuraModIncreaseSpeedAlways(bool apply)
 	else
 		m_target->m_speedModifier -= mod->m_amount;
 
-	m_target->UpdateSpeed();
+	m_target->UpdateSpeed(!apply ? GetSpellId() : 0);
 }
 
 void Aura::SpellAuraModIncreaseEnergyPerc(bool apply)
@@ -6839,14 +6841,11 @@ void Aura::SpellAuraIncreaseCricticalTypePCT(bool apply)
 
 void Aura::SpellAuraIncreasePartySpeed(bool apply)
 {
-	if(m_target->isAlive() && m_target->GetMount() == 0)
-	{
-		if(apply)
-			m_target->m_speedModifier += mod->m_amount;
-		else
-			m_target->m_speedModifier -= mod->m_amount;
-		m_target->UpdateSpeed();
-	}
+	if(apply)
+		m_target->m_speedModifier += mod->m_amount;
+	else
+		m_target->m_speedModifier -= mod->m_amount;
+	m_target->UpdateSpeed(!apply ? GetSpellId() : 0);
 }
 
 void Aura::SpellAuraIncreaseSpellDamageByAttribute(bool apply)
@@ -7263,7 +7262,7 @@ void Aura::SpellAuraLimitSpeed(bool apply)
 {
 	int32 amount = (apply) ? mod->m_amount : -mod->m_amount;
 	m_target->m_maxSpeed += (float)amount;
-	m_target->UpdateSpeed();
+	m_target->UpdateSpeed(!apply ? GetSpellId() : 0);
 }
 void Aura::SpellAuraIncreaseTimeBetweenAttacksPCT(bool apply)
 {
@@ -7485,7 +7484,7 @@ void Aura::SpellAuraEnableFlight(bool apply)
 		if(!m_target->HasFlyingAura(GetSpellId()))
 			m_target->DisableFlight();
 		m_target->m_flyspeedModifier -= mod->m_amount;
-		m_target->UpdateSpeed();
+		m_target->UpdateSpeed(GetSpellId());
 		if(m_target->IsPlayer())
 		{
 			TO< Player* >(m_target)->flying_aura = 0;
@@ -7499,7 +7498,7 @@ void Aura::SpellAuraIncreaseMovementAndMountedSpeed(bool apply)
 		m_target->m_mountedspeedModifier += mod->m_amount;
 	else
 		m_target->m_mountedspeedModifier -= mod->m_amount;
-	m_target->UpdateSpeed();
+	m_target->UpdateSpeed(!apply ? GetSpellId() : 0);
 }
 
 void Aura::SpellAuraIncreaseFlightSpeed(bool apply)
@@ -7508,7 +7507,7 @@ void Aura::SpellAuraIncreaseFlightSpeed(bool apply)
 		m_target->m_flyspeedModifier += mod->m_amount;
 	else
 		m_target->m_flyspeedModifier -= mod->m_amount;
-	m_target->UpdateSpeed();
+	m_target->UpdateSpeed(!apply ? GetSpellId() : 0);
 }
 
 

@@ -705,7 +705,6 @@ bool Object::SetPosition(const LocationVector & v, bool allowPorting /* = false 
 	{
 		m_mapMgr->ChangeObjectLocation(this);
 	}
-
 	return result;
 }
 
@@ -739,9 +738,9 @@ bool Object::SetPosition(float newX, float newY, float newZ, float newOrientatio
 		m_lastMapUpdatePosition.ChangeCoords(newX, newY, newZ, newOrientation);
 		m_mapMgr->ChangeObjectLocation(this);
 
-		if(IsPlayer() && TO< Player* >(this)->GetGroup() && TO< Player* >(this)->m_last_group_position.Distance2DSq(m_position) > 25.0f)       // distance of 5.0
+		if(IsPlayer())
 		{
-			TO< Player* >(this)->GetGroup()->HandlePartialChange(PARTY_UPDATE_FLAG_POSITION, TO< Player* >(this));
+			TO< Player* >(this)->AddGroupUpdateFlag(GROUP_UPDATE_FLAG_POSITION);
 		}
 	}
 
@@ -959,18 +958,14 @@ void Object::SetUInt32Value(const uint32 index, const uint32 value)
 			m_objectUpdated = true;
 		}
 	}
-
+	if(IsUnit())
+	{
+		TO_UNIT(this)->HandleUpdateFieldChange(index);
+	}
 	//! Group update handling
 	if(IsPlayer())
 	{
 		TO_PLAYER(this)->HandleUpdateFieldChanged(index);
-		if(IsInWorld())
-		{
-			Group* pGroup = TO< Player* >(this)->GetGroup();
-			if(pGroup != NULL)
-				pGroup->HandleUpdateFieldChange(index, TO< Player* >(this));
-		}
-
 		switch(index)
 		{
 			case UNIT_FIELD_POWER1:
@@ -2056,7 +2051,7 @@ void Object::SetZoneId(uint32 newZone)
 	{
 		TO_PLAYER(this)->m_cache->SetUInt32Value(CACHE_PLAYER_ZONEID, newZone);
 		if(TO_PLAYER(this)->GetGroup() != NULL)
-			TO_PLAYER(this)->GetGroup()->HandlePartialChange(PARTY_UPDATE_FLAG_ZONEID, TO_PLAYER(this));
+			TO_PLAYER(this)->AddGroupUpdateFlag(GROUP_UPDATE_FLAG_ZONE);
 	}
 }
 

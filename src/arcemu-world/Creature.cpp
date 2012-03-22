@@ -1449,7 +1449,7 @@ void Creature::Load(CreatureProto* proto_, float x, float y, float z, float o)
 	if(!creature_info)
 		return;
 
-	if(proto_->isTrainingDummy == 0 && !IsVehicle() )
+	if(proto_->isTrainingDummy == 0 && !(IsVehicle() && (proto->CustomFlags & CREATURE_CUSTOMFLAG_VEHICLE_COMBAT)))
 	{
 		GetAIInterface()->SetAllowedToEnterCombat(true);
 	}

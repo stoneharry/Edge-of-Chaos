@@ -2600,6 +2600,7 @@ class SERVER_DECL Player : public Unit
 		SpellModList m_spellMods[MAX_SPELLMOD];
 		Spell* m_spellModTakingSpell;
 		uint8 m_roles;
+		uint32 GroupUpdateFlags;
 	public:
 		void SendUpdateDataToSet(ByteBuffer* groupbuf, ByteBuffer* nongroupbuf, bool sendtoself);
 
@@ -2627,6 +2628,11 @@ class SERVER_DECL Player : public Unit
 		void SendTeleportPacket(float x, float y, float z, float o);
 		void SendTeleportAckPacket(float x, float y, float z, float o);
 		void EventLoginAuras();
+		uint32 GetGroupUpdateFlags() { return GroupUpdateFlags; }
+		void SetGroupUpdateFlags(uint32 flags);
+		void AddGroupUpdateFlag(uint32 flag);
+		uint16 GetGroupStatus();
+		void SendUpdateToOutOfRangeGroupMembers();
 };
 
 

@@ -789,10 +789,6 @@ void WorldSession::FullLogin(Player* plr)
 		}
 	}
 
-	// copy to movement array
-	movement_packet[0] = m_MoverWoWGuid.GetNewGuidMask();
-	memcpy(&movement_packet[1], m_MoverWoWGuid.GetNewGuid(), m_MoverWoWGuid.GetNewGuidLen());
-
 	// world preload
 	uint32 VMapId;
 	float VO;

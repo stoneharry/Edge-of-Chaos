@@ -178,11 +178,17 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
 	v.x += seats[ seatid ]->GetSeatInfo()->attachmentOffsetX;
 	v.y += seats[ seatid ]->GetSeatInfo()->attachmentOffsetY;
 	v.z += seats[ seatid ]->GetSeatInfo()->attachmentOffsetZ;
-
-	passenger->SetPosition( v, false );
-
+	passenger->GetMovementInfo()->transSeat = seatid;
+	passenger->GetMovementInfo()->transX = v.x;
+	passenger->GetMovementInfo()->transY = v.y;
+	passenger->GetMovementInfo()->transZ = v.z;
 	passenger->transporter_info.guid = owner->GetGUID();
 	passenger->transporter_info.seat = seatid;
+	passenger->transporter_info.x = v.x;
+	passenger->transporter_info.y = v.y;
+	passenger->transporter_info.z = v.z;
+	passenger->AddUnitMovementFlag(MOVEFLAG_TRANSPORT);
+	passenger->SetPosition( v, false );
 
 	if( passenger->IsPlayer() ){
 		WorldPacket ack( SMSG_CONTROL_VEHICLE, 0);
@@ -290,7 +296,7 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 	if( seats[ seatid ]->Controller() ){
 		passenger->SetCharmedUnitGUID( 0 );
 		owner->SetCharmedByGUID( 0 );
-		
+		owner->GetAIInterface()->StopMovement(0);
 		if( passenger->IsPlayer() ){
 
 			owner->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED_CREATURE | UNIT_FLAG_PVP_ATTACKABLE );
@@ -560,8 +566,8 @@ void Vehicle::InstallAccessories(){
 		c->Phase( PHASE_SET, owner->GetPhase() );
 		c->SetFaction( owner->GetFaction() );
 		c->PushToWorld( owner->GetMapMgr() );
-		
-		AddPassengerToSeat( c, accessory->seat );
+		c->EnterVehicle(GetOwner()->GetGUID(), 5000, accessory->seat);
+		//sEventMgr.AddEvent(TO_UNIT(c), &Vehicle::AddPassengerToSeat, TO_UNIT(c), accessory->seat, false, EVENT_UNK, 5000, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 		installed_accessories.push_back( c->GetGUID() );
 	}
 }
@@ -590,4 +596,12 @@ bool Vehicle::HasAccessoryWithGUID( uint64 guid ){
 		return false;
 	else
 		return true;
+}
+
+uint32 Vehicle::GetPassengerSeatId(uint64 guid)
+{
+	for( uint32 i = 0; i < MAX_VEHICLE_SEATS; i++ )
+		if( ( seats[ i ] != NULL && seats[i]->GetPassengerGUID() == guid))
+			return seats[i]->GetSeatInfo()->ID;
+	return 0;
 }

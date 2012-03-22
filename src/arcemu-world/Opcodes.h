@@ -224,7 +224,7 @@ enum Opcodes
     MSG_MOVE_SET_RUN_MODE                           = 0x0C2,	// implemented
     MSG_MOVE_SET_WALK_MODE                          = 0x0C3,	// implemented
     MSG_MOVE_TOGGLE_LOGGING                         = 0x0C4,	// not used in client
-    MSG_MOVE_TELEPORT                               = 0x0C5,	/// TODO: investigate
+    MSG_MOVE_TELEPORT                               = 0x0C5,	/// implmented
     MSG_MOVE_TELEPORT_CHEAT                         = 0x0C6,	// implemented
     MSG_MOVE_TELEPORT_ACK                           = 0x0C7,	// implemented
     MSG_MOVE_TOGGLE_FALL_LOGGING                    = 0x0C8,	// not used in client
@@ -268,13 +268,13 @@ enum Opcodes
     MSG_MOVE_HEARTBEAT                              = 0x0EE,	// implemented
     SMSG_MOVE_KNOCK_BACK                            = 0x0EF,	// implemented
     CMSG_MOVE_KNOCK_BACK_ACK                        = 0x0F0,	// implemented
-    MSG_MOVE_KNOCK_BACK                             = 0x0F1,	/// TODO: implement
+    MSG_MOVE_KNOCK_BACK                             = 0x0F1,	// implemented
     SMSG_MOVE_FEATHER_FALL                          = 0x0F2,	// implemented
     SMSG_MOVE_NORMAL_FALL                           = 0x0F3,	// implemented
     SMSG_MOVE_SET_HOVER                             = 0x0F4,	// implemented
     SMSG_MOVE_UNSET_HOVER                           = 0x0F5,	// implemented
     CMSG_MOVE_HOVER_ACK                             = 0x0F6,	// implemented
-    MSG_MOVE_HOVER                                  = 0x0F7,	/// TODO: investigate, implement
+    MSG_MOVE_HOVER                                  = 0x0F7,	// implemented
     CMSG_TRIGGER_CINEMATIC_CHEAT                    = 0x0F8,	// GM client only
     CMSG_OPENING_CINEMATIC                          = 0x0F9,	/// TODO: implement
     SMSG_TRIGGER_CINEMATIC                          = 0x0FA,	// implemented
@@ -552,7 +552,7 @@ enum Opcodes
     CMSG_REQUEST_ACCOUNT_DATA                       = 0x20A,	// implemented
     CMSG_UPDATE_ACCOUNT_DATA                        = 0x20B,	// implemented
     SMSG_UPDATE_ACCOUNT_DATA                        = 0x20C,	// implemented
-    SMSG_CLEAR_FAR_SIGHT_IMMEDIATE                  = 0x20D,	/// TODO: implement
+    SMSG_CLEAR_FAR_SIGHT_IMMEDIATE                  = 0x20D,	// not used in client
     SMSG_POWERGAINLOG_OBSOLETE                      = 0x20E,	// not used in client
     CMSG_GM_TEACH                                   = 0x20F,	// GM client only
     CMSG_GM_CREATE_ITEM_TARGET                      = 0x210,	// GM client only
@@ -741,12 +741,12 @@ enum Opcodes
     CMSG_CHAR_RENAME                                = 0x2C7,	// implemented
     SMSG_CHAR_RENAME                                = 0x2C8,	// implemented
     CMSG_MOVE_SPLINE_DONE                           = 0x2C9,	// implemented
-    CMSG_MOVE_FALL_RESET                            = 0x2CA,	/// TODO: implement
+    CMSG_MOVE_FALL_RESET                            = 0x2CA,	/// implemented
     SMSG_UPDATE_LAST_INSTANCE_CREATED               = 0x2CB,	/// TODO: implement
     SMSG_RAID_INSTANCE_INFO                         = 0x2CC,	// implemented
     CMSG_REQUEST_RAID_INFO                          = 0x2CD,	// implemented
     CMSG_MOVE_TIME_SKIPPED                          = 0x2CE,	// implemented
-    CMSG_MOVE_FEATHER_FALL_ACK                      = 0x2CF,	// implemented	// implemented
+    CMSG_MOVE_FEATHER_FALL_ACK                      = 0x2CF,	// implemented
     CMSG_MOVE_WATER_WALK_ACK                        = 0x2D0,	// implemented
     CMSG_MOVE_NOT_ACTIVE_MOVER                      = 0x2D1,	// implemented
     SMSG_PLAY_SOUND                                 = 0x2D2,	// implemented
@@ -821,7 +821,7 @@ enum Opcodes
     CMSG_SET_FACTION_INACTIVE                       = 0x317,	// implemented
     CMSG_SET_WATCHED_FACTION                        = 0x318,	// implemented
     MSG_MOVE_TIME_SKIPPED                           = 0x319,	/// TODO: implement
-    SMSG_SPLINE_MOVE_ROOT                           = 0x31A,	/// TODO: investigate
+    SMSG_SPLINE_MOVE_ROOT                           = 0x31A,	/// implemented
     CMSG_SET_EXPLORATION_ALL                        = 0x31B,	// GM client only
     SMSG_INVALIDATE_PLAYER                          = 0x31C,	/// TODO: investigate
     CMSG_RESET_INSTANCES                            = 0x31D,	// implemented
@@ -962,7 +962,7 @@ enum Opcodes
     SMSG_SET_EXTRA_AURA_INFO_OBSOLETE               = 0x3A4,	// not used in client
     SMSG_SET_EXTRA_AURA_INFO_NEED_UPDATE_OBSOLETE   = 0x3A5,	// not used in client
     SMSG_CLEAR_EXTRA_AURA_INFO_OBSOLETE             = 0x3A6,	// not used in client
-    MSG_MOVE_START_DESCEND                          = 0x3A7,	/// TODO: investigate
+    MSG_MOVE_START_DESCEND                          = 0x3A7,	// implmented
     CMSG_IGNORE_REQUIREMENTS_CHEAT                  = 0x3A8,	// GM client only
     SMSG_IGNORE_REQUIREMENTS_CHEAT                  = 0x3A9,	// GM client only
     SMSG_SPELL_CHANCE_PROC_LOG                      = 0x3AA,	// not used in client
