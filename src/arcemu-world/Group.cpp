@@ -883,9 +883,6 @@ void Group::SaveToDB()
 void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket* Packet)
 {
 	uint32 mask = pPlayer->GetGroupUpdateFlags();
- 	if(pPlayer->GetPowerType() != POWER_TYPE_MANA)
-		mask |= GROUP_UPDATE_FLAG_POWER_TYPE;
-
 	if( pPlayer->GetCurrentVehicle() != NULL && !(mask & GROUP_UPDATE_FLAG_VEHICLE_SEAT))
 		mask |= GROUP_UPDATE_FLAG_VEHICLE_SEAT;
    if (mask & GROUP_UPDATE_FLAG_POWER_TYPE)                // if update power type, update current/max power also
@@ -905,12 +902,13 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket
 	*data << pPlayer->GetNewGUID();
 	*data << mask;
 
-	if(mask & GROUP_UPDATE_FLAG_STATUS)
-	{
-		uint16 status = MEMBER_STATUS_OFFLINE;
-		if(pPlayer)
-			status = pPlayer->GetGroupStatus();
-	}
+    if (mask & GROUP_UPDATE_FLAG_STATUS)
+    {
+        if (pPlayer)
+			*data << (uint16) pPlayer->GetGroupStatus();
+        else
+            *data << (uint16) MEMBER_STATUS_OFFLINE;
+    }
 
     if (mask & GROUP_UPDATE_FLAG_CUR_HP)
         *data << (uint32) pPlayer->GetHealth();
@@ -918,7 +916,7 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket
     if (mask & GROUP_UPDATE_FLAG_MAX_HP)
         *data << (uint32) pPlayer->GetMaxHealth();
 
-	uint8 powerType = pPlayer->GetPowerType();
+    uint8 powerType = pPlayer->GetPowerType();
     if (mask & GROUP_UPDATE_FLAG_POWER_TYPE)
         *data << (uint8) powerType;
 
@@ -936,6 +934,7 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket
 
     if (mask & GROUP_UPDATE_FLAG_POSITION)
         *data << (uint16) pPlayer->GetPositionX() << (uint16) pPlayer->GetPositionY();
+
     if (mask & GROUP_UPDATE_FLAG_AURAS)
     {
         uint64 auramask = pPlayer->GetAuraUpdateMaskForRaid();
@@ -944,14 +943,14 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket
         {
             if (auramask & (uint64(1) << i))
             {
-				Aura * a = pPlayer->GetAuraWithSlot(i);
-				*data << uint32(a ? a->GetSpellId() : 0);
+				Aura * aurApp = pPlayer->GetAuraWithSlot(i);
+				*data << uint32(aurApp ? aurApp->GetSpellId() : 0);
                 *data << uint8(1);
             }
         }
     }
 
-	Pet* pet = pPlayer->GetSummon();
+    Pet* pet = pPlayer->GetSummon();
     if (mask & GROUP_UPDATE_FLAG_PET_GUID)
     {
         if (pet)
@@ -963,7 +962,7 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket
     if (mask & GROUP_UPDATE_FLAG_PET_NAME)
     {
         if (pet)
-            *data << pet->GetName().c_str();
+			*data << pet->GetName().c_str();
         else
             *data << (uint8)  0;
     }
@@ -1016,11 +1015,11 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket
             *data << (uint16) 0;
     }
 
-	if( mask & GROUP_UPDATE_FLAG_VEHICLE_SEAT )
-	{
-		if( pPlayer->GetCurrentVehicle() != NULL )
-			*data << uint32( pPlayer->GetCurrentVehicle()->GetPassengerSeatId(pPlayer->GetGUID()));
-	}
+    if (mask & GROUP_UPDATE_FLAG_VEHICLE_SEAT)
+    {
+		if (Vehicle* veh = pPlayer->GetVehicleComponent())
+			*data << (uint32) veh->GetVehicleInfo()->seatID[pPlayer->GetMovementInfo()->transSeat];
+    }
 
     if (mask & GROUP_UPDATE_FLAG_PET_AURAS)
     {
@@ -1032,8 +1031,8 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket
             {
                 if (auramask & (uint64(1) << i))
                 {
-                    Aura* a = pet->GetAuraWithSlot(i);
-					*data << uint32(a ? a->GetSpellId() : 0);
+					Aura * aurApp = pet->GetAuraWithSlot(i);
+					*data << uint32(aurApp ? aurApp->GetSpellId() : 0);
                     *data << uint8(1);
                 }
             }
