@@ -283,7 +283,7 @@ void Group::Update()
 
 							data << (plr ? plr->GetName() : (*itr2)->name);
 							if(plr)
-								data << plr->GetGUID();
+								data << plr->GetHighGUID();
 							else
 								data << (*itr2)->guid << uint32(0);	// highguid
 
@@ -893,7 +893,8 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket
 	WorldPacket* data = Packet;
 	if(!Packet)
 		data = new WorldPacket(SMSG_PARTY_MEMBER_STATS, 500);
-
+	if(pPlayer->m_isGmInvisible)
+		mask = GROUP_UPDATE_FLAG_STATUS;
     uint32 byteCount = 0;
     for (int i = 1; i < GROUP_UPDATE_FLAGS_COUNT; ++i)
         if (mask & (1 << i))
@@ -904,7 +905,7 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket
 
     if (mask & GROUP_UPDATE_FLAG_STATUS)
     {
-        if (pPlayer)
+        if (pPlayer && !pPlayer->m_isGmInvisible)
 			*data << (uint16) pPlayer->GetGroupStatus();
         else
             *data << (uint16) MEMBER_STATUS_OFFLINE;
@@ -1402,4 +1403,36 @@ uint64 Group::GetLeaderGUID()
 	if(m_Leader && m_Leader->m_loggedInPlayer)
 		return m_Leader->m_loggedInPlayer->GetGUID();
 	return (uint64)m_Leader->guid;
+}
+
+void Group::GoOffline(Player * p)
+{
+	uint32 mask = GROUP_UPDATE_FLAG_STATUS;
+    uint32 byteCount = 0;
+    for (int i = 1; i < GROUP_UPDATE_FLAGS_COUNT; ++i)
+        if (mask & (1 << i))
+            byteCount += GroupUpdateLength[i];
+    WorldPacket data(SMSG_PARTY_MEMBER_STATS, 8 + 4 + byteCount);
+	data << p->GetNewGUID();
+	data << mask;
+    data << (uint16) MEMBER_STATUS_OFFLINE;
+	if(p->IsInWorld())
+	{
+		m_groupLock.Acquire();
+		for(uint32 i = 0; i < m_SubGroupCount; ++i)
+		{
+			if(m_SubGroups[i] == NULL)
+				continue;
+
+			for(GroupMembersSet::iterator itr = m_SubGroups[i]->GetGroupMembersBegin(); itr != m_SubGroups[i]->GetGroupMembersEnd();)
+			{
+				Player * plr = (*itr)->m_loggedInPlayer;
+				++itr;
+
+				if(plr && plr != p)
+					plr->SendPacket(&data);
+			}
+		}
+		m_groupLock.Release();
+	}
 }

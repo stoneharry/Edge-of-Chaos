@@ -452,6 +452,7 @@ bool Master::Run(int argc, char** argv)
 						snprintf(str, 20, "%02u:%02u", mins, secs);
 						data << str;
 						sWorld.SendGlobalMessage(&data, NULL);
+						printf("Shutdow in %s\n", str);
 					}
 				}
 				next_send = getMSTime() + 1000;

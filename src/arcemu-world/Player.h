@@ -1392,7 +1392,14 @@ class SERVER_DECL Player : public Unit
 		uint64				GetDuelArbiter() { return GetUInt64Value(PLAYER_DUEL_ARBITER); }
 		void				SetDuelTeam(uint32 team) { SetUInt32Value(PLAYER_DUEL_TEAM, team); }
 		uint32				GetDuelTeam() { return GetUInt32Value(PLAYER_DUEL_TEAM); }
-
+		bool IsDueling(Player * player)
+		{
+			if(DuelingWith == NULL)
+				return false;
+			if(DuelingWith == player || DuelingWith->GetGUID() == player->GetGUID())
+				return true;
+			return false;
+		}
 		/************************************************************************/
 		/* Trade                                                                */
 		/************************************************************************/
@@ -1922,8 +1929,8 @@ class SERVER_DECL Player : public Unit
 		bool FlyCheat;
 		void ZoneUpdate(uint32 ZoneId);
 		void UpdateChannels(uint16 AreaID);
-		uint32 GetAreaID() { return m_AreaID; }
-		void SetAreaID(uint32 area) { m_AreaID = area; }
+		uint32 GetAreaID();
+		void SetAreaID(uint32 area);
 		bool IsInCity();
 
 		// Instance IDs

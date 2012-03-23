@@ -1252,7 +1252,8 @@ void Guild::SendGuildRoster(WorldSession* pClient)
 			continue;
 		++cnt;
 		pPlayer = itr->second->pPlayer->m_loggedInPlayer;
-
+		if(pPlayer && pPlayer->m_isGmInvisible && !pClient->HasPermissions())
+			pPlayer = NULL;
 		data << itr->first->guid;
 		data << uint32(0);			// highguid
 		data << uint8((pPlayer != NULL) ? 1 : 0);

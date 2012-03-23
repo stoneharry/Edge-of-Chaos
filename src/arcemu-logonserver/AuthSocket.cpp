@@ -73,6 +73,7 @@ void AuthSocket::OnDisconnect()
 
 void AuthSocket::HandleChallenge()
 {
+	sAccountMgr.ReloadAccounts(true);
 	// No header
 	if(readBuffer.GetContiguiousBytes() < 4){
 		LOG_ERROR( "[AuthChallenge] Packet has no header. Refusing to handle." );

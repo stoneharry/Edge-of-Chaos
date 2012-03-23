@@ -273,7 +273,7 @@ class SERVER_DECL Group
 		uint64 GetGUID() { return uint64(GetID()); }
 		SubGroup* m_SubGroups[8];
 		uint8 m_SubGroupCount;
-
+		void GoOffline(Player * p);
 	protected:
 		PlayerInfo* m_Leader;
 		PlayerInfo* m_Looter;

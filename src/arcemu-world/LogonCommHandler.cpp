@@ -252,6 +252,8 @@ void LogonCommHandler::AdditionAck(uint32 ID, uint32 ServID)
 
 void LogonCommHandler::UpdateSockets()
 {
+	if(sMaster.m_ShutdownEvent == true && sMaster.m_ShutdownTimer <= 120000) // 2minutes
+		return;
 	mapLock.Acquire();
 
 	map<LogonServer*, LogonCommClientSocket*>::iterator itr = logons.begin();
@@ -301,6 +303,8 @@ void LogonCommHandler::UpdateSockets()
 
 void LogonCommHandler::ConnectionDropped(uint32 ID)
 {
+	if(sMaster.m_ShutdownEvent == true && sMaster.m_ShutdownTimer <= 120000) // 2minutes
+		return;
 	mapLock.Acquire();
 	map<LogonServer*, LogonCommClientSocket*>::iterator itr = logons.begin();
 	for(; itr != logons.end(); ++itr)

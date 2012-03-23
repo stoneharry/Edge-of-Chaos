@@ -367,7 +367,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 
 	if(guid != m_MoverWoWGuid.GetOldGuid())
 		return;
-	
+
 	// Player is in control of some entity, so we move that instead of the player
 	Unit *mover = _player->GetMapMgr()->GetUnit( m_MoverWoWGuid.GetOldGuid() );
 	if( mover == NULL )
@@ -476,98 +476,51 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 	if(m_clientTimeDelay == 0)
 		m_clientTimeDelay = mstime - movementInfo.time;
 
-    WorldPacket data(opcode, recv_data.size());
-    movementInfo.time = getMSTime();
-    movementInfo.guid = mover->GetGUID();
-    WriteMovementInfo(&data, &movementInfo);
-    mover->SendMessageToSet(&data, _player);
-
-    mover->movement_info = movementInfo;
-
-
-	/************************************************************************/
-	/* Hack Detection by Classic	                                        */
-	/************************************************************************/
-
-	/*
-	This stuff doesn't even work :/
-	if(!movementInfo.transGuid && recv_data.GetOpcode() != MSG_MOVE_JUMP && !_player->FlyCheat && !_player->flying_aura && !(movementInfo.flags & MOVEFLAG_SWIMMING || movementInfo.flags & MOVEFLAG_FALLING) && movementInfo.z > _player->GetPositionZ() && movementInfo.x == _player->GetPositionX() && movementInfo.y == _player->GetPositionY())
+	if(recv_data.GetOpcode() == MSG_MOVE_FALL_LAND)
 	{
-		WorldPacket data(SMSG_MOVE_UNSET_CAN_FLY, 13);
-		data << _player->GetNewGUID();
-		data << uint32(5);
-		SendPacket(&data);
-	}
+		// player has finished falling
+		//if _player->z_axisposition contains no data then set to current position
+		if(!_player->z_axisposition)
+			_player->z_axisposition = movementInfo.z;
+		// calculate distance fallen
+		uint32 falldistance = float2int32(_player->z_axisposition - movementInfo.z);
+		if(_player->z_axisposition <= movementInfo.z)
+			falldistance = 1;
+		/*Safe Fall*/
+		if((int)falldistance > _player->m_safeFall)
+			falldistance -= _player->m_safeFall;
+		else
+			falldistance = 1;
 
-	if((movementInfo.flags & MOVEFLAG_AIR_SWIMMING) && !(movementInfo.flags & MOVEFLAG_SWIMMING) && !(_player->flying_aura || _player->FlyCheat))
-	{
-		WorldPacket data(SMSG_MOVE_UNSET_CAN_FLY, 13);
-		data << _player->GetNewGUID();
-		data << uint32(5);
-		SendPacket(&data);
-	}*/
+		//checks that player has fallen more than 12 units, otherwise no damage will be dealt
+		//falltime check is also needed here, otherwise sudden changes in Z axis position, such as using !recall, may result in death
+		if(_player->isAlive() && !_player->bInvincible && !_player->GodModeCheat && falldistance > 12 && (UNIXTIME >= _player->m_fallDisabledUntil) /*&& movement_info.FallTime > 1000*/ && !_player->m_noFallDamage && !_player->IsFlying() && !_player->HasAuraWithName(SPELL_AURA_FEATHER_FALL))
+		{
+			// 1.7% damage for each unit fallen on Z axis over 13
+			uint32 health_loss = float2int32(_player->GetUInt32Value(UNIT_FIELD_MAXHEALTH) * (falldistance - 12) * 0.017f);
 
-	/************************************************************************/
-	/* Falling damage checks                                                */
-	/************************************************************************/
-
-	if(_player->blinked)
-	{
-		_player->blinked = false;
-		_player->m_fallDisabledUntil = UNIXTIME + 5;
-		_player->SpeedCheatDelay(2000);   //some say they managed to trigger system with knockback. Maybe they moved in air ?
+			if(health_loss >= _player->GetUInt32Value(UNIT_FIELD_HEALTH))
+				health_loss = _player->GetUInt32Value(UNIT_FIELD_HEALTH);
+			#ifdef ENABLE_ACHIEVEMENTS
+			else if(falldistance >= 65)
+			{
+				// Rather than Updating achievement progress every time fall damage is taken, all criteria currently have 65 yard requirement...
+				// Achievement 964: Fall 65 yards without dying.
+				// Achievement 1260: Fall 65 yards without dying while completely smashed during the Brewfest Holiday.
+				_player->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_FALL_WITHOUT_DYING, falldistance, Player::GetDrunkenstateByValue(_player->GetDrunkValue()), 0);
+			}
+			#endif
+			_player->SendEnvironmentalDamageLog(_player->GetGUID(), DAMAGE_FALL, health_loss);
+			_player->DealDamage(_player, health_loss, 0, 0, 0);
+			//_player->RemoveStealth(); // cebernic : why again? lost stealth by AURA_INTERRUPT_ON_ANY_DAMAGE_TAKEN already.
+		}
+		_player->z_axisposition = 0.0f;
 	}
 	else
-	{
-		if(recv_data.GetOpcode() == MSG_MOVE_FALL_LAND)
-		{
-			// player has finished falling
-			//if _player->z_axisposition contains no data then set to current position
-			if(!_player->z_axisposition)
-				_player->z_axisposition = movementInfo.z;
-
-			// calculate distance fallen
-			uint32 falldistance = float2int32(_player->z_axisposition - movementInfo.z);
-			if(_player->z_axisposition <= movementInfo.z)
-				falldistance = 1;
-			/*Safe Fall*/
-			if((int)falldistance > _player->m_safeFall)
-				falldistance -= _player->m_safeFall;
-			else
-				falldistance = 1;
-
-			//checks that player has fallen more than 12 units, otherwise no damage will be dealt
-			//falltime check is also needed here, otherwise sudden changes in Z axis position, such as using !recall, may result in death
-			if(_player->isAlive() && !_player->bInvincible && !_player->GodModeCheat && falldistance > 12 && (UNIXTIME >= _player->m_fallDisabledUntil) /*&& movement_info.FallTime > 1000*/ && !_player->m_noFallDamage && !_player->IsFlying() && !_player->HasAuraWithName(SPELL_AURA_FEATHER_FALL))
-			{
-				// 1.7% damage for each unit fallen on Z axis over 13
-				uint32 health_loss = float2int32(_player->GetUInt32Value(UNIT_FIELD_MAXHEALTH) * (falldistance - 12) * 0.017f);
-
-				if(health_loss >= _player->GetUInt32Value(UNIT_FIELD_HEALTH))
-					health_loss = _player->GetUInt32Value(UNIT_FIELD_HEALTH);
-#ifdef ENABLE_ACHIEVEMENTS
-				else if(falldistance >= 65)
-				{
-					// Rather than Updating achievement progress every time fall damage is taken, all criteria currently have 65 yard requirement...
-					// Achievement 964: Fall 65 yards without dying.
-					// Achievement 1260: Fall 65 yards without dying while completely smashed during the Brewfest Holiday.
-					_player->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_FALL_WITHOUT_DYING, falldistance, Player::GetDrunkenstateByValue(_player->GetDrunkValue()), 0);
-				}
-#endif
-
-				_player->SendEnvironmentalDamageLog(_player->GetGUID(), DAMAGE_FALL, health_loss);
-				_player->DealDamage(_player, health_loss, 0, 0, 0);
-
-				//_player->RemoveStealth(); // cebernic : why again? lost stealth by AURA_INTERRUPT_ON_ANY_DAMAGE_TAKEN already.
-			}
-			_player->z_axisposition = 0.0f;
-		}
-		else
-			//whilst player is not falling, continuously update Z axis position.
-			//once player lands this will be used to determine how far he fell.
-			if(!(movementInfo.flags & MOVEFLAG_FALLING))
-				_player->z_axisposition = movementInfo.z;
-	}
+		//whilst player is not falling, continuously update Z axis position.
+		//once player lands this will be used to determine how far he fell.
+		if(!(movementInfo.flags & MOVEFLAG_FALLING))
+			_player->z_axisposition = movementInfo.z;
 
 	/************************************************************************/
 	/* Transporter Setup                                                    */
@@ -678,6 +631,13 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 		if( !mover->isRooted() )
 			mover->SetPosition(movementInfo.x, movementInfo.y, movementInfo.z, movementInfo.orientation);
 	}
+    WorldPacket data(opcode, recv_data.size());
+    movementInfo.time = getMSTime();
+    movementInfo.guid = mover->GetGUID();
+    WriteMovementInfo(&data, &movementInfo);
+    mover->SendMessageToSet(&data, _player);
+
+    mover->movement_info = movementInfo;
 }
 
 void WorldSession::HandleMoveTimeSkippedOpcode(WorldPacket & recv_data)

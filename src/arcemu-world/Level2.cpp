@@ -86,6 +86,10 @@ bool ChatHandler::HandleInvisibleCommand(const char* args, WorldSession* m_sessi
 		{
 			pChar->m_bg->AddInvisGM();
 		}
+		if(Guild* pGuild = pChar->GetGuild())
+			pGuild->LogGuildEvent(GUILD_EVENT_HASGONEOFFLINE, 1, pChar->GetName());
+		if(Group * g = pChar->GetGroup())
+			g->GoOffline(pChar);
 		snprintf(msg, 256, "%s ON.", msg);
 	}
 

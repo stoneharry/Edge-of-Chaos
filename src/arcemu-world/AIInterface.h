@@ -337,6 +337,10 @@ class SERVER_DECL AIInterface
 		void setCurrentAgent(AI_Agent agent) { m_aiCurrentAgent = agent; }
 		uint32	getThreatByGUID(uint64 guid);
 		uint32	getThreatByPtr(Unit* obj);
+		void SendThreatListUpdate();
+		void SendChangeCurrentVictimOpcode(Unit * u);
+		void SendClearThreatListOpcode();
+		void SendRemoveFromThreatListOpcode(uint64 guid);
 		Unit*	GetMostHated();
 		Unit*	GetSecondHated();
 		bool	modThreatByGUID(uint64 guid, int32 mod);

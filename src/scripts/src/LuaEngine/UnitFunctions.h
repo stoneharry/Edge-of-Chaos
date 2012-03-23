@@ -980,6 +980,8 @@ class LuaUnit
 						count = 0;
 						for(set< Object* >::iterator itr = ptr->GetInRangePlayerSetBegin(); itr != ptr->GetInRangePlayerSetEnd(); ++itr)
 						{
+							if((*itr) == NULL || !TO_UNIT((*itr))->isAlive())
+								continue;
 							if(count == r)
 							{
 								ret = TO_PLAYER(*itr);
@@ -994,6 +996,8 @@ class LuaUnit
 					{
 						for(set< Object* >::iterator itr = ptr->GetInRangePlayerSetBegin(); itr != ptr->GetInRangePlayerSetEnd(); ++itr)
 						{
+							if((*itr) == NULL || !TO_UNIT((*itr))->isAlive())
+								continue;
 							Player* obj = TO_PLAYER(*itr);
 							if(obj && obj->CalcDistance(obj, ptr) <= 8)
 								players.push_back(obj);
@@ -1006,6 +1010,8 @@ class LuaUnit
 					{
 						for(set< Object* >::iterator itr = ptr->GetInRangePlayerSetBegin(); itr != ptr->GetInRangePlayerSetEnd(); ++itr)
 						{
+							if((*itr) == NULL || !TO_UNIT((*itr))->isAlive())
+								continue;
 							Player* obj = TO_PLAYER(*itr);
 							float distance = obj->CalcDistance(obj, ptr);
 							if(distance < 20 && distance > 8)
@@ -1019,6 +1025,8 @@ class LuaUnit
 					{
 						for(set< Object* >::iterator itr = ptr->GetInRangePlayerSetBegin(); itr != ptr->GetInRangePlayerSetEnd(); ++itr)
 						{
+							if((*itr) == NULL || !TO_UNIT((*itr))->isAlive())
+								continue;
 							Player* obj = TO_PLAYER(*itr);
 							if(obj && obj->CalcDistance(obj, ptr) >= 20)
 								players.push_back(obj);
@@ -1031,6 +1039,8 @@ class LuaUnit
 					{
 						for(set< Object* >::iterator itr = ptr->GetInRangePlayerSetBegin(); itr != ptr->GetInRangePlayerSetEnd(); ++itr)
 						{
+							if((*itr) == NULL || !TO_UNIT((*itr))->isAlive())
+								continue;
 							Player* obj = TO_PLAYER(*itr);
 							if(obj && obj->GetPowerType() == POWER_TYPE_MANA)
 								players.push_back(obj);
@@ -1043,6 +1053,8 @@ class LuaUnit
 					{
 						for(set< Object* >::iterator itr = ptr->GetInRangePlayerSetBegin(); itr != ptr->GetInRangePlayerSetEnd(); ++itr)
 						{
+							if((*itr) == NULL || !TO_UNIT((*itr))->isAlive())
+								continue;
 							Player* obj = TO_PLAYER(*itr);
 							if(obj && obj->GetPowerType() == POWER_TYPE_ENERGY)
 								players.push_back(obj);
@@ -1055,6 +1067,8 @@ class LuaUnit
 					{
 						for(set< Object* >::iterator itr = ptr->GetInRangePlayerSetBegin(); itr != ptr->GetInRangePlayerSetEnd(); ++itr)
 						{
+							if((*itr) == NULL || !TO_UNIT((*itr))->isAlive())
+								continue;
 							Player* obj = TO_PLAYER(*itr);
 							if(obj && obj->GetPowerType() == POWER_TYPE_RAGE)
 								players.push_back(obj);
@@ -1071,6 +1085,8 @@ class LuaUnit
 
 						for(set< Object* >::iterator itr = ptr->GetInRangePlayerSetBegin(); itr != ptr->GetInRangePlayerSetEnd(); ++itr)
 						{
+							if((*itr) == NULL || !TO_UNIT((*itr))->isAlive())
+								continue;
 							Player* obj = TO_PLAYER(*itr);
 							if(obj != mt)
 								players.push_back(obj);
@@ -1097,6 +1113,8 @@ class LuaUnit
 			for(set<Object*>::iterator itr = ptr->GetInRangeSetBegin(); itr != ptr->GetInRangeSetEnd(); ++itr)
 			{
 				Object* obj = *itr;
+				if(obj == NULL || !obj->IsUnit() || !TO_UNIT((*itr))->isAlive())
+						continue;
 				if(obj->IsUnit() && isFriendly(obj, ptr))
 					allies.push_back(obj);
 			}
@@ -1115,6 +1133,8 @@ class LuaUnit
 			for(set<Object*>::iterator itr = ptr->GetInRangeSetBegin(); itr != ptr->GetInRangeSetEnd(); ++itr)
 			{
 				Object* obj = *itr;
+				if(obj == NULL || !obj->IsUnit() || !TO_UNIT((*itr))->isAlive())
+						continue;
 				if(obj->IsUnit() && isHostile(ptr, obj))
 					enemies.push_back(obj);
 			}

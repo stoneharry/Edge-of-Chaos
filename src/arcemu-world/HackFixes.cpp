@@ -1089,6 +1089,7 @@ void ApplyNormalFixes()
 		if(sp->NameHash == SPELL_HASH_FLAMETONGUE_ATTACK || sp->NameHash == SPELL_HASH_FROSTBRAND_ATTACK)
 		{
 			sp->Effect[0] = SPELL_EFFECT_DUMMY;
+			sp->AttributesEx3 |= SPELL_ATTR3_NO_DONE_BONUS;
 		}
 		// Flametongue Totem passive target fix
 		if( sp->NameHash == SPELL_HASH_FLAMETONGUE_TOTEM && sp->Attributes & SPELL_ATTR0_PASSIVE )
@@ -1113,6 +1114,11 @@ void ApplyNormalFixes()
 			sp->AuraInterruptFlags |= AURA_INTERRUPT_ON_UNUSED2;
 		}
 
+		if(sp->NameHash == SPELL_HASH_FLAMETONGUE_WEAPON__PASSIVE_ || sp->NameHash == SPELL_HASH_FLAMETONGUE_WEAPON || sp->NameHash == SPELL_HASH_FLAMETONGUE_WEAPON_PROC
+			|| sp->NameHash == SPELL_HASH_FROSTBRAND_WEAPON || sp->NameHash == SPELL_HASH_FROSTBRAND_ATTACK || sp->NameHash == SPELL_HASH_FROSTBRAND_PROC)
+		{
+			sp->AttributesEx3 |= SPELL_ATTR3_NO_DONE_BONUS;
+		}
 		//////////////////////////////////////////
 		// MAGE									//
 		//////////////////////////////////////////

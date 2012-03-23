@@ -377,7 +377,7 @@ void AIInterface::_UpdateTargets()
 
 	if(m_Unit->GetMapMgr() == NULL)
 		return;
-
+	SendThreatListUpdate();
 	AssistTargetSet::iterator i, i2;
 	TargetMap::iterator itr, it2;
 
@@ -445,6 +445,7 @@ void AIInterface::_UpdateTargets()
 			Unit* ai_t = m_Unit->GetMapMgr()->GetUnit(it2->first);
 			if(ai_t == NULL)
 			{
+				SendRemoveFromThreatListOpcode(it2->first);
 				m_aiTargets.erase(it2);
 			}
 			else
@@ -464,6 +465,7 @@ void AIInterface::_UpdateTargets()
 
 				if(ai_t->event_GetCurrentInstanceId() != m_Unit->event_GetCurrentInstanceId() || !ai_t->isAlive() || ((!instance && m_Unit->GetDistanceSq(ai_t) >= 6400.0f) || !(ai_t->m_phase & m_Unit->m_phase)))
 				{
+					SendRemoveFromThreatListOpcode(it2->first);
 					m_aiTargets.erase(it2);
 				}
 			}
@@ -2921,6 +2923,76 @@ uint32 AIInterface::getThreatByPtr(Unit* obj)
 	return 0;
 }
 
+void AIInterface::SendThreatListUpdate()
+{
+	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature())
+		return;
+	if(m_aiTargets.empty())
+		return;
+	uint32 count = m_aiTargets.size();
+	WorldPacket data(SMSG_THREAT_UPDATE, 8 + count * 8);
+	data.append(m_Unit->GetNewGUID());
+	data << uint32(count);
+	TargetMap::iterator it2 = m_aiTargets.begin();
+	TargetMap::iterator itr;
+	for(; it2 != m_aiTargets.end();)
+	{
+		itr = it2;
+		++it2;
+		Unit* targ = m_Unit->GetMapMgr()->GetUnit(itr->first);
+		if(!targ)
+			continue;
+		data << targ->GetNewGUID();
+		data << uint32(getThreatByPtr(targ) * 100);
+	}
+	m_Unit->SendMessageToSet(&data, false);
+}
+
+void AIInterface::SendChangeCurrentVictimOpcode(Unit * u)
+{
+	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature())
+		return;
+	if(m_aiTargets.empty())
+		return;
+	uint32 count = m_aiTargets.size();
+	WorldPacket data(SMSG_HIGHEST_THREAT_UPDATE, 8 + 8 + count * 8);
+	data.append(m_Unit->GetNewGUID());
+	data << u->GetNewGUID();
+	data << uint32(count);
+	TargetMap::iterator it2 = m_aiTargets.begin();
+	TargetMap::iterator itr;
+	for(; it2 != m_aiTargets.end();)
+	{
+		itr = it2;
+		++it2;
+		Unit* targ = m_Unit->GetMapMgr()->GetUnit(itr->first);
+		if(!targ)
+			continue;
+		data << targ->GetNewGUID();
+		data << uint32(getThreatByPtr(targ));
+	}
+	m_Unit->SendMessageToSet(&data, false);
+}
+
+void AIInterface::SendClearThreatListOpcode()
+{
+	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature())
+		return;
+	WorldPacket data(SMSG_THREAT_CLEAR, 8);
+	data.append(m_Unit->GetNewGUID());
+	m_Unit->SendMessageToSet(&data, false);
+}
+
+void AIInterface::SendRemoveFromThreatListOpcode(uint64 guid)
+{
+	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature())
+		return;
+	WorldPacket data(SMSG_THREAT_REMOVE, 8 + 8);
+	data.append(m_Unit->GetNewGUID());
+	data.appendPackGUID(guid);
+	m_Unit->SendMessageToSet(&data, false);
+}
+
 //should return a valid target
 Unit* AIInterface::GetMostHated()
 {
@@ -2955,7 +3027,7 @@ Unit* AIInterface::GetMostHated()
 		{
 			if(getNextTarget() == ai_t)
 				resetNextTarget();
-
+			SendRemoveFromThreatListOpcode(itr->first);
 			m_aiTargets.erase(itr);
 			continue;
 		}
@@ -2966,6 +3038,7 @@ Unit* AIInterface::GetMostHated()
 			currentTarget.first = ai_t;
 			currentTarget.second = itr->second + ai_t->GetThreatModifyer();
 			m_currentHighestThreat = currentTarget.second;
+			SendChangeCurrentVictimOpcode(ai_t);
 		}
 
 		/* there are no more checks needed here... the needed checks are done by CheckTarget() */
@@ -2999,6 +3072,7 @@ Unit* AIInterface::GetSecondHated()
 		Unit* ai_t = m_Unit->GetMapMgr()->GetUnit(itr->first);
 		if(!ai_t || ai_t->GetInstanceID() != m_Unit->GetInstanceID() || !ai_t->isAlive() || !isAttackable(m_Unit, ai_t))
 		{
+			SendRemoveFromThreatListOpcode(itr->first);
 			m_aiTargets.erase(itr);
 			continue;
 		}
@@ -3036,7 +3110,8 @@ bool AIInterface::modThreatByPtr(Unit* obj, int32 mod)
 {
 	if(!obj)
 		return false;
-
+	if(!obj->IsActive())
+		return false;
 	LockAITargets(true);
 
 	int32 tempthreat;
@@ -3116,6 +3191,7 @@ void AIInterface::RemoveThreatByPtr(Unit* obj)
 	TargetMap::iterator it = m_aiTargets.find(obj->GetGUID());
 	if(it != m_aiTargets.end())
 	{
+		SendRemoveFromThreatListOpcode(it->first);
 		m_aiTargets.erase(it);
 		//check if we are in combat and need a new target
 		if(obj == getNextTarget())
@@ -3141,16 +3217,20 @@ void AIInterface::WipeHateList()
 	for(TargetMap::iterator itr = m_aiTargets.begin(); itr != m_aiTargets.end(); ++itr)
 		itr->second = 0;
 	m_currentHighestThreat = 0;
+	SendClearThreatListOpcode();
 }
+
 void AIInterface::ClearHateList() //without leaving combat
 {
 	for(TargetMap::iterator itr = m_aiTargets.begin(); itr != m_aiTargets.end(); ++itr)
 		itr->second = 1;
 	m_currentHighestThreat = 1;
+	SendClearThreatListOpcode();
 }
 
 void AIInterface::WipeTargetList()
 {
+	SendClearThreatListOpcode();
 	resetNextTarget();
 
 	m_nextSpell = NULL;
@@ -3286,9 +3366,9 @@ void AIInterface::CheckTarget(Unit* target)
 	{
 		target->CombatStatus.RemoveAttacker(m_Unit, m_Unit->GetGUID());
 		m_Unit->CombatStatus.RemoveAttackTarget(target);
-
 		if(it2 != m_aiTargets.end())
 		{
+			SendRemoveFromThreatListOpcode(it2->first);
 			m_aiTargets.erase(it2);
 		}
 
@@ -3310,6 +3390,7 @@ void AIInterface::CheckTarget(Unit* target)
 		if(it2 != target->GetAIInterface()->m_aiTargets.end())
 		{
 			target->GetAIInterface()->LockAITargets(true);
+			target->GetAIInterface()->SendRemoveFromThreatListOpcode(it2->first);
 			target->GetAIInterface()->m_aiTargets.erase(it2);
 			target->GetAIInterface()->LockAITargets(false);
 		}
@@ -3420,7 +3501,7 @@ void AIInterface::EventChangeFaction(Unit* ForceAttackersToHateThisInstead)
 	{
 		for(set<Object*>::iterator itr = m_Unit->GetInRangeSetBegin(); itr != m_Unit->GetInRangeSetEnd(); ++itr)
 			if((*itr)->IsUnit() && TO< Unit* >(*itr)->GetAIInterface()
-			        && TO< Unit* >(*itr)->GetAIInterface()->getThreatByPtr(m_Unit))   //this guy will join me in fight since I'm telling him "sorry i was controlled"
+				&& TO< Unit* >(*itr)->GetAIInterface()->getThreatByPtr(m_Unit) && TO< Unit* >(*itr)->isAlive())   //this guy will join me in fight since I'm telling him "sorry i was controlled"
 			{
 				TO< Unit* >(*itr)->GetAIInterface()->modThreatByPtr(ForceAttackersToHateThisInstead, 10);   //just aping to be bale to hate him in case we got nothing else
 				TO< Unit* >(*itr)->GetAIInterface()->RemoveThreatByPtr(m_Unit);
@@ -3439,7 +3520,10 @@ void AIInterface::WipeCurrentTarget()
 		LockAITargets(true);
 		TargetMap::iterator itr = m_aiTargets.find(nextTarget->GetGUID());
 		if(itr != m_aiTargets.end())
+		{
+			SendRemoveFromThreatListOpcode(itr->first);
 			m_aiTargets.erase(itr);
+		}
 		LockAITargets(false);
 
 		if(nextTarget->GetGUID() == getUnitToFollowGUID())
@@ -3470,6 +3554,7 @@ void AIInterface::setNextTarget(uint64 nextTarget)
 {
 	m_nextTarget = nextTarget;
 	m_Unit->SetTargetGUID(m_nextTarget);
+	SendChangeCurrentVictimOpcode(m_Unit->GetMapMgrUnit(nextTarget));
 }
 
 void AIInterface::resetNextTarget()

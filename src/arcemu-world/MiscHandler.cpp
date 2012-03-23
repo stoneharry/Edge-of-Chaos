@@ -841,7 +841,7 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket & recv_data)
 
 		//make player sit
 		pPlayer->SetStandState(STANDSTATE_SIT);
-		SetLogoutTimer(20000);
+		SetLogoutTimer(10000);
 	}
 	/*
 	> 0 = You can't Logout Now

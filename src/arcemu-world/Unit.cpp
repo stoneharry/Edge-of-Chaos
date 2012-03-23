@@ -7723,7 +7723,12 @@ bool Unit::IsCriticalDamageForSpell(Object* victim, SpellEntry* spell)
 		CritChance = 95;
 
 	result = Rand(CritChance);
-
+	if(spell->NameHash == SPELL_HASH_EXORCISM && victim->IsCreature())
+	{
+		uint32 type = TO_CREATURE(victim)->GetCreatureInfo()->Type;
+		if(type == UNIT_TYPE_UNDEAD || type == UNIT_TYPE_DEMON)
+			result = true;
+	}
 	// HACK!!!
 	Aura* fs = NULL;
 	if(victim->IsUnit() && spell->NameHash == SPELL_HASH_LAVA_BURST && (fs = TO_UNIT(victim)->FindAuraByNameHash(SPELL_HASH_FLAME_SHOCK)) != NULL)

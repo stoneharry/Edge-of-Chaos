@@ -2043,10 +2043,25 @@ void Object::RemoveByteFlag(uint16 index, uint8 offset, uint8 oldFlag)
 	}
 }
 
+const uint32 & Object::GetZoneId() const
+{
+	AreaTable* at = NULL;
+	if(GetMapMgr())
+		at = GetMapMgr()->GetArea(GetPositionX(), GetPositionY(), GetPositionZ());
+	if(at != NULL)
+		return at->ZoneId;
+	return m_zoneId;
+}
+
 void Object::SetZoneId(uint32 newZone)
 {
-	m_zoneId = newZone;
-
+	AreaTable* at = NULL;
+	if(GetMapMgr())
+		at = GetMapMgr()->GetArea(GetPositionX(), GetPositionY(), GetPositionZ());
+	if(at == NULL)
+		m_zoneId = newZone;
+	else
+		m_zoneId = at->ZoneId;
 	if(IsPlayer())
 	{
 		TO_PLAYER(this)->m_cache->SetUInt32Value(CACHE_PLAYER_ZONEID, newZone);
