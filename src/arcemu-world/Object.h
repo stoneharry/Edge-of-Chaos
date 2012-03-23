@@ -334,7 +334,7 @@ class SERVER_DECL Object : public EventableObject
 		void SetZoneId(uint32 newZone);
 
 		const uint32 GetMapId() const { return m_mapId; }
-		const uint32 & GetZoneId() const;
+		const uint32 & GetZoneId() const { return m_zoneId; }
 
 		//! Get uint32 property
 		const uint32 & GetUInt32Value(uint32 index) const

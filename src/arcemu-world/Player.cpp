@@ -1386,14 +1386,33 @@ void Player::_EventExploration()
 
 	uint32 val = (uint32)(1 << (at->explorationFlag % 32));
 	uint32 currFields = GetUInt32Value(offset);
+	if(AreaId== m_zoneId || AreaId == m_AreaID)
+		return;
 
-	SetAreaID(AreaId);
-	UpdatePvPArea();
-	AddGroupUpdateFlag(GROUP_UPDATE_FULL);
-	if(GetGroup())
-		GetGroup()->UpdateOutOfRangePlayer(this, true, NULL);
-	ZoneUpdate(AreaId);
-	//ZoneUpdate(at->ZoneId);
+	if(AreaId != m_AreaID)
+	{
+		m_AreaID = AreaId;
+		UpdatePvPArea();
+		AddGroupUpdateFlag(GROUP_UPDATE_FULL);
+		if(GetGroup())
+			GetGroup()->UpdateOutOfRangePlayer(this, true, NULL);
+	}
+
+	// Zone update, this really should update to a parent zone if one exists.
+	//  Will show correct location on your character screen, as well zoneid in DB will have correct value
+	//  for any web sites that access that data.
+	if(at->ZoneId == 0 && m_zoneId != AreaId)
+	{
+		ZoneUpdate(AreaId);
+	}
+	else if(at->ZoneId != 0 && m_zoneId != at->ZoneId)
+	{
+		ZoneUpdate(at->ZoneId);
+	}
+
+
+	if(at->ZoneId != 0 && m_zoneId != at->ZoneId)
+		ZoneUpdate(at->ZoneId);
 
 	bool rest_on = false;
 	// Check for a restable area
@@ -4532,7 +4551,6 @@ void Player::KillPlayer()
 {
 	if(getDeathState() != ALIVE) //You can't kill what has no life.   - amg south park references ftw :P
 		return;
-	SetHealth(0);
 	setDeathState(JUST_DIED);
 
 	// Battleground stuff
@@ -7616,7 +7634,7 @@ bool Player::IsInCity()
 void Player::ZoneUpdate(uint32 ZoneId)
 {
 	uint32 oldzone = m_zoneId;
-	/*if(m_zoneId != ZoneId)
+	if(m_zoneId != ZoneId)
 	{
 		SetZoneId(ZoneId);
 		RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_LEAVE_AREA);
@@ -7632,7 +7650,8 @@ void Player::ZoneUpdate(uint32 ZoneId)
 			return;
 		}
 	}
-
+	if(ZoneId == m_zoneId || ZoneId == m_AreaID)
+		return;
 	m_playerInfo->lastZone = ZoneId;
 	sHookInterface.OnZone(this, ZoneId, oldzone);
 	CALL_INSTANCE_SCRIPT_EVENT(m_mapMgr, OnZoneChange)(this, ZoneId, oldzone);
@@ -7719,9 +7738,7 @@ void Player::ZoneUpdate(uint32 ZoneId)
 
 	LOG_DETAIL("ZONE_UPDATE: Player %s entered zone %s", GetName(), sAreaStore.LookupString((int)p->name));*/
 	//UpdatePvPArea();
-	AddGroupUpdateFlag(GROUP_UPDATE_FULL);
-	if(GetGroup())
-		GetGroup()->UpdateOutOfRangePlayer(this, true, NULL);
+
 }
 void Player::UpdateChannels(uint16 AreaID)
 {
@@ -8322,13 +8339,14 @@ bool Player::SafeTeleport(uint32 MapID, uint32 InstanceID, const LocationVector 
 
 void Player::ForceZoneUpdate()
 {
-	if(!GetMapMgr()) 
-		return;
+	if(!GetMapMgr()) return;
 
-	uint16 areaId = GetAreaID();
+	uint16 areaId = GetMapMgr()->GetAreaID(GetPositionX(), GetPositionY());
 	AreaTable* at = dbcArea.LookupEntryForced(areaId);
 	if(!at) return;
-	ZoneUpdate(at->ZoneId);
+
+	if(at->ZoneId && at->ZoneId != m_zoneId)
+		ZoneUpdate(at->ZoneId);
 
 	SendInitialWorldstates();
 }
@@ -8397,7 +8415,7 @@ void Player::SetGuildRank(uint32 guildRank)
 
 void Player::UpdatePvPArea()
 {
-	AreaTable* at = dbcArea.LookupEntryForced(GetAreaID());
+	AreaTable* at = dbcArea.LookupEntryForced(m_AreaID);
 	if(at == NULL)
 		return;
 
@@ -8419,7 +8437,8 @@ void Player::UpdatePvPArea()
 		RemoveFFAPvPFlag();
 		return;
 	}
-
+	if(GetAreaID() == this->m_AreaID)
+		return;
 	// This is where all the magic happens :P
 	if((at->category == AREAC_ALLIANCE_TERRITORY && IsTeamAlliance()) || (at->category == AREAC_HORDE_TERRITORY && IsTeamHorde()))
 	{
@@ -8549,7 +8568,7 @@ void Player::LoginPvPSetup()
 	// Make sure we know our area ID.
 	_EventExploration();
 
-	AreaTable* at = dbcArea.LookupEntryForced(GetAreaID());
+	AreaTable* at = dbcArea.LookupEntryForced((m_AreaID != 0) ? m_AreaID : m_zoneId);
 
 	if(at != NULL && isAlive() && (at->category == AREAC_CONTESTED || (IsTeamAlliance() && at->category == AREAC_HORDE_TERRITORY) || (IsTeamHorde() && at->category == AREAC_ALLIANCE_TERRITORY)))
 		CastSpell(this, PLAYER_HONORLESS_TARGET_SPELL, true);
@@ -8583,7 +8602,7 @@ void Player::PvPToggle()
 		{
 			if(IsPvPFlagged())
 			{
-				AreaTable* at = dbcArea.LookupEntryForced(GetAreaID());
+				AreaTable* at = dbcArea.LookupEntryForced(m_AreaID);
 				if(at && (at->AreaFlags & AREA_CITY_AREA || at->AreaFlags & AREA_CITY))
 				{
 					if((at->category == AREAC_ALLIANCE_TERRITORY && IsTeamHorde()) || (at->category == AREAC_HORDE_TERRITORY && IsTeamAlliance()))
@@ -8624,7 +8643,7 @@ void Player::PvPToggle()
 #else
 	else if(sWorld.GetRealmType() == REALM_PVP)
 	{
-		AreaTable* at = dbcArea.LookupEntryForced(GetAreaID());
+		AreaTable* at = dbcArea.LookupEntryForced(m_AreaID);
 		if(at == NULL)
 			return;
 
@@ -14147,21 +14166,4 @@ void Player::SendUpdateToOutOfRangeGroupMembers()
 	ResetAuraUpdateMaskForRaid();
     if (Pet* pet = GetSummon())
         pet->ResetAuraUpdateMaskForRaid();
-}
-
-void Player::SetAreaID(uint32 area)
-{
-	AreaTable* at = GetMapMgr()->GetArea(GetPositionX(), GetPositionY(), GetPositionZ());
-	if(at == NULL)
-		m_AreaID = area;
-	else
-		m_AreaID = at->AreaId;
-}
-
-uint32 Player::GetAreaID()
-{
-	AreaTable* at = GetMapMgr()->GetArea(GetPositionX(), GetPositionY(), GetPositionZ());
-	if(at != NULL)
-		return at->AreaId;
-	return m_AreaID;
 }

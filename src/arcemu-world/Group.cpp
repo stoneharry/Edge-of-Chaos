@@ -283,7 +283,7 @@ void Group::Update()
 
 							data << (plr ? plr->GetName() : (*itr2)->name);
 							if(plr)
-								data << plr->GetHighGUID();
+								data << plr->GetGUID();
 							else
 								data << (*itr2)->guid << uint32(0);	// highguid
 
