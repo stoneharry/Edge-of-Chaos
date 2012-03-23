@@ -120,7 +120,7 @@ bool Reincarnation( uint32 i, Aura *a, bool apply ){
 
 bool WeaponEffects( uint32 i, Spell *s )
 {
-	s->m_caster->SpellNonMeleeDamageLog(s->GetUnitTarget(), s->GetProto()->Id, 5, !s->m_triggeredSpell, false);
+	s->m_caster->SpellNonMeleeDamageLog(s->GetUnitTarget(), s->GetProto()->Id, 30, !s->m_triggeredSpell, false);
 	return true;
 }
 

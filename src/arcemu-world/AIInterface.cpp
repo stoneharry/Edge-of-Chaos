@@ -2895,7 +2895,6 @@ void AIInterface::addSpellToList(AI_Spell* sp)
 
 uint32 AIInterface::getThreatByGUID(uint64 guid)
 {
-
 	if(m_Unit->GetMapMgr() == NULL)
 		return 0;
 
@@ -2933,22 +2932,16 @@ void AIInterface::SendThreatListUpdate()
 	WorldPacket data(SMSG_THREAT_UPDATE, 8 + count * 8);
 	data.append(m_Unit->GetNewGUID());
 	data << uint32(count);
-	TargetMap::iterator it2 = m_aiTargets.begin();
-	TargetMap::iterator itr;
-	for(; it2 != m_aiTargets.end();)
+	for(TargetMap::iterator itr = m_aiTargets.begin(); itr != m_aiTargets.end();)
 	{
-		itr = it2;
-		++it2;
-		Unit* targ = m_Unit->GetMapMgr()->GetUnit(itr->first);
-		if(!targ)
-			continue;
-		data << targ->GetNewGUID();
-		data << uint32(getThreatByPtr(targ) * 100);
+		++itr;
+		data << uint32(itr->first);
+		data << uint32(getThreatByGUID(itr->first) * 100);
 	}
 	m_Unit->SendMessageToSet(&data, false);
 }
 
-void AIInterface::SendChangeCurrentVictimOpcode(Unit * u)
+void AIInterface::SendChangeCurrentVictimOpcode(uint64 guid)
 {
 	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature())
 		return;
@@ -2956,20 +2949,14 @@ void AIInterface::SendChangeCurrentVictimOpcode(Unit * u)
 		return;
 	uint32 count = m_aiTargets.size();
 	WorldPacket data(SMSG_HIGHEST_THREAT_UPDATE, 8 + 8 + count * 8);
-	data.append(m_Unit->GetNewGUID());
-	data << u->GetNewGUID();
+	data.appendPackGUID(m_Unit->GetGUID());
+	data.appendPackGUID(guid);
 	data << uint32(count);
-	TargetMap::iterator it2 = m_aiTargets.begin();
-	TargetMap::iterator itr;
-	for(; it2 != m_aiTargets.end();)
+	for(TargetMap::iterator itr = m_aiTargets.begin(); itr != m_aiTargets.end();)
 	{
-		itr = it2;
-		++it2;
-		Unit* targ = m_Unit->GetMapMgr()->GetUnit(itr->first);
-		if(!targ)
-			continue;
-		data << targ->GetNewGUID();
-		data << uint32(getThreatByPtr(targ));
+		++itr;
+		data << uint32(itr->first);
+		data << uint32(getThreatByGUID(itr->first));
 	}
 	m_Unit->SendMessageToSet(&data, false);
 }
@@ -2988,7 +2975,7 @@ void AIInterface::SendRemoveFromThreatListOpcode(uint64 guid)
 	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature())
 		return;
 	WorldPacket data(SMSG_THREAT_REMOVE, 8 + 8);
-	data.append(m_Unit->GetNewGUID());
+	data.appendPackGUID(m_Unit->GetGUID());
 	data.appendPackGUID(guid);
 	m_Unit->SendMessageToSet(&data, false);
 }
@@ -3230,7 +3217,6 @@ void AIInterface::ClearHateList() //without leaving combat
 
 void AIInterface::WipeTargetList()
 {
-	SendClearThreatListOpcode();
 	resetNextTarget();
 
 	m_nextSpell = NULL;
@@ -3239,6 +3225,7 @@ void AIInterface::WipeTargetList()
 	m_aiTargets.clear();
 	LockAITargets(false);
 	m_Unit->CombatStatus.Vanished();
+	SendClearThreatListOpcode();
 }
 
 bool AIInterface::taunt(Unit* caster, bool apply)
@@ -3554,7 +3541,7 @@ void AIInterface::setNextTarget(uint64 nextTarget)
 {
 	m_nextTarget = nextTarget;
 	m_Unit->SetTargetGUID(m_nextTarget);
-	SendChangeCurrentVictimOpcode(m_Unit->GetMapMgrUnit(nextTarget));
+	SendChangeCurrentVictimOpcode(nextTarget);
 }
 
 void AIInterface::resetNextTarget()
