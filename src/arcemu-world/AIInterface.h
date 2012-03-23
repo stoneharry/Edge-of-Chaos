@@ -338,7 +338,7 @@ class SERVER_DECL AIInterface
 		uint32	getThreatByGUID(uint64 guid);
 		uint32	getThreatByPtr(Unit* obj);
 		void SendThreatListUpdate();
-		void SendChangeCurrentVictimOpcode(Unit * u);
+		void SendChangeCurrentVictimOpcode(uint64 guid);
 		void SendClearThreatListOpcode();
 		void SendRemoveFromThreatListOpcode(uint64 guid);
 		Unit*	GetMostHated();

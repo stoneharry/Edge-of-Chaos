@@ -3097,8 +3097,6 @@ bool AIInterface::modThreatByPtr(Unit* obj, int32 mod)
 {
 	if(!obj)
 		return false;
-	if(!obj->IsActive())
-		return false;
 	LockAITargets(true);
 
 	int32 tempthreat;
@@ -3488,7 +3486,7 @@ void AIInterface::EventChangeFaction(Unit* ForceAttackersToHateThisInstead)
 	{
 		for(set<Object*>::iterator itr = m_Unit->GetInRangeSetBegin(); itr != m_Unit->GetInRangeSetEnd(); ++itr)
 			if((*itr)->IsUnit() && TO< Unit* >(*itr)->GetAIInterface()
-				&& TO< Unit* >(*itr)->GetAIInterface()->getThreatByPtr(m_Unit) && TO< Unit* >(*itr)->isAlive())   //this guy will join me in fight since I'm telling him "sorry i was controlled"
+				&& TO< Unit* >(*itr)->GetAIInterface()->getThreatByPtr(m_Unit))   //this guy will join me in fight since I'm telling him "sorry i was controlled"
 			{
 				TO< Unit* >(*itr)->GetAIInterface()->modThreatByPtr(ForceAttackersToHateThisInstead, 10);   //just aping to be bale to hate him in case we got nothing else
 				TO< Unit* >(*itr)->GetAIInterface()->RemoveThreatByPtr(m_Unit);
