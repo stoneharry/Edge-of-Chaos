@@ -270,6 +270,7 @@ void CommandTableStorage::Init()
 		{ "bytes0",          'm', NULL,                                   "WARNING! Modifies the bytes0 entry of selected target.",          NULL, UNIT_FIELD_BYTES_0,                0,                    1 },
 		{ "bytes1",          'm', NULL,                                   "WARNING! Modifies the bytes1 entry of selected target.",          NULL, UNIT_FIELD_BYTES_1,                0,                    1 },
 		{ "bytes2",          'm', NULL,                                   "WARNING! Modifies the bytes2 entry of selected target.",          NULL, UNIT_FIELD_BYTES_2,                0,                    1 },
+		{ "language",        'm', &ChatHandler::HandleModifyLanguageCommand, "Modifies the language of le target.",             NULL, 0,                                 0,                    0 },
 		{ NULL,              '0', NULL,                                   "",                                                                NULL, 0,                                 0,                    0 }
 	};
 	dupe_command_table(modifyCommandTable, _modifyCommandTable);
@@ -776,6 +777,7 @@ void CommandTableStorage::Init()
 		{ "gmannounce",      'u', &ChatHandler::HandleGMAnnounceCommand,                    "Sends Msg to all online GMs",                                                                                                             NULL,                     0, 0, 0 },
 		{ "clearcooldowns",  'm', &ChatHandler::HandleClearCooldownsCommand,                "Clears all cooldowns for your class.",                                                                                                    NULL,                     0, 0, 0 },
 		{ "removeauras",     'm', &ChatHandler::HandleRemoveAurasCommand,                   "Removes a single or all auras from target",                                                                                                           NULL,                     0, 0, 0 },
+		{ "addura",			 'm', &ChatHandler::HandleAddAuraCommand,							"Adds aura on target.",                                                                                                           NULL,                     0, 0, 0 },
 		{ "cast",			 'm', &ChatHandler::HandleCastCommand,							"Casts specified spell onto target. <spell id> <triggered>.",                                                                                                           NULL,                     0, 0, 0 },
 		{ "castback",		 'm', &ChatHandler::HandleCastBackCommand,						"Forces target to cast spell back at you. <Spell id> <triggered>",                                                                                                           NULL,                     0, 0, 0 },
 		{ "castaoe",		 'm', &ChatHandler::HandleCastAOECommand,						"Casts an aoe spell at the inputed cords. <spell id> <x y z> <triggered>.",                                                                                                           NULL,                     0, 0, 0 },

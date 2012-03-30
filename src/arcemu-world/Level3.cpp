@@ -1288,6 +1288,28 @@ bool ChatHandler::HandleRemoveAurasCommand(const char *args, WorldSession *m_ses
 	return true;
 }
 
+bool ChatHandler::HandleAddAuraCommand(const char *args, WorldSession *m_session)
+{
+	Unit *u = getSelectedUnit(m_session, false);
+	if(!u) 
+		u = m_session->GetPlayer();
+	uint32 spell = 0;
+	uint32 triggered = 0;
+	if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
+		if( sscanf(args, "%u", &spell) != 1 )	
+		return false;
+	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
+	if(!sp)
+	{
+		SystemMessage(m_session, "Invalid spell %u", spell);
+		return true;
+	}
+	u->AddAura(m_session->GetPlayer(), spell, triggered);
+	//m_session->GetPlayer()->CastSpell(u,sp, triggered >= 1 ? true : false);
+	BlueSystemMessage(m_session, "Casted spell %u on %s.", spell, GetSelectedUnitName(u));
+	return true;
+}
+
 bool ChatHandler::HandleCastCommand(const char *args, WorldSession *m_session)
 {
 	Unit *u = getSelectedUnit(m_session, false);
@@ -4320,35 +4342,31 @@ bool ChatHandler::HandleSetTitle(const char* args, WorldSession* m_session)
 bool ChatHandler::HandleNPCLootCommand(const char* args, WorldSession* m_session)
 {
 	Creature* pCreature = getSelectedCreature(m_session, true);
+	uint32 entry = 0;
 	if(pCreature == NULL)
 	{
-		return false;
+		if(sscanf(args, "%u", &entry) != 1)
+			return false;
 	}
+	else
+		entry = pCreature->GetEntry();
 
-	QueryResult* _result = WorldDatabase.Query("SELECT itemid, normal10percentchance, heroic10percentchance, normal25percentchance, heroic25percentchance, mincount, maxcount FROM loot_creatures WHERE entryid=%u;", pCreature->GetEntry());
+	QueryResult* _result = WorldDatabase.Query("SELECT itemid, normal10percentchance, heroic10percentchance, normal25percentchance, heroic25percentchance, mincount, maxcount FROM loot_creatures WHERE entryid=%u;", entry);
 	if(_result != NULL)
 	{
 		Field* _field;
 		std::stringstream ss;
 		ItemPrototype* proto;
 		string color;
-		int32 minQuality = 0;
 		uint8 numFound = 0;
-
-		if(*args)
-		{
-			minQuality = atol(args);
-		}
 
 		do
 		{
 			_field = _result->Fetch();
 			ss.str("");
 			proto = ItemPrototypeStorage.LookupEntry(_field[0].GetUInt32());
-			if(proto == NULL || (int32)proto->Quality < minQuality)
-			{
+			if(proto == NULL)
 				continue;
-			}
 			++numFound;
 			ss << "(N10 " << _field[1].GetFloat() << "%%) (N25 " << _field[3].GetFloat() << "%%) (H10 " << _field[2].GetFloat() << "%%) (H25 " << _field[4].GetFloat() << "%%): ";
 

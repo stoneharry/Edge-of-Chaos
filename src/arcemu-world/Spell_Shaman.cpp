@@ -19,7 +19,46 @@
  */
 
 #include "StdAfx.h"
+class FireNova : public Spell
+{
+	SPELL_FACTORY_FUNCTION(FireNova);
+		uint8 CanCast(bool tolerate)
+		{
+			if(p_caster && !p_caster->GetSession()->HasPermissions())
+			{
+				SendCustomError(SPELL_CUSTOM_ERROR_GM_ONLY);
+				return SPELL_FAILED_CUSTOM_ERROR;
+			}
+			uint8 result = Spell::CanCast(tolerate);
+
+			if(result == SPELL_CANCAST_OK)
+			{
+				if(u_caster)
+				{
+					Unit * totem = u_caster->summonhandler.GetSummonWithEntry(3902);
+					if(totem == NULL)
+					{
+						SendCustomError(SPELL_CUSTOM_ERROR_MUST_HAVE_FIRE_TOTEM);
+						result = SPELL_FAILED_CUSTOM_ERROR;
+					}
+				}
+			}
+			return result;
+		}
+		void SpellEffectDummy(uint32 i)
+		{
+			Unit * totem = u_caster->summonhandler.GetSummonWithEntry(3902);
+			if(totem == NULL)
+			{
+				SendCustomError(SPELL_CUSTOM_ERROR_MUST_HAVE_FIRE_TOTEM);
+				return;
+			}
+			totem->CastSpellAoF(totem->GetPositionX(), totem->GetPositionY(), totem->GetPositionZ(), dbcSpell.LookupEntryForced(8349), true);
+			//totem->CastSpell(totem, 8349, true);
+		}
+};
 
 void SpellFactoryMgr::SetupShaman()
 {
+	AddSpellById(1535, FireNova::Create);
 }

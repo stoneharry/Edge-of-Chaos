@@ -3250,7 +3250,7 @@ void Unit::Strike(Unit* pVictim, uint32 weapon_damage_type, SpellEntry* ability,
 				else
 				{
 					if(weapon_damage_type == MELEE && ability)
-						dmg.full_damage = CalculateDamage(this, pVictim, MELEE, ability->SpellGroupType, ability);
+						dmg.full_damage = CalculateDamage(this, pVictim, MELEE, flag96(ability->SpellGroupType[0],ability->SpellGroupType[1], ability->SpellGroupType[2]), ability);
 					else
 						dmg.full_damage = CalculateDamage(this, pVictim, weapon_damage_type, 0, ability);
 				}
@@ -4341,13 +4341,15 @@ void Unit::AddAura(Aura* aur)
 	SetFlag(UNIT_FIELD_AURASTATE, flag);
 }
 
-void Unit::AddAura(Object * caster, uint32 aur)
+void Unit::AddAura(Object * caster, uint32 aur, uint32 dur)
 {
 	SpellEntry * sp = dbcSpell.LookupEntry(aur);
 	if(sp == NULL)
 		return;
 	Aura * a = sSpellFactoryMgr.NewAura(sp, GetDuration(dbcSpellDuration.LookupEntry(sp->DurationIndex)), caster, this);
 	AddAura(a);
+	if(dur != 0 && a != NULL)
+		a->SetDuration(dur);
 }
 
 bool Unit::RemoveAura(Aura* aur)
@@ -4796,6 +4798,32 @@ void Unit::castSpell(Spell* pSpell)
 	pLastSpell = pSpell->GetProto();
 }
 
+int32 Unit::GetSpellDmgAPBonus(SpellEntry*spellInfo, bool isdot)
+{
+	float plus_damage = 0.0f;
+	if( spellInfo->ap_coef >= 0.0f && !isdot )
+	{
+		if(getClass() == HUNTER && GetRangedAttackPower() > GetAttackPower())
+			plus_damage += float2int32(spellInfo->ap_coef * GetRangedAttackPower());
+		else
+			plus_damage += float2int32(/*plus_damage + (*/spellInfo->ap_coef * GetAttackPower());
+	}
+	if( spellInfo->ap_dot_coef >= 0.0f && isdot )
+	{
+		if(getClass() == HUNTER && GetRangedAttackPower() > GetAttackPower())
+			plus_damage += float2int32(spellInfo->ap_dot_coef * GetRangedAttackPower());
+		else
+		plus_damage += float2int32(/*plus_damage + (*/spellInfo->ap_dot_coef * GetAttackPower());
+		if( Player * p = GetSpellModOwner() )
+		{
+			int durmod = 0;
+			p->ApplySpellMod(spellInfo->Id, SPELLMOD_DURATION, durmod);
+			plus_damage += plus_damage * durmod / 15000;
+		}
+	}
+	return plus_damage;
+}
+
 int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dmg, bool isdot)
 {
 	float plus_damage = 0.0f;
@@ -4823,41 +4851,24 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 	if( plus_damage > 0.0f )
 	{
 		bool a = true;
-		if( spellInfo->ap_coef >= 0.0f && !isdot )
-		{
-			plus_damage += float2int32(/*plus_damage + (*/spellInfo->ap_coef * caster->GetAttackPower());
-			a = false;
-		}
-		if( spellInfo->ap_dot_coef >= 0.0f && isdot )
-		{
-			plus_damage += float2int32(/*plus_damage + (*/spellInfo->ap_dot_coef * caster->GetAttackPower());
-			if( caster->IsPlayer() )
-			{
-				int durmod = 0;
-				if(Player * p = GetSpellModOwner())
-					p->ApplySpellMod(spellInfo->Id, SPELLMOD_DURATION, durmod);
-				plus_damage += plus_damage * durmod / 15000;
-			}
-			a = false;
-		}
-		if( spellInfo->Dspell_coef_override >= 0.0f && !isdot )
+		if( spellInfo->Dspell_coef_override >= 0.0f && !isdot && caster->ClassUsesSpellPower())
 		{
 			plus_damage += float2int32(/*plus_damage + (*/plus_damage * spellInfo->Dspell_coef_override);
 			a = false;
 		}
-		if( spellInfo->OTspell_coef_override >= 0.0f && isdot )
+		if( spellInfo->OTspell_coef_override >= 0.0f && isdot && caster->ClassUsesSpellPower())
 		{
 			plus_damage += float2int32(/*plus_damage + (*/plus_damage * spellInfo->OTspell_coef_override);
 			if( caster->IsPlayer() && a)
 			{
 				int durmod = 0;
-				if(Player * p = GetSpellModOwner())
+				if(Player * p = caster->GetSpellModOwner())
 					p->ApplySpellMod(spellInfo->Id, SPELLMOD_DURATION, durmod);
 				plus_damage += plus_damage * durmod / 15000;
 			}
 			a = false;
 		}
-		if(a)
+		if(a && caster->ClassUsesSpellPower())
 		{
 			//Bonus to DD part
 			if( spellInfo->fixed_dddhcoef >= 0.0f && !isdot )
@@ -4899,7 +4910,7 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 	{
 		int32 bonus_damage = 0;
 		int32 dmg_bonus_pct = 0;
-		if(Player * p = GetSpellModOwner())
+		if(Player * p = caster->GetSpellModOwner())
 		{
 			p->ApplySpellMod(spellInfo->Id, SPELLMOD_BONUS_MULTIPLIER, dmg_bonus_pct);
 			p->ApplySpellMod(spellInfo->Id, SPELLMOD_DAMAGE, bonus_damage);
@@ -4911,11 +4922,11 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 	return static_cast< int32 >( plus_damage );
 }
 
-int32 Unit::GetSpellDamage(SpellEntry* spellInfo, uint32 i, int32 base_dmg)
+int32 Unit::GetSpellDamage(Spell* s, Unit * target, uint32 i, int32 base_dmg)
 {
-	if(spellInfo == NULL)
-		return 0;
-
+	if(s == NULL || s->GetProto() == NULL)
+		return base_dmg;
+	SpellEntry * spellInfo = s->GetProto();
 	float basePointsPerLevel = spellInfo->EffectRealPointsPerLevel[i];
 	int32 basePoints = base_dmg ? base_dmg : spellInfo->EffectBasePoints[i];
 	int32 randomPoints = int32(spellInfo->EffectDieSides[i]);
@@ -4928,7 +4939,6 @@ int32 Unit::GetSpellDamage(SpellEntry* spellInfo, uint32 i, int32 base_dmg)
         level = int32(spellInfo->baseLevel);
     level -= int32(spellInfo->spellLevel);
     basePoints += int32(level * basePointsPerLevel);
-
     // roll in a range <1;EffectDieSides> as of patch 3.3.3
     switch (randomPoints)
     {
@@ -4936,23 +4946,29 @@ int32 Unit::GetSpellDamage(SpellEntry* spellInfo, uint32 i, int32 base_dmg)
         case 1: basePoints += 1; break;                     // range 1..1
         default:
             int32 randvalue = (randomPoints >= 1)
-                ? rand() % randomPoints
+                ? basePoints + rand() % randomPoints
                 : 0;
 
             basePoints += randvalue;
             break;
     }
 
-    float value = float(basePoints);
+   float value = float(basePoints);
 
     // random damage
     // bonus amount from combo points
 	if (IsPlayer())
+	{
         if (uint8 comboPoints = TO_PLAYER(this)->m_comboPoints)
+		{
 			if (float comboDamage = spellInfo->EffectPointsPerComboPoint[i])
+			{
                 value += comboDamage* comboPoints;
-
-    value = ApplyEffectModifiers(spellInfo, i, value);
+				s->m_requiresCP = true;
+				TO_PLAYER(this)->m_spellcomboPoints = 0;
+			}
+		}
+	}
 
     // amount multiplication based on caster's level
     if (!basePointsPerLevel && (spellInfo->Attributes & SPELL_ATTR0_LEVEL_DAMAGE_CALCULATION && spellInfo->spellLevel) &&
@@ -4965,6 +4981,8 @@ int32 Unit::GetSpellDamage(SpellEntry* spellInfo, uint32 i, int32 base_dmg)
                 //there are many more: slow speed, -healing pct
             value *= 0.25f * exp(getLevel() * (70 - spellInfo->spellLevel) / 1000.0f);
             //value = int32(value * (int32)getLevel() / (int32)(_spellInfo->spellLevel ? _spellInfo->spellLevel : 1));
+    value = ApplyEffectModifiers(spellInfo, i, value);
+	value = s->DoCalculateEffect(i, target, value);
 
     return int32(value);
 }
@@ -6170,6 +6188,8 @@ void Unit::EnableFlight()
 		TO< Player* >(this)->delayedPackets.add(data);
 		TO< Player* >(this)->m_setflycheat = true;
 	}
+	AddUnitMovementFlag(MOVEFLAG_CAN_FLY);
+	SendMovementFlagUpdate();
 }
 
 void Unit::DisableFlight()
@@ -6193,6 +6213,8 @@ void Unit::DisableFlight()
 		TO< Player* >(this)->delayedPackets.add(data);
 		TO< Player* >(this)->m_setflycheat = false;
 	}
+	RemoveUnitMovementFlag(MOVEFLAG_MASK_FLYING);
+	SendMovementFlagUpdate();
 }
 
 bool Unit::IsDazed()

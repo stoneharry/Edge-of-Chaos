@@ -749,12 +749,12 @@ Aura::Aura(SpellEntry* proto, int32 duration, Object* caster, Unit* target, bool
 	m_modcount = 0;
 	m_dynamicValue = 0;
 	m_areaAura = false;
-	if(m_spellProto->Attributes & SPELL_ATTR0_NEGATIVE_1)
-		SetNegative(100);
 	if(m_spellProto->c_is_flags & SPELL_FLAG_IS_FORCEDDEBUFF)
 		SetNegative(100);
 	if(m_spellProto->c_is_flags & SPELL_FLAG_IS_FORCEDBUFF)
 		SetPositive(100);
+	if(m_spellProto->Attributes & SPELL_ATTR0_NEGATIVE_1)
+		SetNegative(100);
 
 	if(caster->IsUnit())
 	{
@@ -1821,6 +1821,7 @@ void Aura::EventPeriodicDamage(uint32 amount)
 			if(GetDuration() && GetSpellProto()->NameHash != SPELL_HASH_IGNITE)    //static damage for Ignite. Need to be reworked when "static DoTs" will be implemented
 			{
 				bonus += c->GetSpellDmgBonus(m_target, m_spellProto, amount, true) * amp / GetDuration();
+				bonus += c->GetSpellDmgAPBonus(m_spellProto, true) * amp / GetDuration();
 				res += static_cast< float >( bonus );
 				// damage taken is reduced after bonus damage is calculated and added
 				res += c->CalcSpellDamageReduction(m_target, m_spellProto, res);
@@ -2420,6 +2421,9 @@ void Aura::SpellAuraModTaunt(bool apply)
 
 void Aura::SpellAuraModStun(bool apply)
 {
+	if(apply && !isFriendly(GetCaster(), GetTarget()))
+		SetNegative(100);
+
 	if(apply)
 	{
 		// Check Mechanic Immunity
@@ -2437,7 +2441,7 @@ void Aura::SpellAuraModStun(bool apply)
 				return;
 			}
 		}
-		SetNegative();
+		SetNegative(100);
 
 		m_target->m_rooted++;
 
@@ -5152,6 +5156,7 @@ void Aura::SpellAuraMounted(bool apply)
 		CreatureProto *cp = CreatureProtoStorage.LookupEntry( mod->m_miscValue );
 		if( cp == NULL )
 			return;
+		m_target->SetMount(displayId);
 		if(p_target)
 		{
 			p_target->m_MountSpellId = m_spellProto->Id;
@@ -5159,7 +5164,6 @@ void Aura::SpellAuraMounted(bool apply)
 			if(p_target->GetShapeShift() && !(p_target->GetShapeShift() & (FORM_BATTLESTANCE | FORM_DEFENSIVESTANCE | FORM_BERSERKERSTANCE)) && p_target->m_ShapeShifted != m_spellProto->Id)
 				p_target->RemoveAura(p_target->m_ShapeShifted);
 			p_target->DismissActivePets();
-			p_target->SetCollisionHeight(true);
 			p_target->mountvehicleid = cp->vehicleid;
 
 			if( p_target->mountvehicleid != 0 )
@@ -5182,6 +5186,7 @@ void Aura::SpellAuraMounted(bool apply)
 	else
 	{
 		u_target->RemoveAllAuraType(SPELL_AURA_MOUNTED);
+		m_target->SetMount(0);
 		if(p_target)
 		{
 			p_target->SetCollisionHeight(false);
@@ -5206,7 +5211,6 @@ void Aura::SpellAuraMounted(bool apply)
 			}
 		}
 
-		m_target->SetMount(0);
 		u_target->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_DISMOUNT);
 	}
 }
@@ -5848,7 +5852,7 @@ void Aura::SpellAuraFeatherFall(bool apply)
 	else
 	{
 		m_target->RemoveUnitMovementFlag(MOVEFLAG_FEATHER_FALL);
-		p_target->m_noFallDamage = false;
+		m_target->m_noFallDamage = false;
 	}
 	m_target->SendFeatherFall(apply);
 }
@@ -5873,6 +5877,7 @@ void Aura::ApplySpellMod(bool apply)
 	smod->spellId = GetSpellProto()->Id;
 	smod->charges = p->GetAuraStackCount(GetSpellProto()->Id);
     smod->ownerAura = this;
+	smod->mask = flag96(GetSpellProto()->SpellGroupType[0], GetSpellProto()->SpellGroupType[1], GetSpellProto()->SpellGroupType[2]);
 	p->AddSpellMod(smod, apply);
 }
 

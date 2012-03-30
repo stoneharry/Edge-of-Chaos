@@ -106,21 +106,10 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 		}
 	}
 
-	switch(type)
+	if(m_muted && m_muted >= (uint32)UNIXTIME)
 	{
-		case CHAT_MSG_EMOTE:
-		case CHAT_MSG_SAY:
-		case CHAT_MSG_YELL:
-		case CHAT_MSG_WHISPER:
-		case CHAT_MSG_CHANNEL:
-			{
-				if(m_muted && m_muted >= (uint32)UNIXTIME)
-				{
-					SystemMessage("Your voice is currently muted by a moderator.");
-					return;
-				}
-			}
-			break;
+		SystemMessage("Yo dawg, I heard you are muted.");
+		return;
 	}
 
 	std::string msg, to = "", channel = "", tmp;
@@ -141,8 +130,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 		case CHAT_MSG_YELL:
 			recv_data >> msg;
 			pMsg = msg.c_str();
-			//g_chatFilter->ParseEscapeCodes((char*)pMsg,true);
 			pMisc = 0;
+			if(sChatHandler.ParseCommands(msg.c_str(), this) > 0)
+				return;
 			break;
 		case CHAT_MSG_WHISPER:
 			recv_data >> to >> msg;
@@ -154,6 +144,8 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			recv_data >> msg;
 			pMsg = msg.c_str();
 			pMisc = channel.c_str();
+			if(sChatHandler.ParseCommands(msg.c_str(), this) > 0)
+				return;
 			break;
 		case CHAT_MSG_AFK:
 		case CHAT_MSG_DND:
@@ -162,6 +154,8 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 		case CHAT_MSG_BATTLEGROUND_LEADER:
 			recv_data >> msg;
 			pMsg = msg.c_str();
+			if(sChatHandler.ParseCommands(msg.c_str(), this) > 0)
+				return;
 			break;
 		default:
 			LOG_ERROR("CHAT: unknown msg type %u, lang: %u", type, lang);
@@ -211,9 +205,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			{
 				if(sWorld.interfaction_chat && lang > 0)
 					lang = 0;
-
-				if(sChatHandler.ParseCommands(msg.c_str(), this) > 0)
-					break;
 
 				if(g_chatFilter->Parse(msg))
 				{

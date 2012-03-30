@@ -1056,6 +1056,26 @@ bool ChatHandler::HandleModifyTPsCommand(const char* args, WorldSession* m_sessi
 	return true;
 }
 
+bool ChatHandler::HandleModifyLanguageCommand(const char* args, WorldSession* m_session)
+{
+	if(!args)
+		return false;
+
+	Player* Pl = getSelectedChar(m_session);
+	if(!Pl)
+		return true;
+
+	int32 lang = 0;
+	if(sscanf(args, "%i", &lang) != 1)
+	{
+		SystemMessage(m_session, "Enter a god damn language bitch.");
+		return true;
+	}
+ 
+	Pl->m_modlanguage = lang;
+	return true;
+}
+
 #ifdef ENABLE_ACHIEVEMENTS
 /**
 	Handles .achieve complete

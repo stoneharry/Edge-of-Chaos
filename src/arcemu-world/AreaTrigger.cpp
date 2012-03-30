@@ -127,12 +127,6 @@ void WorldSession::_HandleAreaTriggerOpcode(uint32 id)
 	Player* pPlayer = GetPlayer();
 	sHookInterface.OnAreaTrigger(pPlayer, id);
 	CALL_INSTANCE_SCRIPT_EVENT(pPlayer->GetMapMgr(), OnAreaTrigger)(GetPlayer(), id);
-
-#ifdef GM_Z_DEBUG_DIRECTLY
-	if(_player->GetSession() && _player->GetSession()->CanUseCommand('z'))
-		sChatHandler.BlueSystemMessage(this, "[%sSystem%s] |rEntered areatrigger: %s%u. (%s)", MSG_COLOR_WHITE, MSG_COLOR_LIGHTBLUE, MSG_COLOR_SUBWHITE, id, pAreaTrigger ? pAreaTrigger->Name : "Unknown name");
-#endif
-
 	// if in BG handle is triggers
 	if(_player->m_bg)
 	{

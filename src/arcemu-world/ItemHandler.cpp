@@ -687,7 +687,99 @@ void WorldSession::HandleItemQuerySingleOpcode(WorldPacket & recv_data)
 	ItemPrototype* itemProto = ItemPrototypeStorage.LookupEntry(itemid);
 	if(!itemProto)
 	{
-		LOG_ERROR("WORLD: Unknown item id 0x%.8X", itemid);
+		WorldPacket data(SMSG_ITEM_QUERY_SINGLE_RESPONSE, 600);
+		data << itemid;
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << "Unknown Item";
+		data << uint8(0) << uint8(0) << uint8(0);
+		data << uint32(0);
+		data << uint32(1);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		for(i = 0; i < uint32(0); i++)
+		{
+			data << uint32(0);
+			data << int32(0);
+		}
+		data << uint32(0);
+		data << uint32(0);
+		for(i = 0; i < 2; i++)
+		{
+			data << float(0.0f);
+			data << float(0.0f);
+			data << uint32(0);
+		}
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << float(0);
+		for(i = 0; i < 5; i++)
+		{
+			data << uint32(0);
+			data << uint32(0);
+			data << int32(0);
+			data << int32(0);
+			data << uint32(0);
+			data << int32(0);
+		}
+		data << uint32(0);
+		data << "Item Not Found In Our Database";
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << int32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		data << uint32(0);
+		SendPacket(&data);
 		return;
 	}
 

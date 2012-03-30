@@ -48,7 +48,7 @@ class SpeedCheatDetector;
 #define PLAYER_HONORLESS_TARGET_SPELL 2479
 #define MONSTER_NORMAL_RUN_SPEED 8.0f
 /* action button defines */
-#define PLAYER_ACTION_BUTTON_COUNT 136
+#define PLAYER_ACTION_BUTTON_COUNT 144
 #define PLAYER_ACTION_BUTTON_SIZE PLAYER_ACTION_BUTTON_COUNT * sizeof(ActionButton)
 
 #define MAX_SPEC_COUNT 2
@@ -2647,7 +2647,7 @@ class SERVER_DECL Player : public Unit
 // "the bodies of template functions must be made available in a header file"
 template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &basevalue, Spell* spell)
 {
-	SpellEntry * spellInfo = dbcSpell.LookupEntry(spellId);
+	/*SpellEntry * spellInfo = dbcSpell.LookupEntry(spellId);
     if (!spellInfo)
         return 0;
     float totalmul = 1.0f;
@@ -2688,7 +2688,8 @@ template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &bas
     }
     float diff = (float)basevalue * (totalmul - 1.0f) + (float)totalflat;
     basevalue = T((float)basevalue + diff);
-    return T(diff);
+    return T(diff);*/
+	return basevalue;
 }
 
 class SkillIterator

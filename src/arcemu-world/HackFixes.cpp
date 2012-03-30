@@ -178,6 +178,11 @@ void ApplyNormalFixes()
 				//why blizzard has this set for these auras i don't know
 				sp->AuraInterruptFlags = sp->AuraInterruptFlags & ~AURA_INTERRUPT_ON_ENTER_WATER;
 			}
+			if(sp->EffectApplyAuraName[b] == SPELL_AURA_PREVENT_RESURRECTION)
+			{
+				sp->Attributes |= SPELL_ATTR0_NEGATIVE_1;
+				sp->AttributesEx3 |= SPELL_ATTR3_DEATH_PERSISTENT;
+			}
 		}
 
 		if(!strcmp(sp->Name, "Hearthstone") || !strcmp(sp->Name, "Stuck") || !strcmp(sp->Name, "Astral Recall"))
@@ -1086,9 +1091,14 @@ void ApplyNormalFixes()
 		//////////////////////////////////////////
 
 		// Insert shaman spell fixes here
-		if(sp->NameHash == SPELL_HASH_FLAMETONGUE_ATTACK || sp->NameHash == SPELL_HASH_FROSTBRAND_ATTACK)
+		if(sp->NameHash == SPELL_HASH_FLAMETONGUE_ATTACK)
 		{
-			sp->Effect[0] = SPELL_EFFECT_DUMMY;
+			//sp->Effect[0] = SPELL_EFFECT_DUMMY;
+			sp->AttributesEx3 |= SPELL_ATTR3_NO_DONE_BONUS;
+		}
+		if(sp->NameHash == SPELL_HASH_FROSTBRAND_ATTACK)
+		{
+			//sp->Effect[1] = SPELL_EFFECT_DUMMY;
 			sp->AttributesEx3 |= SPELL_ATTR3_NO_DONE_BONUS;
 		}
 		// Flametongue Totem passive target fix

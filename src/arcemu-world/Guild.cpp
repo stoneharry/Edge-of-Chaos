@@ -26,8 +26,8 @@ Guild::Guild()
 	m_guildId = 0;
 	m_guildLeader = 0;
 	m_guildName = NULL;
-	m_guildInfo = NULL;
-	m_motd = NULL;
+	m_guildInfo = "Click here to set guild information.";
+	m_motd = "Click here to set a message of the day.";
 	m_backgroundColor = 0;
 	m_emblemColor = 0;
 	m_emblemStyle = 0;
@@ -796,7 +796,8 @@ void Guild::AddGuildMember(PlayerInfo* pMember, WorldSession* pClient, int32 For
 	{
 		pMember->m_loggedInPlayer->SetGuildId(m_guildId);
 		pMember->m_loggedInPlayer->SetGuildRank(r->iId);
-		pMember->m_loggedInPlayer->SendGuildMOTD();
+		if(ForcedRank != 0)
+			pMember->m_loggedInPlayer->SendGuildMOTD();
 	}
 
 	CharacterDatabase.Execute("INSERT INTO guild_data VALUES(%u, %u, %u, '', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)", m_guildId, pMember->guid, r->iId);

@@ -274,6 +274,7 @@ class SERVER_DECL Group
 		SubGroup* m_SubGroups[8];
 		uint8 m_SubGroupCount;
 		void GoOffline(Player * p);
+		void SyncFactions();
 	protected:
 		PlayerInfo* m_Leader;
 		PlayerInfo* m_Looter;

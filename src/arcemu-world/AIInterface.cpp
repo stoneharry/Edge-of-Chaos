@@ -261,7 +261,7 @@ void AIInterface::Update(uint32 p_time)
 			}
 		}
 	}
-	if(m_AIState == STATE_EVADE_TIMING_OUT)
+	/*if(m_AIState == STATE_EVADE_TIMING_OUT)
 	{
 		setNextTarget(FindTarget());
 		bool cansee = false;
@@ -284,7 +284,7 @@ void AIInterface::Update(uint32 p_time)
 				SetReturnPosition();
 			MoveEvadeReturn();
 		}
-	}
+	}*/
 	if(m_fleeTimer)
 	{
 		if(m_fleeTimer > p_time)
@@ -526,8 +526,8 @@ void AIInterface::_UpdateCombat(uint32 p_time)
 {
 	if(m_AIType != AITYPE_PET && disable_combat)
 		return;
-	if(m_AIState == STATE_EVADE_TIMING_OUT)
-		return;
+	//if(m_AIState == STATE_EVADE_TIMING_OUT)
+		//return;
 	//just make sure we are not hitting self.
 	// This was reported as an exploit.Should never occur anyway
 	if(getNextTarget() == m_Unit)
@@ -541,7 +541,7 @@ void AIInterface::_UpdateCombat(uint32 p_time)
 	Unit* nextTarget = getNextTarget();
 	if(m_AIType != AITYPE_PET
 	        && m_AIState != STATE_EVADE
-			&& m_AIState != STATE_EVADE_TIMING_OUT
+			//&& m_AIState != STATE_EVADE_TIMING_OUT
 	        && m_AIState != STATE_SCRIPTMOVE
 	        && !m_is_in_instance
 	        && (m_outOfCombatRange && m_Unit->GetDistanceSq(m_combatResetX, m_combatResetY, m_combatResetZ) > m_outOfCombatRange))
@@ -620,7 +620,7 @@ void AIInterface::_UpdateCombat(uint32 p_time)
 		}
 	}
 
-	if(cansee && getNextTarget() && getNextTarget()->isAlive() && m_AIState != STATE_EVADE && m_AIState != STATE_EVADE_TIMING_OUT && !m_Unit->IsCasting())
+	if(cansee && getNextTarget() && getNextTarget()->isAlive() && m_AIState != STATE_EVADE /*&& m_AIState != STATE_EVADE_TIMING_OUT*/ && !m_Unit->IsCasting())
 	{
 		if(agent == AGENT_NULL || (m_AIType == AITYPE_PET && !m_nextSpell))     // allow pets autocast
 		{
@@ -1021,7 +1021,7 @@ void AIInterface::DismissPet()
 
 void AIInterface::AttackReaction(Unit* pUnit, uint32 damage_dealt, uint32 spellId)
 {
-	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT || !pUnit || !pUnit->isAlive() || m_Unit->IsDead() || ( m_Unit == pUnit ) || ( m_AIType == AITYPE_PASSIVE ) )
+	if(m_AIState == STATE_EVADE /*|| m_AIState == STATE_EVADE_TIMING_OUT*/ || !pUnit || !pUnit->isAlive() || m_Unit->IsDead() || ( m_Unit == pUnit ) || ( m_AIType == AITYPE_PASSIVE ) )
 		return;
 
 	if(sWorld.Collision && pUnit->IsPlayer())
@@ -1125,6 +1125,7 @@ void AIInterface::HealReaction(Unit* caster, Unit* victim, SpellEntry* sp, uint3
 
 void AIInterface::OnDeath(Object* pKiller)
 {
+	SendClearThreatListOpcode();
 	if(pKiller->IsUnit())
 		HandleEvent(EVENT_UNITDIED, TO< Unit* >(pKiller), 0);
 	else
@@ -1715,17 +1716,17 @@ void AIInterface::_CalcDestinationAndMove(Unit* target, float dist)
 
 	if(!Move(newx, newy, newz))
 	{
-		if(m_AIState != STATE_EVADE_TIMING_OUT)
+		/*if(m_AIState != STATE_EVADE_TIMING_OUT)
 		{
 			m_AIState = STATE_EVADE_TIMING_OUT;
 			evaderesettimeout = getMSTime()+30*IN_MILLISECONDS;
-		}
+		}*/
 	}
 	else
 	{
-		if(m_AIState == STATE_EVADE_TIMING_OUT)
+		/*if(m_AIState == STATE_EVADE_TIMING_OUT)
 			m_AIState = STATE_ATTACKING;
-		evaderesettimeout = 0;
+		evaderesettimeout = 0;*/
 	}
 }
 
@@ -3025,7 +3026,7 @@ Unit* AIInterface::GetMostHated()
 			currentTarget.first = ai_t;
 			currentTarget.second = itr->second + ai_t->GetThreatModifyer();
 			m_currentHighestThreat = currentTarget.second;
-			SendChangeCurrentVictimOpcode(ai_t);
+			SendChangeCurrentVictimOpcode(ai_t->GetGUID());
 		}
 
 		/* there are no more checks needed here... the needed checks are done by CheckTarget() */
@@ -4045,7 +4046,7 @@ uint32 AIInterface::fixupCorridor(dtPolyRef* path, const uint32 npath, const uin
 
 void AIInterface::EventEnterCombat(Unit* pUnit, uint32 misc1)
 {
-	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT)
+	if(m_AIState == STATE_EVADE /*|| m_AIState == STATE_EVADE_TIMING_OUT*/)
 		return;
 	if(pUnit == NULL || pUnit->IsDead() || m_Unit->IsDead()) return;
 
@@ -4127,7 +4128,7 @@ void AIInterface::EventEnterCombat(Unit* pUnit, uint32 misc1)
 
 void AIInterface::EventLeaveCombat(Unit* pUnit, uint32 misc1)
 {
-	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT)
+	if(m_AIState == STATE_EVADE /*|| m_AIState == STATE_EVADE_TIMING_OUT*/)
 		return;
 	if(pUnit == NULL) return;
 
@@ -4169,6 +4170,7 @@ void AIInterface::EventLeaveCombat(Unit* pUnit, uint32 misc1)
 	// restart emote
 	if(m_Unit->IsCreature())
 	{
+		SendClearThreatListOpcode();
 		Creature* creature = TO_CREATURE(m_Unit);
 		creature->HandleMonsterSayEvent(MONSTER_SAY_EVENT_ON_COMBAT_STOP);
 
@@ -4265,7 +4267,7 @@ void AIInterface::EventLeaveCombat(Unit* pUnit, uint32 misc1)
 
 void AIInterface::EventDamageTaken(Unit* pUnit, uint32 misc1)
 {
-	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT)
+	if(m_AIState == STATE_EVADE /*|| m_AIState == STATE_EVADE_TIMING_OUT*/)
 		return;
 	if(pUnit == NULL) return;
 
@@ -4284,7 +4286,7 @@ void AIInterface::EventDamageTaken(Unit* pUnit, uint32 misc1)
 
 void AIInterface::EventFollowOwner(Unit* pUnit, uint32 misc1)
 {
-	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT)
+	if(m_AIState == STATE_EVADE /*|| m_AIState == STATE_EVADE_TIMING_OUT*/)
 		return;
 	m_AIState = STATE_FOLLOWING;
 	if(m_Unit->IsPet())
@@ -4336,7 +4338,7 @@ void AIInterface::EventFear(Unit* pUnit, uint32 misc1)
 
 void AIInterface::EventUnfear(Unit* pUnit, uint32 misc1)
 {
-	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT)
+	if(m_AIState == STATE_EVADE /*|| m_AIState == STATE_EVADE_TIMING_OUT*/)
 		return;
 	m_UnitToFollow = m_UnitToFollow_backup;
 	FollowDistance = FollowDistance_backup;
@@ -4348,7 +4350,7 @@ void AIInterface::EventUnfear(Unit* pUnit, uint32 misc1)
 
 void AIInterface::EventWander(Unit* pUnit, uint32 misc1)
 {
-	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT)
+	if(m_AIState == STATE_EVADE /*|| m_AIState == STATE_EVADE_TIMING_OUT*/)
 		return;
 	if(pUnit == NULL) return;
 
@@ -4380,7 +4382,7 @@ void AIInterface::EventWander(Unit* pUnit, uint32 misc1)
 
 void AIInterface::EventUnwander(Unit* pUnit, uint32 misc1)
 {
-	if(m_AIState == STATE_EVADE || m_AIState == STATE_EVADE_TIMING_OUT)
+	if(m_AIState == STATE_EVADE /*|| m_AIState == STATE_EVADE_TIMING_OUT*/)
 		return;
 	m_UnitToFollow = m_UnitToFollow_backup;
 	FollowDistance = FollowDistance_backup;

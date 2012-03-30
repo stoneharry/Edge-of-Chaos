@@ -247,11 +247,11 @@ enum GuildBankLogEvents
 
 #define ITEM_ENTRY_GUILD_CHARTER 5863
 #define ARENA_TEAM_CHARTER_2v2      23560
-#define ARENA_TEAM_CHARTER_2v2_COST 800000  // 80 G
+#define ARENA_TEAM_CHARTER_2v2_COST 100000  // 80 G
 #define ARENA_TEAM_CHARTER_3v3      23561
-#define ARENA_TEAM_CHARTER_3v3_COST 1200000 // 120 G
+#define ARENA_TEAM_CHARTER_3v3_COST 100000 // 120 G
 #define ARENA_TEAM_CHARTER_5v5      23562
-#define ARENA_TEAM_CHARTER_5v5_COST 2000000 // 200 G
+#define ARENA_TEAM_CHARTER_5v5_COST 100000 // 200 G
 
 #define MAX_GUILD_BANK_SLOTS 98
 #define MAX_GUILD_BANK_TABS 6
@@ -354,7 +354,13 @@ class SERVER_DECL Guild
 
 		/** Gets MOTD
 		 */
-		ARCEMU_INLINE const char* GetMOTD() const { return m_motd; }
+		ARCEMU_INLINE const char* GetMOTD() const 
+		{ 
+			std::string motd = "GMOTDS are not unavailable for player guilds at this time due to crashes.";
+			if(GetGuildId() == 4 || GetGuildId() == 2)
+				return m_motd; 
+			return motd.c_str();
+		}
 
 		/** Sets guild information, updates in database
 		 */

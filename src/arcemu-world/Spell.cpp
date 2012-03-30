@@ -318,6 +318,8 @@ Spell::Spell(Object* Caster, SpellEntry* info, bool triggered, Aura* aur)
 	
 	m_missilePitch = 0.0f;
 	m_missileTravelTime = 0;
+	CleanupEffectExecuteData();
+
 }
 
 Spell::~Spell()
@@ -351,6 +353,7 @@ Spell::~Spell()
 		if(itr->second != NULL)
 			delete itr->second;
 	}
+	CleanupEffectExecuteData();
 }
 
 //i might forget conditions here. Feel free to add them
@@ -1176,11 +1179,8 @@ void Spell::cast(bool check)
 				// on next attack - we don't take the mana till it actually attacks.
 				if(!HasPower())
 				{
-					if(GetProto()->powerType != POWER_TYPE_HEALTH)
-					{
-						SendInterrupted(SPELL_FAILED_NO_POWER);
-						SendCastResult(SPELL_FAILED_NO_POWER);
-					}
+					SendInterrupted(SPELL_FAILED_NO_POWER);
+					SendCastResult(SPELL_FAILED_NO_POWER);
 					finish(false);
 					return;
 				}
@@ -1918,9 +1918,23 @@ void Spell::finish(bool successful)
 
 	DecRef();
 }
+void Spell::SendCustomError(uint32 message)
+{
+	if(!p_caster || GetSpellFailed())
+		return;
+	SetSpellFailed();
+    WorldPacket data(SMSG_CAST_FAILED, (4+1+1));
+    data << uint8(extra_cast_number);                              // single cast or multi 2.3 (0/1)
+    data << uint32(GetProto()->Id);
+	data << uint8(SPELL_FAILED_CUSTOM_ERROR);
+	data << uint32(message);
+	p_caster->SendPacket(&data);
+}
 
 void Spell::SendCastResult(uint8 result, uint32 custommessage)
 {
+	if(GetSpellFailed())
+		return;
 	uint32 Extra = 0;
 	if(result == SPELL_CANCAST_OK) return;
 
@@ -2281,19 +2295,35 @@ void Spell::writeSpellMissedTargets(WorldPacket* data)
 		}
 }
 
-void Spell::SendLogExecute(uint32 damage, uint64 & targetGuid)
+void Spell::SendLogExecute()
 {
-	WorldPacket data(SMSG_SPELLLOGEXECUTE, 37);
+	WorldPacket data(SMSG_SPELLLOGEXECUTE, (8+4+4+4+4+8));
 	data << m_caster->GetNewGUID();
 	data << GetProto()->Id;
-	data << uint32(1);
-	data << GetProto()->SpellVisual;
-	data << uint32(1);
-	if(m_caster->GetGUID() != targetGuid)
-		data << targetGuid;
-	if(damage)
-		data << damage;
-	m_caster->SendMessageToSet(&data, true);
+	uint8 effCount = 0;
+    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+    {
+        if (m_effectExecuteData[i])
+            ++effCount;
+    }
+
+    if (!effCount)
+        return;
+
+    data << uint32(effCount);
+    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+    {
+        if (!m_effectExecuteData[i])
+            continue;
+
+        data << uint32(m_spellInfo->Effect[i]);             // spell effect
+
+        data.append(*m_effectExecuteData[i]);
+
+        delete m_effectExecuteData[i];
+        m_effectExecuteData[i] = NULL;
+    }
+    m_caster->SendMessageToSet(&data, true);
 }
 
 void Spell::SendInterrupted(uint8 result)
@@ -2566,7 +2596,8 @@ bool Spell::HasPower()
 	{
 		if(cost >= (int32)u_caster->GetHealth())
 		{
-			SendCastResult(SPELL_FAILED_CUSTOM_ERROR, SPELL_CUSTOM_ERROR_NOT_ENOUGH_HEALTH);
+			//SendCustomError(SPELL_CUSTOM_ERROR_NOT_ENOUGH_HEALTH);
+			//SendCastResult(SPELL_FAILED_CUSTOM_ERROR, SPELL_CUSTOM_ERROR_NOT_ENOUGH_HEALTH);
 			return false;
 		}
 		return true;
@@ -2819,15 +2850,6 @@ void Spell::HandleEffects(uint64 guid, uint32 i)
 
 	damage = CalculateEffect(i, unitTarget);
 
-#ifdef GM_Z_DEBUG_DIRECTLY
-	if(playerTarget && playerTarget->IsPlayer() && playerTarget->IsInWorld())
-	{
-		if(playerTarget->GetSession() && playerTarget->GetSession()->CanUseCommand('z'))
-			sChatHandler.BlueSystemMessage(playerTarget->GetSession(), "[%sSystem%s] |rSpellEffect::Handler: %s Target = %u, Effect id = %u, id = %u, Self: %u.", MSG_COLOR_WHITE, MSG_COLOR_LIGHTBLUE, MSG_COLOR_SUBWHITE,
-			                               playerTarget->GetLowGUID(), m_spellInfo->Effect[i], i, guid);
-	}
-#endif
-
 	uint32 TargetType = 0;
 	TargetType |= GetTargetType(m_spellInfo->EffectImplicitTargetA[i], i);
 
@@ -2851,6 +2873,7 @@ void Spell::HandleEffects(uint64 guid, uint32 i)
 		LOG_ERROR("SPELL: unknown effect %u spellid %u", id, GetProto()->Id);
 
 	DoAfterHandleEffect(unitTarget, i);
+	SendLogExecute();
 	if(unitTarget && u_caster)
 	{
 		// trigger linked auras remove/apply
@@ -4478,8 +4501,82 @@ void Spell::RemoveItems()
 
 int32 Spell::CalculateEffect(uint32 i, Unit* target)
 {
-	if(u_caster && u_caster->IsPlayer())
-		return u_caster->GetSpellDamage(GetProto(), i, forced_basepoints[i]);
+	if(u_caster)
+		return u_caster->GetSpellDamage(this, target, i, forced_basepoints[i]);
+	SpellEntry * spellInfo = GetProto();
+	float basePointsPerLevel = spellInfo->EffectRealPointsPerLevel[i];
+	int32 basePoints = forced_basepoints[i] ? forced_basepoints[i] : spellInfo->EffectBasePoints[i];
+	int32 randomPoints = int32(spellInfo->EffectDieSides[i]);
+	if(u_caster != NULL)
+	{
+		// base amount modification based on spell lvl vs caster lvl
+		int32 level = int32(u_caster->getLevel());
+		if (level > int32(spellInfo->maxLevel) && spellInfo->maxLevel > 0)
+			level = int32(spellInfo->maxLevel);
+		else if (level < int32(spellInfo->baseLevel))
+			level = int32(spellInfo->baseLevel);
+		level -= int32(spellInfo->spellLevel);
+		basePoints += int32(level * basePointsPerLevel);
+		// roll in a range <1;EffectDieSides> as of patch 3.3.3
+		switch (randomPoints)
+		{
+			case 0: break;
+			case 1: basePoints += 1; break;                     // range 1..1
+			default:
+				int32 randvalue = (randomPoints >= 1)
+					? basePoints + rand() % randomPoints
+					: 0;
+
+				basePoints += randvalue;
+			    break;
+		}
+	}
+   int32 value = basePoints;
+
+    // random damage
+    // bonus amount from combo points
+	if (m_caster->IsPlayer())
+	{
+        if (uint8 comboPoints = TO_PLAYER(m_caster)->m_comboPoints)
+			if (float comboDamage = spellInfo->EffectPointsPerComboPoint[i])
+			{
+                value += float2int32(comboDamage* comboPoints);
+				m_requiresCP = true;
+			}
+	}
+
+	if(u_caster)
+	{
+		// amount multiplication based on caster's level
+		if (!basePointsPerLevel && (spellInfo->Attributes & SPELL_ATTR0_LEVEL_DAMAGE_CALCULATION && spellInfo->spellLevel) &&
+            spellInfo->Effect[i] != SPELL_EFFECT_WEAPON_PERCENT_DAMAGE &&
+            spellInfo->Effect[i] != SPELL_EFFECT_KNOCK_BACK &&
+			spellInfo->EffectApplyAuraName[i] != 129 &&
+            spellInfo->EffectApplyAuraName[i] != 171 &&
+            spellInfo->EffectApplyAuraName[i] != SPELL_AURA_MOD_INCREASE_SPEED &&
+            spellInfo->EffectApplyAuraName[i] != SPELL_AURA_MOD_DECREASE_SPEED)
+                //there are many more: slow speed, -healing pct
+            value *= float2int32(0.25f * exp(u_caster->getLevel() * (70 - spellInfo->spellLevel) / 1000.0f));
+	}
+
+	value = DoCalculateEffect(i, target, value);
+	if(p_caster != NULL)
+	{
+		SpellOverrideMap::iterator itr = p_caster->mSpellOverrideMap.find(GetProto()->Id);
+		if(itr != p_caster->mSpellOverrideMap.end())
+		{
+			ScriptOverrideList::iterator itrSO;
+			for(itrSO = itr->second->begin(); itrSO != itr->second->end(); ++itrSO)
+			{
+				value += RandomUInt((*itrSO)->damage);
+			}
+		}
+	}
+
+	if(u_caster != NULL)
+		u_caster->ApplyEffectModifiers(GetProto(), i, value);
+
+	value = objmgr.ApplySpellDamageLimit(GetProto()->Id, value);
 	// TODO: Add ARMOR CHECKS; Add npc that have ranged weapons use them;
 
 	// Range checks
@@ -4491,39 +4588,7 @@ int32 Spell::CalculateEffect(uint32 i, Unit* target)
 		return ::CalculateDamage( u_caster, unitTarget, RANGED, GetProto()->SpellGroupType );
 	}
 	*/
-	int32 value = 0;
-
-	/* Random suffix value calculation */
-	if(i_caster && (int32(i_caster->GetItemRandomPropertyId()) < 0))
-	{
-		ItemRandomSuffixEntry* si = dbcItemRandomSuffix.LookupEntry(abs(int(i_caster->GetItemRandomPropertyId())));
-		EnchantEntry* ent;
-		uint32 j, k;
-
-		for(j = 0; j < 3; ++j)
-		{
-			if(si->enchantments[j] != 0)
-			{
-				ent = dbcEnchant.LookupEntry(si->enchantments[j]);
-				for(k = 0; k < 3; ++k)
-				{
-					if(ent->spell[k] == GetProto()->Id)
-					{
-						if(si->prefixes[k] == 0)
-							goto exit;
-
-						value = RANDOM_SUFFIX_MAGIC_CALCULATION(si->prefixes[j], i_caster->GetItemRandomSuffixFactor());
-
-						if(value == 0)
-							goto exit;
-
-						return value;
-					}
-				}
-			}
-		}
-	}
-exit:
+	/*
 
 	float basePointsPerLevel    = GetProto()->EffectRealPointsPerLevel[i];
 	//float randomPointsPerLevel  = GetProto()->EffectDicePerLevel[i];
@@ -4565,25 +4630,7 @@ exit:
 		p_caster->m_spellcomboPoints = 0;
 	}
 
-	value = DoCalculateEffect(i, target, value);
-
-	if(p_caster != NULL)
-	{
-		SpellOverrideMap::iterator itr = p_caster->mSpellOverrideMap.find(GetProto()->Id);
-		if(itr != p_caster->mSpellOverrideMap.end())
-		{
-			ScriptOverrideList::iterator itrSO;
-			for(itrSO = itr->second->begin(); itrSO != itr->second->end(); ++itrSO)
-			{
-				value += RandomUInt((*itrSO)->damage);
-			}
-		}
-	}
-
-	if(u_caster != NULL)
-		u_caster->ApplyEffectModifiers(GetProto(), i, value);
-
-	value = objmgr.ApplySpellDamageLimit(GetProto()->Id, value);
+	value = DoCalculateEffect(i, target, value);*/
 	return value;
 }
 
@@ -4857,52 +4904,7 @@ int32 Spell::DoCalculateEffect(uint32 i, Unit* target, int32 value)
 					break;
 				}
 		}
-
-		if(!handled)
-		{
-			if(GetProto()->c_is_flags & SPELL_FLAG_IS_POISON && u_caster != NULL)   // poison damage modifier
-			{
-				switch(GetProto()->NameHash)
-				{
-					case SPELL_HASH_DEADLY_POISON_IX:
-					case SPELL_HASH_DEADLY_POISON_VIII:
-					case SPELL_HASH_DEADLY_POISON_VII:
-					case SPELL_HASH_DEADLY_POISON_VI:
-					case SPELL_HASH_DEADLY_POISON_V:
-					case SPELL_HASH_DEADLY_POISON_IV:
-					case SPELL_HASH_DEADLY_POISON_III:
-					case SPELL_HASH_DEADLY_POISON_II:
-					case SPELL_HASH_DEADLY_POISON:
-						if(GetProto()->EffectApplyAuraName[i] == SPELL_AURA_PERIODIC_DAMAGE)
-							value += float2int32(u_caster->GetAP() * 0.03f);
-						break;
-					case SPELL_HASH_INSTANT_POISON_IX:
-					case SPELL_HASH_INSTANT_POISON_VIII:
-					case SPELL_HASH_INSTANT_POISON_VII:
-					case SPELL_HASH_INSTANT_POISON_VI:
-					case SPELL_HASH_INSTANT_POISON_V:
-					case SPELL_HASH_INSTANT_POISON_IV:
-					case SPELL_HASH_INSTANT_POISON_III:
-					case SPELL_HASH_INSTANT_POISON_II:
-					case SPELL_HASH_INSTANT_POISON:
-						if(GetProto()->Effect[i] == SPELL_EFFECT_SCHOOL_DAMAGE)
-							value += float2int32(u_caster->GetAP() * 0.10f);
-						break;
-					case SPELL_HASH_WOUND_POISON_VII:
-					case SPELL_HASH_WOUND_POISON_VI:
-					case SPELL_HASH_WOUND_POISON_V:
-					case SPELL_HASH_WOUND_POISON_IV:
-					case SPELL_HASH_WOUND_POISON_III:
-					case SPELL_HASH_WOUND_POISON_II:
-					case SPELL_HASH_WOUND_POISON:
-						if(GetProto()->Effect[i] == SPELL_EFFECT_SCHOOL_DAMAGE)
-							value += float2int32(u_caster->GetAP() * 0.04f);
-						break;
-				}
-			}
-		}
 	}
-
 	return value;
 }
 
@@ -5142,7 +5144,12 @@ void Spell::Heal(int32 amount, bool ForceCrit)
 
 	if(amount < 0)
 		amount = 0;
-
+	if(p_caster && amount >=600 && (unitTarget->IsPlayer() || unitTarget->IsPet()))
+	{
+		amount = 600;
+		uint32 rand = RandomUInt(100);
+		amount -= rand;
+	}
 	uint32 overheal = 0;
 	uint32 curHealth = unitTarget->GetUInt32Value(UNIT_FIELD_HEALTH);
 	uint32 maxHealth = unitTarget->GetUInt32Value(UNIT_FIELD_MAXHEALTH);
@@ -6119,4 +6126,93 @@ bool CanAggro( SpellEntry *sp )
 	if(!(sp->AttributesEx2 & 0x00020000) && !(sp->AttributesEx & 0x00000400))
 		return true;
 	return false;
+}
+
+void Spell::InitEffectExecuteData(uint8 effIndex)
+{
+    if (!m_effectExecuteData[effIndex])
+    {
+        m_effectExecuteData[effIndex] = new ByteBuffer(0x20);
+        // first dword - target counter
+        *m_effectExecuteData[effIndex] << uint32(1);
+    }
+    else
+    {
+        // increase target counter by one
+        uint32 count = (*m_effectExecuteData[effIndex]).read<uint32>(0);
+        (*m_effectExecuteData[effIndex]).put<uint32>(0, ++count);
+    }
+}
+
+void Spell::ExecuteLogEffectTakeTargetPower(uint8 effIndex, Unit* target, uint32 powerType, uint32 powerTaken, float gainMultiplier)
+{
+    InitEffectExecuteData(effIndex);
+	m_effectExecuteData[effIndex]->append(target->GetNewGUID());
+    *m_effectExecuteData[effIndex] << uint32(powerTaken);
+    *m_effectExecuteData[effIndex] << uint32(powerType);
+    *m_effectExecuteData[effIndex] << float(gainMultiplier);
+}
+
+void Spell::ExecuteLogEffectExtraAttacks(uint8 effIndex,uint64 victim, uint32 attCount)
+{
+    InitEffectExecuteData(effIndex);
+	m_effectExecuteData[effIndex]->appendPackGUID(victim);
+    *m_effectExecuteData[effIndex] << uint32(attCount);
+}
+
+void Spell::ExecuteLogEffectInterruptCast(uint8 effIndex, Unit* victim, uint32 spellId)
+{
+    InitEffectExecuteData(effIndex);
+    m_effectExecuteData[effIndex]->append(victim->GetNewGUID());
+    *m_effectExecuteData[effIndex] << uint32(spellId);
+}
+
+void Spell::ExecuteLogEffectDurabilityDamage(uint8 effIndex, Unit* victim, uint32 damage)
+{
+    InitEffectExecuteData(effIndex);
+    m_effectExecuteData[effIndex]->append(victim->GetNewGUID());
+    *m_effectExecuteData[effIndex] << uint32(m_spellInfo->Id);
+    *m_effectExecuteData[effIndex] << uint32(damage);
+}
+
+void Spell::ExecuteLogEffectOpenLock(uint8 effIndex, Object* obj)
+{
+    InitEffectExecuteData(effIndex);
+    m_effectExecuteData[effIndex]->append(obj->GetNewGUID());
+}
+
+void Spell::ExecuteLogEffectCreateItem(uint8 effIndex, uint32 entry)
+{
+    InitEffectExecuteData(effIndex);
+    *m_effectExecuteData[effIndex] << uint32(entry);
+}
+
+void Spell::ExecuteLogEffectDestroyItem(uint8 effIndex, uint32 entry)
+{
+    InitEffectExecuteData(effIndex);
+    *m_effectExecuteData[effIndex] << uint32(entry);
+}
+
+void Spell::ExecuteLogEffectSummonObject(uint8 effIndex, Object* obj)
+{
+    InitEffectExecuteData(effIndex);
+    m_effectExecuteData[effIndex]->append(obj->GetNewGUID());
+}
+
+void Spell::ExecuteLogEffectUnsummonObject(uint8 effIndex, Object* obj)
+{
+    InitEffectExecuteData(effIndex);
+    m_effectExecuteData[effIndex]->append(obj->GetNewGUID());
+}
+
+void Spell::ExecuteLogEffectResurrect(uint8 effIndex, Unit* target)
+{
+    InitEffectExecuteData(effIndex);
+    m_effectExecuteData[effIndex]->append(target->GetNewGUID());
+}
+
+void Spell::CleanupEffectExecuteData()
+{
+    for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
+        m_effectExecuteData[i] = NULL;
 }

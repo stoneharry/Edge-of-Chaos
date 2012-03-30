@@ -279,8 +279,8 @@ void Vehicle::EjectPassenger( Unit *passenger ){
 }
 
 void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
-	if( !seats[ seatid ]->Usable() )
-		return;
+	//if( !seats[ seatid ]->Usable() )
+		//return;
 
 	if( !seats[ seatid ]->HasPassenger() )
 		return;

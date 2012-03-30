@@ -521,7 +521,7 @@ bool World::SetInitialWorldSettings()
 		Log.Notice("World", "Loading loot in foreground...");
 		lootmgr.LoadLoot();
 	}
-	objmgr.LoadSpellLinked()
+	objmgr.LoadSpellLinked();
 	Channel::LoadConfSettings();
 	Log.Success("BattlegroundManager", "Starting...");
 	new CBattlegroundManager;

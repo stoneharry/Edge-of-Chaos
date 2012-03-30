@@ -375,6 +375,7 @@ void ObjectMgr::RenamePlayerInfo(PlayerInfo* pn, const char* oldname, const char
 	if(itr != m_playersInfoByName.end() && itr->second == pn)
 	{
 		string newn = string(newname);
+		pn->name = strdup(newn.c_str());
 		arcemu_TOLOWER(newn);
 		m_playersInfoByName.erase(itr);
 		m_playersInfoByName[newn] = pn;

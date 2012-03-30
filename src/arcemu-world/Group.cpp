@@ -341,6 +341,7 @@ void Group::Update()
 	}
 
 	m_groupLock.Release();
+	SyncFactions();
 }
 
 void Group::Disband()
@@ -396,7 +397,6 @@ void SubGroup::Disband()
 					(*itr)->m_loggedInPlayer->GetSession()->SendPacket(&data2);
 					(*itr)->m_loggedInPlayer->GetSession()->SendPacket(&data);
 					(*itr)->m_Group->SendNullUpdate((*itr)->m_loggedInPlayer);   // cebernic: panel refresh.
-
 				}
 			}
 
@@ -1367,8 +1367,8 @@ void Group::Teleport(uint32 map, uint32 instanceid, float x, float y, float z, f
 	uint32 i = 0;
 	SubGroup* sg1 = NULL;
 	SubGroup* sg2 = NULL;
-	m_groupLock.Acquire();
 	Player * member = NULL;
+	m_groupLock.Acquire();
 	for(i = 0; i < m_SubGroupCount; i++)
 	{
 		sg1 = m_SubGroups[i];
@@ -1435,4 +1435,47 @@ void Group::GoOffline(Player * p)
 		}
 		m_groupLock.Release();
 	}
+}
+
+void Group::SyncFactions()
+{
+	uint32 faction = 5;
+	uint32 team = TEAM_HORDE;
+	if(m_Leader != NULL && m_Leader->m_loggedInPlayer)
+	{
+		Player * lead = m_Leader->m_loggedInPlayer;
+		if(lead->GetTeam() != TEAM_HORDE)
+		{
+			faction = 1;
+			team = TEAM_ALLIANCE;
+		}
+	}
+
+	uint32 i = 0;
+	SubGroup* sg1 = NULL;
+	m_groupLock.Acquire();
+
+	for(i = 0; i < m_SubGroupCount; i++)
+	{
+		sg1 = m_SubGroups[i];
+
+		if(sg1 != NULL)
+		{
+			for(GroupMembersSet::iterator itr = sg1->GetGroupMembersBegin(); itr != sg1->GetGroupMembersEnd(); ++itr)
+			{
+				if((*itr) == NULL)
+					continue;
+
+				if((*itr)->m_loggedInPlayer == NULL)
+					continue;
+				Player * mem = (*itr)->m_loggedInPlayer;
+				if(mem->getLevel() >= 19)
+				{
+					mem->SetTeam(team);
+					mem->SetFaction(faction);
+				}
+			}
+		}
+	}
+	m_groupLock.Release();
 }

@@ -173,7 +173,7 @@ bool MoonScriptCreatureAI::GetCanEnterCombat()
 
 void MoonScriptCreatureAI::SetCanEnterCombat(bool pCanEnterCombat)
 {
-	_unit->SetUInt64Value(UNIT_FIELD_FLAGS, ( pCanEnterCombat ) ? 0 : UNIT_FLAG_NOT_ATTACKABLE_9);
+	_unit->SetUInt32Value(UNIT_FIELD_FLAGS, ( pCanEnterCombat ) ? 0 : UNIT_FLAG_NOT_ATTACKABLE_9);
 	_unit->GetAIInterface()->SetAllowedToEnterCombat(pCanEnterCombat);
 }
 

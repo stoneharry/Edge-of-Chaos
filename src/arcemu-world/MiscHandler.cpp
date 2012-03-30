@@ -679,7 +679,7 @@ void WorldSession::HandleWhoOpcode(WorldPacket & recv_data)
 		plr = itr->second;
 		++itr;
 
-		if(!plr->GetSession() || !plr->IsInWorld())
+		if(!plr->GetSession() || !plr->IsInWorld() || plr->m_isGmInvisible && !HasPermissions())
 			continue;
 
 		if(!sWorld.show_gm_in_who_list && !HasGMPermissions())
@@ -1036,7 +1036,7 @@ void WorldSession::HandleResurrectResponseOpcode(WorldPacket & recv_data)
 	recv_data >> status;
 
 	// need to check guid
-	Player* pl = _player->GetMapMgr()->GetPlayer((uint32)guid);
+	Object* pl = _player->GetMapMgr()->_GetObject(guid);
 	if(pl == NULL)
 		pl = objmgr.GetPlayer((uint32)guid);
 

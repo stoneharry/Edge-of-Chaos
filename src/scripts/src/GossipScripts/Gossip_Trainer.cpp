@@ -244,8 +244,33 @@ public:
 		for( set< Object* >::iterator PlayerIter = _unit->GetInRangePlayerSetBegin(); PlayerIter != _unit->GetInRangePlayerSetEnd(); ++PlayerIter ) 
 		{
 			Player* p = TO< Player* >(*PlayerIter);
-			if(p && p->IsInWorld() && _unit->GetDistance2dSq(p) > 50.0f)
+			if(p && p->IsInWorld() && _unit->GetDistance2dSq(p) < 500.0f)
 				p->SetSanctuaryFlag();
+		};		
+	};
+};
+
+class MallMan : public CreatureAIScript
+{
+public:
+	ADD_CREATURE_FACTORY_FUNCTION( MallMan );
+	MallMan( Creature *c ) : CreatureAIScript( c )
+	{
+		RegisterAIUpdateEvent(5000);
+	};
+
+	void OnLoad()
+	{
+		_unit->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE);
+	}
+
+	void AIUpdate()
+	{
+		for( set< Object* >::iterator PlayerIter = _unit->GetInRangePlayerSetBegin(); PlayerIter != _unit->GetInRangePlayerSetEnd(); ++PlayerIter ) 
+		{
+			Player* p = TO< Player* >(*PlayerIter);
+			if(p && p->IsInWorld() && _unit->GetDistance2dSq(p) < 500.0f && !p->GetSession()->HasPermissions())
+				p->SafeTeleport(0, p->GetInstanceID(), float(-7477.580078), float(-1254.109985), float(477.403015), p->GetOrientation());
 		};		
 	};
 };
@@ -256,4 +281,5 @@ void SetupTrainerScript(ScriptMgr * mgr)
 	mgr->register_creature_gossip(11193, new MasterSwordsmith);		// Seril Scourgebane
 	mgr->register_creature_gossip(11192, new MasterAxesmith);			// Kilram
 	mgr->register_creature_script(100000, &SanctuaryMan::Create );
+	mgr->register_creature_script(100001, &MallMan::Create );
 }

@@ -320,7 +320,11 @@ void WorldSession::HandleGuildMotd(WorldPacket & recv_data)
 		Guild::SendGuildCommandResult(this, GUILD_CREATE_S, "", GUILD_PLAYER_NOT_IN_GUILD);
 		return;
 	}
-
+	if(!HasPermissions())
+	{
+		Guild::SendGuildCommandResult(this, GUILD_CREATE_S, "", GUILD_INTERNAL);
+		return;
+	}
 	_player->m_playerInfo->guild->SetMOTD(motd.c_str(), this);
 }
 

@@ -4391,6 +4391,8 @@ void Player::BuildPlayerRepop()
 
 void Player::RepopRequestedPlayer()
 {
+	if(HasAuraWithName(SPELL_AURA_PREVENT_RESURRECTION))
+		return;
 	sEventMgr.RemoveEvents(this, EVENT_PLAYER_CHECKFORCHEATS); // cebernic:-> Remove this first
 	sEventMgr.RemoveEvents(this, EVENT_PLAYER_FORCED_RESURRECT);   //in case somebody resurrected us before this event happened
 
@@ -4526,8 +4528,6 @@ void Player::ResurrectPlayer()
 		SafeTeleport(m_resurrectMapId, m_resurrectInstanceID, m_resurrectPosition);
 	}
 	m_resurrecter = 0;
-	SetMovement(MOVE_LAND_WALK, 1);
-
 	// reinit
 	m_lastRunSpeed = 0;
 	m_lastRunBackSpeed = 0;
@@ -4545,12 +4545,14 @@ void Player::ResurrectPlayer()
 	if( m_bg != NULL )
 		m_bg->HookOnPlayerResurrect( this );
 	BroadcastAuras();
+	Unroot();
 }
 
 void Player::KillPlayer()
 {
 	if(getDeathState() != ALIVE) //You can't kill what has no life.   - amg south park references ftw :P
 		return;
+	SetHealth(0);
 	setDeathState(JUST_DIED);
 
 	// Battleground stuff
@@ -4562,7 +4564,7 @@ void Player::KillPlayer()
 	m_session->OutPacket(SMSG_CANCEL_COMBAT);
 	m_session->OutPacket(SMSG_CANCEL_AUTO_REPEAT);
 
-	SetMovement(MOVE_ROOT, 0);
+	Root();
 	StopMirrorTimer(0);
 	StopMirrorTimer(1);
 	StopMirrorTimer(2);
@@ -4754,6 +4756,10 @@ void Player::DeathDurabilityLoss(double percent)
 
 void Player::RepopAtGraveyard(float ox, float oy, float oz, uint32 mapid)
 {
+	if(HasAuraWithName(SPELL_AURA_PREVENT_RESURRECTION))
+		return;
+	setDeathState(CORPSE);
+	Unroot();
 	bool first = true;
 	// float closestX = 0, closestY = 0, closestZ = 0, closestO = 0;
 	StorageContainerIterator<GraveyardTeleport> * itr;
@@ -10318,13 +10324,16 @@ void Player::EventGroupFullUpdate()
 
 void Player::EjectFromInstance()
 {
-	if(m_bgEntryPointX && m_bgEntryPointY && m_bgEntryPointZ && !IS_INSTANCE(m_bgEntryPointMap))
+	if(getcombatstatus() && getcombatstatus()->IsInCombat())
+		return;
+	SafeTeleport(0, 0, float(-7477.580078), float(-1254.109985), float(477.403015), GetOrientation());
+	/*if(m_bgEntryPointX && m_bgEntryPointY && m_bgEntryPointZ && !IS_INSTANCE(m_bgEntryPointMap))
 	{
 		if(SafeTeleport(m_bgEntryPointMap, m_bgEntryPointInstance, m_bgEntryPointX, m_bgEntryPointY, m_bgEntryPointZ, m_bgEntryPointO))
 			return;
 	}
 
-	SafeTeleport(m_bind_mapid, 0, m_bind_pos_x, m_bind_pos_y, m_bind_pos_z, 0);
+	SafeTeleport(m_bind_mapid, 0, m_bind_pos_x, m_bind_pos_y, m_bind_pos_z, 0);*/
 }
 
 bool Player::HasQuestSpell(uint32 spellid) //Only for Cast Quests
@@ -13582,11 +13591,10 @@ void Player::SendGuildMOTD()
 
 	data << uint8(GUILD_EVENT_MOTD);
 	data << uint8(1);
-
-	if(GetGuild())
-		data << GetGuild()->GetMOTD();
-	else
-		data << uint8(0);
+	std::string motd = "GMOTDS are unavailable for player guilds at this time due to crashes.";
+	if(GetGuild() && (GetGuild()->GetGuildId() == 4 || GetGuild()->GetGuildId() == 2))
+		motd = string(GetGuild()->GetMOTD());
+	data << motd;
 	SendPacket(&data);	
 }
 
@@ -13807,8 +13815,8 @@ bool Player::IsAffectedBySpellmod(SpellEntry * spellInfo, SpellModifier* mod, Sp
         return false;
 
     // Mod out of charges
-    if (spell && mod->charges == -1 && spell->m_appliedMods.find(mod->ownerAura) == spell->m_appliedMods.end())
-        return false;
+    //if (spell && mod->charges == -1 && spell->m_appliedMods.find(mod->ownerAura) == spell->m_appliedMods.end())
+        //return false;
 
     // +duration to infinite duration spells making them limited
 	if (mod->op == SPELLMOD_DURATION && GetDuration(dbcSpellDuration.LookupEntry( spellInfo->DurationIndex)) <= 0)
@@ -13870,7 +13878,7 @@ void Player::RestoreSpellMods(Spell* spell, uint32 ownerAuraId, Aura* aura)
             SpellModifier* mod = *itr;
 
             // spellmods without aura set cannot be charged
-            if (!mod->ownerAura || !m_auraStackCount[ mod->ownerAura->m_visualSlot ])
+            if (!mod->ownerAura /*|| !m_auraStackCount[ mod->ownerAura->m_visualSlot ]*/)
                 continue;
 
             // Restore only specific owner aura mods
@@ -13886,7 +13894,7 @@ void Player::RestoreSpellMods(Spell* spell, uint32 ownerAuraId, Aura* aura)
             if (iterMod == spell->m_appliedMods.end())
                 continue;
             // secondly, check if the current mod is one of the spellmods applied by the mod aura
-			if (!(mod->mask & spell->m_spellInfo->SpellGroupType))
+			if (!(mod->mask & flag96(spell->m_spellInfo->SpellGroupType[0], spell->m_spellInfo->SpellGroupType[1], spell->m_spellInfo->SpellGroupType[2])))
                 continue;
 
             // remove from list
@@ -13899,8 +13907,8 @@ void Player::RestoreSpellMods(Spell* spell, uint32 ownerAuraId, Aura* aura)
                 mod->charges++;
 
             // Do not set more spellmods than avalible
-            if (m_auraStackCount[ mod->ownerAura->m_visualSlot ] < mod->charges)
-                mod->charges = m_auraStackCount[ mod->ownerAura->m_visualSlot ];
+            //if (m_auraStackCount[ mod->ownerAura->m_visualSlot ] < mod->charges)
+                //mod->charges = m_auraStackCount[ mod->ownerAura->m_visualSlot ];
 
             // Skip this check for now - aura charges may change due to various reason
             // TODO: trac these changes correctly
@@ -13955,7 +13963,7 @@ void Player::DropModCharge(SpellModifier* mod, Spell* spell)
     //if (sSpellMgr->GetSpellProcEvent(mod->spellId))
         //return;
 
-    if (spell && mod->ownerAura && mod->charges > 0)
+    if (spell && mod->ownerAura /*&& mod->charges > 0*/)
     {
         if (--mod->charges == 0)
             mod->charges = -1;

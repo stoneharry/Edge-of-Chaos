@@ -264,6 +264,7 @@ class SERVER_DECL ChatHandler : public Singleton<ChatHandler>
 		bool HandleStartTaxiCommand(const char *args, WorldSession *m_session);
 		bool HandleTaxiCheatCommand(const char* args, WorldSession* m_session);
 		bool HandleModifySpeedCommand(const char* args, WorldSession* m_session);
+		bool HandleModifyLanguageCommand(const char* args, WorldSession* m_session);
 		bool HandleModifyTPsCommand(const char* args, WorldSession* m_session);
 		bool HandleCameraShakeCommand(const char *args, WorldSession *m_session);
 		bool HandleLightOverrideCommand(const char *args, WorldSession *m_session);
@@ -466,6 +467,7 @@ class SERVER_DECL ChatHandler : public Singleton<ChatHandler>
 		bool HandleGORebuildCommand( const char *args, WorldSession *session );
 		bool HandleGOExport(const char* args, WorldSession* m_session);
 		bool HandleRemoveAurasCommand(const char* args, WorldSession* m_session);
+		bool HandleAddAuraCommand(const char* args, WorldSession* m_session);
 		bool HandleCastCommand(const char* args, WorldSession* m_session);
 		bool HandleCastBackCommand(const char* args, WorldSession* m_session);
 		bool HandleCastAOECommand(const char* args, WorldSession* m_session);

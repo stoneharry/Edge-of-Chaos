@@ -1049,11 +1049,11 @@ bool ChatHandler::HandleRenameCommand(const char* args, WorldSession* m_session)
 	if(sscanf(args, "%s %s", name1, name2) != 2)
 		return false;
 
-	if(VerifyName(name2, strlen(name2)) != E_CHAR_NAME_SUCCESS)
+	/*if(VerifyName(name2, strlen(name2)) != E_CHAR_NAME_SUCCESS)
 	{
 		RedSystemMessage(m_session, "That name is invalid or contains invalid characters.");
 		return true;
-	}
+	}*/
 
 	string new_name = name2;
 	PlayerInfo* pi = objmgr.GetPlayerInfoByName(name1);
@@ -1141,6 +1141,7 @@ void WorldSession::HandleCharCustomizeLooksOpcode(WorldPacket& recv_data)
 	CharacterDatabase.WaitExecute("UPDATE `characters` SET login_flags = %u WHERE guid = '%u'", (uint32)LOGIN_NO_FLAG, (uint32)guid);
 	
 	Player::CharChange_Looks(guid, gender, skin, face, hairStyle, hairColor, facialHair);    
+	objmgr.RenamePlayerInfo(info, info->name, newname.c_str());
 
     WorldPacket data(SMSG_CHAR_CUSTOMIZE, 1+8+(newname.size()+1)+6);
     data << uint8(E_RESPONSE_SUCCESS);

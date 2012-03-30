@@ -119,10 +119,10 @@ namespace VMAP
 	StaticMapTree::StaticMapTree(G3D::uint32 mapID, const std::string & basePath):
 		iMapID(mapID), iTreeValues(0), iBasePath(basePath)
 	{
-		if(iBasePath.length() > 0 && (iBasePath[iBasePath.length() - 1] != '/' || iBasePath[iBasePath.length() - 1] != '\\'))
-		{
-			iBasePath.append("/");
-		}
+        if (iBasePath.length() > 0 && iBasePath[iBasePath.length()-1] != '/' && iBasePath[iBasePath.length()-1] != '\\')
+        {
+            iBasePath.push_back('/');
+        }
 	}
 
 	//=========================================================

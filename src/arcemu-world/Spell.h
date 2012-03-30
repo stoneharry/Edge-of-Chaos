@@ -1626,10 +1626,11 @@ class SERVER_DECL Spell : public EventableObject
 		ARCEMU_INLINE void SetUnitTarget(Unit* punit) {unitTarget = punit;}
 
 		// Send Packet functions
+		void SendCustomError(uint32 message);
 		void SendCastResult(uint8 result, uint32 custommessage = 0);
 		void SendSpellStart();
 		void SendSpellGo();
-		void SendLogExecute(uint32 damage, uint64 & targetGuid);
+		void SendLogExecute();
 		void SendInterrupted(uint8 result);
 		void SendChannelUpdate(uint32 time);
 		void SendChannelStart(uint32 duration);
@@ -1655,7 +1656,7 @@ class SERVER_DECL Spell : public EventableObject
 		void SpellEffectNULL(uint32 i);
 		void SpellEffectInstantKill(uint32 i);
 		void SpellEffectSchoolDMG(uint32 i);
-		void SpellEffectDummy(uint32 i);
+		virtual void SpellEffectDummy(uint32 i);
 		void SpellEffectTeleportUnits(uint32 i);
 		void SpellEffectApplyAura(uint32 i);
 		void SpellEffectEnvironmentalDamage(uint32 i);
@@ -2072,6 +2073,8 @@ class SERVER_DECL Spell : public EventableObject
 		bool        m_cancelled;
 		bool		m_isCasting;
 		uint8		m_rune_avail_before;
+		ByteBuffer * m_effectExecuteData[MAX_SPELL_EFFECTS];
+		
 		//void _DamageRangeUpdate();
 
 		ARCEMU_INLINE bool HasTarget(const uint64 & guid, TargetsList* tmpMap)
@@ -2091,10 +2094,10 @@ class SERVER_DECL Spell : public EventableObject
 
 		SpellTargetConstraint* m_target_constraint;
 
-		virtual int32 DoCalculateEffect(uint32 i, Unit* target, int32 value);
 		virtual void DoAfterHandleEffect(Unit* target, uint32 i) {}
 
 	public: //Modified by LUAppArc private->public
+		virtual int32 DoCalculateEffect(uint32 i, Unit* target, int32 value);
 		float m_missilePitch;
 		uint32 m_missileTravelTime;
 
@@ -2116,6 +2119,18 @@ class SERVER_DECL Spell : public EventableObject
 		void AddChainTargets(uint32 i, uint32 TargetType, float r, uint32 maxtargets);
 		void AddConeTargets(uint32 i, uint32 TargetType, float r, uint32 maxtargets);
 		void AddScriptedOrSpellFocusTargets(uint32 i, uint32 TargetType, float r, uint32 maxtargets);
+		void InitEffectExecuteData(uint8 effIndex);
+		void CleanupEffectExecuteData();
+        void ExecuteLogEffectTakeTargetPower(uint8 effIndex, Unit* target, uint32 powerType, uint32 powerTaken, float gainMultiplier);
+        void ExecuteLogEffectExtraAttacks(uint8 effIndex, uint64 victim, uint32 attCount);
+        void ExecuteLogEffectInterruptCast(uint8 effIndex, Unit* victim, uint32 spellId);
+        void ExecuteLogEffectDurabilityDamage(uint8 effIndex, Unit* victim, uint32 damage);
+        void ExecuteLogEffectOpenLock(uint8 effIndex, Object* obj);
+        void ExecuteLogEffectCreateItem(uint8 effIndex, uint32 entry);
+        void ExecuteLogEffectDestroyItem(uint8 effIndex, uint32 entry);
+        void ExecuteLogEffectSummonObject(uint8 effIndex, Object* obj);
+        void ExecuteLogEffectUnsummonObject(uint8 effIndex, Object* obj);
+        void ExecuteLogEffectResurrect(uint8 effIndex, Unit* target);
 
 	public:
 		SpellEntry* m_spellInfo;

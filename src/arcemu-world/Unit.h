@@ -1181,7 +1181,7 @@ class SERVER_DECL Unit : public Object
 		uint32 GetAuraCountWithDispelType(uint32 dispel_type, uint64 guid);
 		Aura * GetAuraWithSlot(uint32 slot);
 		void AddAura(Aura* aur);
-		void AddAura(Object * caster, uint32 aur);
+		void AddAura(Object * caster, uint32 aur, uint32 dur = 0);
 		bool RemoveAura(Aura* aur);
 		bool RemoveAura(uint32 spellId);
 		bool RemoveAura(uint32 spellId, uint64 guid);
@@ -1313,7 +1313,8 @@ class SERVER_DECL Unit : public Object
 
 		//caller is the caster
 		int32 GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dmg, bool isdot);
-		int32 GetSpellDamage(SpellEntry* spellInfo, uint32 i, int32 base_dmg);
+		int32 GetSpellDmgAPBonus(SpellEntry*spellInfo, bool isdot);
+		int32 GetSpellDamage(Spell * s, Unit * target, uint32 i, int32 base_dmg);
 		float ApplyEffectModifiers(SpellEntry * sp, uint8 effect_index, float value);
 		uint32 m_addDmgOnce;
 		uint32 m_ObjectSlots[4];

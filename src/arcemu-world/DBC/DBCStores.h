@@ -751,8 +751,7 @@ struct SpellEntry
 	uint32 StartRecoveryTime;                                 //207
 	uint32 MaxTargetLevel;                                    //208
 	uint32 SpellFamilyName;                                   //209
-	//uint32 SpellGroupType[ MAX_SPELL_EFFECTS ];             //210-212
-	flag96 SpellGroupType;									  //210-212
+	uint32 SpellGroupType[MAX_SPELL_EFFECTS];				  //210-212
 	uint32 MaxTargets;                                        //213
 	uint32 Spell_Dmg_Type;                                    //214 dmg_class Integer 0=None, 1=Magic, 2=Melee, 3=Ranged
 	uint32 PreventionType;                                    //215 0,1,2 related to Spell_Dmg_Type I think
@@ -2005,7 +2004,7 @@ ARCEMU_INLINE bool IsAffectedBySpellMod(SpellEntry *sp, SpellEntry * sp2, flag96
 	if (!sp2|| sp2->SpellFamilyName != sp->SpellFamilyName)
 		return false;
 	// true
-	if (mask & sp->SpellGroupType)
+	if (mask & flag96(sp->SpellGroupType[0], sp->SpellGroupType[1], sp->SpellGroupType[2]))
 		return true;
 	return false;
 }

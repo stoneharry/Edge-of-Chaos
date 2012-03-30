@@ -160,14 +160,14 @@ void SetupShamanSpells(ScriptMgr * mgr)
 	mgr->register_dummy_aura( earthshielddummyauraids, &EarthShieldDummyAura );
 
 	mgr->register_dummy_aura( 20608, &Reincarnation );
-
+	/*
 	uint32 WeaponSpellIds[] = {
 		8034,
 		10444,
 		0
 	};
 
-	mgr->register_dummy_spell( WeaponSpellIds, &WeaponEffects );
+	mgr->register_dummy_spell( WeaponSpellIds, &WeaponEffects );*/
 
 	mgr->register_dummy_spell( 26545, &ShieldNerf );
 }
