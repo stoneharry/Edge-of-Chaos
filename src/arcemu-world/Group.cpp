@@ -742,7 +742,7 @@ void Group::LoadFromDB(Field* fields)
 	m_updateblock = true;
 	m_Id = fields[0].GetUInt32();
 
-	ObjectMgr::getSingleton().AddGroup(this);
+	objmgr.AddGroup(this);
 
 	m_GroupType = fields[1].GetUInt8();
 	m_SubGroupCount = fields[2].GetUInt8();
@@ -883,8 +883,8 @@ void Group::SaveToDB()
 void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket* Packet)
 {
 	uint32 mask = pPlayer->GetGroupUpdateFlags();
-	if( pPlayer->GetCurrentVehicle() != NULL && !(mask & GROUP_UPDATE_FLAG_VEHICLE_SEAT))
-		mask |= GROUP_UPDATE_FLAG_VEHICLE_SEAT;
+	//if( pPlayer->GetCurrentVehicle() != NULL && !(mask & GROUP_UPDATE_FLAG_VEHICLE_SEAT))
+		//mask |= GROUP_UPDATE_FLAG_VEHICLE_SEAT;
    if (mask & GROUP_UPDATE_FLAG_POWER_TYPE)                // if update power type, update current/max power also
         mask |= (GROUP_UPDATE_FLAG_CUR_POWER | GROUP_UPDATE_FLAG_MAX_POWER);
 

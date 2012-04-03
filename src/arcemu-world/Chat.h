@@ -646,6 +646,7 @@ class SERVER_DECL ChatHandler : public Singleton<ChatHandler>
 		bool HandleGroupRemoveMemberCommand( const char *args, WorldSession *session );
 		bool HandleGroupDisbandCommand( const char *args, WorldSession *session );
 		bool HandleGroupTeleportCommand( const char *args, WorldSession *session );
+		bool HandleGroupConvertToLfgCommand( const char *args, WorldSession *session );
 };
 
 

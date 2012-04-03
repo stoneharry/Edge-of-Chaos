@@ -1125,6 +1125,7 @@ void AIInterface::HealReaction(Unit* caster, Unit* victim, SpellEntry* sp, uint3
 
 void AIInterface::OnDeath(Object* pKiller)
 {
+	StopMovement(0);
 	SendClearThreatListOpcode();
 	if(pKiller->IsUnit())
 		HandleEvent(EVENT_UNITDIED, TO< Unit* >(pKiller), 0);
@@ -1228,7 +1229,7 @@ Unit* AIInterface::FindTarget()
 				continue;
 			if(tmpPlr->m_invisible)
 				continue;
-			if(!tmpPlr->HasFlag(PLAYER_FLAGS, PLAYER_FLAG_UNKNOWN2))    //PvP Guard Attackable.
+			if(!tmpPlr->HasFlag(PLAYER_FLAGS, PLAYER_FLAG_CONTESTED_PVP))    //PvP Guard Attackable.
 				continue;
 			if(!(tmpPlr->m_phase & m_Unit->m_phase))   //Not in the same phase, skip this target
 				continue;
@@ -3716,7 +3717,7 @@ bool AIInterface::Move(float & x, float & y, float & z, float o /*= 0*/)
 
 	//Add new points
 #ifdef TEST_PATHFINDING
-	if(!Flying())
+	if(!Flying() && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
 	{
 		if(!CreatePath(x, y, z))
 		{
@@ -4595,13 +4596,11 @@ void AIInterface::MoveJump(float x, float y, float z, float o /*= 0*/, bool huge
 
 	m_splinetrajectoryTime = 0;
 	if(hugearc)
-		m_splinetrajectoryVertical = 150; //WEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+		m_splinetrajectoryVertical = 250; //WEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 	else
 		m_splinetrajectoryVertical = 5;
 
 	SetRun();
-	if(hugearc)
-		m_runSpeed = 2;
 	m_runSpeed *= 3;
 
 	AddSpline(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ());
@@ -4640,7 +4639,7 @@ bool AIInterface::MoveCharge(float x, float y, float z)
 	m_runSpeed *= 3.5f;
 
 #ifdef TEST_PATHFINDING
-	if(!Flying())
+	if(!Flying() && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
 	{
 		if(!CreatePath(x, y, z))
 		{

@@ -167,10 +167,10 @@ pSpellEffect SpellEffectsHandler[TOTAL_SPELL_EFFECTS] =
 	&Spell::SpellEffectTriggerSpellWithValue,	//SPELL_EFFECT_TRIGGER_SPELL_WITH_VALUE - 142 // triggers some kind of "Put spell on target" thing... (dono for sure) http://www.thottbot.com/s40872 and http://www.thottbot.com/s33076
 	&Spell::SpellEffectApplyOwnerAA,			// Apply Aura on summon owner - 143 // Master -> demon effecting spell, http://www.thottbot.com/s25228 and http://www.thottbot.com/s35696
 	&Spell::SpellEffectNULL,					// unknown - 144
-	&Spell::SpellEffectJumpTarget,				// - 145
+	&Spell::SpellEffectPlayerPull,				// - 145
 	&Spell::SpellEffectActivateRunes,			// Activate Rune - 146
 	&Spell::SpellEffectNULL,					// Quest Fail - 147
-	&Spell::SpellEffectNULL,					// unknown - 148
+	&Spell::SpellEffectTriggerMissileWithValue,	// unknown - 148
 	&Spell::SpellEffectNULL,					// unknown - 149
 	&Spell::SpellEffectNULL,					// unknown - 150
 	&Spell::SpellEffectTriggerSpell,			// SPELL_EFFECT_TRIGGER_SPELL_2 - 151
@@ -2524,6 +2524,28 @@ void Spell::SpellEffectTriggerMissile(uint32 i) // Trigger Missile
 	}
 }
 
+void Spell::SpellEffectTriggerMissileWithValue(uint32 i) // Trigger Missile
+{
+	if(u_caster == NULL)
+		return;
+	uint32 spellid = GetProto()->EffectTriggerSpell[i];
+	if(spellid == 0)
+	{
+		LOG_ERROR("Spell %u ( %s ) has a trigger missle effect ( %u ) but no trigger spell ID. Spell needs fixing.", m_spellInfo->Id, m_spellInfo->Name, i);
+		return;
+	}
+
+	SpellEntry* spInfo = dbcSpell.LookupEntryForced(spellid);
+	if(spInfo == NULL)
+	{
+		LOG_ERROR("Spell %u ( %s ) has a trigger missle effect ( %u ) but has an invalid trigger spell ID. Spell needs fixing.", m_spellInfo->Id, m_spellInfo->Name, i);
+		return;
+	}
+	if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+		u_caster->CastSpellAoF(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, spInfo, true, damage, damage, damage);
+	else if(unitTarget)
+		u_caster->CastSpellAoF(unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), spInfo, true, damage, damage, damage);
+}
 void Spell::SpellEffectOpenLock(uint32 i) // Open Lock
 {
 	if(!p_caster) return;
@@ -4935,8 +4957,7 @@ void Spell::SpellEffectPlayerPull(uint32 i)
 			z = m_targets.m_destZ;
 		}
 
-		if(unitTarget->GetAIInterface() != NULL)
-			unitTarget->GetAIInterface()->MoveJump(x, y, z);
+		unitTarget->GetAIInterface()->MoveJump(x, y, z);
 	}
 }
 

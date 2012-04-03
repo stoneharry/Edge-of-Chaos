@@ -536,6 +536,14 @@ void WorldSession::InitPacketHandlerTable()
 	    &WorldSession::HandleCharRenameOpcode;
 	WorldPacketHandlers[CMSG_CHAR_RENAME].status = STATUS_AUTHED;
 
+	WorldPacketHandlers[CMSG_CHAR_FACTION_CHANGE].handler = 
+		&WorldSession::HandleCharFactionOrRaceChange;
+	WorldPacketHandlers[CMSG_CHAR_FACTION_CHANGE].status = STATUS_AUTHED;
+
+	WorldPacketHandlers[CMSG_CHAR_RACE_CHANGE].handler = 
+		&WorldSession::HandleCharFactionOrRaceChange;
+	WorldPacketHandlers[CMSG_CHAR_RACE_CHANGE].status = STATUS_AUTHED;
+
 	WorldPacketHandlers[CMSG_CHAR_CUSTOMIZE].handler = 
 		&WorldSession::HandleCharCustomizeLooksOpcode;
 	WorldPacketHandlers[CMSG_CHAR_CUSTOMIZE].status = STATUS_AUTHED;

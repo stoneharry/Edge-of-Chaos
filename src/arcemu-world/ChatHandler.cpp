@@ -108,10 +108,10 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 
 	if(m_muted && m_muted >= (uint32)UNIXTIME)
 	{
-		SystemMessage("Yo dawg, I heard you are muted.");
+		SystemMessage("You are muted, if you wish to appeal this mute make a ticket.");
+		recv_data.rfinish();
 		return;
 	}
-
 	std::string msg, to = "", channel = "", tmp;
 	msg.reserve(256);
 
@@ -159,6 +159,18 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			break;
 		default:
 			LOG_ERROR("CHAT: unknown msg type %u, lang: %u", type, lang);
+	}
+	if(lang != -1)
+	{
+		if(_player->lastchattime == 0)
+			_player->lastchattime = getMSTime() + (MINUTE*IN_MILLISECONDS);
+		_player->numberofchats++;
+		if(_player->numberofchats >= 30)
+		{
+			m_muted = uint32(UNIXTIME+WEEK*IN_MILLISECONDS);
+			SystemMessage("You have been muted for spamming, if you wish to appeal this make a ticket.");
+			return;
+		}
 	}
 
 

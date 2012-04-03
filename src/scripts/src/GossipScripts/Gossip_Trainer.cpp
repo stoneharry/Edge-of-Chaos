@@ -269,8 +269,18 @@ public:
 		for( set< Object* >::iterator PlayerIter = _unit->GetInRangePlayerSetBegin(); PlayerIter != _unit->GetInRangePlayerSetEnd(); ++PlayerIter ) 
 		{
 			Player* p = TO< Player* >(*PlayerIter);
-			if(p && p->IsInWorld() && _unit->GetDistance2dSq(p) < 500.0f && !p->GetSession()->HasPermissions())
-				p->SafeTeleport(0, p->GetInstanceID(), float(-7477.580078), float(-1254.109985), float(477.403015), p->GetOrientation());
+			if(!p || p->GetSession()->HasPermissions() || !p->IsInWorld())
+				continue;
+			if(_unit->GetDistance2dSq(p) < 500.0f)
+			{
+				//Log ports to see if a player goes to an area they are not suppose to be in.
+				AreaTable* at = p->GetMapMgr()->GetArea(p->GetPositionX(), p->GetPositionY(), p->GetPositionZ()); //Lets get our exact area id from our position
+				if(at)
+					CharacterDatabase.Execute("INSERT INTO `port_logs` (`Data`) VALUES ('Ported %s from area id %u (%s).')", p->GetName(), at->AreaId, at->name);
+				else
+					CharacterDatabase.Execute("INSERT INTO `port_logs` (`Data`) VALUES ('Ported %s from position %u %f %f %f')", p->GetName(), p->GetMapId(), p->GetPositionX(), p->GetPositionY(), p->GetPositionZ());
+				p->EjectFromInstance(); //teleports to mall if 19, or starting area if not 19.
+			}
 		};		
 	};
 };

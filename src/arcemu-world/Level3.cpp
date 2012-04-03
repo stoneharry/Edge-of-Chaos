@@ -509,7 +509,7 @@ bool ChatHandler::HandleBanCharacterCommand(const char* args, WorldSession* m_se
 	sGMLog.writefromsession(m_session, "banned %s, reason %s, for %s", pCharacter, (pReason == NULL) ? "No reason" : pReason, BanTime ? ConvertTimeStampToString(BanTime).c_str() : "ever");
 	char msg[200];
 	snprintf(msg, 200, "%sGM: %s has been banned by %s for %s. Reason: %s", MSG_COLOR_RED, pCharacter, m_session->GetPlayer()->GetName(), BanTime ? ConvertTimeStampToString(BanTime).c_str() : "ever", (pReason == NULL) ? "No reason." : pReason);
-	sWorld.SendWorldText(msg, NULL);
+	sWorld.SendGMWorldText(msg, NULL);
 	if(sWorld.m_banTable && pInfo)
 	{
 		CharacterDatabase.Execute("INSERT INTO %s VALUES('%s', '%s', %u, %u, '%s')", sWorld.m_banTable, m_session->GetPlayer()->GetName(), pInfo->name, (uint32)UNIXTIME, (uint32)UNIXTIME + BanTime, (pReason == NULL) ? "No reason." : CharacterDatabase.EscapeString(string(pReason)).c_str());
@@ -3110,31 +3110,37 @@ bool ChatHandler::HandleForceRenameCommand(const char* args, WorldSession* m_ses
 
 bool ChatHandler::HandleCustomizeCommand(const char* args, WorldSession* m_session)
 {
-	// prevent buffer overflow
-	if(strlen(args) > 100)
+	uint32 customtype = 0;
+	Player * p = getSelectedChar(m_session, false);
+	if(sscanf(args, "%u", &customtype) != 1)
 		return false;
-	string tmp = string(args);
-	PlayerInfo* pi = objmgr.GetPlayerInfoByName(tmp.c_str());
-	if(pi == 0)
-	{
-		RedSystemMessage(m_session, "Player with that name not found.");
-		return true;
-	}
 
-	Player* plr = objmgr.GetPlayer((uint32)pi->guid);
-	if(plr == 0)
+	PlayerInfo* pi = p->getPlayerInfo();
+	uint32 loginflags = 0;
+	string type = "";
+	switch (customtype)
 	{
-		CharacterDatabase.Execute("UPDATE characters SET login_flags = %u WHERE guid = %u",(uint32)LOGIN_CUSTOMIZE_LOOKS, (uint32)pi->guid);
+		case 1:
+		{
+			loginflags = LOGIN_CUSTOMIZE_FACTION;
+			type = "faction change";
+		}break;
+		case 2:
+		{
+			loginflags = LOGIN_CUSTOMIZE_RACE;
+			type = "race change";
+		}break;
+		default:
+			loginflags = LOGIN_CUSTOMIZE_LOOKS;
+			type = "customization";
+			break;
 	}
-	else
-	{
-		plr->login_flags |= LOGIN_CUSTOMIZE_LOOKS;
-		plr->SaveToDB(false);
-		BlueSystemMessageToPlr(plr, "%s flagged your character for customization at next login.", m_session->GetPlayer()->GetName());
-	}
+	p->login_flags |= loginflags;
+	p->SaveToDB(false);
+	BlueSystemMessageToPlr(p, "%s flagged your character to be able to %s your character.", m_session->GetPlayer()->GetName(), type.c_str());
 
-	GreenSystemMessage(m_session, "%s flagged to customize his character next logon.", args);
-	sGMLog.writefromsession(m_session, "flagged %s for customization for charater (%u)", pi->name, pi->guid);
+	GreenSystemMessage(m_session, "%s flagged to %s.", p->GetName(), type.c_str());
+	sGMLog.writefromsession(m_session, "flagged %s for %s for character (%u)", p->GetName(), type.c_str(), pi->guid);
 	return true;
 }
 
@@ -4535,5 +4541,21 @@ bool ChatHandler::HandleGroupTeleportCommand(const char* args, WorldSession* m_s
 	}
 	Player * p = m_session->GetPlayer();
 	grp->Teleport(p->GetMapId(), p->GetInstanceID(), p->GetPositionX(), p->GetPositionY(), p->GetPositionZ(), p->GetOrientation());
+	return true;
+}
+
+bool ChatHandler::HandleGroupConvertToLfgCommand(const char* args, WorldSession* m_session)
+{
+	Player * groupmember = getSelectedChar(m_session);
+	if(groupmember == NULL)
+		groupmember = m_session->GetPlayer();
+	
+	Group * grp = groupmember->GetGroup();
+	if(grp == NULL)
+	{
+		RedSystemMessage(m_session,"%s is not in a group", groupmember->GetName());
+		return true;
+	}
+	grp->ConvertToLFG();
 	return true;
 }

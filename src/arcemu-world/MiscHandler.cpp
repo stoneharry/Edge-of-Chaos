@@ -790,15 +790,13 @@ void WorldSession::HandleWhoOpcode(WorldPacket & recv_data)
 void WorldSession::HandleLogoutRequestOpcode(WorldPacket & recv_data)
 {
 	CHECK_INWORLD_RETURN
-
-	Player* pPlayer = GetPlayer();
 	WorldPacket data(SMSG_LOGOUT_RESPONSE, 5);
 
 	LOG_DEBUG("WORLD: Recvd CMSG_LOGOUT_REQUEST Message");
 
-	if(pPlayer)
+	if(_player)
 	{
-		if(!sHookInterface.OnLogoutRequest(pPlayer))
+		if(!sHookInterface.OnLogoutRequest(_player))
 		{
 			// Declined Logout Request
 			data << uint32(1) << uint8(0);
@@ -813,16 +811,16 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket & recv_data)
 			return;
 		}
 
-		if(pPlayer->CombatStatus.IsInCombat() ||	//can't quit still in combat
-		        pPlayer->DuelingWith != NULL)			//can't quit still dueling or attacking
+		if(_player->CombatStatus.IsInCombat() ||	//can't quit still in combat
+		        _player->DuelingWith != NULL)			//can't quit still dueling or attacking
 		{
 			data << uint32(1) << uint8(0);
 			SendPacket(&data);
 			return;
 		}
 
-		if(pPlayer->m_isResting ||	  // We are resting so log out instantly
-		        pPlayer->GetTaxiState())  // or we are on a taxi
+		if(_player->m_isResting ||	  // We are resting so log out instantly
+		        _player->GetTaxiState())  // or we are on a taxi
 		{
 			//Logout on NEXT sessionupdate to preserve processing of dead packets (all pending ones should be processed)
 			SetLogoutTimer(1);
@@ -832,15 +830,14 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket & recv_data)
 		data << uint32(0); //Filler
 		data << uint8(0); //Logout accepted
 		SendPacket(&data);
-
-		//stop player from moving
-		pPlayer->SetMovement(MOVE_ROOT, 1);
+		_player->SetMovement(MOVE_ROOT, 1);
 		LoggingOut = true;
 		// Set the "player locked" flag, to prevent movement
-		pPlayer->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
+		_player->Root();
+		_player->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
 
 		//make player sit
-		pPlayer->SetStandState(STANDSTATE_SIT);
+		_player->SetStandState(STANDSTATE_SIT);
 		SetLogoutTimer(10000);
 	}
 	/*
@@ -869,8 +866,7 @@ void WorldSession::HandleLogoutCancelOpcode(WorldPacket & recv_data)
 	CHECK_INWORLD_RETURN
 	LOG_DEBUG("WORLD: Recvd CMSG_LOGOUT_CANCEL Message");
 
-	Player* pPlayer = GetPlayer();
-	if(!pPlayer)
+	if(!_player)
 		return;
 	if(!LoggingOut)
 		return;
@@ -881,15 +877,13 @@ void WorldSession::HandleLogoutCancelOpcode(WorldPacket & recv_data)
 
 	//tell client about cancel
 	OutPacket(SMSG_LOGOUT_CANCEL_ACK);
-
-	//unroot player
-	pPlayer->SetMovement(MOVE_UNROOT, 5);
-
-	// Remove the "player locked" flag, to allow movement
-	pPlayer->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
-
+	if(!_player->HasAuraWithName(SPELL_AURA_MOD_ROOT) && !_player->HasAuraWithName(SPELL_AURA_MOD_STUN))
+	{
+		_player->Unroot();
+		_player->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
+	}
 	//make player stand
-	pPlayer->SetStandState(STANDSTATE_STAND);
+	_player->SetStandState(STANDSTATE_STAND);
 
 	LOG_DEBUG("WORLD: sent SMSG_LOGOUT_CANCEL_ACK Message");
 }

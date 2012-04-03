@@ -729,6 +729,7 @@ class SERVER_DECL WorldSession
 		//At Logins
  		void HandleCharRenameOpcode(WorldPacket & recv_data);
 		void HandleCharCustomizeLooksOpcode(WorldPacket& recv_data);
+		void HandleCharFactionOrRaceChange(WorldPacket& recv_data);
 
 		void HandlePartyMemberStatsOpcode(WorldPacket & recv_data);
 		void HandleSummonResponseOpcode(WorldPacket & recv_data);

@@ -318,8 +318,8 @@ enum PlayerFlags
     PLAYER_FLAG_DEATH_WORLD_ENABLE  = 0x10,
     PLAYER_FLAG_RESTING				= 0x20,
     PLAYER_FLAG_ADMIN				= 0x40,
-    PLAYER_FLAG_FREE_FOR_ALL_PVP	= 0x80,
-    PLAYER_FLAG_UNKNOWN2            = 0x100,
+    PLAYER_FLAG_UNK					= 0x80,
+    PLAYER_FLAG_CONTESTED_PVP       = 0x100,
     PLAYER_FLAG_PVP_TOGGLE			= 0x200,
     PLAYER_FLAG_NOHELM				= 0x400,
     PLAYER_FLAG_NOCLOAK				= 0x800,
@@ -2641,6 +2641,8 @@ class SERVER_DECL Player : public Unit
 		void AddGroupUpdateFlag(uint32 flag);
 		uint16 GetGroupStatus();
 		void SendUpdateToOutOfRangeGroupMembers();
+		uint32 numberofchats;
+		uint32 lastchattime;
 };
 
 

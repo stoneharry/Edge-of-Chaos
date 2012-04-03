@@ -4269,7 +4269,7 @@ void Unit::AddAura(Aura* aur)
 	aur->m_auraSlot = AuraSlot;
 
 	m_auras[ AuraSlot ] = aur;
-	UpdateAuraForGroup(AuraSlot);
+	UpdateAuraForGroup(visualslot);
 
 	ModVisualAuraStackCount(aur, 1);
 
@@ -5332,7 +5332,7 @@ bool Unit::HasAura(uint32 spellid)
 Aura* Unit::GetAuraWithSlot(uint32 slot)
 {
 	for(uint32 x = MAX_TOTAL_AURAS_START; x < MAX_TOTAL_AURAS_END; x++)
-		if(m_auras[x] && m_auras[x]->m_auraSlot == (uint16)slot)
+		if(m_auras[x] && m_auras[x]->m_visualSlot == (uint16)slot)
 		{
 			return m_auras[x];
 		}
@@ -5657,6 +5657,23 @@ void Unit::CastSpellAoF(float x, float y, float z, SpellEntry* Sp, bool triggere
 	targets.m_destZ = z;
 	targets.m_targetMask = TARGET_FLAG_DEST_LOCATION;
 	Spell* newSpell = sSpellFactoryMgr.NewSpell(this, Sp, triggered, 0);
+	newSpell->prepare(&targets);
+}
+
+void Unit::CastSpellAoF(float x, float y, float z, SpellEntry* Sp, bool triggered, int32 basepoints, int32 basepoints2, int32 basepoints3)
+{
+	if(Sp == NULL)
+		return;
+
+	SpellCastTargets targets;
+	targets.m_destX = x;
+	targets.m_destY = y;
+	targets.m_destZ = z;
+	targets.m_targetMask = TARGET_FLAG_DEST_LOCATION;
+	Spell* newSpell = sSpellFactoryMgr.NewSpell(this, Sp, triggered, 0);
+	newSpell->forced_basepoints[0] = basepoints;
+	newSpell->forced_basepoints[1] = basepoints2;
+	newSpell->forced_basepoints[2] = basepoints3;
 	newSpell->prepare(&targets);
 }
 
@@ -6859,7 +6876,7 @@ void CombatStatusHandler::TryToClearAttackTargets()
 	Unit* pt;
 
 	if(m_Unit->IsPlayer())
-		TO< Player* >(m_Unit)->RemoveFlag(PLAYER_FLAGS, PLAYER_FLAG_UNKNOWN2);
+		TO< Player* >(m_Unit)->RemoveFlag(PLAYER_FLAGS, PLAYER_FLAG_CONTESTED_PVP);
 
 
 	for(i = m_attackTargets.begin(); i != m_attackTargets.end();)

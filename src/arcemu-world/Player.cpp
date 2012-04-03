@@ -480,6 +480,8 @@ Player::Player(uint32 guid)
 	m_spellModTakingSpell = NULL;
 	m_roles = 0;
 	GroupUpdateFlags = 0;
+	numberofchats = 0;
+	lastchattime = 0;
 }
 
 void Player::OnLogin()
@@ -1100,6 +1102,11 @@ void Player::Update(uint32 p_time)
 		SendPacket(pending_packet);
 		delete pending_packet;
 		pending_packet = m_cache->m_pendingPackets.pop();
+	}
+	if(lastchattime >= getMSTime())
+	{
+		lastchattime = 0;
+		numberofchats = 0;
 	}
 	SendUpdateToOutOfRangeGroupMembers();
 }
@@ -2400,9 +2407,6 @@ void Player::SaveToDB(bool bNewCharacter /* =false */)
 
 	if(player_flags & PLAYER_FLAG_PVP_TOGGLE)
 		player_flags &= ~PLAYER_FLAG_PVP_TOGGLE;
-
-	if(player_flags & PLAYER_FLAG_FREE_FOR_ALL_PVP)
-		player_flags &= ~PLAYER_FLAG_FREE_FOR_ALL_PVP;
 
 	ss << player_flags << ","
 	   << m_uint32Values[PLAYER_FIELD_BYTES] << ",";
@@ -4552,6 +4556,7 @@ void Player::KillPlayer()
 {
 	if(getDeathState() != ALIVE) //You can't kill what has no life.   - amg south park references ftw :P
 		return;
+	GetAIInterface()->StopMovement(0);
 	SetHealth(0);
 	setDeathState(JUST_DIED);
 
@@ -10324,9 +10329,19 @@ void Player::EventGroupFullUpdate()
 
 void Player::EjectFromInstance()
 {
-	if(getcombatstatus() && getcombatstatus()->IsInCombat())
-		return;
-	SafeTeleport(0, 0, float(-7477.580078), float(-1254.109985), float(477.403015), GetOrientation());
+	if(getcombatstatus())
+		CombatStatus.Vanished();
+	if(!isAlive())
+		RemoteRevive();
+	if(getLevel() >= 19)
+		SafeTeleport(0, 0, float(-7477.580078), float(-1254.109985), float(477.403015), GetOrientation());
+	else
+	{
+		PlayerCreateInfo* info = objmgr.GetPlayerCreateInfo(getRace(), getClass(), IsTrial());
+		if(info == NULL)
+			return; //if we have no info, something is fucked up.
+		SafeTeleport(info->mapId, 0, LocationVector(info->positionX, info->positionY, info->positionZ));
+	}
 	/*if(m_bgEntryPointX && m_bgEntryPointY && m_bgEntryPointZ && !IS_INSTANCE(m_bgEntryPointMap))
 	{
 		if(SafeTeleport(m_bgEntryPointMap, m_bgEntryPointInstance, m_bgEntryPointX, m_bgEntryPointY, m_bgEntryPointZ, m_bgEntryPointO))
@@ -11809,7 +11824,7 @@ void Player::SetFFAPvPFlag()
 {
 	StopPvPTimer();
 	SetByteFlag(UNIT_FIELD_BYTES_2, 1, U_FIELD_BYTES_FLAG_FFA_PVP);
-	SetFlag(PLAYER_FLAGS, PLAYER_FLAG_FREE_FOR_ALL_PVP);
+	//SetFlag(PLAYER_FLAGS, PLAYER_FLAG_FREE_FOR_ALL_PVP);
 
 	summonhandler.SetFFAPvPFlags();
 
@@ -11825,7 +11840,7 @@ void Player::RemoveFFAPvPFlag()
 {
 	StopPvPTimer();
 	RemoveByteFlag(UNIT_FIELD_BYTES_2, 1, U_FIELD_BYTES_FLAG_FFA_PVP);
-	RemoveFlag(PLAYER_FLAGS, PLAYER_FLAG_FREE_FOR_ALL_PVP);
+	//RemoveFlag(PLAYER_FLAGS, PLAYER_FLAG_FREE_FOR_ALL_PVP);
 
 	summonhandler.RemoveFFAPvPFlags();
 

@@ -796,8 +796,7 @@ void Guild::AddGuildMember(PlayerInfo* pMember, WorldSession* pClient, int32 For
 	{
 		pMember->m_loggedInPlayer->SetGuildId(m_guildId);
 		pMember->m_loggedInPlayer->SetGuildRank(r->iId);
-		if(ForcedRank != 0)
-			pMember->m_loggedInPlayer->SendGuildMOTD();
+		pMember->m_loggedInPlayer->SendGuildMOTD();
 	}
 
 	CharacterDatabase.Execute("INSERT INTO guild_data VALUES(%u, %u, %u, '', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)", m_guildId, pMember->guid, r->iId);
@@ -1200,11 +1199,11 @@ void Guild::SendGuildRoster(WorldSession* pClient)
 
 	myRank = pClient->GetPlayer()->getPlayerInfo()->guildRank;
 	ofnote = myRank->CanPerformCommand(GR_RIGHT_VIEWOFFNOTE);
+	m_lock.Acquire();
 	uint32 membercount = m_members.size();
 	if(membercount > 800)
 		membercount = 800;
 	uint32 cnt = 0;
-	m_lock.Acquire();
 
 	data << uint32(membercount);
 	if(m_motd)
@@ -1693,7 +1692,9 @@ void Guild::SetTabardInfo(uint32 EmblemStyle, uint32 EmblemColor, uint32 BorderS
 void Guild::SendGuildInfo(WorldSession* pClient)
 {
 	WorldPacket data(SMSG_GUILD_INFO, 4);
+	m_lock.Acquire();
 	uint32 memcount = m_members.size();
+	m_lock.Release();
 	if(memcount > 800)
 		memcount = 800;
 	time_t ct = (time_t)m_creationTimeStamp;
@@ -1704,7 +1705,7 @@ void Guild::SendGuildInfo(WorldSession* pClient)
 	data << uint32(pTM->tm_mon);
 	data << uint32(pTM->tm_mday);
 	data << uint32(memcount);
-	data << uint32(m_members.size()); //should be number of accounts
+	data << uint32(memcount); //should be number of accounts
 
 	pClient->SendPacket(&data);
 }

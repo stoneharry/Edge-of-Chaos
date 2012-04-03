@@ -1688,6 +1688,7 @@ class SERVER_DECL Spell : public EventableObject
 		void SpellEffectEnergize(uint32 i);
 		void SpellEffectWeaponDmgPerc(uint32 i);
 		void SpellEffectTriggerMissile(uint32 i);
+		void SpellEffectTriggerMissileWithValue(uint32 i);
 		void SpellEffectOpenLock(uint32 i);
 		void SpellEffectTransformItem(uint32 i);
 		void SpellEffectApplyGroupAA(uint32 i);

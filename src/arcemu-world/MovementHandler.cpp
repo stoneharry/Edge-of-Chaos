@@ -598,32 +598,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 		if(_player->m_CurrentTransporter == NULL)
 		{
 			if(!_player->SetPosition(movementInfo.x, movementInfo.y, movementInfo.z, movementInfo.orientation))
-			{
-				//extra check to set HP to 0 only if the player is dead (KillPlayer() has already this check)
-				if(_player->isAlive())
-				{
-					_player->SetHealth(0);
-					_player->KillPlayer();
-				}
-
-				MapInfo* pMapinfo = WorldMapInfoStorage.LookupEntry(_player->GetMapId());
-				if(pMapinfo != NULL)
-				{
-
-					if(pMapinfo->type == INSTANCE_NULL || pMapinfo->type == INSTANCE_BATTLEGROUND)
-					{
-						_player->RepopAtGraveyard(_player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetMapId());
-					}
-					else
-					{
-						_player->RepopAtGraveyard(pMapinfo->repopx, pMapinfo->repopy, pMapinfo->repopz, pMapinfo->repopmapid);
-					}
-				}
-				else
-				{
-					_player->RepopAtGraveyard(_player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ(), _player->GetMapId());
-				}//Teleport player to graveyard. Stops players from QQing..
-			}
+				_player->EjectFromInstance();
 		}
 	}
 	else

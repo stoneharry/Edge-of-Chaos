@@ -1531,11 +1531,11 @@ void MapMgr::_PerformObjectDuties()
 
 	// Update players.
 	{
-		PlayerStorageMap::iterator itr = m_PlayerStorage.begin();
-		Player* ptr;
-		for(; itr != m_PlayerStorage.end();)
+		
+		
+		for(PlayerStorageMap::iterator itr = m_PlayerStorage.begin(); itr != m_PlayerStorage.end();)
 		{
-			ptr = itr->second;
+			Player* ptr = itr->second;
 			++itr;
 			ptr->Update(difftime);
 		}

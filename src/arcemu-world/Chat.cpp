@@ -708,7 +708,7 @@ void CommandTableStorage::Init()
 		{ "installaccessories",   'm', &ChatHandler::HandleVehicleInstallAccessoriesCommand, "Installs the accessories for the selected vehicle", NULL, 0, 0, 0 },
 		{ "removeaccessories",    'm', &ChatHandler::HandleVehicleRemoveAccessoriesCommand,  "Removes the accessories of the selected vehicle",   NULL, 0, 0, 0 },
 		{ "addpassenger",         'm', &ChatHandler::HandleVehicleAddPassengerCommand,       "Adds a new NPC passenger to the vehicle",           NULL, 0, 0, 0 },
-		{ "enter",         'm', &ChatHandler::HandleVehicleEnterCommand,       "Enters a targeted vehicle with specified seatid and can be forced into the seat.",           NULL, 0, 0, 0 },
+		{ "enter",         'm', &ChatHandler::HandleVehicleEnterCommand,       "Enters a targeted vehicle.",           NULL, 0, 0, 0 },
 		{ NULL,                   '0', NULL,                                                 "",                                                  NULL, 0, 0, 0 }
 	};
 
@@ -720,6 +720,7 @@ void CommandTableStorage::Init()
 		{ "removemember",   'm', &ChatHandler::HandleGroupRemoveMemberCommand, "Remove targeted player or x from their group.",            NULL, 0, 0, 0 },
 		{ "disband",   'm', &ChatHandler::HandleGroupDisbandCommand, "Disband targeted or x's group.", NULL, 0, 0, 0 },
 		{ "teleport",    'm', &ChatHandler::HandleGroupTeleportCommand,  "Teleport targeted player or x's group to your location.",   NULL, 0, 0, 0 },
+		{ "convertolfg",    'm', &ChatHandler::HandleGroupConvertToLfgCommand,  "Convert group to lfg.",   NULL, 0, 0, 0 },
 		{ NULL,                   '0', NULL,                                                 "",                                                  NULL, 0, 0, 0 }
 	};
 
@@ -768,7 +769,7 @@ void CommandTableStorage::Init()
 		{ "character",       '0', NULL,                                                     "",                                                                                                                                        characterCommandTable,    0, 0, 0 },
 		{ "lookup",          '0', NULL,                                                     "",                                                                                                                                        lookupCommandTable,       0, 0, 0 },
 		{ "admin",           '0', NULL,                                                     "",                                                                                                                                        adminCommandTable,        0, 0, 0 },
-		{ "kick",            '0', NULL,                                                     "",                                                                                                                                        kickCommandTable,         0, 0, 0 },
+		//{ "kick",            '0', NULL,                                                     "",                                                                                                                                        kickCommandTable,         0, 0, 0 },
 		{ "ban",             '0', NULL,                                                     "",                                                                                                                                        banCommandTable,          0, 0, 0 },
 		{ "unban",           '0', NULL,                                                     "",                                                                                                                                        unbanCommandTable,        0, 0, 0 },
 		{ "instance",        '0', NULL,                                                     "",                                                                                                                                        instanceCommandTable,     0, 0, 0 },

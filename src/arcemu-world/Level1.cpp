@@ -280,7 +280,7 @@ bool ChatHandler::HandleKickCommand(const char* args, WorldSession* m_session)
 
 		char msg[200];
 		snprintf(msg, 200, "%sGM: %s was kicked from the server by %s. Reason: %s", MSG_COLOR_RED, chr->GetName(), m_session->GetPlayer()->GetName(), kickreason.c_str());
-		sWorld.SendWorldText(msg, NULL);
+		sWorld.SendGMWorldText(msg, NULL);
 		//sWorld.SendIRCMessage(msg);
 		SystemMessageToPlr(chr, "You are being kicked from the server by %s. Reason: %s", m_session->GetPlayer()->GetName(), kickreason.c_str());
 
@@ -315,7 +315,7 @@ bool ChatHandler::HandleMultiKickCommand(const char *args, WorldSession *m_sessi
 		}
 
 		snprintf(msg, 200, "%s%s was kicked by %s (%s)", MSG_COLOR_WHITE, pPlayer->GetName(), m_session->GetPlayer()->GetName(), reason);
-		sWorld.SendWorldText(msg, NULL);
+		sWorld.SendGMWorldText(msg, NULL);
 		pPlayer->Kick(6000);
 	}
 
@@ -389,8 +389,13 @@ bool ChatHandler::HandleAddInvItemCommand(const char* args, WorldSession* m_sess
 
 bool ChatHandler::HandleSummonCommand(const char* args, WorldSession* m_session)
 {
-	if(!*args)
-		return false;
+	Player * chr = NULL;
+	if(args)
+		chr = objmgr.GetPlayer(args, false);
+	else
+	{
+		chr = getSelectedChar(m_session);
+	}
 
 	// Summon Blocking
 	if(!stricmp(args, "on"))
@@ -420,7 +425,6 @@ bool ChatHandler::HandleSummonCommand(const char* args, WorldSession* m_session)
 		return true;
 	}
 
-	Player* chr = objmgr.GetPlayer(args, false);
 	if(chr)
 	{
 		// send message to user
@@ -468,23 +472,31 @@ bool ChatHandler::HandleSummonCommand(const char* args, WorldSession* m_session)
 	}
 	else
 	{
-		PlayerInfo* pinfo = objmgr.GetPlayerInfoByName(args);
-		if(!pinfo)
+		if(args)
 		{
-			char buf[256];
-			snprintf((char*)buf, 256, "Player (%s) does not exist.", args);
-			SystemMessage(m_session, buf);
-			return true;
+			PlayerInfo* pinfo = objmgr.GetPlayerInfoByName(args);
+			if(!pinfo)
+			{
+				char buf[256];
+				snprintf((char*)buf, 256, "Player (%s) does not exist.", args);
+				SystemMessage(m_session, buf);
+				return true;
+			}
+			else
+			{
+				Player* pPlayer = m_session->GetPlayer();
+				char query[512];
+				snprintf((char*) &query, 512, "UPDATE characters SET mapId = %u, positionX = %f, positionY = %f, positionZ = %f, zoneId = %u WHERE guid = %u;",	pPlayer->GetMapId(), pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), pPlayer->GetZoneId(), pinfo->guid);
+				CharacterDatabase.Execute(query);
+				char buf[256];
+				snprintf((char*)buf, 256, "(Offline) %s has been summoned.", pinfo->name);
+				SystemMessage(m_session, buf);
+				return true;
+			}
 		}
 		else
 		{
-			Player* pPlayer = m_session->GetPlayer();
-			char query[512];
-			snprintf((char*) &query, 512, "UPDATE characters SET mapId = %u, positionX = %f, positionY = %f, positionZ = %f, zoneId = %u WHERE guid = %u;",	pPlayer->GetMapId(), pPlayer->GetPositionX(), pPlayer->GetPositionY(), pPlayer->GetPositionZ(), pPlayer->GetZoneId(), pinfo->guid);
-			CharacterDatabase.Execute(query);
-			char buf[256];
-			snprintf((char*)buf, 256, "(Offline) %s has been summoned.", pinfo->name);
-			SystemMessage(m_session, buf);
+			RedSystemMessage(m_session, "Error 404: No player found");
 			return true;
 		}
 	}
@@ -496,8 +508,11 @@ bool ChatHandler::HandleSummonCommand(const char* args, WorldSession* m_session)
 
 bool ChatHandler::HandleAppearCommand(const char* args, WorldSession* m_session)
 {
-	if(!*args)
-		return false;
+	Player * chr = NULL;
+	if(args)
+		chr = objmgr.GetPlayer(args, false);
+	else
+		chr = getSelectedChar(m_session, false);
 
 	// Appear Blocking
 	if(!stricmp(args, "on"))
@@ -526,8 +541,6 @@ bool ChatHandler::HandleAppearCommand(const char* args, WorldSession* m_session)
 		}
 		return true;
 	}
-
-	Player* chr = objmgr.GetPlayer(args, false);
 	if(chr)
 	{
 		char buf[256];
@@ -566,7 +579,7 @@ bool ChatHandler::HandleAppearCommand(const char* args, WorldSession* m_session)
 	else
 	{
 		char buf[256];
-		snprintf((char*)buf, 256, "Player (%s) does not exist or is not logged in.", args);
+		snprintf((char*)buf, 256, "Error 404: Player not found.");
 		SystemMessage(m_session, buf);
 	}
 
@@ -665,10 +678,11 @@ bool ChatHandler::HandleModifySpeedCommand(const char* args, WorldSession* m_ses
 
 	if(Speed == 0.0f)
 	{
+		u->RestoreSpeed();
 		BlueSystemMessage(m_session, "You reset %s's speed.", u->GetName());
-		return true;
 		if(u->IsPlayer() && TO_PLAYER(u) != m_session->GetPlayer())
 			SystemMessage(TO_PLAYER(u)->GetSession(), "%s reset your speed.", m_session->GetPlayer()->GetName());
+		return true;
 	}
 	BlueSystemMessage(m_session, "You set the %s speed of %s to %2.2f.", speedname.c_str(),  u->GetName(), Speed);
 	if(u->IsPlayer() && TO_PLAYER(u) != m_session->GetPlayer())
@@ -1557,7 +1571,8 @@ bool ChatHandler::HandleVehicleRemoveAccessoriesCommand( const char *args, World
 	return true;
 }
 
-bool ChatHandler::HandleVehicleAddPassengerCommand(const char *args, WorldSession *session){
+bool ChatHandler::HandleVehicleAddPassengerCommand(const char *args, WorldSession *session)
+{
 	std::stringstream ss( args );
 
 	uint32 creature_entry;
@@ -1568,12 +1583,8 @@ bool ChatHandler::HandleVehicleAddPassengerCommand(const char *args, WorldSessio
 		return false;
 	}
 
-	if( session->GetPlayer()->GetTargetGUID() == 0 ){
-		RedSystemMessage( session, "You need to select a vehicle." );
-		return false;
-	}
 
-	Unit *u = session->GetPlayer()->GetMapMgr()->GetUnit( session->GetPlayer()->GetTargetGUID() );
+	Unit *u = getSelectedUnit(session, false);
 	if( u == NULL ){
 		RedSystemMessage( session, "You need to select a vehicle." );
 		return false;
@@ -1609,7 +1620,8 @@ bool ChatHandler::HandleVehicleEnterCommand(const char *args, WorldSession *m_se
 {
 	int seatid = -1;
 	uint32 forced = 0;
-	if(sscanf(args, "%i %u", &seatid, &forced) != 2)
+	if(sscanf(args, "%i", &seatid) != 1)
+		if(sscanf(args, "%i %u", &seatid, &forced) != 2)
 		return false;
 
 

@@ -284,7 +284,6 @@ bool BasicTaskExecutor::run()
 }
 
 void ApplyNormalFixes();
-void ApplyDatabaseFixes();
 
 bool World::SetInitialWorldSettings()
 {
@@ -391,7 +390,6 @@ bool World::SetInitialWorldSettings()
 	new ChatHandler;
 
 	ApplyNormalFixes();
-	ApplyDatabaseFixes();
 
 	new SpellProcMgr;
 	new SpellFactoryMgr;
@@ -522,6 +520,8 @@ bool World::SetInitialWorldSettings()
 		lootmgr.LoadLoot();
 	}
 	objmgr.LoadSpellLinked();
+	objmgr.ReloadSpellDbc();
+	objmgr.ReloadSpellCoef();
 	Channel::LoadConfSettings();
 	Log.Success("BattlegroundManager", "Starting...");
 	new CBattlegroundManager;

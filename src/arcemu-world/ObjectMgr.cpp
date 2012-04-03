@@ -3704,15 +3704,60 @@ void ObjectMgr::ReloadSpellCoef()
 			SpellEntry * sp = dbcSpell.LookupEntryForced( f[0].GetUInt32() );
 			if( sp != NULL )
 			{
-				sp->Dspell_coef_override = f[2].GetFloat();
-				sp->OTspell_coef_override = f[3].GetFloat();
-				sp->ap_coef = f[4].GetFloat();
-				sp->ap_dot_coef = f[5].GetFloat();
+				sp->Dspell_coef_override = f[1].GetFloat();
+				sp->OTspell_coef_override = f[2].GetFloat();
+				sp->ap_coef = f[3].GetFloat();
+				sp->ap_dot_coef = f[4].GetFloat();
 			}
 			else
 				Log.Error("SpellCoefOverride", "Has nonexistent spell %u.", f[0].GetUInt32());
 		} while( resultx->NextRow() );
 		delete resultx;
+	}
+	for(uint32 x= 0; x < dbcSpell.GetNumRows(); x++)
+	{
+		// get spellentry
+		SpellEntry * sp = dbcSpell.LookupRow(x);
+		SpellEntry * spz;
+
+		//Case SPELL_AURA_PERIODIC_TRIGGER_SPELL
+		for(uint32 i = 0 ; i < 3 ; i++ )
+		{
+			if ( sp->EffectApplyAuraName[i] == SPELL_AURA_PERIODIC_TRIGGER_SPELL )
+			{
+				spz = CheckAndReturnSpellEntry( sp->EffectTriggerSpell[i] );
+				if( spz != NULL )
+				{
+					if( sp->Dspell_coef_override >= 0 )
+						spz->Dspell_coef_override = sp->Dspell_coef_override;
+					else
+					{
+						//we must set bonus per tick on triggered spells now (i.e. Arcane Missiles)
+						if( sp->ChannelInterruptFlags != 0 )
+						{
+							float Duration = float( GetDuration( dbcSpellDuration.LookupEntry( sp->DurationIndex ) ));
+							float amp = float(sp->EffectAmplitude[i]);
+							sp->fixed_dddhcoef = sp->fixed_hotdotcoef * amp / Duration;
+						}
+						spz->fixed_dddhcoef = sp->fixed_dddhcoef;
+					}
+
+					if( sp->OTspell_coef_override >= 0 )
+						spz->OTspell_coef_override = sp->OTspell_coef_override;
+					else
+					{
+						//we must set bonus per tick on triggered spells now (i.e. Arcane Missiles)
+						if( sp->ChannelInterruptFlags != 0 )
+						{
+							float Duration = float( GetDuration( dbcSpellDuration.LookupEntry( sp->DurationIndex ) ));
+							float amp = float(sp->EffectAmplitude[i]);
+							sp->fixed_hotdotcoef *= amp / Duration;
+						}
+						spz->fixed_hotdotcoef = sp->fixed_hotdotcoef;
+					}
+				}
+			}
+		}
 	}
 }
 

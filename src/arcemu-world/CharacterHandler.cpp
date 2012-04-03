@@ -210,20 +210,14 @@ void WorldSession::CharacterEnumProc(QueryResult* result)
 				char_flags |= 0x00004000;	//Character has to be renamed before logging in
 
 			data << uint32(char_flags);
-			switch(login_flags)
-			{
-				case LOGIN_CUSTOMIZE_LOOKS:
-					data << uint32(CHAR_CUSTOMIZE_FLAG_CUSTOMIZE);  //Character recustomization flag
-					break;
-				case LOGIN_CUSTOMIZE_RACE:
-					data << uint32(CHAR_CUSTOMIZE_FLAG_RACE);	//Character recustomization + race flag
-					break;
-				case LOGIN_CUSTOMIZE_FACTION:
-					data << uint32(CHAR_CUSTOMIZE_FLAG_FACTION); //Character recustomization + race + faction flag
-					break;
-				default:
-					data << uint32(CHAR_CUSTOMIZE_FLAG_NONE);	//Character recustomization no flag set
-			}
+			uint32 customflags = 0;
+			if(login_flags & LOGIN_CUSTOMIZE_LOOKS)
+				customflags |= CHAR_CUSTOMIZE_FLAG_CUSTOMIZE;
+			if(login_flags & LOGIN_CUSTOMIZE_RACE)
+				customflags |= CHAR_CUSTOMIZE_FLAG_RACE;
+			if(login_flags & LOGIN_CUSTOMIZE_FACTION)
+				customflags |= CHAR_CUSTOMIZE_FLAG_FACTION;
+			data << uint32(customflags);
 			data << uint8(0);				//Unknown 3.2.0
 
 			if(Class == WARLOCK || Class == HUNTER)
@@ -574,7 +568,8 @@ uint8 WorldSession::DeleteCharacter(uint32 guid)
 		CharacterDatabase.Execute("DELETE FROM playerdeletedspells WHERE GUID = '%u'", guid);
 		CharacterDatabase.Execute("DELETE FROM playerreputations WHERE guid = '%u'", guid);
 		CharacterDatabase.Execute("DELETE FROM playerskills WHERE GUID = '%u'", guid);
-
+		CharacterDatabase.Execute("DELETE FROM character_proffesion where name = %s", name.c_str());
+		CharacterDatabase.Execute("DELETE FROM character_coursecomplete where name = %s", name.c_str());
 		/* remove player info */
 		objmgr.DeletePlayerInfo((uint32)guid);
 		return E_CHAR_DELETE_SUCCESS;
@@ -639,8 +634,9 @@ void WorldSession::HandleCharRenameOpcode(WorldPacket & recv_data)
 
 	// correct capitalization
 	CapitalizeString(name);
+	
 	objmgr.RenamePlayerInfo(pi, pi->name, name.c_str());
-
+	
 	sPlrLog.writefromsession(this, "a rename was pending. renamed character %s (GUID: %u) to %s.", pi->name, pi->guid, name.c_str());
 
 	// If we're here, the name is okay.
@@ -823,23 +819,6 @@ void WorldSession::FullLogin(Player* plr)
 	}
 
 	plr->SendLoginVerifyWorld(VMapId, VX, VY, VZ, VO);
-
-	///////////////////////////////////////////////////////////////////////////////////////////////////////
-	// send voicechat state - active/inactive
-	//
-	// {SERVER} Packet: (0x03C7) UNKNOWN PacketSize = 2
-	// |------------------------------------------------|----------------|
-	// |00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F |0123456789ABCDEF|
-	// |------------------------------------------------|----------------|
-	// |02 01							                |..              |
-	// -------------------------------------------------------------------
-	//
-	//
-	// Old packetdump is OLD. This is probably from 2.2.0 (that was the patch when it was added to wow)!
-	//
-	//////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 	StackWorldPacket<20> datab(SMSG_FEATURE_SYSTEM_STATUS);
 
 
@@ -1113,16 +1092,21 @@ void WorldSession::HandleCharCustomizeLooksOpcode(WorldPacket& recv_data)
         return;
     }
 
-	QueryResult * result2 = CharacterDatabase.Query("SELECT COUNT(*) FROM `banned_names` WHERE name = '%s'", CharacterDatabase.EscapeString(newname).c_str());
-    if(result2)
-    {
-		if(result2->Fetch()[0].GetUInt32() > 0)
-        {
-			WorldPacket data(SMSG_CHAR_CUSTOMIZE, 1);
-            data << uint8( E_CHAR_NAME_PROFANE );
-            SendPacket(&data);
-        }
-        delete result2;
+	if(!HasGMPermissions())
+	{
+		QueryResult * result2 = CharacterDatabase.Query("SELECT COUNT(*) FROM `banned_names` WHERE name = '%s'", CharacterDatabase.EscapeString(newname).c_str());
+		if(result2)
+		{
+			if(result2->Fetch()[0].GetUInt32() > 0)
+			{
+				WorldPacket data(SMSG_CHAR_FACTION_CHANGE, 1);
+				data << uint8( E_CHAR_NAME_PROFANE );
+				SendPacket(&data);
+				delete result2;
+				return;
+			}
+			delete result2;
+		}
 	}
 
     PlayerInfo* info = objmgr.GetPlayerInfoByName( newname.c_str() );
@@ -1135,14 +1119,12 @@ void WorldSession::HandleCharCustomizeLooksOpcode(WorldPacket& recv_data)
     }
 
 	CharacterDatabase.EscapeString(newname).c_str();
+	Player::CharChange_Looks(guid, gender, skin, face, hairStyle, hairColor, facialHair);    
 	CapitalizeString(newname);
-    
+    objmgr.RenamePlayerInfo(info, info->name, newname.c_str());
     CharacterDatabase.WaitExecute("UPDATE `characters` set name = '%s' WHERE guid = '%u'", newname.c_str(), (uint32)guid);
 	CharacterDatabase.WaitExecute("UPDATE `characters` SET login_flags = %u WHERE guid = '%u'", (uint32)LOGIN_NO_FLAG, (uint32)guid);
 	
-	Player::CharChange_Looks(guid, gender, skin, face, hairStyle, hairColor, facialHair);    
-	objmgr.RenamePlayerInfo(info, info->name, newname.c_str());
-
     WorldPacket data(SMSG_CHAR_CUSTOMIZE, 1+8+(newname.size()+1)+6);
     data << uint8(E_RESPONSE_SUCCESS);
     data << uint64(guid);
@@ -1153,5 +1135,102 @@ void WorldSession::HandleCharCustomizeLooksOpcode(WorldPacket& recv_data)
     data << uint8(hairStyle);
     data << uint8(hairColor);
     data << uint8(facialHair);
+    SendPacket(&data);
+}
+
+void WorldSession::HandleCharFactionOrRaceChange(WorldPacket& recv_data)
+{
+    uint64 guid;
+    std::string newname;
+    uint8 gender, skin, face, hairStyle, hairColor, facialHair, race;
+    recv_data >> guid;
+    recv_data >> newname;
+    recv_data >> gender >> skin >> hairColor >> hairStyle >> facialHair >> face >> race;
+	uint8 _class = 0;
+	PlayerInfo* info = objmgr.GetPlayerInfo(guid);
+    if (info)
+		_class = info->cl;
+	else
+	{
+        WorldPacket data(SMSG_CHAR_FACTION_CHANGE, 1);
+        data << uint8(CHAR_CREATE_ERROR);
+        SendPacket(&data);
+        return;
+    }
+	uint32 used_loginFlag = ((recv_data.GetOpcode() == CMSG_CHAR_RACE_CHANGE) ? LOGIN_CUSTOMIZE_RACE : LOGIN_CUSTOMIZE_FACTION);
+	uint32 newflags = 0;
+	QueryResult* query = CharacterDatabase.Query("select login_flags from characters where guid = %u", guid);
+	if(query)
+	{
+		uint16 lflag = query->Fetch()[0].GetUInt16();
+		if(!(lflag & used_loginFlag))
+		{
+			WorldPacket data(SMSG_CHAR_FACTION_CHANGE, 1);
+			data << uint8(CHAR_CREATE_ERROR);
+			SendPacket(&data);
+			return;
+		}
+		newflags = lflag - used_loginFlag;
+	}
+	delete query;
+	if (!objmgr.GetPlayerCreateInfo(race, info->cl, false))
+    {
+        WorldPacket data(SMSG_CHAR_FACTION_CHANGE, 1);
+        data << uint8(CHAR_CREATE_ERROR);
+        SendPacket(&data);
+        return;
+    }
+
+    LoginErrorCode res = VerifyName( newname.c_str(), newname.length() );
+    if (res != E_CHAR_NAME_SUCCESS)
+    {
+        WorldPacket data(SMSG_CHAR_FACTION_CHANGE, 1);
+        data << uint8(res);
+        SendPacket(&data);
+        return;
+    }
+
+	if(!HasGMPermissions())
+	{
+		QueryResult * result = CharacterDatabase.Query("SELECT COUNT(*) FROM `banned_names` WHERE name = '%s'", CharacterDatabase.EscapeString(newname).c_str());
+		if(result)
+		{
+			if(result->Fetch()[0].GetUInt32() > 0)
+			{
+				WorldPacket data(SMSG_CHAR_FACTION_CHANGE, 1);
+				data << uint8( E_CHAR_NAME_RESERVED );
+				SendPacket(&data);
+				return;
+			}
+			delete result;
+		}
+	}
+
+    PlayerInfo* newinfo = objmgr.GetPlayerInfoByName( newname.c_str() );
+	if( newinfo != NULL && newinfo->guid != guid )
+    {
+        WorldPacket data(SMSG_CHAR_FACTION_CHANGE, 1);
+        data << uint8(CHAR_CREATE_NAME_IN_USE);
+        SendPacket(&data);
+        return;
+    }
+
+    Player::CharChange_Looks(guid, gender, skin, face, hairStyle, hairColor, facialHair);
+	//Player::CharChange_Language(guid, race);
+	CapitalizeString(newname);  
+	objmgr.RenamePlayerInfo(info, info->name, newname.c_str());
+    CharacterDatabase.Execute("UPDATE `characters` set name = '%s', login_flags = %u, race = %u WHERE guid = '%u'", newname.c_str(), newflags, (uint32)race, (uint32)guid);
+	//CharacterDatabase.WaitExecute("UPDATE `characters` SET login_flags = %u WHERE guid = '%u'", (uint32)LOGIN_NO_FLAG, (uint32)guid);
+    WorldPacket data(SMSG_CHAR_FACTION_CHANGE, 1 + 8 + (newname.size() + 1) + 1 + 1 + 1 + 1 + 1 + 1 + 1);
+    data << uint8(0);
+    data << uint64(guid);
+    data << newname;
+    data << uint8(gender);
+    data << uint8(skin);
+    data << uint8(face);
+    data << uint8(hairStyle);
+    data << uint8(hairColor);
+    data << uint8(facialHair);
+    data << uint8(race);
     SendPacket(&data);
 }

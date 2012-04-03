@@ -2409,3 +2409,15 @@ bool Object::GetPoint(float angle, float rad, float & outx, float & outy, float 
 
 	return true;
 }
+
+Creature * Object::GetCreatureWithEntry(uint32 entry)
+{
+	for(std::set<Object*>::iterator itr = GetInRangeSetBegin(); itr != GetInRangeSetEnd(); itr++)
+	{
+		if((*itr) == NULL || !(*itr)->IsCreature())
+			continue;
+		if((*itr)->GetEntry() == entry)
+			return TO_CREATURE((*itr));
+	}
+	return NULL;
+}
