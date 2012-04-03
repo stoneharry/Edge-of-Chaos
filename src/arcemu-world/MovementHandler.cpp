@@ -153,7 +153,6 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket & recv_data)
 
 void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSession* pSession)
 {
-
 	// no water breathing is required
 	if(!sWorld.BreathingEnabled || _player->FlyCheat || _player->m_bUnlimitedBreath || !_player->isAlive() || _player->GodModeCheat)
 	{
@@ -170,23 +169,19 @@ void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSessio
 
 			pSession->SendPacket(&data);
 		}
-
-		// player is above water level
 		if(pSession->m_bIsWLevelSet)
 		{
-			if((movement_info.z + _player->m_noseLevel) > pSession->m_wLevel)
+			if(movement_info.z + _player->m_noseLevel <= _player->GetMapMgr()->GetLiquidHeight(movement_info.x, movement_info.y))
 			{
 				_player->m_UnderwaterTime = 0;
 				_player->m_UnderwaterMaxTime = 0;
 				_player->m_UnderwaterState = UNDERWATERSTATE_NONE;
 				_player->StopMirrorTimer(TIMER_BREATH);
 				_player->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_LEAVE_WATER);
-
 				// unset swim session water level
 				pSession->m_bIsWLevelSet = false;
 			}
 		}
-
 		return;
 	}
 
@@ -212,6 +207,16 @@ void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSessio
 	// player is not swimming and is not stationary and is flagged as in the water
 	if(!(movement_info.flags & MOVEFLAG_SWIMMING) && (movement_info.flags != MOVEFLAG_MOVE_STOP) && (_player->m_UnderwaterState & UNDERWATERSTATE_SWIMMING))
 	{
+		if(movement_info.z + _player->m_noseLevel <= _player->GetMapMgr()->GetLiquidHeight(movement_info.x, movement_info.y))
+		{
+			_player->m_UnderwaterTime = 0;
+			_player->m_UnderwaterMaxTime = 0;
+			_player->m_UnderwaterState = UNDERWATERSTATE_NONE;
+			_player->StopMirrorTimer(TIMER_BREATH);
+			_player->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_LEAVE_WATER);
+			pSession->m_bIsWLevelSet = false;
+			return;
+		}
 		// player is above water level
 		if((movement_info.z + _player->m_noseLevel) > pSession->m_wLevel)
 		{
@@ -231,7 +236,7 @@ void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSessio
 	if(_player->m_UnderwaterState & UNDERWATERSTATE_SWIMMING && !(_player->m_UnderwaterState & UNDERWATERSTATE_UNDERWATER))
 	{
 		//the player is in the water and has gone under water, requires breath bar.
-		if((movement_info.z + _player->m_noseLevel) < pSession->m_wLevel)
+		if(movement_info.z + _player->m_noseLevel < _player->GetMapMgr()->GetLiquidHeight(movement_info.x, movement_info.y))
 		{
 			_player->m_UnderwaterState |= UNDERWATERSTATE_UNDERWATER;
 			if( ( _player->GetZoneId() == 46 ) && !(_player->m_UnderwaterState & UNDERWATERSTATE_LAVA))
@@ -249,7 +254,7 @@ void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSessio
 	if(_player->m_UnderwaterState & UNDERWATERSTATE_SWIMMING && _player->m_UnderwaterState & UNDERWATERSTATE_UNDERWATER)
 	{
 		//the player is in the water but their face is above water, no breath bar needed.
-		if((movement_info.z + _player->m_noseLevel) > pSession->m_wLevel)
+		if(movement_info.z + _player->m_noseLevel > _player->GetMapMgr()->GetLiquidHeight(movement_info.x, movement_info.y))
 		{
 			_player->m_UnderwaterState &= ~UNDERWATERSTATE_UNDERWATER;
 			if( ( _player->GetZoneId() == 46) && (_player->m_UnderwaterState & UNDERWATERSTATE_LAVA))
@@ -267,7 +272,7 @@ void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSessio
 	if(!(_player->m_UnderwaterState & UNDERWATERSTATE_SWIMMING) && _player->m_UnderwaterState & UNDERWATERSTATE_UNDERWATER)
 	{
 		//the player is out of the water, no breath bar needed.
-		if((movement_info.z + _player->m_noseLevel) > pSession->m_wLevel)
+		if(movement_info.z + _player->m_noseLevel > _player->GetMapMgr()->GetLiquidHeight(movement_info.x, movement_info.y))
 		{
 			if( ( _player->GetZoneId() == 46 ) && (_player->m_UnderwaterState & UNDERWATERSTATE_LAVA))
 				_player->m_UnderwaterState &= ~UNDERWATERSTATE_LAVA;
@@ -759,9 +764,9 @@ void WorldSession::HandleMoveKnockBackAck(WorldPacket & recv_data)
     WorldPacket data(MSG_MOVE_KNOCK_BACK, 66);
     data.appendPackGUID(guid);
     _player->BuildMovementPacket(&data);
-	data << movementInfo.redirectVelocity;
 	data << movementInfo.redirectSin;
 	data << movementInfo.redirectCos;
+	data << movementInfo.redirectVelocity;
 	data << movementInfo.redirect2DSpeed;
 	_player->SendMessageToSet(&data, false);
 }
@@ -790,7 +795,9 @@ void WorldSession::ReadMovementInfo(WorldPacket &data, MovementInfo* mi)
 	}
 	if(mi->HasMovementFlag(MovementFlags(MOVEFLAG_SWIMMING | MOVEFLAG_AIR_SWIMMING)) || mi->HasExtraMovementFlag(MOVEFLAG2_ALLOW_PITCHING))
 		data >> mi->pitch;
+
 	data >> mi->fallTime;
+
 	if(mi->HasMovementFlag(MOVEFLAG_JUMPING))
 	{
 		data >> mi->redirectVelocity;
@@ -837,7 +844,7 @@ void WorldSession::WriteMovementInfo(WorldPacket* data, MovementInfo* mi)
     data->appendPackGUID(mi->guid);
 	*data << mi->flags;
 	*data << mi->flags2;
-	*data << getMSTime();
+	*data << mi->time;
 
 	*data << mi->x;
 	*data << mi->y;
@@ -856,6 +863,9 @@ void WorldSession::WriteMovementInfo(WorldPacket* data, MovementInfo* mi)
 	}
 	if(mi->HasMovementFlag(MovementFlags(MOVEFLAG_SWIMMING | MOVEFLAG_AIR_SWIMMING)) || mi->HasExtraMovementFlag(MOVEFLAG2_ALLOW_PITCHING))
 		*data << mi->pitch;
+
+    *data << mi->fallTime;
+
 	if(mi->HasMovementFlag(MOVEFLAG_FALLING))
 	{
 		*data << mi->redirectVelocity;

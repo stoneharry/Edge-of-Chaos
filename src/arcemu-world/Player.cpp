@@ -12627,18 +12627,10 @@ void Player::TakeDamage(Unit* pAttacker, uint32 damage, uint32 spellid, bool no_
 	// Rage generation on damage
 	if(GetPowerType() == POWER_TYPE_RAGE && pAttacker != this)
 	{
-		float val;
-		float level = static_cast< float >(getLevel());
-		float c = 0.0091107836f * level * level + 3.225598133f * level + 4.2652911f;
-
-		val = 2.5f * damage / c;
-		uint32 rage = GetPower(POWER_TYPE_RAGE);
-
-		if(rage + float2int32(val) > 1000)
-			val = 1000.0f - static_cast< float >(GetPower(POWER_TYPE_RAGE));
-
-		val *= 10.0;
-		ModPower(POWER_TYPE_RAGE, static_cast< int32 >(val));
+		float rageconversion = ((0.0091107836f * getLevel() * getLevel()) + 3.225598133f * getLevel()) + 4.2652911f;
+		float addRage = damage / rageconversion * 2.5f;
+		addRage *= 10;
+		ModPower(POWER_TYPE_RAGE, float2int32(addRage));
 	}
 
 

@@ -18,100 +18,8 @@
  *
  */
 
-// Last edited by:	$Author$
-// revision:		$Rev$
-// date:		$Date$
-
-
 #include "StdAfx.h"
 
-
-static float AttackToRageConversionTable[PLAYER_LEVEL_CAP + 1] =
-{
-	0.0f,
-	0.499999998893f,
-	0.34874214056f,
-	0.267397170992f,
-	0.216594535676f,
-	0.181852997475f,
-	0.156596678244f,
-	0.137408407814f,
-	0.12233646474f,
-	0.110185074062f,
-	0.100180723915f,
-	0.0918008940243f,
-	0.084679891259f,
-	0.0785541194583f,
-	0.0732287738371f,
-	0.0685567746212f,
-	0.0644249954237f,
-	0.0607450001819f,
-	0.0574466557344f,
-	0.0544736297718f,
-	0.0517801553458f,
-	0.0493286648502f,
-	0.0470880325642f,
-	0.0450322506478f,
-	0.0431394187932f,
-	0.0413909641335f,
-	0.0397710324301f,
-	0.0382660082118f,
-	0.0368641330875f,
-	0.035555199573f,
-	0.0343303035574f,
-	0.0331816427126f,
-	0.0321023511953f,
-	0.0310863632415f,
-	0.0301282999279f,
-	0.0292233746364f,
-	0.0283673137143f,
-	0.0275562895548f,
-	0.0267868638875f,
-	0.0260559395055f,
-	0.0253607190016f,
-	0.0246986693537f,
-	0.0240674914139f,
-	0.0234650935281f,
-	0.0228895686471f,
-	0.0223391744027f,
-	0.0218123157088f,
-	0.0213075295236f,
-	0.0208234714647f,
-	0.02035890402f,
-	0.019912686137f,
-	0.0194837640053f,
-	0.0190711628769f,
-	0.0186739797893f,
-	0.0182913770778f,
-	0.0179225765793f,
-	0.0175668544424f,
-	0.0172235364711f,
-	0.0168919939405f,
-	0.0165716398271f,
-	0.0162619254091f,
-	0.0159623371939f,
-	0.0156723941359f,
-	0.0153916451144f,
-	0.0151196666436f,
-	0.0148560607885f,
-	0.0146004532678f,
-	0.0143524917226f,
-	0.0141118441351f,
-	0.0138781973828f,
-	0.0136512559131f,
-#if PLAYER_LEVEL_CAP==80
-	0.0136512559131f,
-	0.0136512559131f,
-	0.0136512559131f,
-	0.0136512559131f,
-	0.0136512559131f,
-	0.0136512559131f,
-	0.0136512559131f,
-	0.0136512559131f,
-	0.0136512559131f,
-	0.0136512559131f,
-#endif
-};
 float baseMoveSpeed[9] =
 {
     2.5f,                  // MOVE_WALK
@@ -124,6 +32,7 @@ float baseMoveSpeed[9] =
     4.5f,                  // MOVE_FLIGHT_BACK
     3.14f                  // MOVE_PITCH_RATE
 };
+
 float playerBaseMoveSpeed[9] = {
     2.5f,                  // MOVE_WALK
     7.0f,                  // MOVE_RUN
@@ -3710,54 +3619,14 @@ void Unit::Strike(Unit* pVictim, uint32 weapon_damage_type, SpellEntry* ability,
 
 	if(dmg.full_damage && IsPlayer() && GetPowerType() == POWER_TYPE_RAGE && !ability)
 	{
-		float val;
-		uint32 level = getLevel();
-		float conv;
-		if(level <= PLAYER_LEVEL_CAP)
-			conv = AttackToRageConversionTable[ level ];
-		else
-			conv = 3.75f / (0.0091107836f * level * level + 3.225598133f * level + 4.2652911f);
-
-		// Hit Factor
-		float f = (weapon_damage_type == OFFHAND) ? 1.75f : 3.5f;
-
+		float rageconversion = ((0.0091107836f * getLevel() * getLevel()) + 3.225598133f * getLevel()) + 4.2652911f;
+		float weaponSpeedHitFactor = GetFloatValue(UNIT_FIELD_BASEATTACKTIME) / 1000.0f * 1.75f;
 		if(hit_status & HITSTATUS_CRICTICAL)
-			f *= 2.0f;
-
-		float s = 1.0f;
-
-		// Weapon speed (normal)
-		Item* weapon = (TO< Player* >(this)->GetItemInterface())->GetInventoryItem(INVENTORY_SLOT_NOT_SET, (weapon_damage_type == OFFHAND ? EQUIPMENT_SLOT_OFFHAND : EQUIPMENT_SLOT_MAINHAND));
-		if(weapon == NULL)
-		{
-			if(weapon_damage_type == OFFHAND)
-				s = GetUInt32Value(UNIT_FIELD_BASEATTACKTIME + 1) / 1000.0f;
-			else
-				s = GetBaseAttackTime(MELEE) / 1000.0f;
-		}
-		else
-		{
-			uint32 entry = weapon->GetEntry();
-			ItemPrototype* pProto = ItemPrototypeStorage.LookupEntry(entry);
-			if(pProto != NULL)
-			{
-				s = pProto->Delay / 1000.0f;
-			}
-		}
-
-		val = conv * dmg.full_damage + f * s / 2.0f;
-		val *= (1 + (TO< Player* >(this)->rageFromDamageDealt / 100.0f));
-		float ragerate = sWorld.getRate(RATE_POWER2);
-		val *= 10 * ragerate;
-
-		//float r = ( 7.5f * dmg.full_damage / c + f * s ) / 2.0f;
-		//float p = ( 1 + ( TO< Player* >( this )->rageFromDamageDealt / 100.0f ) );
-		//LOG_DEBUG( "Rd(%i) d(%i) c(%f) f(%f) s(%f) p(%f) r(%f) rage = %f", realdamage, dmg.full_damage, c, f, s, p, r, val );
-
-		ModPower(POWER_TYPE_RAGE, (int32)val);
-		if(GetPower(POWER_TYPE_RAGE) > 1000)
-			ModPower(POWER_TYPE_RAGE, 1000 - GetPower(POWER_TYPE_RAGE));
-
+			weaponSpeedHitFactor *= 2;
+		float addRage = (dmg.full_damage / rageconversion * 7.5f + weaponSpeedHitFactor) / 2;
+		AddPctN(addRage, GetTotalAuraModifier(213));
+		addRage *= 10;
+		ModPower(POWER_TYPE_RAGE, float2int32(addRage));
 	}
 
 	RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_START_ATTACK);
@@ -8259,7 +8128,7 @@ void Unit::BuildMovementPacket(ByteBuffer *data)
 {
     *data << uint32(GetUnitMovementFlags());            // movement flags
     *data << uint16(GetExtraUnitMovementFlags());       // 2.3.0
-    *data << uint32(getMSTime());                       // time / counter
+	*data << uint32(GetMovementInfo()->time);                       // time / counter
     *data << GetPositionX();
     *data << GetPositionY();
     *data << GetPositionZ();
@@ -8310,7 +8179,7 @@ void Unit::BuildMovementPacket(ByteBuffer *data, float x, float y, float z, floa
 {
     *data << uint32(GetUnitMovementFlags());            // movement flags
     *data << uint16(GetExtraUnitMovementFlags());       // 2.3.0
-    *data << uint32(getMSTime());                       // time / counter
+    *data << uint32(GetMovementInfo()->time);                       // time / counter
     *data << x;
     *data << y;
     *data << z;
