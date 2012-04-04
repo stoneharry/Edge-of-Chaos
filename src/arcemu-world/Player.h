@@ -1571,10 +1571,6 @@ class SERVER_DECL Player : public Unit
 		void SetSpeeds( uint8 type, float speed );
 		float GetPlayerSpeed() {return m_runSpeed;}
 		uint8 m_currentMovement;
-		bool m_isMoving;
-		bool moving;
-		bool strafing;
-		bool jumping;
 		//Invisibility stuff
 		bool m_isGmInvisible;
 

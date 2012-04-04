@@ -3575,7 +3575,7 @@ class LuaUnit
 		static int IsPlayerMoving(lua_State* L, Unit* ptr)
 		{
 			TEST_PLAYER_RET()
-			lua_pushboolean(L, (TO_PLAYER(ptr)->m_isMoving) ? 1 : 0);
+			lua_pushboolean(L, (TO_PLAYER(ptr)->IsMoving()) ? 1 : 0);
 			return 1;
 		}
 

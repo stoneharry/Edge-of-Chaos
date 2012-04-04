@@ -132,8 +132,6 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket & recv_data)
 
 		LOG_DEBUG("WORLD: got MSG_MOVE_TELEPORT_ACK.");
 		GetPlayer()->SetPlayerStatus(NONE);
-		if(GetPlayer()->m_rooted <= 0)
-			GetPlayer()->SetMovement(MOVE_UNROOT, 5);
 		_player->SpeedCheatReset();
 
 		std::list<Pet*> summons = _player->GetSummons();
@@ -333,12 +331,6 @@ static const uint32 nmovementflags = sizeof(MoveFlagsToNames) / sizeof(MovementF
 void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 {
 	CHECK_INWORLD_RETURN
-
-	bool moved = true;
-
-	if(_player->GetCharmedByGUID() || _player->GetPlayerStatus() == TRANSFER_PENDING || _player->GetTaxiState() || _player->getDeathState() == JUST_DIED)
-		return;
-
 	// spell cancel on movement, for now only fishing is added
 	Object* t_go = _player->m_SummonedObject;
 	if(t_go)
@@ -382,59 +374,13 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 	/* Update player movement state                                         */
 	/************************************************************************/
 
-	uint16 opcode = recv_data.GetOpcode();
-	switch(opcode)
-	{
-		case MSG_MOVE_START_FORWARD:
-		case MSG_MOVE_START_BACKWARD:
-			_player->moving = true;
-			break;
-		case MSG_MOVE_START_STRAFE_LEFT:
-		case MSG_MOVE_START_STRAFE_RIGHT:
-			_player->strafing = true;
-			break;
-			/*case MSG_MOVE_JUMP:
-				_player->jumping = true;
-				break;*/
-		case MSG_MOVE_STOP:
-			_player->moving = false;
-			break;
-		case MSG_MOVE_STOP_STRAFE:
-			_player->strafing = false;
-			break;
-			/*case MSG_MOVE_FALL_LAND:
-				_player->jumping = false;
-				break;*/
-
-		default:
-			moved = false;
-			break;
-	}
-
-	if(moved)
-	{
-		if(!_player->moving && !_player->strafing && !_player->jumping)
-		{
-			_player->m_isMoving = false;
-		}
-		else
-		{
-			_player->m_isMoving = true;
-		}
-	}
-
-
 	/*Anti Multi-Jump Check*/
-	if(recv_data.GetOpcode() == MSG_MOVE_JUMP && _player->jumping == true && !GetPermissionCount())
+	if(recv_data.GetOpcode() == MSG_MOVE_JUMP && _player->HasUnitMovementFlag(MOVEFLAG_JUMPING) && !GetPermissionCount())
 	{
 		sCheatLog.writefromsession(this, "Detected jump hacking");
 		Disconnect();
 		return;
 	}
-	if(recv_data.GetOpcode() == MSG_MOVE_FALL_LAND || movementInfo.flags & MOVEFLAG_SWIMMING)
-		_player->jumping = false;
-	if(!_player->jumping && (recv_data.GetOpcode() == MSG_MOVE_JUMP || movementInfo.flags & MOVEFLAG_FALLING))
-		_player->jumping = true;
 
 	if(!(HasGMPermissions() && sWorld.no_antihack_on_gm) && !_player->GetCharmedUnitGUID())
 	{
@@ -480,6 +426,13 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 	uint32 mstime = mTimeStamp();
 	if(m_clientTimeDelay == 0)
 		m_clientTimeDelay = mstime - movementInfo.time;
+	WorldPacket data(recv_data.GetOpcode(), recv_data.size());
+    movementInfo.time = getMSTime();
+    movementInfo.guid = mover->GetGUID();
+    WriteMovementInfo(&data, &movementInfo);
+    mover->SendMessageToSet(&data, _player);
+
+    mover->movement_info = movementInfo;
 
 	if(recv_data.GetOpcode() == MSG_MOVE_FALL_LAND)
 	{
@@ -496,7 +449,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 			falldistance -= _player->m_safeFall;
 		else
 			falldistance = 1;
-
+		mover->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_LANDING);
 		//checks that player has fallen more than 12 units, otherwise no damage will be dealt
 		//falltime check is also needed here, otherwise sudden changes in Z axis position, such as using !recall, may result in death
 		if(_player->isAlive() && !_player->bInvincible && !_player->GodModeCheat && falldistance > 12 && (UNIXTIME >= _player->m_fallDisabledUntil) /*&& movement_info.FallTime > 1000*/ && !_player->m_noFallDamage && !_player->IsFlying() && !_player->HasAuraWithName(SPELL_AURA_FEATHER_FALL))
@@ -579,18 +532,15 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 	/************************************************************************/
 	/* Remove Spells                                                        */
 	/************************************************************************/
-	uint32 flags = 0;
-	if((movementInfo.flags & MOVEFLAG_MOTION_MASK) != 0)
-		flags |= AURA_INTERRUPT_ON_MOVEMENT;
+	if((movementInfo.flags & MOVEFLAG_MASK_MOVING) != 0)
+		mover->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_MOVEMENT);
 
 	if(!(movementInfo.flags & MOVEFLAG_SWIMMING || movementInfo.flags & MOVEFLAG_FALLING))
-		flags |= AURA_INTERRUPT_ON_LEAVE_WATER;
+		mover->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_LEAVE_WATER);
 	if(movementInfo.flags & MOVEFLAG_SWIMMING)
-		flags |= AURA_INTERRUPT_ON_ENTER_WATER;
+		mover->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_ENTER_WATER);
 	if(movementInfo.flags & (MOVEFLAG_TURN_LEFT | MOVEFLAG_TURN_RIGHT))
-		flags |= AURA_INTERRUPT_ON_TURNING;
-
-	_player->RemoveAurasByInterruptFlag(flags);
+		mover->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_TURNING);
 
 	/************************************************************************/
 	/* Update our position in the server.                                   */
@@ -611,13 +561,6 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 		if( !mover->isRooted() )
 			mover->SetPosition(movementInfo.x, movementInfo.y, movementInfo.z, movementInfo.orientation);
 	}
-    WorldPacket data(opcode, recv_data.size());
-    movementInfo.time = getMSTime();
-    movementInfo.guid = mover->GetGUID();
-    WriteMovementInfo(&data, &movementInfo);
-    mover->SendMessageToSet(&data, _player);
-
-    mover->movement_info = movementInfo;
 }
 
 void WorldSession::HandleMoveTimeSkippedOpcode(WorldPacket & recv_data)
@@ -628,12 +571,12 @@ void WorldSession::HandleMoveTimeSkippedOpcode(WorldPacket & recv_data)
 void WorldSession::HandleMoveNotActiveMoverOpcode(WorldPacket & recv_data)
 {
 	CHECK_INWORLD_RETURN
-
-	uint64 old_mover_guid;
-    recv_data.readPackGUID(old_mover_guid);
-
+	WoWGuid old_mover_guid;
+	recv_data >> old_mover_guid;
+	if(old_mover_guid == m_MoverWoWGuid)
+		return;
     MovementInfo mi;
-    mi.guid = old_mover_guid;
+	mi.guid = old_mover_guid.GetOldGuid();
 	ReadMovementInfo(recv_data, &mi);
 	_player->movement_info = mi;
 }
@@ -646,21 +589,18 @@ void WorldSession::HandleSetActiveMoverOpcode(WorldPacket & recv_data)
 	// set current movement object
 	uint64 guid;
 	recv_data >> guid;
-
-	if(guid != m_MoverWoWGuid.GetOldGuid())
+	// make sure the guid is valid and we aren't cheating
+	/* todo: fix these checks, right now it can cause a crash if a player is entering a vehicle and doesn't have the vehicle set yet.
+	if(!(_player->m_CurrentCharm == guid) &&
+	        !(_player->GetGUID() == guid))
 	{
-		// make sure the guid is valid and we aren't cheating
-		/* todo: fix these checks, right now it can cause a crash if a player is entering a vehicle and doesn't have the vehicle set yet.
-		if(!(_player->m_CurrentCharm == guid) &&
-		        !(_player->GetGUID() == guid))
-		{
-			if( _player->GetCurrentVehicle() && _player->GetCurrentVehicle()->GetOwner() && 
-				_player->GetCurrentVehicle()->GetOwner()->GetGUID() != guid )
-				return;
-		}*/
-		// ^ till is fixed
-		if(guid != 0 && !_player->GetMapMgr()->GetUnit(guid))
+		if( _player->GetCurrentVehicle() && _player->GetCurrentVehicle()->GetOwner() && 
+			_player->GetCurrentVehicle()->GetOwner()->GetGUID() != guid )
 			return;
+	}*/
+	// ^ till is fixed
+	if(_player->GetMapMgr()->GetUnit(guid) || guid == 0)
+	{
 		// generate wowguid
 		if(guid != 0)
 			m_MoverWoWGuid.Init(guid);

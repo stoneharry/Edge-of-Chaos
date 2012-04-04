@@ -3151,7 +3151,7 @@ uint8 Spell::CanCast(bool tolerate)
 {
 	uint32 i;
 
-	if( ( p_caster != NULL ) && p_caster->moving && ( m_spellInfo->InterruptFlags & CAST_INTERRUPT_ON_MOVEMENT ) && m_castTime > 1000)
+	if( ( p_caster != NULL ) && p_caster->IsMoving() && ( m_spellInfo->InterruptFlags & CAST_INTERRUPT_ON_MOVEMENT ) && m_castTime > 1000)
 		return SPELL_FAILED_MOVING;
 
 	if(p_caster != NULL && HasCustomFlag(CUSTOM_FLAG_SPELL_REQUIRES_COMBAT) && !p_caster->CombatStatus.IsInCombat())
@@ -3863,7 +3863,7 @@ uint8 Spell::CanCast(bool tolerate)
 	{
 		Unit* utarget = m_caster->GetMapMgr()->GetUnit(m_targets.m_unitTarget);
 
-		if(utarget && utarget->IsPlayer() && TO< Player* >(utarget)->m_isMoving)
+		if(utarget && utarget->IsPlayer() && TO< Player* >(utarget)->IsMoving())
 		{
 			// this only applies to PvP.
 			uint32 lat = TO< Player* >(utarget)->GetSession() ? TO< Player* >(utarget)->GetSession()->GetLatency() : 0;

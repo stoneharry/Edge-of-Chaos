@@ -2045,6 +2045,9 @@ class SERVER_DECL Unit : public Object
 		MovementInfo movement_info;
 		void BuildHeartBeatMsg(WorldPacket* data);
 		bool IsFlying();
+
+		bool IsMoving();
+		bool IsTurning();
 };
 
 

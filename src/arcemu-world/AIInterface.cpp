@@ -1698,7 +1698,7 @@ void AIInterface::_CalcDestinationAndMove(Unit* target, float dist)
 		float x = dist * cosf(angle);
 		float y = dist * sinf(angle);
 
-		if(target->IsPlayer() && TO_PLAYER(target)->m_isMoving)
+		if(target->IsPlayer() && TO_PLAYER(target)->IsMoving())
 		{
 			// cater for moving player vector based on orientation
 			x -= cosf(target->GetOrientation());

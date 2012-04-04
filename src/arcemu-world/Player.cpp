@@ -76,10 +76,6 @@ Player::Player(uint32 guid)
 	bShouldHaveLootableOnCorpse(false),
 	offhand_dmg_mod(0.5),
 	m_currentMovement(MOVE_UNROOT),
-	m_isMoving(false),
-	moving(false),
-	strafing(false),
-	jumping(false),
 	m_isGmInvisible(false),
 	SpellHasteRatingBonus(1.0f),
 	m_furorChance(0),
@@ -6066,7 +6062,7 @@ void Player::EventRepeatSpell()
 
 	m_AutoShotDuration = m_uint32Values[UNIT_FIELD_RANGEDATTACKTIME];
 
-	if(m_isMoving)
+	if(IsMoving())
 	{
 		//LOG_DEBUG( "HUNTER AUTOSHOT 2) %i, %i", m_AutoShotAttackTimer, m_AutoShotDuration );
 		//m_AutoShotAttackTimer = m_AutoShotDuration;//avoid flooding client with error messages
@@ -6084,7 +6080,7 @@ void Player::EventRepeatSpell()
 			m_AutoShotAttackTimer = 0;
 			m_onAutoShot = false;
 		}
-		else if(m_isMoving)
+		else if(IsMoving())
 		{
 			m_AutoShotAttackTimer = 100;
 		}

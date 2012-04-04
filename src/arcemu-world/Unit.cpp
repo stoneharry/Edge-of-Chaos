@@ -423,7 +423,7 @@ bool Unit::canReachWithAttack(Unit* pVictim)
 	{
 		// latency compensation!!
 		// figure out how much extra distance we need to allow for based on our movespeed and latency.
-		if(pVictim->IsPlayer() && TO< Player* >(pVictim)->m_isMoving)
+		if(pVictim->IsPlayer() && TO< Player* >(pVictim)->IsMoving())
 		{
 			// this only applies to PvP.
 			uint32 lat = TO< Player* >(pVictim)->GetSession() ? TO< Player* >(pVictim)->GetSession()->GetLatency() : 0;
@@ -435,7 +435,7 @@ bool Unit::canReachWithAttack(Unit* pVictim)
 			attackreach += m_runSpeed * 0.001f * lat;
 		}
 
-		if(TO< Player* >(this)->m_isMoving)
+		if(TO< Player* >(this)->IsMoving())
 		{
 			// this only applies to PvP.
 			uint32 lat = TO< Player* >(this)->GetSession() ? TO< Player* >(this)->GetSession()->GetLatency() : 0;
@@ -8619,4 +8619,14 @@ void Unit::HandleUpdateFieldChange(uint32 Index)
 			break;
 	}
 	player->AddGroupUpdateFlag(Flags);
+}
+
+bool Unit::IsMoving() 
+{ 
+	return movement_info.HasMovementFlag(MOVEFLAG_MASK_MOVING); 
+}
+
+bool Unit::IsTurning() 
+{ 
+	return movement_info.HasMovementFlag(MOVEFLAG_MASK_TURNING); 
 }
