@@ -1392,12 +1392,15 @@ class SERVER_DECL Player : public Unit
 		uint64				GetDuelArbiter() { return GetUInt64Value(PLAYER_DUEL_ARBITER); }
 		void				SetDuelTeam(uint32 team) { SetUInt32Value(PLAYER_DUEL_TEAM, team); }
 		uint32				GetDuelTeam() { return GetUInt32Value(PLAYER_DUEL_TEAM); }
-		bool IsDueling(Player * p)
+		bool IsDueling(Player * p, bool started)
 		{
 			if(DuelingWith == NULL)
 				return false;
 			if(DuelingWith == p || DuelingWith->GetGUID() == p->GetGUID())
-				return true;
+				if(started && GetDuelStatus() != DUEL_STATE_STARTED)
+					return false;
+				else
+					return true;
 			return false;
 		}
 

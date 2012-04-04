@@ -1166,6 +1166,24 @@ void Player::_EventAttack(bool offhand)
 		return;
 	}
 
+	if(!pVictim->isAlive())
+	{
+		WorldPacket data(SMSG_ATTACKSWING_DEADTARGET, 0);
+		GetSession()->SendPacket(&data);
+		EventAttackStop();
+		smsg_AttackStop(pVictim->GetGUID());
+		return;
+	}
+
+	if(!isAttackable(this, pVictim))
+	{
+		WorldPacket data(SMSG_ATTACKSWING_CANT_ATTACK, 0);
+		GetSession()->SendPacket(&data);
+		EventAttackStop();
+		smsg_AttackStop(pVictim->GetGUID());
+		return;
+	}
+
 	if(!canReachWithAttack(pVictim))
 	{
 		if(m_AttackMsgTimer != 1)

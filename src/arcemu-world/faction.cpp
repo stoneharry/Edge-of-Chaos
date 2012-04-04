@@ -48,7 +48,7 @@ bool isHostile(Object* objA, Object* objB)
 	if((objA->m_phase & objB->m_phase) == 0)     //What you can't see, can't be hostile!
 		return false;
 
-	if(objA->IsPlayer() && objB->IsPlayer() && TO< Player* >(objA)->IsGroupMember(TO< Player* >(objB)) && !TO< Player*>(objA)->IsDueling(TO< Player* >(objB)))
+	if(objA->IsPlayer() && objB->IsPlayer() && TO< Player* >(objA)->IsGroupMember(TO< Player* >(objB)) && !TO< Player*>(objA)->IsDueling(TO< Player* >(objB), true))
 		return false;
 
 	if(objA->IsPlayer() && objA->HasFlag(PLAYER_FLAGS, 0x100) && objB->IsCreature() && TO< Unit* >(objB)->GetAIInterface()->m_isNeutralGuard)
@@ -139,7 +139,7 @@ bool isAttackable(Object* objA, Object* objB, bool CheckStealth)
 	if((objA->m_phase & objB->m_phase) == 0)     //What you can't see, you can't attack either...
 		return false;
 
-	if(objA->IsPlayer() && objB->IsPlayer() && TO< Player* >(objA)->IsGroupMember(TO< Player* >(objB)) && !TO< Player*>(objA)->IsDueling(TO< Player* >(objB)))
+	if(objA->IsPlayer() && objB->IsPlayer() && TO< Player* >(objA)->IsGroupMember(TO< Player* >(objB)) && !TO< Player*>(objA)->IsDueling(TO< Player* >(objB), true))
 		return false;
 
 	if(objA->IsCorpse() || objB->IsCorpse())
