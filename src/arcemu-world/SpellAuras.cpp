@@ -6623,31 +6623,14 @@ void Aura::SpellAuraModStealthLevel(bool apply)
 
 void Aura::SpellAuraModUnderwaterBreathing(bool apply)
 {
-	if(p_target != NULL)
-	{
-		uint32 m_UnderwaterMaxTimeSaved = p_target->m_UnderwaterMaxTime;
-		if(apply)
-			p_target->m_UnderwaterMaxTime *= (1 + mod->m_amount / 100);
-		else
-			p_target->m_UnderwaterMaxTime /= (1 + mod->m_amount / 100);
-		p_target->m_UnderwaterTime *= p_target->m_UnderwaterMaxTime / m_UnderwaterMaxTimeSaved;
-	}
 }
 
 void Aura::SpellAuraSafeFall(bool apply)
 {
-	//FIXME:Find true flag
-	if(p_target != NULL)
-	{
-		if(apply)
-		{
-			p_target->m_safeFall += mod->m_amount;
-		}
-		else
-		{
-			p_target->m_safeFall -= mod->m_amount;
-		}
-	}
+	if(apply)
+		m_target->m_safeFall += mod->m_amount;
+	else
+		m_target->m_safeFall -= mod->m_amount;
 }
 
 void Aura::SpellAuraModReputationAdjust(bool apply)
@@ -6752,10 +6735,7 @@ void Aura::SpellAuraWaterBreathing(bool apply)
 			data.SetOpcode(SMSG_STOP_MIRROR_TIMER);
 			data << uint32(1);
 			p_target->GetSession()->SendPacket(&data);
-			p_target->m_UnderwaterState = 0;
 		}
-
-		p_target->m_bUnlimitedBreath = apply;
 	}
 }
 

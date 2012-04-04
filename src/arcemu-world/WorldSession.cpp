@@ -34,7 +34,6 @@ WorldSession::WorldSession(uint32 id, string Name, WorldSocket* sock):
 	bDeleted(false),
 	m_moveDelayTime(0),
 	m_clientTimeDelay(0),
-	m_bIsWLevelSet(false),
 	_player(NULL),
 	_socket(sock),
 	_accountId(id),

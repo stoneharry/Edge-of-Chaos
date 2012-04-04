@@ -701,6 +701,38 @@ struct classScriptOverride
 	uint32 damage;
 	bool percent;
 };
+
+enum PlayerUnderwaterState
+{
+    UNDERWATER_NONE                     = 0x00,
+    UNDERWATER_INWATER                  = 0x01,             // terrain type is water and player is afflicted by it
+    UNDERWATER_INLAVA                   = 0x02,             // terrain type is lava and player is afflicted by it
+    UNDERWATER_INSLIME                  = 0x04,             // terrain type is lava and player is afflicted by it
+    UNDERWARER_INDARKWATER              = 0x08,             // terrain type is dark water and player is afflicted by it
+
+    UNDERWATER_EXIST_TIMERS             = 0x10
+};
+
+enum MirrorTimerType
+{
+    FATIGUE_TIMER      = 0,
+    BREATH_TIMER       = 1,
+    FIRE_TIMER         = 2
+};
+
+#define MAX_TIMERS      3
+#define DISABLED_MIRROR_TIMER   -1
+#define MAP_LIQUID_TYPE_NO_WATER    0x00
+#define MAP_LIQUID_TYPE_WATER       0x01
+#define MAP_LIQUID_TYPE_OCEAN       0x02
+#define MAP_LIQUID_TYPE_MAGMA       0x04
+#define MAP_LIQUID_TYPE_SLIME       0x08
+
+#define MAP_ALL_LIQUIDS   (MAP_LIQUID_TYPE_WATER | MAP_LIQUID_TYPE_OCEAN | MAP_LIQUID_TYPE_MAGMA | MAP_LIQUID_TYPE_SLIME)
+
+#define MAP_LIQUID_TYPE_DARK_WATER  0x10
+#define MAP_LIQUID_TYPE_WMO_WATER   0x20
+
 #ifdef ENABLE_ACHIEVEMENTS
 class AchievementMgr;
 #endif
@@ -718,14 +750,6 @@ struct TaxiPathNode;
 #define RESTSTATE_TIRED100		     3
 #define RESTSTATE_TIRED50			 4
 #define RESTSTATE_EXHAUSTED		     5
-#define UNDERWATERSTATE_NONE		 0
-#define UNDERWATERSTATE_SWIMMING	 1
-#define UNDERWATERSTATE_UNDERWATER   2
-#define UNDERWATERSTATE_RECOVERING   4
-#define UNDERWATERSTATE_TAKINGDAMAGE 8
-#define UNDERWATERSTATE_FATIGUE	     16
-#define UNDERWATERSTATE_LAVA		 32
-#define UNDERWATERSTATE_SLIME		 64
 
 enum TRADE_STATUS
 {
@@ -1669,10 +1693,6 @@ class SERVER_DECL Player : public Unit
 		void SendGossipMenu(uint32 TitleTextId, uint64 npcGUID);
 		void CloseGossip();
 
-
-		bool m_bUnlimitedBreath;
-		uint32 m_UnderwaterTime;
-		uint32 m_UnderwaterState;
 		// Visible objects
 		bool CanSee(Object* obj);
 		bool IsVisible(uint64 pObj) { return !(m_visibleObjects.find(pObj) == m_visibleObjects.end()); }
@@ -1968,7 +1988,6 @@ class SERVER_DECL Player : public Unit
 		uint8 LfmType;
 		bool m_Autojoin;
 		bool m_AutoAddMem;
-		void StopMirrorTimer(uint32 Type);
 		BGScore m_bgScore;
 		uint32 m_bgTeam;
 		void UpdateChanceFields();
@@ -1997,8 +2016,6 @@ class SERVER_DECL Player : public Unit
 		void RemoveSummonSpell(uint32 Entry, uint32 SpellID);
 		set<uint32>* GetSummonSpells(uint32 Entry);
 		LockedQueue<WorldPacket*> delayedPackets;
-		uint32 m_UnderwaterMaxTime;
-		uint32 m_UnderwaterLastDmg;
 		LocationVector getMyCorpseLocation() const { return myCorpseLocation; }
 		bool bCorpseCreateable;
 		uint32 m_resurrectHealth, m_resurrectMana;
@@ -2284,10 +2301,6 @@ class SERVER_DECL Player : public Unit
 
 		Item* getTradeItem(uint32 slot) {return mTradeItems[slot];};
 
-		// Water level related stuff (they are public because they need to be accessed fast)
-		// Nose level of the character (needed for proper breathing)
-		float m_noseLevel;
-
 		/* Mind Control */
 		void Possess(uint64 GUID, uint32 delay = 0);
 		void UnPossess();
@@ -2391,9 +2404,6 @@ class SERVER_DECL Player : public Unit
 		void _ApplyItemMods(Item* item, int16 slot, bool apply, bool justdrokedown = false, bool skip_stat_apply = false);
 		void _EventAttack(bool offhand);
 		void _EventExploration();
-
-		// Water level related stuff
-		void SetNoseLevel();
 
 		/************************************************************************/
 		/* Trade																*/
@@ -2607,6 +2617,10 @@ class SERVER_DECL Player : public Unit
 		Spell* m_spellModTakingSpell;
 		uint8 m_roles;
 		uint32 GroupUpdateFlags;
+		bool m_isInWater;
+        int32 m_MirrorTimer[MAX_TIMERS];
+        uint8 m_MirrorTimerFlags;
+        uint8 m_MirrorTimerFlagsLast;
 	public:
 		void SendUpdateDataToSet(ByteBuffer* groupbuf, ByteBuffer* nongroupbuf, bool sendtoself);
 
@@ -2641,6 +2655,24 @@ class SERVER_DECL Player : public Unit
 		void SendUpdateToOutOfRangeGroupMembers();
 		uint32 numberofchats;
 		uint32 lastchattime;
+		//Liquid Things
+        void SetInWater(bool apply);
+
+        bool IsInWater() { return m_isInWater; }
+        bool IsUnderWater();
+        void UpdateUnderwaterState(float x, float y, float z);
+        void UpdateMirrorTimers();
+        void StopMirrorTimers()
+        {
+            StopMirrorTimer(FATIGUE_TIMER);
+            StopMirrorTimer(BREATH_TIMER);
+            StopMirrorTimer(FIRE_TIMER);
+        }
+        void SendMirrorTimer(MirrorTimerType Type, uint32 MaxValue, uint32 CurrentValue, int32 Regen);
+        void StopMirrorTimer(uint32 Type);
+        void HandleDrowning(uint32 time_diff);
+        int32 getMaxTimer(MirrorTimerType timer);
+
 };
 
 

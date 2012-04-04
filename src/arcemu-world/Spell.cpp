@@ -54,11 +54,11 @@ void SpellCastTargets::read(WorldPacket & data, Object* caster)
 	m_strTarget = "";
 
 	data >> m_targetMask;
-    if (m_targetMask == TARGET_FLAG_NONE)
-        return;
+    //if (m_targetMask == TARGET_FLAG_NONE)
+        //return;
 	WoWGuid guid;
 
-	/*if(m_targetMask == TARGET_FLAG_SELF)
+	if(m_targetMask == TARGET_FLAG_NONE)
 	{
 		switch(*(uint32*)((data.contents()) + 1)) // Spell ID
 		{
@@ -85,11 +85,11 @@ void SpellCastTargets::read(WorldPacket & data, Object* caster)
 				}
 				break;
 			default:
-				m_unitTarget = caster;
+				m_unitTarget = caster->GetGUID();
 				break;
 		}
 		return;
-	}*/
+	}
 
 	if(m_targetMask & (TARGET_FLAG_UNIT | TARGET_FLAG_UNIT_MINIPET | TARGET_FLAG_GAMEOBJECT | TARGET_FLAG_CORPSE_ENEMY | TARGET_FLAG_CORPSE_ALLY))
 	{
@@ -109,21 +109,9 @@ void SpellCastTargets::read(WorldPacket & data, Object* caster)
 		
 		data >> guid;
 		m_srcTransportGuid = guid.GetOldGuid();
-		if(m_srcTransportGuid)
-		{
-			data >> _transportOffset.x;
-			data >> _transportOffset.y;
-			data >> _transportOffset.z;
-			m_srcX = _transportOffset.x;
-			m_srcY = _transportOffset.y;
-			m_srcZ = _transportOffset.z;
-		}
-		else
-		{
-			data >> m_srcX;
-			data >> m_srcY;
-			data >> m_srcZ;
-		}
+		data >> m_srcX;
+		data >> m_srcY;
+		data >> m_srcZ;
 
 		if(!(m_targetMask & TARGET_FLAG_DEST_LOCATION))
 		{
@@ -147,21 +135,9 @@ void SpellCastTargets::read(WorldPacket & data, Object* caster)
 		WoWGuid guid;
 		data >> guid;
 		m_destTransportGuid = guid.GetOldGuid();
-		if(m_destTransportGuid)
-		{
-			data >> _transportOffset.x;
-			data >> _transportOffset.y;
-			data >> _transportOffset.z;
-			m_destX = _transportOffset.x;
-			m_destY = _transportOffset.y;
-			m_destZ = _transportOffset.z;
-		}
-		else
-		{
-			data >> m_destX;
-			data >> m_destY;
-			data >> m_destZ;
-		}
+		data >> m_destX;
+		data >> m_destY;
+		data >> m_destZ;
 
 		if(!(m_targetMask & TARGET_FLAG_SOURCE_LOCATION))
 		{
