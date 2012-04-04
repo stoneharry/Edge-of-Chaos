@@ -641,18 +641,18 @@ uint32 Unit::HandleProc(uint32 flag, Unit* victim, SpellEntry* CastingSpell, boo
 				continue;
 
 			//this is wrong, dummy is too common to be based on this, we should use spellgroup or something
-			if(spe->spellIconID != CastingSpell->spellIconID)
+			if(spe->SpellIconID != CastingSpell->SpellIconID)
 			{
-				if(!ospinfo->School)
+				if(!ospinfo->SchoolMask)
 					continue;
-				if(ospinfo->School != CastingSpell->School)
+				if(ospinfo->SchoolMask != CastingSpell->SchoolMask)
 					continue;
 				if(CastingSpell->EffectImplicitTargetA[0] == 1 ||
 				        CastingSpell->EffectImplicitTargetA[1] == 1 ||
 				        CastingSpell->EffectImplicitTargetA[2] == 1)  //Prevents school based procs affecting caster when self buffing
 					continue;
 			}
-			else if(spe->spellIconID == 1)
+			else if(spe->SpellIconID == 1)
 				continue;
 		}
 
@@ -974,7 +974,7 @@ uint32 Unit::HandleProc(uint32 flag, Unit* victim, SpellEntry* CastingSpell, boo
 					{
 						if(CastingSpell == NULL)
 							continue;
-						if(CastingSpell->School != SCHOOL_FIRE)
+						if(CastingSpell->SchoolMask != SCHOOL_FIRE)
 							continue;
 						SpellEntry* spellInfo = dbcSpell.LookupEntry(spellId);   //we already modified this spell on server loading so it must exist
 						SpellDuration* sd = dbcSpellDuration.LookupEntryForced(spellInfo->DurationIndex);
@@ -1141,8 +1141,8 @@ uint32 Unit::HandleProc(uint32 flag, Unit* victim, SpellEntry* CastingSpell, boo
 						//only trigger effect for specified spells
 						if(!(CastingSpell->c_is_flags & SPELL_FLAG_IS_DAMAGING))
 							continue;
-						if(CastingSpell->School != SCHOOL_FIRE &&
-						        CastingSpell->School != SCHOOL_SHADOW)
+						if(CastingSpell->SchoolMask != SCHOOL_FIRE &&
+						        CastingSpell->SchoolMask != SCHOOL_SHADOW)
 							continue;
 					}
 					break;
@@ -1238,7 +1238,7 @@ uint32 Unit::HandleProc(uint32 flag, Unit* victim, SpellEntry* CastingSpell, boo
 							continue;//this should not occur unless we made a fuckup somewhere
 						//only trigger effect for specified spells
 						if(!(CastingSpell->c_is_flags & SPELL_FLAG_IS_DAMAGING)
-						        || CastingSpell->School != SCHOOL_FIRE)
+						        || CastingSpell->SchoolMask != SCHOOL_FIRE)
 							continue;
 						if(flag & PROC_ON_SPELL_CRIT_HIT)
 						{
@@ -1254,7 +1254,7 @@ uint32 Unit::HandleProc(uint32 flag, Unit* victim, SpellEntry* CastingSpell, boo
 					//mage - Winter's Chill
 				case 12579:
 					// Winter's Chill shouldn't proc on self
-					if(victim == this || CastingSpell->School != SCHOOL_FROST)
+					if(victim == this || CastingSpell->SchoolMask != SCHOOL_FROST)
 						continue;
 					break;
 					//item - Thunderfury
@@ -1500,7 +1500,7 @@ uint32 Unit::HandleProc(uint32 flag, Unit* victim, SpellEntry* CastingSpell, boo
 					{
 						if(CastingSpell == NULL)
 							continue;
-						if(CastingSpell->School != SCHOOL_FIRE && CastingSpell->School != SCHOOL_FROST) //fire and frost critical's
+						if(CastingSpell->SchoolMask != SCHOOL_FIRE && CastingSpell->SchoolMask != SCHOOL_FROST) //fire and frost critical's
 							continue;
 						dmg_overwrite[0] = CastingSpell->manaCost * (ospinfo->EffectBasePoints[0] + 1) / 100;
 					}
@@ -1817,13 +1817,13 @@ uint32 Unit::HandleProc(uint32 flag, Unit* victim, SpellEntry* CastingSpell, boo
 					//SETBONUSES
 				case 37379:
 					{
-						if(!CastingSpell || CastingSpell->School != SCHOOL_SHADOW || !(CastingSpell->c_is_flags & SPELL_FLAG_IS_DAMAGING))
+						if(!CastingSpell || CastingSpell->SchoolMask != SCHOOL_SHADOW || !(CastingSpell->c_is_flags & SPELL_FLAG_IS_DAMAGING))
 							continue;
 					}
 					break;
 				case 37378:
 					{
-						if(!CastingSpell || CastingSpell->School != SCHOOL_FIRE || !(CastingSpell->c_is_flags & SPELL_FLAG_IS_DAMAGING))
+						if(!CastingSpell || CastingSpell->SchoolMask != SCHOOL_FIRE || !(CastingSpell->c_is_flags & SPELL_FLAG_IS_DAMAGING))
 							continue;
 					}
 					break;
@@ -2080,19 +2080,19 @@ uint32 Unit::HandleProc(uint32 flag, Unit* victim, SpellEntry* CastingSpell, boo
 						case 16188:	// Druid - Nature's Swiftness
 							{
 								//if( CastingSpell->School!=SCHOOL_NATURE||(!sd->CastTime||sd->CastTime>10000)) continue;
-								if(CastingSpell->School != SCHOOL_NATURE || sd->CastTime == 0)
+								if(CastingSpell->SchoolMask != SCHOOL_NATURE || sd->CastTime == 0)
 									continue;
 							}
 							break;
 						case 16166:
 							{
-								if(!(CastingSpell->School == SCHOOL_FIRE || CastingSpell->School == SCHOOL_FROST || CastingSpell->School == SCHOOL_NATURE))
+								if(!(CastingSpell->SchoolMask == SCHOOL_FIRE || CastingSpell->SchoolMask == SCHOOL_FROST || CastingSpell->SchoolMask == SCHOOL_NATURE))
 									continue;
 							}
 							break;
 						case 14177: // Cold blood will get removed on offensive spell
 							{
-								if(!(CastingSpell->SpellGroupType[0] & 0x6820206 || CastingSpell->SpellGroupType[1] & 0x240009))
+								if(!(CastingSpell->SpellFamilyFlags[0] & 0x6820206 || CastingSpell->SpellFamilyFlags[1] & 0x240009))
 									continue;
 							}
 							break;
@@ -2591,7 +2591,7 @@ uint32 Unit::GetSpellDidHitResult(Unit* pVictim, uint32 weapon_damage_type, Spel
 			hitchance = std::max(hitchance, 100.0f + vsk * 0.6f + hitmodifier);   //not wowwiki but more balanced
 	}
 
-	/*if(ability && ability->SpellGroupType)
+	/*if(ability && ability->SpellFamilyFlags)
 	{
 		if(Player * p = GetSpellModOwner())
 			p->ApplySpellMod(ability->Id, SPELLMOD_RESIST_MISS_CHANCE, hitchance);
@@ -2672,7 +2672,7 @@ void Unit::Strike(Unit* pVictim, uint32 weapon_damage_type, SpellEntry* ability,
 	bool disable_dR			 = false;
 
 	if(ability)
-		dmg.school_type = ability->School;
+		dmg.school_type = ability->SchoolMask;
 	else
 	{
 		if(IsCreature())
@@ -2909,7 +2909,7 @@ void Unit::Strike(Unit* pVictim, uint32 weapon_damage_type, SpellEntry* ability,
 	}
 	hitchance = 100.0f - misschance; // base miss chances are worked out further down
 
-	if(ability && ability->SpellGroupType)
+	if(ability && ability->SpellFamilyFlags)
 	{
 		if(Player * p = GetSpellModOwner())
 		{
@@ -3159,7 +3159,7 @@ void Unit::Strike(Unit* pVictim, uint32 weapon_damage_type, SpellEntry* ability,
 				else
 				{
 					if(weapon_damage_type == MELEE && ability)
-						dmg.full_damage = CalculateDamage(this, pVictim, MELEE, flag96(ability->SpellGroupType[0],ability->SpellGroupType[1], ability->SpellGroupType[2]), ability);
+						dmg.full_damage = CalculateDamage(this, pVictim, MELEE, ability->SpellFamilyFlags, ability);
 					else
 						dmg.full_damage = CalculateDamage(this, pVictim, weapon_damage_type, 0, ability);
 				}
@@ -3175,7 +3175,7 @@ void Unit::Strike(Unit* pVictim, uint32 weapon_damage_type, SpellEntry* ability,
 					dmg.full_damage += pVictim->RangedDamageTaken;
 				}
 
-				if(ability && ability->MechanicsType == MECHANIC_BLEEDING)
+				if(ability && ability->Mechanic == MECHANIC_BLEEDING)
 					disable_dR = true;
 
 
@@ -3269,7 +3269,7 @@ void Unit::Strike(Unit* pVictim, uint32 weapon_damage_type, SpellEntry* ability,
 							hit_status |= HITSTATUS_CRICTICAL;
 							int32 dmgbonus = dmg.full_damage;
 							//sLog.outString( "DEBUG: Critical Strike! Full_damage: %u" , dmg.full_damage );
-							if(ability && ability->SpellGroupType)
+							if(ability && ability->SpellFamilyFlags)
 							{
 								int32 dmg_bonus_pct = 100;
 								if(Player * p = GetSpellModOwner())
@@ -3820,7 +3820,7 @@ void Unit::AddAura(Aura* aur)
 		}
 	}
 
-	if(aur->GetSpellProto()->School && SchoolImmunityList[aur->GetSpellProto()->School])
+	if(aur->GetSpellProto()->SchoolMask && SchoolImmunityList[aur->GetSpellProto()->SchoolMask])
 	{
 		delete aur;
 		return;
@@ -3875,12 +3875,12 @@ void Unit::AddAura(Aura* aur)
 		{
 			//uint32 aurName = aur->GetSpellProto()->Name;
 			//uint32 aurRank = aur->GetSpellProto()->Rank;
-			uint32 maxStack = aur->GetSpellProto()->maxstack;
+			uint32 maxStack = aur->GetSpellProto()->StackAmount;
 			if(aur->GetSpellProto()->procCharges > 0)
 			{
 				int charges = aur->GetSpellProto()->procCharges;
 				Unit* ucaster = aur->GetUnitCaster();
-				if(aur->GetSpellProto()->SpellGroupType && ucaster != NULL)
+				if(aur->GetSpellProto()->SpellFamilyFlags && ucaster != NULL)
 				{
 					if(Player *p = GetSpellModOwner())
 						p->ApplySpellMod(aur->GetSpellProto()->Id, SPELLMOD_CHARGES, charges);
@@ -4200,9 +4200,9 @@ void Unit::AddAura(Aura* aur)
 
 	/* Set aurastates */
 	uint32 flag = 0;
-	if(aur->GetSpellProto()->MechanicsType == MECHANIC_ENRAGED && !asc_enraged++)
+	if(aur->GetSpellProto()->Mechanic == MECHANIC_ENRAGED && !asc_enraged++)
 		flag |= AURASTATE_FLAG_ENRAGED;
-	else if(aur->GetSpellProto()->MechanicsType == MECHANIC_BLEEDING && !asc_bleed++)
+	else if(aur->GetSpellProto()->Mechanic == MECHANIC_BLEEDING && !asc_bleed++)
 		flag |= AURASTATE_FLAG_BLEED;
 	if(aur->GetSpellProto()->BGR_one_buff_on_target & SPELL_TYPE_SEAL && !asc_seal++)
 		flag |= AURASTATE_FLAG_JUDGEMENT;
@@ -4524,7 +4524,7 @@ void Unit::RemoveAllAuraFromSelfType2(uint32 auratype, uint32 butskip_hash)
 		}
 }
 
-void Unit::RemoveAllAurasByRequiredShapeShift(uint32 mask)
+void Unit::RemoveAllAurasByStances(uint32 mask)
 {
 	Aura* aura;
 
@@ -4534,7 +4534,7 @@ void Unit::RemoveAllAurasByRequiredShapeShift(uint32 mask)
 		if(aura == NULL || ! aura->IsPositive())
 			continue;
 
-		if(aura->GetSpellProto()->RequiredShapeShift & mask)
+		if(aura->GetSpellProto()->Stances & mask)
 			aura->Remove();
 	}
 }
@@ -4697,7 +4697,7 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 {
 	float plus_damage = 0.0f;
 	Unit* caster = this;
-	uint32 school = spellInfo->School;
+	uint32 school = spellInfo->SchoolMask;
 
 	if( spellInfo->c_is_flags & SPELL_FLAG_IS_NOT_USING_DMG_BONUS || spellInfo->AttributesEx3 & SPELL_ATTR3_NO_DONE_BONUS)
 		return 0;
@@ -4775,7 +4775,7 @@ int32 Unit::GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dm
 	if((pVictim->HasAuraWithMechanics(MECHANIC_ENSNARED) || pVictim->HasAuraWithMechanics(MECHANIC_DAZED)) && caster->IsPlayer())
 		plus_damage += static_cast< float >(TO< Player* >(caster)->m_IncreaseDmgSnaredSlowed);
 
-	if(spellInfo->SpellGroupType)
+	if(spellInfo->SpellFamilyFlags)
 	{
 		int32 bonus_damage = 0;
 		int32 dmg_bonus_pct = 0;
@@ -5182,7 +5182,7 @@ bool Unit::HasAuraVisual(uint32 visualid)
 {
 	//passive auras do not have visual (at least when code was written)
 	for(uint32 x = MAX_REMOVABLE_AURAS_START; x < MAX_REMOVABLE_AURAS_END; x++)
-		if(m_auras[x] && m_auras[x]->GetSpellProto()->SpellVisual == visualid)
+		if(m_auras[x] && m_auras[x]->GetSpellProto()->SpellVisual[0] == visualid)
 			return true;
 	return false;
 }
@@ -5880,7 +5880,7 @@ void Unit::RemoveAurasByInterruptFlagButSkip(uint32 flag, uint32 skip)
 					case 16166: // [Shaman] Elemental Mastery
 						{
 							SpellEntry* spi = dbcSpell.LookupEntryForced(skip);
-							if(spi && !(spi->School == SCHOOL_FIRE || spi->School == SCHOOL_FROST || spi->School == SCHOOL_NATURE))
+							if(spi && !(spi->SchoolMask == SCHOOL_FIRE || spi->SchoolMask == SCHOOL_FROST || spi->SchoolMask == SCHOOL_NATURE))
 								continue;
 						}
 						break;
@@ -6046,7 +6046,7 @@ void Unit::RemoveAurasOfSchool(uint32 School, bool Positive, bool Immune)
 {
 	for(uint32 x = MAX_TOTAL_AURAS_START; x < MAX_TOTAL_AURAS_END; ++x)
 		if(m_auras[x]
-		        && m_auras[x]->GetSpellProto()->School == School
+		        && m_auras[x]->GetSpellProto()->SchoolMask == School
 		        && (!m_auras[x]->IsPositive() || Positive)
 		        && (!Immune && m_auras[x]->GetSpellProto()->Attributes & SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY)
 		  )
@@ -6109,7 +6109,7 @@ bool Unit::IsDazed()
 	{
 		if(m_auras[x])
 		{
-			if(m_auras[x]->GetSpellProto()->MechanicsType == MECHANIC_ENSNARED)
+			if(m_auras[x]->GetSpellProto()->Mechanic == MECHANIC_ENSNARED)
 				return true;
 			for(uint32 y = 0; y < 3; y++)
 				if(m_auras[x]->GetSpellProto()->EffectMechanic[y] == MECHANIC_ENSNARED)
@@ -6839,7 +6839,7 @@ bool Unit::RemoveAllAurasByMechanic(uint32 MechanicType , uint32 MaxDispel = -1 
 
 		if(m_auras[x])
 		{
-			if(m_auras[x]->GetSpellProto()->MechanicsType == MechanicType)   // Remove all mechanics of type MechanicType (my english goen boom)
+			if(m_auras[x]->GetSpellProto()->Mechanic == MechanicType)   // Remove all mechanics of type MechanicType (my english goen boom)
 			{
 				//sLog.outString( "Removed aura. [AuraSlot %u, SpellId %u]" , x , m_auras[x]->GetSpellId() );
 				// TODO: Stop moving if fear was removed.
@@ -6869,9 +6869,9 @@ void Unit::RemoveAllMovementImpairing()
 	{
 		if(m_auras[x] != NULL)
 		{
-			if(m_auras[x]->GetSpellProto()->MechanicsType == MECHANIC_ROOTED
-			        || m_auras[x]->GetSpellProto()->MechanicsType == MECHANIC_ENSNARED
-			        || m_auras[x]->GetSpellProto()->MechanicsType == MECHANIC_DAZED)
+			if(m_auras[x]->GetSpellProto()->Mechanic == MECHANIC_ROOTED
+			        || m_auras[x]->GetSpellProto()->Mechanic == MECHANIC_ENSNARED
+			        || m_auras[x]->GetSpellProto()->Mechanic == MECHANIC_DAZED)
 
 			{
 				m_auras[x]->Remove();
@@ -7576,7 +7576,7 @@ bool Unit::IsCriticalDamageForSpell(Object* victim, SpellEntry* spell)
 				CritChance += TO_PLAYER(victim)->res_R_crit_get();
 
 			if(victim->IsUnit())
-				CritChance += (float)(TO_UNIT(victim)->AttackerCritChanceMod[spell->School]);
+				CritChance += (float)(TO_UNIT(victim)->AttackerCritChanceMod[spell->SchoolMask]);
 		}
 		else
 			CritChance = 5.0f; // static value for mobs.. not blizzlike, but an unfinished formula is not fatal :)
@@ -7602,17 +7602,17 @@ bool Unit::IsCriticalDamageForSpell(Object* victim, SpellEntry* spell)
 	}
 	else
 	{
-		CritChance = spellcritperc + SpellCritChanceSchool[spell->School];
+		CritChance = spellcritperc + SpellCritChanceSchool[spell->SchoolMask];
 
 		if(victim->IsUnit())
 		{
-			CritChance += TO_UNIT(victim)->AttackerCritChanceMod[spell->School];
+			CritChance += TO_UNIT(victim)->AttackerCritChanceMod[spell->SchoolMask];
 
 			if(IsPlayer() && (TO_UNIT(victim)->m_rooted - TO_UNIT(victim)->m_stunned))
 				CritChance += TO_PLAYER(this)->m_RootedCritChanceBonus;
 		}
 
-		if(spell->SpellGroupType)
+		if(spell->SpellFamilyFlags)
 		{
 			if(Player * p = GetSpellModOwner())
 				p->ApplySpellMod(spell->Id, SPELLMOD_CRITICAL_CHANCE, CritChance);
@@ -7653,7 +7653,7 @@ float Unit::GetCriticalDamageBonusForSpell(Object* victim, SpellEntry* spell, fl
 {
 	int32 critical_bonus = 100;
 
-	if(spell->SpellGroupType)
+	if(spell->SpellFamilyFlags)
 	{
 		if(Player * p = GetSpellModOwner())
 			p->ApplySpellMod(spell->Id, SPELLMOD_CRIT_DAMAGE_BONUS, critical_bonus);
@@ -7663,7 +7663,7 @@ float Unit::GetCriticalDamageBonusForSpell(Object* victim, SpellEntry* spell, fl
 	{
 		// the bonuses are halved by 50% (funky blizzard math :S)
 		float b;
-		if(spell->School == 0 || spell->is_melee_spell || spell->is_ranged_spell)		// physical || hackfix SoCommand/JoCommand
+		if(spell->SchoolMask == 0 || spell->is_melee_spell || spell->is_ranged_spell)		// physical || hackfix SoCommand/JoCommand
 			b = critical_bonus / 100.0f + 1.0f;
 		else
 			b = critical_bonus / 200.0f + 1.0f;
@@ -7698,13 +7698,13 @@ bool Unit::IsCriticalHealForSpell(Object* victim, SpellEntry* spell)
 {
 	int32 crit_chance = 0;
 
-	crit_chance = float2int32(this->spellcritperc + this->SpellCritChanceSchool[spell->School]);
+	crit_chance = float2int32(this->spellcritperc + this->SpellCritChanceSchool[spell->SchoolMask]);
 
 	//Sacred Shield
 	if(victim->IsUnit() && TO_UNIT(victim)->HasAurasWithNameHash(SPELL_HASH_SACRED_SHIELD) && spell->NameHash == SPELL_HASH_FLASH_OF_LIGHT)
 		crit_chance += 50;
 
-	if(spell->SpellGroupType)
+	if(spell->SpellFamilyFlags)
 		if(Player * p = GetSpellModOwner())
 			p->ApplySpellMod(spell->Id, SPELLMOD_CRITICAL_CHANCE, crit_chance);
 	
@@ -7714,7 +7714,7 @@ bool Unit::IsCriticalHealForSpell(Object* victim, SpellEntry* spell)
 float Unit::GetCriticalHealBonusForSpell(Object* victim, SpellEntry* spell, float amount)
 {
 	int32 critical_bonus = 100;
-	if(spell->SpellGroupType)
+	if(spell->SpellFamilyFlags)
 		if(Player * p = GetSpellModOwner())
 			p->ApplySpellMod(spell->Id, SPELLMOD_CRIT_DAMAGE_BONUS, critical_bonus);
 
@@ -7728,7 +7728,7 @@ float Unit::GetCriticalHealBonusForSpell(Object* victim, SpellEntry* spell, floa
 	return amount;
 }
 
-uint32 Unit::GetAuraCountWithDispelType(uint32 dispel_type, uint64 guid)
+uint32 Unit::GetAuraCountWithDispel(uint32 dispel_type, uint64 guid)
 {
 	uint32 result = 0;
 
@@ -7737,7 +7737,7 @@ uint32 Unit::GetAuraCountWithDispelType(uint32 dispel_type, uint64 guid)
 		if(m_auras[x] == NULL)
 			continue;
 
-		if(m_auras[x]->GetSpellProto()->DispelType == dispel_type && (guid == 0 || m_auras[x]->GetCasterGUID() == guid))
+		if(m_auras[x]->GetSpellProto()->Dispel == dispel_type && (guid == 0 || m_auras[x]->GetCasterGUID() == guid))
 			result++;
 	}
 
@@ -7998,9 +7998,9 @@ bool Unit::HasFlyingAura(uint32 skipspell)
 float Unit::CalcSpellDamageReduction(Unit* victim, SpellEntry* spell, float res)
 {
 	float reduced_damage = 0;
-	reduced_damage += static_cast< float >( victim->DamageTakenMod[spell->School] );
-	reduced_damage += res * victim->DamageTakenPctMod[spell->School];
-	reduced_damage += res * victim->ModDamageTakenByMechPCT[spell->MechanicsType];
+	reduced_damage += static_cast< float >( victim->DamageTakenMod[spell->SchoolMask] );
+	reduced_damage += res * victim->DamageTakenPctMod[spell->SchoolMask];
+	reduced_damage += res * victim->ModDamageTakenByMechPCT[spell->Mechanic];
 	return reduced_damage;
 }
 

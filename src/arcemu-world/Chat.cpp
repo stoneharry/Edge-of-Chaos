@@ -1432,18 +1432,9 @@ bool ChatHandler::CmdSetFloatField(WorldSession* m_session, uint32 field, uint32
 
 bool ChatHandler::HandleGetPosCommand(const char* args, WorldSession* m_session)
 {
-	if(!args || !m_session) return false;
-
-	/*if(m_session->GetPlayer()->GetSelection() == 0) return false;
-	Creature *creature = objmgr.GetCreature(m_session->GetPlayer()->GetSelection());
+	Unit *creature = getSelectedUnit(m_session, false);
 
 	if(!creature) return false;
 	BlueSystemMessage(m_session, "Creature Position: \nX: %f\nY: %f\nZ: %f\n", creature->GetPositionX(), creature->GetPositionY(), creature->GetPositionZ());
-	return true;*/
-
-	uint32 spell = atol(args);
-	SpellEntry* se = dbcSpell.LookupEntryForced(spell);
-	if(se)
-		BlueSystemMessage(m_session, "SpellIcon for %d is %d", se->Id, se->field114);
 	return true;
 }

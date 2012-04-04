@@ -1092,7 +1092,7 @@ void AIInterface::HealReaction(Unit* caster, Unit* victim, SpellEntry* sp, uint3
 		threat = threat / 2; //Paladins only get 50% threat per heal than other classes
 
 	if(sp != NULL)
-		threat += (threat * caster->GetGeneratedThreatModifyer(sp->School) / 100);
+		threat += (threat * caster->GetGeneratedThreatModifyer(sp->SchoolMask) / 100);
 
 	if(threat < 1)
 		threat = 1;
@@ -3419,7 +3419,7 @@ uint32 AIInterface::_CalcThreat(uint32 damage, SpellEntry* sp, Unit* Attacker)
 	else
 		mod += damage;
 
-	if(sp != NULL && sp->SpellGroupType && Attacker)
+	if(sp != NULL && sp->SpellFamilyFlags && Attacker)
 	{
 		if(Player * p = Attacker->GetSpellModOwner())
 			p->ApplySpellMod(sp->Id, SPELLMOD_THREAT, mod);
@@ -3430,7 +3430,7 @@ uint32 AIInterface::_CalcThreat(uint32 damage, SpellEntry* sp, Unit* Attacker)
 
 	// modify threat by Buffs
 	if(sp != NULL)
-		mod += (mod * Attacker->GetGeneratedThreatModifyer(sp->School) / 100);
+		mod += (mod * Attacker->GetGeneratedThreatModifyer(sp->SchoolMask) / 100);
 	else
 		mod += (mod * Attacker->GetGeneratedThreatModifyer(0) / 100);
 

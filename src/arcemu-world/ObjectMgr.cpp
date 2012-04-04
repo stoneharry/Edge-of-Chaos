@@ -3884,10 +3884,9 @@ void ObjectMgr::CreateDummySpell(uint32 id, const char * name)
 	sp->EquippedItemClass=uint32(-1);
 	sp->Effect[0]=SPELL_EFFECT_DUMMY;
 	sp->EffectImplicitTargetA[0]=25;
-	sp->Name = name;
+	string(sp->SpellName[0]) = string(name);
 	sp->NameHash=crc32((const unsigned char*)name, (unsigned int)strlen(name));
-	sp->dmg_multiplier[0]=1.0f;
-	sp->StanceBarOrder=-1;
+	sp->EffectDamageMultiplier[0]=1.0f;
 	dbcSpell.SetRow(id,sp);
 	sWorld.dummyspells.push_back(sp);
 }

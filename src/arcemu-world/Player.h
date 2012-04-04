@@ -2648,7 +2648,7 @@ class SERVER_DECL Player : public Unit
 // "the bodies of template functions must be made available in a header file"
 template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &basevalue, Spell* spell)
 {
-	/*SpellEntry * spellInfo = dbcSpell.LookupEntry(spellId);
+	SpellEntry * spellInfo = dbcSpell.LookupEntry(spellId);
     if (!spellInfo)
         return 0;
     float totalmul = 1.0f;
@@ -2689,8 +2689,8 @@ template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &bas
     }
     float diff = (float)basevalue * (totalmul - 1.0f) + (float)totalflat;
     basevalue = T((float)basevalue + diff);
-    return T(diff);*/
-	return basevalue;
+    return T(diff);
+	//return basevalue;
 }
 
 class SkillIterator

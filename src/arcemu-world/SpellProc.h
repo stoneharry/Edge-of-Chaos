@@ -71,9 +71,9 @@ class SpellProc
 		virtual bool CheckClassMask(Unit* victim, SpellEntry* CastingSpell)
 		{
 			if((mProcClassMask[0] == 0 && mProcClassMask[1] == 0 && mProcClassMask[2] == 0) ||
-			        mProcClassMask[0] & CastingSpell->SpellGroupType[0] ||
-			        mProcClassMask[1] & CastingSpell->SpellGroupType[1] ||
-			        mProcClassMask[2] & CastingSpell->SpellGroupType[2])
+			        mProcClassMask[0] & CastingSpell->SpellFamilyFlags[0] ||
+			        mProcClassMask[1] & CastingSpell->SpellFamilyFlags[1] ||
+			        mProcClassMask[2] & CastingSpell->SpellFamilyFlags[2])
 				return true;
 			else
 				return false;

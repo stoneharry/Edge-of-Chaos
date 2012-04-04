@@ -100,7 +100,7 @@ class VampiricEmbraceSpellProc : public SpellProc
 		bool DoEffect(Unit* victim, SpellEntry* CastingSpell, uint32 flag, uint32 dmg, uint32 abs, int* dmg_overwrite, uint32 weapon_damage_type)
 		{
 			// Only proc for damaging shadow spells
-			if(CastingSpell->School != SCHOOL_SHADOW || ! IsDamagingSpell(CastingSpell))
+			if(CastingSpell->SchoolMask != SCHOOL_SHADOW || ! IsDamagingSpell(CastingSpell))
 				return true;
 
 			// Only proc for single target spells
@@ -204,8 +204,8 @@ class ImprovedMindBlastSpellProc : public SpellProc
 
 		bool DoEffect(Unit* victim, SpellEntry* CastingSpell, uint32 flag, uint32 dmg, uint32 abs, int* dmg_overwrite, uint32 weapon_damage_type)
 		{
-			// If spell is not Mind Blast (by SpellGroupType) or player is not on shadowform, don't proc
-			if(!(CastingSpell->SpellGroupType[0] & mProcClassMask[0] && mTarget->IsPlayer() && TO_PLAYER(mTarget)->GetShapeShift() == FORM_SHADOW))
+			// If spell is not Mind Blast (by SpellFamilyFlags) or player is not on shadowform, don't proc
+			if(!(CastingSpell->SpellFamilyFlags[0] & mProcClassMask[0] && mTarget->IsPlayer() && TO_PLAYER(mTarget)->GetShapeShift() == FORM_SHADOW))
 				return true;
 
 			return false;

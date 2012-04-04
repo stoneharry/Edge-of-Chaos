@@ -2156,7 +2156,7 @@ void Player::addSpell(uint32 spell_id)
 	}
 #ifdef ENABLE_ACHIEVEMENTS
 	m_achievementMgr.UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_LEARN_SPELL, spell_id, 1, 0);
-	if(spell->MechanicsType == MECHANIC_MOUNTED) // Mounts
+	if(spell->Mechanic == MECHANIC_MOUNTED) // Mounts
 	{
 		// miscvalue1==777 for mounts, 778 for pets
 		m_achievementMgr.UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_NUMBER_OF_MOUNTS, 777, 0, 0);
@@ -2676,34 +2676,34 @@ bool Player::canCast(SpellEntry* m_spellInfo)
 		{
 			if((int32)this->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND)->GetProto()->Class == m_spellInfo->EquippedItemClass)
 			{
-				if(m_spellInfo->EquippedItemSubClass != 0)
+				if(m_spellInfo->EquippedItemSubClassMask != 0)
 				{
-					if(m_spellInfo->EquippedItemSubClass != 173555 && m_spellInfo->EquippedItemSubClass != 96 && m_spellInfo->EquippedItemSubClass != 262156)
+					if(m_spellInfo->EquippedItemSubClassMask != 173555 && m_spellInfo->EquippedItemSubClassMask != 96 && m_spellInfo->EquippedItemSubClassMask != 262156)
 					{
-						if(pow(2.0, (this->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND)->GetProto()->SubClass) != m_spellInfo->EquippedItemSubClass))
+						if(pow(2.0, (this->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND)->GetProto()->SubClass) != m_spellInfo->EquippedItemSubClassMask))
 							return false;
 					}
 				}
 			}
 		}
-		else if(m_spellInfo->EquippedItemSubClass == 173555)
+		else if(m_spellInfo->EquippedItemSubClassMask == 173555)
 			return false;
 
 		if(this->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_RANGED))
 		{
 			if((int32)this->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_RANGED)->GetProto()->Class == m_spellInfo->EquippedItemClass)
 			{
-				if(m_spellInfo->EquippedItemSubClass != 0)
+				if(m_spellInfo->EquippedItemSubClassMask != 0)
 				{
-					if(m_spellInfo->EquippedItemSubClass != 173555 && m_spellInfo->EquippedItemSubClass != 96 && m_spellInfo->EquippedItemSubClass != 262156)
+					if(m_spellInfo->EquippedItemSubClassMask != 173555 && m_spellInfo->EquippedItemSubClassMask != 96 && m_spellInfo->EquippedItemSubClassMask != 262156)
 					{
-						if(pow(2.0, (this->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_RANGED)->GetProto()->SubClass) != m_spellInfo->EquippedItemSubClass))							return false;
+						if(pow(2.0, (this->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_RANGED)->GetProto()->SubClass) != m_spellInfo->EquippedItemSubClassMask))							return false;
 					}
 				}
 			}
 		}
 		else if
-		(m_spellInfo->EquippedItemSubClass == 262156)
+		(m_spellInfo->EquippedItemSubClassMask == 262156)
 			return false;
 	}
 	return true;
@@ -4200,7 +4200,7 @@ void Player::_ApplyItemMods(Item* item, int16 slot, bool apply, bool justdrokedo
 
 			if(item->GetProto()->Spells[k].Trigger == ON_EQUIP)
 			{
-				if(spells->RequiredShapeShift)
+				if(spells->Stances)
 				{
 					AddShapeShiftSpell(spells->Id);
 					continue;
@@ -4228,7 +4228,7 @@ void Player::_ApplyItemMods(Item* item, int16 slot, bool apply, bool justdrokedo
 			if(item->GetProto()->Spells[k].Trigger == ON_EQUIP)
 			{
 				SpellEntry* spells = dbcSpell.LookupEntry(item->GetProto()->Spells[k].Id);
-				if(spells->RequiredShapeShift)
+				if(spells->Stances)
 					RemoveShapeShiftSpell(spells->Id);
 				else
 					RemoveAura(item->GetProto()->Spells[k].Id);
@@ -9241,14 +9241,14 @@ void Player::SetShapeShift(uint8 ss)
 	{
 		if(m_auras[x] != NULL)
 		{
-			uint32 reqss = m_auras[x]->GetSpellProto()->RequiredShapeShift;
+			uint32 reqss = m_auras[x]->GetSpellProto()->Stances;
 			if(reqss != 0 && m_auras[x]->IsPositive())
 			{
 				if(old_ss > 0
 				        && old_ss != FORM_SHADOW
 				        && old_ss != FORM_STEALTH
 				  )	// 28 = FORM_SHADOW - Didn't find any aura that required this form
-					// not sure why all priest spell proto's RequiredShapeShift are set [to 134217728]
+					// not sure why all priest spell proto's Stances are set [to 134217728]
 				{
 					if((((uint32)1 << (old_ss - 1)) & reqss) &&		// we were in the form that required it
 					        !(((uint32)1 << (ss - 1) & reqss)))			// new form doesn't have the right form
@@ -9261,7 +9261,7 @@ void Player::SetShapeShift(uint8 ss)
 
 			if(this->getClass() == DRUID)
 			{
-				switch(m_auras[x]->GetSpellProto()->MechanicsType)
+				switch(m_auras[x]->GetSpellProto()->Mechanic)
 				{
 					case MECHANIC_ROOTED: //Rooted
 					case MECHANIC_ENSNARED: //Movement speed
@@ -9292,7 +9292,7 @@ void Player::SetShapeShift(uint8 ss)
 		sp = dbcSpell.LookupEntry(*itr);
 		if(sp->apply_on_shapeshift_change || sp->Attributes & 64)		// passive/talent
 		{
-			if(sp->RequiredShapeShift && ((uint32)1 << (ss - 1)) & sp->RequiredShapeShift)
+			if(sp->Stances && ((uint32)1 << (ss - 1)) & sp->Stances)
 			{
 				spe = sSpellFactoryMgr.NewSpell(this, sp, true, NULL);
 				spe->prepare(&t);
@@ -9317,7 +9317,7 @@ void Player::SetShapeShift(uint8 ss)
 	for(itr = mShapeShiftSpells.begin(); itr != mShapeShiftSpells.end(); ++itr)
 	{
 		sp = dbcSpell.LookupEntry(*itr);
-		if(sp->RequiredShapeShift && ((uint32)1 << (ss - 1)) & sp->RequiredShapeShift)
+		if(sp->Stances && ((uint32)1 << (ss - 1)) & sp->Stances)
 		{
 			spe = sSpellFactoryMgr.NewSpell(this, sp, true, NULL);
 			spe->prepare(&t);
@@ -10612,7 +10612,7 @@ void Player::AddShapeShiftSpell(uint32 id)
 	SpellEntry* sp = dbcSpell.LookupEntry(id);
 	mShapeShiftSpells.insert(id);
 
-	if(sp->RequiredShapeShift && ((uint32)1 << (GetShapeShift() - 1)) & sp->RequiredShapeShift)
+	if(sp->Stances && ((uint32)1 << (GetShapeShift() - 1)) & sp->Stances)
 	{
 		Spell* spe = sSpellFactoryMgr.NewSpell(this, sp, true, NULL);
 		SpellCastTargets t(this->GetGUID());
@@ -11707,7 +11707,7 @@ void Player::CalcExpertise()
 			entry = m_auras[x]->m_spellProto;
 			val = m_auras[x]->GetModAmountByMod();
 
-			if(entry->EquippedItemSubClass != 0)
+			if(entry->EquippedItemSubClassMask != 0)
 			{
 				itMH = GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND);
 				itOH = GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_OFFHAND);
@@ -11715,9 +11715,9 @@ void Player::CalcExpertise()
 				uint32 reqskillOH = 0;
 
 				if(itMH != NULL)
-					reqskillMH = entry->EquippedItemSubClass & (((uint32)1) << itMH->GetProto()->SubClass);
+					reqskillMH = entry->EquippedItemSubClassMask & (((uint32)1) << itMH->GetProto()->SubClass);
 				if(itOH != NULL)
-					reqskillOH = entry->EquippedItemSubClass & (((uint32)1) << itOH->GetProto()->SubClass);
+					reqskillOH = entry->EquippedItemSubClassMask & (((uint32)1) << itOH->GetProto()->SubClass);
 
 				if(reqskillMH != 0 || reqskillOH != 0)
 					modifier = +val;
@@ -12084,7 +12084,7 @@ void Player::LearnTalent(uint32 talentid, uint32 rank, bool isPreviewed)
 			        && ((spellInfo->c_is_flags & SPELL_FLAG_IS_EXPIREING_WITH_PET) == 0 || ((spellInfo->c_is_flags & SPELL_FLAG_IS_EXPIREING_WITH_PET) && GetSummon())))
 			  )
 			{
-				if(spellInfo->RequiredShapeShift && !((uint32)1 << (GetShapeShift() - 1) & spellInfo->RequiredShapeShift))
+				if(spellInfo->Stances && !((uint32)1 << (GetShapeShift() - 1) & spellInfo->Stances))
 				{
 					// do nothing
 				}
@@ -12147,7 +12147,7 @@ void Player::SendPreventSchoolCast(uint32 SpellSchool, uint32 unTimeMs)
 		if(spellInfo->Attributes & SPELL_ATTR0_DISABLED_WHILE_ACTIVE)
 			continue;
 
-		if(spellInfo->School == SpellSchool)
+		if(spellInfo->SchoolMask == SpellSchool)
 		{
 			data << uint32(SpellId);
 			data << uint32(unTimeMs);                       // in m.secs
@@ -13915,7 +13915,7 @@ void Player::RestoreSpellMods(Spell* spell, uint32 ownerAuraId, Aura* aura)
             if (iterMod == spell->m_appliedMods.end())
                 continue;
             // secondly, check if the current mod is one of the spellmods applied by the mod aura
-			if (!(mod->mask & flag96(spell->m_spellInfo->SpellGroupType[0], spell->m_spellInfo->SpellGroupType[1], spell->m_spellInfo->SpellGroupType[2])))
+			if (!(mod->mask & spell->m_spellInfo->SpellFamilyFlags))
                 continue;
 
             // remove from list
@@ -14095,9 +14095,9 @@ void Player::EventLoginAuras()
 		        && !(info->c_is_flags & SPELL_FLAG_IS_EXPIREING_WITH_PET)   //on pet summon talents
 		  )
 		{
-			if(info->RequiredShapeShift)
+			if(info->Stances)
 			{
-				if(!(((uint32)1 << (GetShapeShift() - 1)) & info->RequiredShapeShift))
+				if(!(((uint32)1 << (GetShapeShift() - 1)) & info->Stances))
 					continue;
 			}
 

@@ -36,8 +36,7 @@ void CreateDummySpell(uint32 id)
 	sp->Effect[0]=SPELL_EFFECT_DUMMY;
 	sp->EffectImplicitTargetA[0]=25;
 	sp->NameHash=crc32((const unsigned char*)name, (unsigned int)strlen(name));
-	sp->dmg_multiplier[0]=1.0f;
-	sp->StanceBarOrder=-1;
+	sp->EffectDamageMultiplier[0]=1.0f;
 	dbcSpell.SetRow(id,sp);
 	sWorld.dummyspells.push_back(sp);
 }
@@ -50,7 +49,7 @@ void ApplyNormalFixes()
 
 	//checking if the DBCs have been extracted from an english client, based on namehash of spell 4, the first with a different name in non-english DBCs
 	SpellEntry * sp = dbcSpell.LookupEntry(4);
-	if( crc32((const unsigned char*)sp->Name, (unsigned int)strlen(sp->Name)) != SPELL_HASH_WORD_OF_RECALL_OTHER )
+	if( crc32((const unsigned char*)sp->SpellName[0], (unsigned int)strlen(sp->SpellName[0])) != SPELL_HASH_WORD_OF_RECALL_OTHER )
 	{
 		Log.LargeErrorMessage("You are using DBCs extracted from an unsupported client.", "ArcEmu supports only enUS and enGB!!!", NULL);
 		abort();
@@ -86,7 +85,7 @@ void ApplyNormalFixes()
 
 		// hash the name
 		//!!!!!!! representing all strings on 32 bits is dangerous. There is a chance to get same hash for a lot of strings ;)
-        namehash = crc32((const unsigned char*)sp->Name, (unsigned int)strlen(sp->Name));
+        namehash = crc32((const unsigned char*)sp->SpellName[0], (unsigned int)strlen(sp->SpellName[0]));
 		sp->NameHash   = namehash; //need these set before we start processing spells
 
 		float radius=std::max(::GetRadius(dbcSpellRadius.LookupEntry(sp->EffectRadiusIndex[0])),::GetRadius(dbcSpellRadius.LookupEntry(sp->EffectRadiusIndex[1])));
@@ -107,17 +106,16 @@ void ApplyNormalFixes()
 		*/
 
 		// Save School as SchoolMask, and set School as an index
-		sp->SchoolMask = sp->School;
 		for (i= 0; i<SCHOOL_COUNT; i++)
 		{
-			if (sp->School & (1<<i))
+			if (sp->SchoolMask & (1<<i))
 			{
-				sp->School = i;
+				sp->SchoolMask = i;
 				break;
 			}
 		}
 	
-		Arcemu::Util::ArcemuAssert(sp->School < SCHOOL_COUNT);
+		Arcemu::Util::ArcemuAssert(sp->SchoolMask < SCHOOL_COUNT);
 
 		// correct caster/target aura states
 		if( sp->CasterAuraState > 1 )
@@ -153,7 +151,7 @@ void ApplyNormalFixes()
 					temp = sp->EffectRadiusIndex[col1_swap];	sp->EffectRadiusIndex[col1_swap] = sp->EffectRadiusIndex[col2_swap] ;	sp->EffectRadiusIndex[col2_swap] = temp;
 					temp = sp->EffectApplyAuraName[col1_swap];	sp->EffectApplyAuraName[col1_swap] = sp->EffectApplyAuraName[col2_swap] ;	sp->EffectApplyAuraName[col2_swap] = temp;
 					temp = sp->EffectAmplitude[col1_swap];		sp->EffectAmplitude[col1_swap] = sp->EffectAmplitude[col2_swap] ;	sp->EffectAmplitude[col2_swap] = temp;
-					ftemp = sp->EffectMultipleValue[col1_swap];		sp->EffectMultipleValue[col1_swap] = sp->EffectMultipleValue[col2_swap] ;	sp->EffectMultipleValue[col2_swap] = ftemp;
+					ftemp = sp->EffectValueMultiplier[col1_swap];		sp->EffectValueMultiplier[col1_swap] = sp->EffectValueMultiplier[col2_swap] ;	sp->EffectValueMultiplier[col2_swap] = ftemp;
 					temp = sp->EffectChainTarget[col1_swap];	sp->EffectChainTarget[col1_swap] = sp->EffectChainTarget[col2_swap] ;	sp->EffectChainTarget[col2_swap] = temp;
 					temp = sp->EffectMiscValue[col1_swap];		sp->EffectMiscValue[col1_swap] = sp->EffectMiscValue[col2_swap] ;	sp->EffectMiscValue[col2_swap] = temp;
 					temp = sp->EffectTriggerSpell[col1_swap];	sp->EffectTriggerSpell[col1_swap] = sp->EffectTriggerSpell[col2_swap] ;	sp->EffectTriggerSpell[col2_swap] = temp;
@@ -185,7 +183,7 @@ void ApplyNormalFixes()
 			}
 		}
 
-		if(!strcmp(sp->Name, "Hearthstone") || !strcmp(sp->Name, "Stuck") || !strcmp(sp->Name, "Astral Recall"))
+		if(!strcmp(sp->SpellName[0], "Hearthstone") || !strcmp(sp->SpellName[0], "Stuck") || !strcmp(sp->SpellName[0], "Astral Recall"))
 			sp->self_cast_only = true;
 
 		sp->proc_interval = 0;//trigger at each event
@@ -206,16 +204,16 @@ void ApplyNormalFixes()
 			sp->talent_tree = talentSpellIterator->second;
 
 		// parse rank text
-		if( sscanf( sp->Rank, "Rank %d", (unsigned int*)&rank) != 1)
+		if( sscanf( sp->Rank[0], "Rank %d", (unsigned int*)&rank) != 1)
 			rank = 0;
 
 		//seal of command
 		else if( namehash == SPELL_HASH_SEAL_OF_COMMAND )
-			sp->Spell_Dmg_Type = SPELL_DMG_TYPE_MAGIC;
+			sp->DmgClass = DmgClass_MAGIC;
 
 		//judgement of command
 		else if( namehash == SPELL_HASH_JUDGEMENT_OF_COMMAND )
-			sp->Spell_Dmg_Type = SPELL_DMG_TYPE_MAGIC;
+			sp->DmgClass = DmgClass_MAGIC;
 
 		else if( namehash == SPELL_HASH_ARCANE_SHOT )
 			sp->c_is_flags |= SPELL_FLAG_IS_NOT_USING_DMG_BONUS;
@@ -224,47 +222,47 @@ void ApplyNormalFixes()
 			sp->c_is_flags |= SPELL_FLAG_IS_NOT_USING_DMG_BONUS;
 
 		//Rogue: Poison time fix for 2.3
-		if( strstr( sp->Name, "Crippling Poison") && sp->Effect[0] == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY ) //I, II
+		if( strstr( sp->SpellName[0], "Crippling Poison") && sp->Effect[0] == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY ) //I, II
 			sp->EffectBasePoints[0] = 3599;
-		if( strstr( sp->Name, "Mind-numbing Poison") && sp->Effect[0] == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY ) //I,II,III
+		if( strstr( sp->SpellName[0], "Mind-numbing Poison") && sp->Effect[0] == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY ) //I,II,III
 			sp->EffectBasePoints[0] = 3599;
-		if( strstr( sp->Name, "Instant Poison") && sp->Effect[0] == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY ) //I,II,III,IV,V,VI,VII
+		if( strstr( sp->SpellName[0], "Instant Poison") && sp->Effect[0] == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY ) //I,II,III,IV,V,VI,VII
 			sp->EffectBasePoints[0] = 3599;
-		if( strstr( sp->Name, "Deadly Poison") && sp->Effect[0] == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY ) //I,II,III,IV,V,VI,VII
+		if( strstr( sp->SpellName[0], "Deadly Poison") && sp->Effect[0] == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY ) //I,II,III,IV,V,VI,VII
 			sp->EffectBasePoints[0] = 3599;
-		if( strstr( sp->Name, "Wound Poison") && sp->Effect[0] == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY ) //I,II,III,IV,V
+		if( strstr( sp->SpellName[0], "Wound Poison") && sp->Effect[0] == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY ) //I,II,III,IV,V
 			sp->EffectBasePoints[0] = 3599;
-		if( strstr( sp->Name, "Anesthetic Poison") && sp->Effect[0] == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY ) //I
+		if( strstr( sp->SpellName[0], "Anesthetic Poison") && sp->Effect[0] == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY ) //I
 			sp->EffectBasePoints[0] = 3599;
 
-        if( strstr( sp->Name, "Sharpen Blade") && sp->Effect[0] == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY ) //All BS stones
+        if( strstr( sp->SpellName[0], "Sharpen Blade") && sp->Effect[0] == SPELL_EFFECT_ENCHANT_ITEM_TEMPORARY ) //All BS stones
             sp->EffectBasePoints[0] = 3599;
 
 		//these mostly do not mix so we can use else
         // look for seal, etc in name
-        if( strstr( sp->Name, "Seal of"))
+        if( strstr( sp->SpellName[0], "Seal of"))
             sp->BGR_one_buff_on_target |= SPELL_TYPE_SEAL;
-		else if( strstr( sp->Name, "Hand of"))
+		else if( strstr( sp->SpellName[0], "Hand of"))
             sp->BGR_one_buff_on_target |= SPELL_TYPE_HAND;
-        else if( strstr( sp->Name, "Blessing"))
+        else if( strstr( sp->SpellName[0], "Blessing"))
             sp->BGR_one_buff_on_target |= SPELL_TYPE_BLESSING;
-        else if( strstr( sp->Name, "Curse"))
+        else if( strstr( sp->SpellName[0], "Curse"))
             sp->BGR_one_buff_on_target |= SPELL_TYPE_CURSE;
-        else if( strstr( sp->Name, "Corruption"))
+        else if( strstr( sp->SpellName[0], "Corruption"))
             sp->BGR_one_buff_on_target |= SPELL_TYPE_CORRUPTION;
-        else if( strstr( sp->Name, "Aspect"))
+        else if( strstr( sp->SpellName[0], "Aspect"))
             sp->BGR_one_buff_on_target |= SPELL_TYPE_ASPECT;
-        else if( strstr( sp->Name, "Sting") || strstr( sp->Name, "sting"))
+        else if( strstr( sp->SpellName[0], "Sting") || strstr( sp->SpellName[0], "sting"))
             sp->BGR_one_buff_on_target |= SPELL_TYPE_STING;
         // don't break armor items!
-        else if(strstr( sp->Name, "Fel Armor") || strstr( sp->Name, "Frost Armor") || strstr( sp->Name, "Ice Armor") || strstr( sp->Name, "Mage Armor") || strstr( sp->Name, "Molten Armor") || strstr( sp->Name, "Demon Skin") || strstr( sp->Name, "Demon Armor"))
+        else if(strstr( sp->SpellName[0], "Fel Armor") || strstr( sp->SpellName[0], "Frost Armor") || strstr( sp->SpellName[0], "Ice Armor") || strstr( sp->SpellName[0], "Mage Armor") || strstr( sp->SpellName[0], "Molten Armor") || strstr( sp->SpellName[0], "Demon Skin") || strstr( sp->SpellName[0], "Demon Armor"))
             sp->BGR_one_buff_on_target |= SPELL_TYPE_ARMOR;
-        else if( strstr( sp->Name, "Aura")
-			&& !strstr( sp->Name, "Trueshot") && !strstr( sp->Name, "Moonkin")
-			&& !strstr( sp->Name, "Crusader") && !strstr( sp->Name, "Sanctity") && !strstr( sp->Name, "Devotion") && !strstr( sp->Name, "Retribution") && !strstr( sp->Name, "Concentration") && !strstr( sp->Name, "Shadow Resistance") && !strstr( sp->Name, "Frost Resistance") && !strstr( sp->Name, "Fire Resistance")
+        else if( strstr( sp->SpellName[0], "Aura")
+			&& !strstr( sp->SpellName[0], "Trueshot") && !strstr( sp->SpellName[0], "Moonkin")
+			&& !strstr( sp->SpellName[0], "Crusader") && !strstr( sp->SpellName[0], "Sanctity") && !strstr( sp->SpellName[0], "Devotion") && !strstr( sp->SpellName[0], "Retribution") && !strstr( sp->SpellName[0], "Concentration") && !strstr( sp->SpellName[0], "Shadow Resistance") && !strstr( sp->SpellName[0], "Frost Resistance") && !strstr( sp->SpellName[0], "Fire Resistance")
 			)
             sp->BGR_one_buff_on_target |= SPELL_TYPE_AURA;
-		else if( strstr( sp->Name, "Track")==sp->Name)
+		else if( strstr( sp->SpellName[0], "Track")==sp->SpellName[0])
             sp->BGR_one_buff_on_target |= SPELL_TYPE_TRACK;
 		else if( namehash == SPELL_HASH_GIFT_OF_THE_WILD || namehash == SPELL_HASH_MARK_OF_THE_WILD )
             sp->BGR_one_buff_on_target |= SPELL_TYPE_MARK_GIFT;
@@ -284,13 +282,13 @@ void ApplyNormalFixes()
             sp->BGR_one_buff_on_target |= SPELL_TYPE_FORTITUDE;
 		else if( namehash == SPELL_HASH_DIVINE_SPIRIT || namehash == SPELL_HASH_PRAYER_OF_SPIRIT )
             sp->BGR_one_buff_on_target |= SPELL_TYPE_SPIRIT;
-//		else if( strstr( sp->Name, "Curse of Weakness") || strstr( sp->Name, "Curse of Agony") || strstr( sp->Name, "Curse of Recklessness") || strstr( sp->Name, "Curse of Tongues") || strstr( sp->Name, "Curse of the Elements") || strstr( sp->Name, "Curse of Idiocy") || strstr( sp->Name, "Curse of Shadow") || strstr( sp->Name, "Curse of Doom"))
+//		else if( strstr( sp->SpellName[0], "Curse of Weakness") || strstr( sp->SpellName[0], "Curse of Agony") || strstr( sp->SpellName[0], "Curse of Recklessness") || strstr( sp->SpellName[0], "Curse of Tongues") || strstr( sp->SpellName[0], "Curse of the Elements") || strstr( sp->SpellName[0], "Curse of Idiocy") || strstr( sp->SpellName[0], "Curse of Shadow") || strstr( sp->SpellName[0], "Curse of Doom"))
 //		else if(namehash==4129426293 || namehash==885131426 || namehash==626036062 || namehash==3551228837 || namehash==2784647472 || namehash==776142553 || namehash==3407058720 || namehash==202747424)
-//		else if( strstr( sp->Name, "Curse of "))
+//		else if( strstr( sp->SpellName[0], "Curse of "))
 //            type |= SPELL_TYPE_WARLOCK_CURSES;
-		else if( strstr( sp->Name, "Immolate") || strstr( sp->Name, "Conflagrate") )
+		else if( strstr( sp->SpellName[0], "Immolate") || strstr( sp->SpellName[0], "Conflagrate") )
 			sp->BGR_one_buff_on_target |= SPELL_TYPE_WARLOCK_IMMOLATE;
-		else if( strstr( sp->Name, "Amplify Magic") || strstr( sp->Name, "Dampen Magic") )
+		else if( strstr( sp->SpellName[0], "Amplify Magic") || strstr( sp->SpellName[0], "Dampen Magic") )
 			sp->BGR_one_buff_on_target |= SPELL_TYPE_MAGE_AMPL_DUMP;
         else if( strstr( sp->Description, "Battle Elixir") )
             sp->BGR_one_buff_on_target |= SPELL_TYPE_ELIXIR_BATTLE;
@@ -319,17 +317,17 @@ void ApplyNormalFixes()
 		{
 			uint32 new_level = 0;
 
-			if( strstr( sp->Name, "Apprentice ") )
+			if( strstr( sp->SpellName[0], "Apprentice ") )
 				new_level = 1;
-			else if( strstr( sp->Name, "Journeyman ") )
+			else if( strstr( sp->SpellName[0], "Journeyman ") )
 				new_level = 2;
-			else if( strstr( sp->Name, "Expert ") )
+			else if( strstr( sp->SpellName[0], "Expert ") )
 				new_level = 3;
-			else if( strstr( sp->Name, "Artisan ") )
+			else if( strstr( sp->SpellName[0], "Artisan ") )
 				new_level = 4;
-			else if( strstr( sp->Name, "Master ") )
+			else if( strstr( sp->SpellName[0], "Master ") )
 				new_level = 5;
-         else if( strstr( sp->Name, "Grand Master ") )
+         else if( strstr( sp->SpellName[0], "Grand Master ") )
             new_level = 6;
 
 			if( new_level != 0 )
@@ -353,7 +351,7 @@ void ApplyNormalFixes()
 		}
 
 		/*FILE * f = fopen("C:\\spells.txt", "a");
-		fprintf(f, "case 0x%08X:		// %s\n", namehash, sp->Name);
+		fprintf(f, "case 0x%08X:		// %s\n", namehash, sp->SpellName[0]);
 		fclose(f);*/
 
 		// find diminishing status
@@ -398,11 +396,11 @@ void ApplyNormalFixes()
 					break;
 				}
 
-				if( ( sp->Effect[z] == SPELL_EFFECT_SCHOOL_DAMAGE && sp->Spell_Dmg_Type == SPELL_DMG_TYPE_MELEE ) || sp->Effect[z] == SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL || sp->Effect[z] == SPELL_EFFECT_WEAPON_DAMAGE || sp->Effect[z] == SPELL_EFFECT_WEAPON_PERCENT_DAMAGE || sp->Effect[z] == SPELL_EFFECT_DUMMYMELEE )
+				if( ( sp->Effect[z] == SPELL_EFFECT_SCHOOL_DAMAGE && sp->DmgClass == DmgClass_MELEE ) || sp->Effect[z] == SPELL_EFFECT_WEAPON_DAMAGE_NOSCHOOL || sp->Effect[z] == SPELL_EFFECT_WEAPON_DAMAGE || sp->Effect[z] == SPELL_EFFECT_WEAPON_PERCENT_DAMAGE || sp->Effect[z] == SPELL_EFFECT_DUMMYMELEE )
 					sp->is_melee_spell = true;
-				if( ( sp->Effect[z] == SPELL_EFFECT_SCHOOL_DAMAGE && sp->Spell_Dmg_Type == SPELL_DMG_TYPE_RANGED ) )
+				if( ( sp->Effect[z] == SPELL_EFFECT_SCHOOL_DAMAGE && sp->DmgClass == DmgClass_RANGED ) )
 				{
-					//Log.Notice( "SpellFixes" , "Ranged Spell: %u [%s]" , sp->Id , sp->Name );
+					//Log.Notice( "SpellFixes" , "Ranged Spell: %u [%s]" , sp->Id , sp->SpellName[0] );
 					sp->is_ranged_spell = true;
 				}
 			}
@@ -574,7 +572,7 @@ void ApplyNormalFixes()
 						pr |= PROC_TARGET_SELF;
 				}
 
-				if( strstr( sp->Name, "Bloodthirst"))
+				if( strstr( sp->SpellName[0], "Bloodthirst"))
 				{
 					pr |= PROC_ON_MELEE_ATTACK;
 					pr |= PROC_TARGET_SELF;
@@ -612,7 +610,7 @@ void ApplyNormalFixes()
 		//////////////////////////////////////////////////////////////////////////////////////////////////////
 		//omg lightning shield trigger spell id's are all wrong ?
 		//if you are bored you could make these by hand but i guess we might find other spells with this problem..and this way it's safe
-		if( strstr( sp->Name, "Lightning Shield" ) && sp->EffectTriggerSpell[0] )
+		if( strstr( sp->SpellName[0], "Lightning Shield" ) && sp->EffectTriggerSpell[0] )
 		{
 			//check if we can find in the description
 			const char *startofid = strstr(sp->Description, "for $");
@@ -624,7 +622,7 @@ void ApplyNormalFixes()
 			sp->proc_interval = 3000; //few seconds
 		}
 		//mage ignite talent should proc only on some chances
-		else if( strstr( sp->Name, "Ignite") && sp->Id>=11119 && sp->Id<=12848 && sp->EffectApplyAuraName[0] == SPELL_AURA_DUMMY )
+		else if( strstr( sp->SpellName[0], "Ignite") && sp->Id>=11119 && sp->Id<=12848 && sp->EffectApplyAuraName[0] == SPELL_AURA_DUMMY )
 		{
 			//check if we can find in the description
 			const char *startofid=strstr(sp->Description, "an additional ");
@@ -639,17 +637,17 @@ void ApplyNormalFixes()
 			sp->procFlags = PROC_ON_SPELL_CRIT_HIT; //add procflag here since this was not processed with the others !
 		}
 		// Winter's Chill handled by frost school
-		else if( strstr( sp->Name, "Winter's Chill"))
+		else if( strstr( sp->SpellName[0], "Winter's Chill"))
 		{
-			sp->School = SCHOOL_FROST;
+			sp->SchoolMask = SCHOOL_FROST;
 		}
 		//more triggered spell ids are wrong. I think blizz is trying to outsmart us :S
 		//Chain Heal all ranks %50 heal value (49 + 1)
-		else if( strstr( sp->Name, "Chain Heal"))
+		else if( strstr( sp->SpellName[0], "Chain Heal"))
 		{
 			sp->EffectDieSides[0] = 49;
 		}
-		else if( strstr( sp->Name, "Touch of Weakness"))
+		else if( strstr( sp->SpellName[0], "Touch of Weakness"))
 		{
 			//check if we can find in the description
 			const char *startofid=strstr(sp->Description, "cause $");
@@ -661,7 +659,7 @@ void ApplyNormalFixes()
 				sp->procFlags = uint32(PROC_ON_MELEE_ATTACK_VICTIM);
 			}
 		}
-		else if( strstr( sp->Name, "Firestone Passive"))
+		else if( strstr( sp->SpellName[0], "Firestone Passive"))
 		{
 			//Enchants the main hand weapon with fire, granting each attack a chance to deal $17809s1 additional fire damage.
 			//check if we can find in the description
@@ -676,41 +674,41 @@ void ApplyNormalFixes()
 			}
 		}
 		//some procs trigger at intervals
-		else if( strstr( sp->Name, "Water Shield"))
+		else if( strstr( sp->SpellName[0], "Water Shield"))
 		{
 			sp->proc_interval = 3000; //few seconds
 			sp->procFlags |= PROC_TARGET_SELF;
 		}
-		else if( strstr( sp->Name, "Earth Shield"))
+		else if( strstr( sp->SpellName[0], "Earth Shield"))
 			sp->proc_interval = 3000; //few seconds
-		else if( strstr( sp->Name, "Poison Shield"))
+		else if( strstr( sp->SpellName[0], "Poison Shield"))
 			sp->proc_interval = 3000; //few seconds
-		else if( strstr( sp->Name, "Infused Mushroom"))
+		else if( strstr( sp->SpellName[0], "Infused Mushroom"))
 			sp->proc_interval = 10000; //10 seconds
-		else if( strstr( sp->Name, "Aviana's Purpose"))
+		else if( strstr( sp->SpellName[0], "Aviana's Purpose"))
 			sp->proc_interval = 10000; //10 seconds
 		//don't change to namehash since we are searching only a portion of the name
- 		else if( strstr( sp->Name, "Crippling Poison"))
+ 		else if( strstr( sp->SpellName[0], "Crippling Poison"))
 		{
 			sp->c_is_flags |= SPELL_FLAG_IS_POISON;
 		}
-		else if( strstr( sp->Name, "Mind-numbing Poison"))
+		else if( strstr( sp->SpellName[0], "Mind-numbing Poison"))
 		{
 			sp->c_is_flags |= SPELL_FLAG_IS_POISON;
 		}
-		else if( strstr( sp->Name, "Instant Poison"))
+		else if( strstr( sp->SpellName[0], "Instant Poison"))
 		{
 			sp->c_is_flags |= SPELL_FLAG_IS_POISON;
 		}
-		else if( strstr( sp->Name, "Deadly Poison"))
+		else if( strstr( sp->SpellName[0], "Deadly Poison"))
 		{
 			sp->c_is_flags |= SPELL_FLAG_IS_POISON;
 		}
-		else if( strstr( sp->Name, "Wound Poison"))
+		else if( strstr( sp->SpellName[0], "Wound Poison"))
 		{
 			sp->c_is_flags |= SPELL_FLAG_IS_POISON;
 		}
-		else if( strstr( sp->Name, "Scorpid Poison") )
+		else if( strstr( sp->SpellName[0], "Scorpid Poison") )
 		{
 			// groups?
 			sp->c_is_flags |= SPELL_FLAG_IS_POISON;
@@ -720,31 +718,31 @@ void ApplyNormalFixes()
 			sp->procFlags |= PROC_TARGET_SELF;
 
 		// Set default mechanics if we don't already have one
-		if( !sp->MechanicsType )
+		if( !sp->Mechanic )
 		{
 			//Set Silencing spells mechanic.
 			if( sp->EffectApplyAuraName[0] == SPELL_AURA_MOD_SILENCE ||
 				sp->EffectApplyAuraName[1] == SPELL_AURA_MOD_SILENCE ||
 				sp->EffectApplyAuraName[2] == SPELL_AURA_MOD_SILENCE )
-				sp->MechanicsType = MECHANIC_SILENCED;
+				sp->Mechanic = MECHANIC_SILENCED;
 
 			//Set Stunning spells mechanic.
 			if( sp->EffectApplyAuraName[0] == SPELL_AURA_MOD_STUN ||
 				sp->EffectApplyAuraName[1] == SPELL_AURA_MOD_STUN ||
 				sp->EffectApplyAuraName[2] == SPELL_AURA_MOD_STUN )
-				sp->MechanicsType = MECHANIC_STUNNED;
+				sp->Mechanic = MECHANIC_STUNNED;
 
 			//Set Fearing spells mechanic
 			if( sp->EffectApplyAuraName[0] == SPELL_AURA_MOD_FEAR ||
 				sp->EffectApplyAuraName[1] == SPELL_AURA_MOD_FEAR ||
 				sp->EffectApplyAuraName[2] == SPELL_AURA_MOD_FEAR )
-				sp->MechanicsType = MECHANIC_FLEEING;
+				sp->Mechanic = MECHANIC_FLEEING;
 
 			//Set Interrupted spells mech
 			if( sp->Effect[0] == SPELL_EFFECT_INTERRUPT_CAST ||
 				sp->Effect[1] == SPELL_EFFECT_INTERRUPT_CAST ||
 				sp->Effect[2] == SPELL_EFFECT_INTERRUPT_CAST )
-				sp->MechanicsType = MECHANIC_INTERRUPTED;
+				sp->Mechanic = MECHANIC_INTERRUPTED;
 		}
 
 		if( sp->proc_interval != 0 )
@@ -754,8 +752,8 @@ void ApplyNormalFixes()
 		if( sp->NameHash == SPELL_HASH_SEAL_OF_COMMAND )
 		{
 			sp->procChance = 25;
-			sp->School = SCHOOL_HOLY; //the procspells of the original seal of command have physical school instead of holy
-			sp->Spell_Dmg_Type = SPELL_DMG_TYPE_MAGIC; //heh, crazy spell uses melee/ranged/magic dmg type for 1 spell. Now which one is correct ?
+			sp->SchoolMask = SCHOOL_HOLY; //the procspells of the original seal of command have physical school instead of holy
+			sp->DmgClass = DmgClass_MAGIC; //heh, crazy spell uses melee/ranged/magic dmg type for 1 spell. Now which one is correct ?
 		}
 
 		/* Decapitate */
@@ -767,7 +765,7 @@ void ApplyNormalFixes()
 		//mage - fireball. Only some of the spell has the flags
 
 		if( sp->NameHash == SPELL_HASH_DIVINE_SHIELD || sp->NameHash == SPELL_HASH_DIVINE_PROTECTION || sp->NameHash == SPELL_HASH_BLESSING_OF_PROTECTION )
-			sp->MechanicsType = MECHANIC_INVULNARABLE;
+			sp->Mechanic = MECHANIC_INVULNARABLE;
 
 		/* hackfix for this - FIX ME LATER - Burlex */
 		if( namehash == SPELL_HASH_SEAL_FATE )
@@ -1018,7 +1016,7 @@ void ApplyNormalFixes()
 		// Shield of Righteousness
 		if( sp->NameHash == SPELL_HASH_SHIELD_OF_RIGHTEOUSNESS)
 		{
-			sp->School = SCHOOL_HOLY;
+			sp->SchoolMask = SCHOOL_HOLY;
 			sp->Effect[0] = SPELL_EFFECT_DUMMY;
 			sp->Effect[1] = SPELL_EFFECT_NULL; //hacks, handling it in Spell::SpellEffectSchoolDMG(uint32 i)
 			sp->Effect[2] = SPELL_EFFECT_SCHOOL_DAMAGE; //hack
@@ -1027,8 +1025,8 @@ void ApplyNormalFixes()
 		// Paladin - Consecration
         if( sp->NameHash == SPELL_HASH_CONSECRATION   )
         {
-            sp->School = SCHOOL_HOLY; //Consecration is a holy redirected spell.
-            sp->Spell_Dmg_Type = SPELL_DMG_TYPE_MAGIC; //Speaks for itself.
+            sp->SchoolMask = SCHOOL_HOLY; //Consecration is a holy redirected spell.
+            sp->DmgClass = DmgClass_MAGIC; //Speaks for itself.
         }
 
 		if( sp->NameHash == SPELL_HASH_SEALS_OF_THE_PURE )
@@ -1144,7 +1142,7 @@ void ApplyNormalFixes()
 		if( sp->NameHash == SPELL_HASH_DASH )
 		{
 			// mask for FORM_CAT(1) = 1 << (1 - 1), which is 1
-			sp->RequiredShapeShift = 1;
+			sp->Stances = 1;
 		}
 	} 
 	// END OF LOOP
@@ -1167,7 +1165,7 @@ void ApplyNormalFixes()
 	 **********************************************************/
 	sp = CheckAndReturnSpellEntry( SPELL_RANGED_WAND );
 	if( sp != NULL )
-		sp->Spell_Dmg_Type = SPELL_DMG_TYPE_RANGED;
+		sp->DmgClass = DmgClass_RANGED;
 
 	/**********************************************************
 	 * Misc stuff (questfixes etc)
@@ -1461,15 +1459,15 @@ void ApplyNormalFixes()
 		// Warrior - Tactical Mastery Rank 1
 		sp = CheckAndReturnSpellEntry( 12295 );
 		if(sp != NULL)
-			sp->RequiredShapeShift = 0x00070000;
+			sp->Stances = 0x00070000;
 		// Warrior - Tactical Mastery Rank 2
 		sp = CheckAndReturnSpellEntry( 12676 );
 		if(sp != NULL)
-			sp->RequiredShapeShift = 0x00070000;
+			sp->Stances = 0x00070000;
 		// Warrior - Tactical Mastery Rank 3
 		sp = CheckAndReturnSpellEntry( 12677 );
 		if(sp != NULL)
-			sp->RequiredShapeShift = 0x00070000;
+			sp->Stances = 0x00070000;
 
 		// Warrior - Heroic Throw
 		sp = CheckAndReturnSpellEntry( 57755 );
@@ -1480,28 +1478,28 @@ void ApplyNormalFixes()
 		// Warrior - Rend
 		sp = CheckAndReturnSpellEntry( 772 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 6546 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 6547 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 6548 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 11572 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 11573 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 11574 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 25208 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 
 		/**********************************************************
 		 *	Fury
@@ -1865,7 +1863,7 @@ void ApplyNormalFixes()
 		// Paladin - Vengeance
 		sp = CheckAndReturnSpellEntry( 20050 ); // Rank 1 proc
 		if( sp != NULL )
-			sp->maxstack = 3;
+			sp->StackAmount = 3;
 
 		sp = CheckAndReturnSpellEntry( 20056 ); //Rank 2
 		if( sp != NULL )
@@ -1877,7 +1875,7 @@ void ApplyNormalFixes()
 
 		sp = CheckAndReturnSpellEntry( 20052 ); // Rank 2 proc
 		if( sp != NULL )
-			sp->maxstack = 3;
+			sp->StackAmount = 3;
 
 		sp = CheckAndReturnSpellEntry( 20057 ); //Rank 3
 		if( sp != NULL )
@@ -1888,7 +1886,7 @@ void ApplyNormalFixes()
 		}
 		sp = CheckAndReturnSpellEntry( 20053 ); // Rank 3 proc
 		if( sp != NULL )
-			sp->maxstack = 3;
+			sp->StackAmount = 3;
 
 		//Paladin - Seal of Command - Holy damage, but melee mechanics (crit damage, chance, etc)
 		sp = CheckAndReturnSpellEntry( 20424 );
@@ -1915,7 +1913,7 @@ void ApplyNormalFixes()
 		{
 			sp->EffectApplyAuraName[0] = SPELL_AURA_PROC_TRIGGER_SPELL;
 			sp->EffectTriggerSpell[0] = 53719;
-			sp->School = SCHOOL_HOLY;
+			sp->SchoolMask = SCHOOL_HOLY;
 			sp->procFlags = PROC_ON_MELEE_ATTACK;
 		}
 		//Paladin - seal of blood
@@ -1924,21 +1922,21 @@ void ApplyNormalFixes()
 		{
 			sp->EffectApplyAuraName[0] = SPELL_AURA_PROC_TRIGGER_SPELL;
 			sp->EffectTriggerSpell[0] = 31893;	
-			sp->School = SCHOOL_HOLY;
+			sp->SchoolMask = SCHOOL_HOLY;
 			sp->procFlags = PROC_ON_MELEE_ATTACK;
 		}
 		sp = CheckAndReturnSpellEntry( 53719 );
 		if( sp != NULL )
 		{
-			sp->School = SCHOOL_HOLY;
-			sp->Spell_Dmg_Type = SPELL_DMG_TYPE_MAGIC;
+			sp->SchoolMask = SCHOOL_HOLY;
+			sp->DmgClass = DmgClass_MAGIC;
 		}
 		sp = CheckAndReturnSpellEntry( 31893 );
 		if( sp != NULL )
 		{
 			sp->procFlags = PROC_ON_PHYSICAL_ATTACK;
-			sp->School = SCHOOL_HOLY;
-			sp->Spell_Dmg_Type = SPELL_DMG_TYPE_MAGIC;
+			sp->SchoolMask = SCHOOL_HOLY;
+			sp->DmgClass = DmgClass_MAGIC;
 		}
 
 		//Paladin - Divine Storm
@@ -1951,7 +1949,7 @@ void ApplyNormalFixes()
 			sp->EffectTriggerSpell[1] = 54172;
 			sp->procFlags = PROC_ON_CAST_SPELL;
 			sp->procChance = 100;
-			sp->MaxTargets = 4;
+			sp->MaxAffectedTargets = 4;
 		}
 
 		//Paladin - Sacred Shield - bonus to flash is not working
@@ -2046,9 +2044,9 @@ void ApplyNormalFixes()
 		if( sp != NULL )
 		{
 			sp->SpellFamilyName = 0;
-			sp->SpellGroupType[0] = 0;
-			sp->SpellGroupType[1] = 0;
-			sp->SpellGroupType[2] = 0;
+			sp->SpellFamilyFlags[0] = 0;
+			sp->SpellFamilyFlags[1] = 0;
+			sp->SpellFamilyFlags[2] = 0;
 			sp->RankNumber = 0;
 		}
 
@@ -2056,9 +2054,9 @@ void ApplyNormalFixes()
 		if( sp != NULL )
 		{
 			sp->SpellFamilyName = 0;
-			sp->SpellGroupType[0] = 0;
-			sp->SpellGroupType[1] = 0;
-			sp->SpellGroupType[2] = 0;
+			sp->SpellFamilyFlags[0] = 0;
+			sp->SpellFamilyFlags[1] = 0;
+			sp->SpellFamilyFlags[2] = 0;
 			sp->RankNumber = 0;
 			sp->proc_interval = 4000;
 		}
@@ -2152,27 +2150,27 @@ void ApplyNormalFixes()
 		//Divine Protection 	
 		sp = CheckAndReturnSpellEntry( 498 );
 		if (sp != NULL)
-			sp->targetAuraSpellNot = 25771;
+			sp->excludeTargetAuraSpell = 25771;
 
 		//Divine Shield 
 		sp = CheckAndReturnSpellEntry( 642 );
 		if (sp != NULL)
-			sp->targetAuraSpellNot = 25771;
+			sp->excludeTargetAuraSpell = 25771;
 
 		//Hand of Protection Rank 1 
 		sp = CheckAndReturnSpellEntry( 1022 );
 		if (sp != NULL)
-			sp->targetAuraSpellNot = 25771;
+			sp->excludeTargetAuraSpell = 25771;
 
 		//Hand of Protection Rank 2
 		sp = CheckAndReturnSpellEntry( 5599 );
 		if (sp != NULL)
-			sp->targetAuraSpellNot = 25771;
+			sp->excludeTargetAuraSpell = 25771;
 
 		//Hand of Protection Rank 3
 		sp = CheckAndReturnSpellEntry( 10278 );
 		if (sp != NULL)
-			sp->targetAuraSpellNot = 25771;
+			sp->excludeTargetAuraSpell = 25771;
 
 		//Paladin - Infusion of Light
 		sp = CheckAndReturnSpellEntry( 53569 );
@@ -2690,16 +2688,16 @@ void ApplyNormalFixes()
 		// Hunter's mark r1
 		sp = CheckAndReturnSpellEntry( 1130 );
 		if( sp != NULL )
-			sp->maxstack = (sp->EffectBasePoints[1]*3) / (sp->EffectBasePoints[1]/10);
+			sp->StackAmount = (sp->EffectBasePoints[1]*3) / (sp->EffectBasePoints[1]/10);
 		sp = CheckAndReturnSpellEntry( 14323 );
 		if( sp != NULL )
-			sp->maxstack = (sp->EffectBasePoints[1]*3) / (sp->EffectBasePoints[1]/10);
+			sp->StackAmount = (sp->EffectBasePoints[1]*3) / (sp->EffectBasePoints[1]/10);
 		sp = CheckAndReturnSpellEntry( 14324 );
 		if( sp != NULL )
-			sp->maxstack = (sp->EffectBasePoints[1]*3) / (sp->EffectBasePoints[1]/10);
+			sp->StackAmount = (sp->EffectBasePoints[1]*3) / (sp->EffectBasePoints[1]/10);
 		sp = CheckAndReturnSpellEntry( 14325 );
 		if( sp != NULL )
-			sp->maxstack = (sp->EffectBasePoints[1]*3) / (sp->EffectBasePoints[1]/10);
+			sp->StackAmount = (sp->EffectBasePoints[1]*3) / (sp->EffectBasePoints[1]/10);
 			*/
 		// MesoX: Serendipity http://www.wowhead.com/?spell=63730
 		sp = CheckAndReturnSpellEntry( 63730 ); // Rank 1
@@ -2785,7 +2783,7 @@ void ApplyNormalFixes()
 		sp = CheckAndReturnSpellEntry( 2094 );
 		if( sp != NULL )
 		{
-			sp->Spell_Dmg_Type = SPELL_DMG_TYPE_RANGED;
+			sp->DmgClass = DmgClass_RANGED;
 			sp->is_ranged_spell = true;
 		}
 
@@ -2850,51 +2848,51 @@ void ApplyNormalFixes()
 		//garrot
 		sp = CheckAndReturnSpellEntry( 703 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 8631 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 8632 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 8633 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 11289 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 11290 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 26839 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 26884 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 
 		//rupture
 		sp = CheckAndReturnSpellEntry( 1943 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 8639 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 8640 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 11273 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 11274 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 11275 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 		sp = CheckAndReturnSpellEntry( 26867 );
 		if( sp != NULL )
-			sp->MechanicsType = MECHANIC_BLEEDING;
+			sp->Mechanic = MECHANIC_BLEEDING;
 
 	//Rogue - Killing Spree Stealth fix
 	sp = CheckAndReturnSpellEntry( 51690 );
@@ -3518,7 +3516,7 @@ void ApplyNormalFixes()
 		//Bloodlust
 		sp = CheckAndReturnSpellEntry( 2825 );
 		if (sp != NULL)
-			sp->casterAuraSpellNot = 57724; //sated debuff
+			sp->excludeCasterAuraSpell = 57724; //sated debuff
  
 		//Sated
 		sp = CheckAndReturnSpellEntry( 57724 );
@@ -3531,7 +3529,7 @@ void ApplyNormalFixes()
 		//Heroism
 		sp = CheckAndReturnSpellEntry( 32182 );
 		if (sp != NULL)
-			sp->casterAuraSpellNot = 57723; //sated debuff
+			sp->excludeCasterAuraSpell = 57723; //sated debuff
  
 		//Sated
 		sp = CheckAndReturnSpellEntry( 57723 );
@@ -3567,16 +3565,16 @@ void ApplyNormalFixes()
 		 **********************************************************/
 		sp = CheckAndReturnSpellEntry( 370 );
 		if( sp != NULL )
-			sp->DispelType = DISPEL_MAGIC;
+			sp->Dispel = DISPEL_MAGIC;
 		sp = CheckAndReturnSpellEntry( 8012 );
 		if( sp != NULL )
-			sp->DispelType = DISPEL_MAGIC;
+			sp->Dispel = DISPEL_MAGIC;
 		sp = CheckAndReturnSpellEntry( 27626 );
 		if( sp != NULL )
-			sp->DispelType = DISPEL_MAGIC;
+			sp->Dispel = DISPEL_MAGIC;
 		sp = CheckAndReturnSpellEntry( 33625 );
 		if( sp != NULL )
-			sp->DispelType = DISPEL_MAGIC;
+			sp->Dispel = DISPEL_MAGIC;
 
 		/**********************************************************
 		 *	Eye of the Storm
@@ -4093,7 +4091,7 @@ void ApplyNormalFixes()
 		sp = CheckAndReturnSpellEntry( 36032 );
 		{
 			sp->procFlags = 0;
-			sp->maxstack = 4;
+			sp->StackAmount = 4;
 			sp->procCharges = 0;
 			sp->c_is_flags |= SPELL_FLAG_IS_FORCEDDEBUFF;
 		}
@@ -5126,28 +5124,28 @@ void ApplyNormalFixes()
 		if( sp != NULL )
 		{
 			sp->Attributes |= SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY;
-			sp->School = SCHOOL_FIRE;
+			sp->SchoolMask = SCHOOL_FIRE;
 		}
 
 		sp = CheckAndReturnSpellEntry( 59170 );
 		if( sp != NULL )
 		{
 			sp->Attributes |= SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY;
-			sp->School = SCHOOL_FIRE;
+			sp->SchoolMask = SCHOOL_FIRE;
 		}
 
 		sp = CheckAndReturnSpellEntry( 59171 );
 		if( sp != NULL )
 		{
 			sp->Attributes |= SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY;
-			sp->School = SCHOOL_FIRE;
+			sp->SchoolMask = SCHOOL_FIRE;
 		}
 
 		sp = CheckAndReturnSpellEntry( 59172 );
 		if( sp != NULL )
 		{
 			sp->Attributes |= SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY;
-			sp->School = SCHOOL_FIRE;
+			sp->SchoolMask = SCHOOL_FIRE;
 		}
 		// End Warlock chaos bolt
 
@@ -5382,11 +5380,11 @@ void ApplyNormalFixes()
 		// Druid - Primal Fury (talent)
 		sp = CheckAndReturnSpellEntry( 37116 );
 		if( sp != NULL )
-			sp->RequiredShapeShift = 0;
+			sp->Stances = 0;
 
 		sp = CheckAndReturnSpellEntry( 37117 );
 		if( sp != NULL )
-			sp->RequiredShapeShift = 0;
+			sp->Stances = 0;
 
 		// Druid - Blood Frenzy (proc)
 		sp = CheckAndReturnSpellEntry( 16954 );
@@ -5411,13 +5409,13 @@ void ApplyNormalFixes()
 
 		sp = CheckAndReturnSpellEntry( 16972 );
 		if( sp != NULL )
-			sp->RequiredShapeShift = mm;
+			sp->Stances = mm;
 		sp = CheckAndReturnSpellEntry( 16974 );
 		if( sp != NULL )
-			sp->RequiredShapeShift = mm;
+			sp->Stances = mm;
 		sp = CheckAndReturnSpellEntry( 16975 );
 		if( sp != NULL )
-			sp->RequiredShapeShift = mm;
+			sp->Stances = mm;
 
 		/**********************************************************
 		 *	Restoration
@@ -5823,19 +5821,19 @@ void ApplyNormalFixes()
 			sp->procChance = 40;
 			sp->procFlags = PROC_ON_CAST_SPELL;
 			sp->EffectTriggerSpell[0] = 40452;
-			sp->maxstack = 1;
+			sp->StackAmount = 1;
 			sp->Effect[1] = SPELL_EFFECT_APPLY_AURA;
 			sp->EffectApplyAuraName[1] = SPELL_AURA_PROC_TRIGGER_SPELL;
 			sp->procChance = 25;
 			sp->procFlags = PROC_ON_CAST_SPELL;
 			sp->EffectTriggerSpell[1] = 40445;
-			sp->maxstack = 1;
+			sp->StackAmount = 1;
 			sp->Effect[2] = SPELL_EFFECT_APPLY_AURA;
 			sp->EffectApplyAuraName[2] = SPELL_AURA_PROC_TRIGGER_SPELL;
 			sp->procChance = 25;
 			sp->procFlags = PROC_ON_CAST_SPELL;
 			sp->EffectTriggerSpell[2] = 40446;
-			sp->maxstack = 1;
+			sp->StackAmount = 1;
 		}
 
 		//Ashtongue Talisman of Acumen
@@ -5847,13 +5845,13 @@ void ApplyNormalFixes()
 			sp->procChance = 10;
 			sp->procFlags = PROC_ON_CAST_SPELL;
 			sp->EffectTriggerSpell[0] = 40441;
-			sp->maxstack = 1;
+			sp->StackAmount = 1;
 			sp->Effect[1] = SPELL_EFFECT_APPLY_AURA;
 			sp->EffectApplyAuraName[1] = SPELL_AURA_PROC_TRIGGER_SPELL;
 			sp->procChance = 10;
 			sp->procFlags = PROC_ON_CAST_SPELL;
 			sp->EffectTriggerSpell[1] = 40440;
-			sp->maxstack = 1;
+			sp->StackAmount = 1;
 		}
 		// Drums of war targets surrounding party members instead of us
 		sp = CheckAndReturnSpellEntry( 35475 );
@@ -5931,7 +5929,7 @@ void ApplyNormalFixes()
 			sp->procChance = 100;
 			sp->procFlags = PROC_ON_CAST_SPELL;
 			sp->EffectTriggerSpell[0] = 37445;
-			sp->maxstack = 1;
+			sp->StackAmount = 1;
 		}
 
 		// Band of the Eternal Champion
@@ -6145,19 +6143,19 @@ void ApplyNormalFixes()
 		//all Drums
 		sp = CheckAndReturnSpellEntry( 35474 );
 		if( sp != NULL )
-			sp->RequiredShapeShift = 0;
+			sp->Stances = 0;
 		sp = CheckAndReturnSpellEntry( 35475 );
 		if( sp != NULL )
-			sp->RequiredShapeShift = 0;
+			sp->Stances = 0;
 		sp = CheckAndReturnSpellEntry( 35476 );
 		if( sp != NULL )
-			sp->RequiredShapeShift = 0;
+			sp->Stances = 0;
 		sp = CheckAndReturnSpellEntry( 35477 );
 		if( sp != NULL )
-			sp->RequiredShapeShift = 0;
+			sp->Stances = 0;
 		sp = CheckAndReturnSpellEntry( 35478 );
 		if( sp != NULL )
-			sp->RequiredShapeShift = 0;
+			sp->Stances = 0;
 
 		//this an on equip item spell(2824) :  ice arrow(29501)
 		sp = CheckAndReturnSpellEntry( 29501 );
@@ -6361,7 +6359,7 @@ void ApplyNormalFixes()
 			sp->EffectTriggerSpell[1] = 60314;
 			sp->procFlags = PROC_ON_MELEE_ATTACK | PROC_ON_RANGED_ATTACK;
 			sp->procChance = 100;
-			sp->maxstack = 20;
+			sp->StackAmount = 20;
 		}
 
 		//Vial of the Sunwell
@@ -6484,7 +6482,7 @@ void ApplyNormalFixes()
 		sp = CheckAndReturnSpellEntry( 42005 );
  		if( sp != NULL )
 		{
-			sp->MaxTargets = 5;
+			sp->MaxAffectedTargets = 5;
 		}
 
 		//Acidic Wound
@@ -6513,14 +6511,14 @@ void ApplyNormalFixes()
 		sp = CheckAndReturnSpellEntry( 40327 );
  		if( sp != NULL )
 		{
-			sp->maxstack = 10;
+			sp->StackAmount = 10;
 		}
 
 		//Doom
 		sp = CheckAndReturnSpellEntry( 31347 );
 		if( sp != NULL )
 		{	
-			sp->MaxTargets = 1;
+			sp->MaxAffectedTargets = 1;
 		}
 		//Shadow of Death
 		sp = CheckAndReturnSpellEntry( 40251 );
@@ -6796,7 +6794,7 @@ void ApplyNormalFixes()
 		{
 			sp->EffectApplyAuraName[0] = SPELL_AURA_MOD_SCALE;
 			sp->EffectBasePoints[0] = -50;
-			sp->maxstack = 1;
+			sp->StackAmount = 1;
       	}
 
 		sp = CheckAndReturnSpellEntry( 46584 );

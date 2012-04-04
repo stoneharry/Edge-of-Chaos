@@ -43,7 +43,7 @@ bool HotStreak(uint32 i, Aura *pAura, bool apply)
 		if( apply )
 		{
 			static uint32 classMask[3] = { 0x13, 0x21000, 0 };
-			caster->AddProcTriggerSpell(48108, pAura->GetSpellProto()->Id, caster->GetGUID(), pAura->GetSpellProto()->EffectBasePoints[i] +1, PROC_ON_SPELL_CRIT_HIT | PROC_ON_SPELL_HIT, 0, pAura->GetSpellProto()->EffectSpellClassMask[i], classMask);
+			//caster->AddProcTriggerSpell(48108, pAura->GetSpellProto()->Id, caster->GetGUID(), pAura->GetSpellProto()->EffectBasePoints[i] +1, PROC_ON_SPELL_CRIT_HIT | PROC_ON_SPELL_HIT, 0, reinterpret_cast<uint32*>(pAura->GetSpellProto()->EffectSpellClassMask[i]), classMask);
 		}
 		else
 			caster->RemoveProcTriggerSpell(48108);

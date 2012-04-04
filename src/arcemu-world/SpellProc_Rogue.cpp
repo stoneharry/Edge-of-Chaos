@@ -54,7 +54,7 @@ class PoisonSpellProc : public SpellProc
 		// Allow proc on ability cast (like eviscerate, envenom, fan of knives, rupture)
 		bool CanProcOnTriggered(Unit* victim, SpellEntry* CastingSpell)
 		{
-			if(CastingSpell != NULL && (CastingSpell->SpellGroupType[0] & 0x120000 || CastingSpell->SpellGroupType[1] & 0x240008))
+			if(CastingSpell != NULL && (CastingSpell->SpellFamilyFlags[0] & 0x120000 || CastingSpell->SpellFamilyFlags[1] & 0x240008))
 				return true;
 
 			return false;

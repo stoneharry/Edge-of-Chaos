@@ -831,7 +831,7 @@ enum DamageFlags
     DAMAGE_FLAG_ARCANE  = 64
 };
 
-enum WeaponDamageType // this is NOT the same as SPELL_ENTRY_Spell_Dmg_Type, or Spell::GetType(), or SPELL_ENTRY_School !!
+enum WeaponDamageType // this is NOT the same as SPELL_ENTRY_DmgClass, or Spell::GetType(), or SPELL_ENTRY_School !!
 {
     MELEE   = 0,
     OFFHAND = 1,
@@ -1179,7 +1179,7 @@ class SERVER_DECL Unit : public Object
 		bool HasAuraWithName(uint32 name, uint32 skipspell = 0);
 		uint32 GetAuraCountWithName(uint32 name);
 		uint32 FindAuraCountByHash(uint32 HashName, uint32 maxcount = 0);
-		uint32 GetAuraCountWithDispelType(uint32 dispel_type, uint64 guid);
+		uint32 GetAuraCountWithDispel(uint32 dispel_type, uint64 guid);
 		Aura * GetAuraWithSlot(uint32 slot);
 		void AddAura(Aura* aur);
 		void AddAura(Object * caster, uint32 aur, uint32 dur = 0);
@@ -1254,7 +1254,7 @@ class SERVER_DECL Unit : public Object
 		uint32 RemoveAllAuraById(uint32 Id); // DuKJIoHuyC: Remove an aura by it's id
 		bool RemoveAllAurasByMechanic(uint32 MechanicType , uint32 MaxDispel , bool HostileOnly);   // Removes all (de)buffs on unit of a specific mechanic type.
 		void RemoveAllMovementImpairing();
-		void RemoveAllAurasByRequiredShapeShift(uint32 mask);
+		void RemoveAllAurasByStances(uint32 mask);
 
 		void RemoveNegativeAuras();
 		// Temporary remove all auras

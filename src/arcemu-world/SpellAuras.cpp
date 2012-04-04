@@ -894,9 +894,9 @@ void Aura::Remove()
 
 	/* Remove aurastates */
 	uint32 flag = 0;
-	if(m_spellProto->MechanicsType == MECHANIC_ENRAGED && !--m_target->asc_enraged)
+	if(m_spellProto->Mechanic == MECHANIC_ENRAGED && !--m_target->asc_enraged)
 		flag |= AURASTATE_FLAG_ENRAGED;
-	else if(m_spellProto->MechanicsType == MECHANIC_BLEEDING && !--m_target->asc_bleed)
+	else if(m_spellProto->Mechanic == MECHANIC_BLEEDING && !--m_target->asc_bleed)
 		flag |= AURASTATE_FLAG_BLEED;
 	if(m_spellProto->BGR_one_buff_on_target & SPELL_TYPE_SEAL && !--m_target->asc_seal)
 		flag |= AURASTATE_FLAG_JUDGEMENT;
@@ -1464,7 +1464,7 @@ void Aura::EventUpdateAA(float r)
 	uint32 AAEffectId = m_spellProto->GetAAEffectId();
 	if(AAEffectId == 0)
 	{
-		LOG_ERROR("Spell %u ( %s ) has tried to update Area Aura targets but Spell has no Area Aura effect.", m_spellProto->Id, m_spellProto->Name);
+		LOG_ERROR("Spell %u ( %s ) has tried to update Area Aura targets but Spell has no Area Aura effect.", m_spellProto->Id, m_spellProto->SpellName[0]);
 		ARCEMU_ASSERT(false);
 	}
 
@@ -1674,7 +1674,7 @@ void Aura::SpellAuraPeriodicDamage(bool apply)
 {
 	if(apply)
 	{
-		if(m_spellProto->MechanicsType == MECHANIC_BLEEDING && m_target->MechanicsDispels[MECHANIC_BLEEDING])
+		if(m_spellProto->Mechanic == MECHANIC_BLEEDING && m_target->MechanicsDispels[MECHANIC_BLEEDING])
 		{
 			m_flags |= 1 << mod->i;
 			return;
@@ -1794,7 +1794,7 @@ void Aura::EventPeriodicDamage(uint32 amount)
 	if(! m_target->isAlive())
 		return;
 
-	if(m_target->SchoolImmunityList[GetSpellProto()->School])
+	if(m_target->SchoolImmunityList[GetSpellProto()->SchoolMask])
 	{
 		if(GetUnitCaster() != NULL)
 			SendTickImmune(m_target, GetUnitCaster());
@@ -1804,7 +1804,7 @@ void Aura::EventPeriodicDamage(uint32 amount)
 	float res = float(amount);
 	uint32 abs_dmg = 0;
 	int bonus = 0;
-	uint32 school = GetSpellProto()->School;
+	uint32 school = GetSpellProto()->SchoolMask;
 	Unit* c = GetUnitCaster();
 	uint32 aproc = PROC_ON_ANY_HOSTILE_ACTION;
 	uint32 vproc = PROC_ON_ANY_HOSTILE_ACTION | PROC_ON_ANY_DAMAGE_VICTIM;
@@ -1883,7 +1883,7 @@ void Aura::EventPeriodicDamage(uint32 amount)
 		if(res <= 0)
 			dmg.resisted_damage = dmg.full_damage;
 
-		if(res > 0 && c && m_spellProto->MechanicsType != MECHANIC_BLEEDING)
+		if(res > 0 && c && m_spellProto->Mechanic != MECHANIC_BLEEDING)
 		{
 			c->CalculateResistanceReduction(m_target, &dmg, m_spellProto, 0);
 			if((int32)dmg.resisted_damage > dmg.full_damage)
@@ -1899,7 +1899,7 @@ void Aura::EventPeriodicDamage(uint32 amount)
 	SpellEntry* sp = m_spellProto;
 
 	if(m_target->m_damageSplitTarget)
-		res = (float)m_target->DoDamageSplitTarget((uint32)res, GetSpellProto()->School, false);
+		res = (float)m_target->DoDamageSplitTarget((uint32)res, GetSpellProto()->SchoolMask, false);
 
 	if(c != NULL)
 		c->DealDamage(m_target, float2int32(res),  2, 0, GetSpellId());
@@ -1942,7 +1942,7 @@ void Aura::SpellAuraModConfuse(bool apply)
 
 		// Check Mechanic Immunity
 		if(m_target->MechanicsDispels[MECHANIC_DISORIENTED]
-		        || (m_spellProto->MechanicsType == MECHANIC_POLYMORPHED && m_target->MechanicsDispels[MECHANIC_POLYMORPHED])
+		        || (m_spellProto->Mechanic == MECHANIC_POLYMORPHED && m_target->MechanicsDispels[MECHANIC_POLYMORPHED])
 		  )
 		{
 			m_flags |= 1 << mod->i;
@@ -2149,7 +2149,7 @@ void Aura::SpellAuraPeriodicHeal(bool apply)
 
 		int32 val = mod->m_amount;
 		Unit* c = GetUnitCaster();
-		if(c && GetSpellProto()->SpellGroupType)
+		if(c && GetSpellProto()->SpellFamilyFlags)
 		{
 			if(Player * p = c->GetSpellModOwner())
 				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_ALL_EFFECTS, val);
@@ -2187,11 +2187,11 @@ void Aura::EventPeriodicHeal(uint32 amount)
 
 	if(c != NULL)
 	{
-		bonus += c->HealDoneMod[m_spellProto->School] + m_target->HealTakenMod[m_spellProto->School];
+		bonus += c->HealDoneMod[m_spellProto->SchoolMask] + m_target->HealTakenMod[m_spellProto->SchoolMask];
 		if(c->IsPlayer())
 		{
 			for(uint32 a = 0; a < 5; a++)
-				bonus += float2int32(TO< Player* >(c)->SpellHealDoneByAttribute[a][m_spellProto->School] * TO< Player* >(c)->GetStat(a));
+				bonus += float2int32(TO< Player* >(c)->SpellHealDoneByAttribute[a][m_spellProto->SchoolMask] * TO< Player* >(c)->GetStat(a));
 		}
 		//Spell Coefficient
 		if(m_spellProto->OTspell_coef_override >= 0)   //In case we have forced coefficients
@@ -2215,7 +2215,7 @@ void Aura::EventPeriodicHeal(uint32 amount)
 		}
 	}
 
-	if(c != NULL && m_spellProto->SpellGroupType)
+	if(c != NULL && m_spellProto->SpellFamilyFlags)
 	{
 		if(Player * p = c->GetSpellModOwner())
 			p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_BONUS_MULTIPLIER, bonus);
@@ -2262,8 +2262,8 @@ void Aura::EventPeriodicHeal(uint32 amount)
 	int add = (bonus + amount > 0) ? bonus + amount : 0;
 	if(c != NULL)
 	{
-		add += float2int32(add * (m_target->HealTakenPctMod[m_spellProto->School] + c->HealDonePctMod[GetSpellProto()->School]));
-		if(m_spellProto->SpellGroupType)
+		add += float2int32(add * (m_target->HealTakenPctMod[m_spellProto->SchoolMask] + c->HealDonePctMod[GetSpellProto()->SchoolMask]));
+		if(m_spellProto->SpellFamilyFlags)
 			if(Player * p = c->GetSpellModOwner())
 				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_DOT, add);
 
@@ -2430,10 +2430,10 @@ void Aura::SpellAuraModStun(bool apply)
 		// Stun is a tricky one... it's used for all different kinds of mechanics as a base Aura
 		if(!IsPositive() && m_spellProto->NameHash != SPELL_HASH_ICE_BLOCK)    // ice block stuns you, don't want our own spells to ignore stun effects
 		{
-			if((m_spellProto->MechanicsType == MECHANIC_CHARMED &&  m_target->MechanicsDispels[MECHANIC_CHARMED])
-			        || (m_spellProto->MechanicsType == MECHANIC_INCAPACIPATED && m_target->MechanicsDispels[MECHANIC_INCAPACIPATED])
+			if((m_spellProto->Mechanic == MECHANIC_CHARMED &&  m_target->MechanicsDispels[MECHANIC_CHARMED])
+			        || (m_spellProto->Mechanic == MECHANIC_INCAPACIPATED && m_target->MechanicsDispels[MECHANIC_INCAPACIPATED])
 
-			        || (m_spellProto->MechanicsType == MECHANIC_SAPPED && m_target->MechanicsDispels[MECHANIC_SAPPED])
+			        || (m_spellProto->Mechanic == MECHANIC_SAPPED && m_target->MechanicsDispels[MECHANIC_SAPPED])
 			        || (m_target->MechanicsDispels[MECHANIC_STUNNED])
 			  )
 			{
@@ -2655,7 +2655,7 @@ void Aura::SpellAuraDamageShield(bool apply)
 		DamageProc ds;// = new DamageShield();
 		ds.m_damage = mod->m_amount;
 		ds.m_spellId = GetSpellProto()->Id;
-		ds.m_school = GetSpellProto()->School;
+		ds.m_school = GetSpellProto()->SchoolMask;
 		ds.m_flags = PROC_ON_MELEE_ATTACK_VICTIM | PROC_MISC; //maybe later we might want to add other flags too here
 		ds.owner = (void*)this;
 		m_target->m_damageShields.push_back(ds);
@@ -2741,7 +2741,7 @@ void Aura::SpellAuraModStealth(bool apply)
 			{
 				if(m_target->m_auras[x] != NULL)
 				{
-					if(m_target->m_auras[x]->GetSpellProto()->MechanicsType == MECHANIC_ROOTED || m_target->m_auras[x]->GetSpellProto()->MechanicsType == MECHANIC_ENSNARED)   // Remove roots and slow spells
+					if(m_target->m_auras[x]->GetSpellProto()->Mechanic == MECHANIC_ROOTED || m_target->m_auras[x]->GetSpellProto()->Mechanic == MECHANIC_ENSNARED)   // Remove roots and slow spells
 					{
 						m_target->m_auras[x]->Remove();
 					}
@@ -2913,7 +2913,7 @@ void Aura::EventPeriodicHealPct(float RegenPct)
 	else
 		m_target->SetHealth(m_target->GetMaxHealth());
 
-	m_target->SendPeriodicAuraLog(m_casterGuid, m_target->GetNewGUID(), m_spellProto->Id, m_spellProto->School, add, 0, 0, FLAG_PERIODIC_HEAL, false);
+	m_target->SendPeriodicAuraLog(m_casterGuid, m_target->GetNewGUID(), m_spellProto->Id, m_spellProto->SchoolMask, add, 0, 0, FLAG_PERIODIC_HEAL, false);
 
 	if(GetSpellProto()->AuraInterruptFlags & AURA_INTERRUPT_ON_STAND_UP)
 	{
@@ -3194,7 +3194,7 @@ void Aura::SpellAuraModRoot(bool apply)
 			m_target->EventStunOrImmobilize(caster, true);
 		}
 
-		if(GetSpellProto()->School == SCHOOL_FROST && !m_target->asc_frozen++)
+		if(GetSpellProto()->SchoolMask == SCHOOL_FROST && !m_target->asc_frozen++)
 			m_target->SetFlag(UNIT_FIELD_AURASTATE, AURASTATE_FLAG_FROZEN);
 
 		/* -Supalosa- TODO: Mobs will attack nearest enemy in range on aggro list when rooted. */
@@ -3209,7 +3209,7 @@ void Aura::SpellAuraModRoot(bool apply)
 		if(m_target->IsCreature())
 			m_target->GetAIInterface()->AttackReaction(GetUnitCaster(), 1, 0);
 
-		if(GetSpellProto()->School == SCHOOL_FROST && !--m_target->asc_frozen)
+		if(GetSpellProto()->SchoolMask == SCHOOL_FROST && !--m_target->asc_frozen)
 			m_target->RemoveFlag(UNIT_FIELD_AURASTATE, AURASTATE_FLAG_FROZEN);
 	}
 }
@@ -3414,7 +3414,7 @@ void Aura::SpellAuraModDecreaseSpeed(bool apply)
 		}
 
 		//let's check Mage talents if we proc anything
-		if(m_spellProto->School == SCHOOL_FROST)
+		if(m_spellProto->SchoolMask == SCHOOL_FROST)
 		{
 			//yes we are freezing the bastard, so can we proc anything on this ?
 			Unit* caster = GetUnitCaster();
@@ -3436,7 +3436,7 @@ void Aura::UpdateAuraModDecreaseSpeed()
 	}
 
 	//let's check Mage talents if we proc anything
-	if(m_spellProto->School == SCHOOL_FROST)
+	if(m_spellProto->SchoolMask == SCHOOL_FROST)
 	{
 		//yes we are freezing the bastard, so can we proc anything on this ?
 		Unit* caster = GetUnitCaster();
@@ -3768,7 +3768,7 @@ void Aura::SpellAuraModShapeshift(bool apply)
 			{
 				if(m_target->m_auras[x] != NULL)
 				{
-					if(m_target->m_auras[x]->GetSpellProto()->MechanicsType == MECHANIC_ROOTED || m_target->m_auras[x]->GetSpellProto()->MechanicsType == MECHANIC_ENSNARED)   // Remove roots and slow spells
+					if(m_target->m_auras[x]->GetSpellProto()->Mechanic == MECHANIC_ROOTED || m_target->m_auras[x]->GetSpellProto()->Mechanic == MECHANIC_ENSNARED)   // Remove roots and slow spells
 					{
 						m_target->m_auras[x]->Remove();
 					}
@@ -3794,10 +3794,10 @@ void Aura::SpellAuraModShapeshift(bool apply)
 	else
 	{
 		if(ssf->id != FORM_STEALTH)
-			m_target->RemoveAllAurasByRequiredShapeShift(DecimalToMask(mod->m_miscValue));
+			m_target->RemoveAllAurasByStances(DecimalToMask(mod->m_miscValue));
 
 		if(m_target->IsCasting() && m_target->m_currentSpell && m_target->m_currentSpell->GetProto()
-		        && (m_target->m_currentSpell->GetProto()->RequiredShapeShift & DecimalToMask(mod->m_miscValue)))
+		        && (m_target->m_currentSpell->GetProto()->Stances & DecimalToMask(mod->m_miscValue)))
 			m_target->InterruptSpell();
 
 		//execute before changing shape back
@@ -3927,7 +3927,7 @@ void Aura::SpellAuraModDispelImmunity(bool apply)
 		{
 			// HACK FIX FOR: 41425 and 25771
 			if(m_target->m_auras[x] && m_target->m_auras[x]->GetSpellId() != 41425 && m_target->m_auras[x]->GetSpellId() != 25771)
-				if(m_target->m_auras[x]->GetSpellProto()->DispelType == (uint32)mod->m_miscValue)
+				if(m_target->m_auras[x]->GetSpellProto()->Dispel == (uint32)mod->m_miscValue)
 					m_target->m_auras[x]->Remove();
 		}
 	}
@@ -3957,7 +3957,7 @@ void Aura::SpellAuraProcTriggerSpell(bool apply)
 		// Initialize charges
 		charges = GetSpellProto()->procCharges;
 		Unit* ucaster = GetUnitCaster();
-		if(ucaster != NULL && GetSpellProto()->SpellGroupType)
+		if(ucaster != NULL && GetSpellProto()->SpellFamilyFlags)
 		{
 			if(Player * p = ucaster->GetSpellModOwner())
 				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_CHARGES, charges);
@@ -3988,7 +3988,7 @@ void Aura::SpellAuraProcTriggerDamage(bool apply)
 		DamageProc ds;
 		ds.m_damage = mod->m_amount;
 		ds.m_spellId = GetSpellProto()->Id;
-		ds.m_school = GetSpellProto()->School;
+		ds.m_school = GetSpellProto()->SchoolMask;
 		ds.m_flags = m_spellProto->procFlags;
 		ds.owner = (void*)this;
 		m_target->m_damageShields.push_back(ds);
@@ -4128,7 +4128,7 @@ void Aura::SpellAuraModCritPerc(bool apply)
 			WeaponModifier md;
 			md.value = float(mod->m_amount);
 			md.wclass = GetSpellProto()->EquippedItemClass;
-			md.subclass = GetSpellProto()->EquippedItemSubClass;
+			md.subclass = GetSpellProto()->EquippedItemSubClassMask;
 			p_target->tocritchance.insert(make_pair(GetSpellId(), md));
 		}
 		else
@@ -4172,7 +4172,7 @@ void Aura::EventPeriodicLeech(uint32 amount)
 
 	SpellEntry* sp = GetSpellProto();
 
-	if(m_target->SchoolImmunityList[sp->School])
+	if(m_target->SchoolImmunityList[sp->SchoolMask])
 	{
 		SendTickImmune(m_target, m_caster);
 		return;
@@ -4198,7 +4198,7 @@ void Aura::EventPeriodicLeech(uint32 amount)
 
 	amount += bonus;
 
-	if(sp->SpellGroupType)
+	if(sp->SpellFamilyFlags)
 	{
 		if(Player * p = m_caster->GetSpellModOwner())
 			p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_DOT, amount);
@@ -4275,7 +4275,7 @@ void Aura::EventPeriodicLeech(uint32 amount)
 	}
 
 	uint32 dmg_amount  = amount;
-	uint32 heal_amount = float2int32(amount * sp->EffectMultipleValue[mod->i]);
+	uint32 heal_amount = float2int32(amount * sp->EffectValueMultiplier[mod->i]);
 
 	uint32 newHealth = m_caster->GetHealth() + heal_amount;
 
@@ -4286,11 +4286,11 @@ void Aura::EventPeriodicLeech(uint32 amount)
 		m_caster->SetHealth(mh);
 
 	m_target->SendPeriodicHealAuraLog(m_caster->GetNewGUID(), m_caster->GetNewGUID(), sp->Id, heal_amount, 0, false);
-	m_target->SendPeriodicAuraLog(m_target->GetNewGUID(), m_target->GetNewGUID(), sp->Id, sp->School, heal_amount, 0, 0, FLAG_PERIODIC_LEECH, is_critical);
+	m_target->SendPeriodicAuraLog(m_target->GetNewGUID(), m_target->GetNewGUID(), sp->Id, sp->SchoolMask, heal_amount, 0, 0, FLAG_PERIODIC_LEECH, is_critical);
 
 	//deal damage before we add healing bonus to damage
 	m_caster->DealDamage(m_target, dmg_amount, 0, 0, sp->Id, true);
-	m_caster->SendSpellNonMeleeDamageLog(m_caster, m_target, sp->Id, dmg_amount, (uint8) sp->School, 0, 0, true, 0, is_critical, true);
+	m_caster->SendSpellNonMeleeDamageLog(m_caster, m_target, sp->Id, dmg_amount, (uint8) sp->SchoolMask, 0, 0, true, 0, is_critical, true);
 
 	m_caster->HandleProc(aproc, m_target, sp, false, dmg_amount);
 	m_caster->m_procCounter = 0;
@@ -4322,7 +4322,7 @@ void Aura::SpellAuraModHitChance(bool apply)
 	int32 val = mod->m_amount;
 
 	Unit* c = GetUnitCaster();
-	if(c && GetSpellProto()->SpellGroupType)
+	if(c && GetSpellProto()->SpellFamilyFlags)
 	{
 		if(Player * p = c->GetSpellModOwner())
 			p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_ALL_EFFECTS, val);
@@ -4740,7 +4740,7 @@ void Aura::EventPeriodicHealthFunnel(uint32 amount)
 		else
 			m_caster->SetHealth(mh);
 
-		m_target->SendPeriodicAuraLog(m_target->GetNewGUID(), m_target->GetNewGUID(), m_spellProto->Id, m_spellProto->School, 1000, 0, 0, FLAG_PERIODIC_LEECH, false);
+		m_target->SendPeriodicAuraLog(m_target->GetNewGUID(), m_target->GetNewGUID(), m_spellProto->Id, m_spellProto->SchoolMask, 1000, 0, 0, FLAG_PERIODIC_LEECH, false);
 
 		m_caster->RemoveAurasByHeal();
 	}
@@ -5034,7 +5034,7 @@ void Aura::SpellAuraReflectSpellsSchool(bool apply)
 		if(m_spellProto->Attributes == 0x400D0 && m_spellProto->AttributesEx == 0)
 			rss->school = (int)(log10((float)mod->m_miscValue) / log10((float)2));
 		else
-			rss->school = m_spellProto->School;
+			rss->school = m_spellProto->SchoolMask;
 
 		rss->charges = 0;
 
@@ -5248,7 +5248,7 @@ void Aura::SpellAuraModDamagePercDone(bool apply)
 				WeaponModifier md;
 				md.value = val;
 				md.wclass = GetSpellProto()->EquippedItemClass;
-				md.subclass = GetSpellProto()->EquippedItemSubClass;
+				md.subclass = GetSpellProto()->EquippedItemSubClassMask;
 				p_target->damagedone.insert(make_pair(GetSpellId(), md));
 			}
 			else
@@ -5604,7 +5604,7 @@ void Aura::EventPeriodicDamagePercent(uint32 amount)
 	//DOT
 	if(!m_target->isAlive())
 		return;
-	if(m_target->SchoolImmunityList[GetSpellProto()->School])
+	if(m_target->SchoolImmunityList[GetSpellProto()->SchoolMask])
 		return;
 
 	uint32 damage = float2int32(amount / 100.0f * m_target->GetMaxHealth());
@@ -5613,7 +5613,7 @@ void Aura::EventPeriodicDamagePercent(uint32 amount)
 
 	if(m_target->m_damageSplitTarget)
 	{
-		damage = m_target->DoDamageSplitTarget(damage, GetSpellProto()->School, false);
+		damage = m_target->DoDamageSplitTarget(damage, GetSpellProto()->SchoolMask, false);
 	}
 
 	if(c)
@@ -5877,7 +5877,7 @@ void Aura::ApplySpellMod(bool apply)
 	smod->spellId = GetSpellProto()->Id;
 	smod->charges = p->GetAuraStackCount(GetSpellProto()->Id);
     smod->ownerAura = this;
-	smod->mask = flag96(GetSpellProto()->SpellGroupType[0], GetSpellProto()->SpellGroupType[1], GetSpellProto()->SpellGroupType[2]);
+	smod->mask = GetSpellProto()->SpellFamilyFlags;
 	p->AddSpellMod(smod, apply);
 }
 
@@ -5910,7 +5910,7 @@ void Aura::SpellAuraAddClassTargetTrigger(bool apply)
 		// Initialize charges
 		charges = GetSpellProto()->procCharges;
 		Unit* ucaster = GetUnitCaster();
-		if(ucaster != NULL && GetSpellProto()->SpellGroupType)
+		if(ucaster != NULL && GetSpellProto()->SpellFamilyFlags)
 		{
 			if(Player * p = ucaster->GetSpellModOwner())
 				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_CHARGES, charges);
@@ -6707,13 +6707,13 @@ void Aura::EventPeriodicBurn(uint32 amount, uint32 misc)
 
 	if(m_target->isAlive() && m_caster->isAlive())
 	{
-		if(m_target->SchoolImmunityList[GetSpellProto()->School])
+		if(m_target->SchoolImmunityList[GetSpellProto()->SchoolMask])
 			return;
 
 		uint32 Amount = (uint32)min(amount, m_target->GetPower(misc));
 		uint32 newHealth = m_target->GetPower(misc) - Amount ;
 
-		m_target->SendPeriodicAuraLog(m_target->GetNewGUID(), m_target->GetNewGUID(), m_spellProto->Id, m_spellProto->School, newHealth, 0, 0, FLAG_PERIODIC_DAMAGE, false);
+		m_target->SendPeriodicAuraLog(m_target->GetNewGUID(), m_target->GetNewGUID(), m_spellProto->Id, m_spellProto->SchoolMask, newHealth, 0, 0, FLAG_PERIODIC_DAMAGE, false);
 		m_caster->DealDamage(m_target, Amount, 0, 0, GetSpellProto()->Id);
 	}
 }
@@ -7537,7 +7537,7 @@ void Aura::SpellAuraIncreaseRating(bool apply)
 	{
 		std::map<uint32, uint32>::iterator i;
 		for(uint32 y = 0; y < 20; y++)
-			if(m_spellProto->EquippedItemSubClass & (((uint32)1) << y))
+			if(m_spellProto->EquippedItemSubClassMask & (((uint32)1) << y))
 			{
 				i = TO< Player* >(m_target)->m_wratings.find(y);
 				if(i == TO< Player* >(m_target)->m_wratings.end())    //no prev
@@ -8059,7 +8059,7 @@ void Aura::SpellAuraModSpellDamageDOTPct(bool apply)
 	int32 val = (apply) ? mod->m_amount : -mod->m_amount;
 
 	if(m_spellProto->NameHash == SPELL_HASH_HAUNT)
-		m_target->DoTPctIncrease[m_spellProto->School] += val;
+		m_target->DoTPctIncrease[m_spellProto->SchoolMask] += val;
 	else
 		for(uint32 x = 0; x < 7; x++)
 		{
@@ -8258,9 +8258,9 @@ bool Aura::DotCanCrit()
 			i = 2;
 
 		if(aura_sp->SpellFamilyName == sp->SpellFamilyName &&
-		        (aura_sp->EffectSpellClassMask[i][0] & sp->SpellGroupType[0] ||
-		         aura_sp->EffectSpellClassMask[i][1] & sp->SpellGroupType[1] ||
-		         aura_sp->EffectSpellClassMask[i][2] & sp->SpellGroupType[2]))
+		        (aura_sp->EffectSpellClassMask[i][0] & sp->SpellFamilyFlags[0] ||
+		         aura_sp->EffectSpellClassMask[i][1] & sp->SpellFamilyFlags[1] ||
+		         aura_sp->EffectSpellClassMask[i][2] & sp->SpellFamilyFlags[2]))
 		{
 			found = true;
 			break;
@@ -8346,10 +8346,10 @@ void AbsorbAura::SpellAuraSchoolAbsorb(bool apply)
 
 		//For spells Affected by Bonus Healing we use Dspell_coef_override.
 		if(GetSpellProto()->Dspell_coef_override >= 0)
-			val += float2int32(caster->HealDoneMod[GetSpellProto()->School] * GetSpellProto()->Dspell_coef_override);
+			val += float2int32(caster->HealDoneMod[GetSpellProto()->SchoolMask] * GetSpellProto()->Dspell_coef_override);
 		//For spells Affected by Bonus Damage we use OTspell_coef_override.
 		else if(GetSpellProto()->OTspell_coef_override >= 0)
-			val += float2int32(caster->GetDamageDoneMod(GetSpellProto()->School) * GetSpellProto()->OTspell_coef_override);
+			val += float2int32(caster->GetDamageDoneMod(GetSpellProto()->SchoolMask) * GetSpellProto()->OTspell_coef_override);
 	}
 
 	m_total_amount = val;

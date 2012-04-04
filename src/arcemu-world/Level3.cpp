@@ -3382,7 +3382,7 @@ bool ChatHandler::HandleLookupSpellCommand(const char* args, WorldSession* m_ses
 	for(uint32 index = 0; index < dbcSpell.GetNumRows(); ++index)
 	{
 		SpellEntry* spell = dbcSpell.LookupRow(index);
-		string y = string(spell->Name);
+		string y = string(spell->SpellName[0]);
 		arcemu_TOLOWER(y);
 		if(FindXinYString(x, y))
 		{
@@ -3394,7 +3394,7 @@ bool ChatHandler::HandleLookupSpellCommand(const char* args, WorldSession* m_ses
 			recout += ": |cff71d5ff|Hspell:";
 			recout += (const char*)itoabuf;
 			recout += "|h[";
-			recout += spell->Name;
+			recout += spell->SpellName[0];
 			recout += "]|h|r";
 
 			std::string::size_type pos = recout.find('%');
@@ -4300,7 +4300,7 @@ bool ChatHandler::HandleAddTrainerSpellCommand(const char* args, WorldSession* m
 	pTrainer->Spells.push_back(sp);
 	pTrainer->SpellCount++;
 
-	SystemMessage(m_session, "Added spell %u (%s) to trainer.", pSpell->Id, pSpell->Name);
+	SystemMessage(m_session, "Added spell %u (%s) to trainer.", pSpell->Id, pSpell->SpellName[0]);
 	sGMLog.writefromsession(m_session, "added spell %u to trainer %u", spellid, pCreature->GetEntry());
 	WorldDatabase.Execute("INSERT INTO trainer_spells VALUES(%u, %u, %u, %u, %u, %u, %u, %u, %u, %u)",
 	                      pCreature->GetEntry(), (int)0, pSpell->Id, cost, reqspell, (int)0, (int)0, reqlevel, delspell, (int)0);

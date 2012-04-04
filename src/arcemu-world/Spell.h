@@ -81,12 +81,12 @@ enum SPELL_INFRONT_STATUS
 //bool IsBeneficSpell(SpellEntry *sp);
 //AI_SpellTargetType RecommandAISpellTargetType(SpellEntry *sp);
 
-enum SPELL_DMG_TYPE // SPELL_ENTRY_Spell_Dmg_Type
+enum DmgClass // SPELL_ENTRY_DmgClass
 {
-    SPELL_DMG_TYPE_NONE   = 0,
-    SPELL_DMG_TYPE_MAGIC  = 1,
-    SPELL_DMG_TYPE_MELEE  = 2,
-    SPELL_DMG_TYPE_RANGED = 3
+    DmgClass_NONE   = 0,
+    DmgClass_MAGIC  = 1,
+    DmgClass_MELEE  = 2,
+    DmgClass_RANGED = 3
 };
 
 // value's for SendSpellLog
@@ -1840,9 +1840,9 @@ class SERVER_DECL Spell : public EventableObject
 
 		// 15007 = resurrection sickness
 
-		// This returns SPELL_ENTRY_Spell_Dmg_Type where 0 = SPELL_DMG_TYPE_NONE, 1 = SPELL_DMG_TYPE_MAGIC, 2 = SPELL_DMG_TYPE_MELEE, 3 = SPELL_DMG_TYPE_RANGED
+		// This returns SPELL_ENTRY_DmgClass where 0 = DmgClass_NONE, 1 = DmgClass_MAGIC, 2 = DmgClass_MELEE, 3 = DmgClass_RANGED
 		// It should NOT be used for weapon_damage_type which needs: 0 = MELEE, 1 = OFFHAND, 2 = RANGED
-		ARCEMU_INLINE uint32 GetType() { return (GetProto()->Spell_Dmg_Type == SPELL_DMG_TYPE_NONE ? SPELL_DMG_TYPE_MAGIC : GetProto()->Spell_Dmg_Type); }
+		ARCEMU_INLINE uint32 GetType() { return (GetProto()->DmgClass == DmgClass_NONE ? DmgClass_MAGIC : GetProto()->DmgClass); }
 
 		std::map<uint64, Aura*> m_pendingAuras;
 		TargetsList UniqueTargets;
@@ -1911,7 +1911,7 @@ class SERVER_DECL Spell : public EventableObject
 						}
 					}
 
-					/*if(GetProto()->SpellGroupType && u_caster)
+					/*if(GetProto()->SpellFamilyFlags && u_caster)
 					{
 						if(Player * p = u_caster->GetSpellModOwner())
 							p->ApplySpellMod(GetProto()->Id, SPELLMOD_DURATION, Dur, this);
@@ -1935,7 +1935,7 @@ class SERVER_DECL Spell : public EventableObject
 			if(bRadSet[i])return Rad[i];
 			bRadSet[i] = true;
 			Rad[i] =::GetRadius(dbcSpellRadius.LookupEntry(GetProto()->EffectRadiusIndex[i]));
-			if(GetProto()->SpellGroupType && u_caster)
+			if(GetProto()->SpellFamilyFlags && u_caster)
 			{
 				if(Player * p = u_caster->GetSpellModOwner())
 					p->ApplySpellMod(GetProto()->Id, SPELLMOD_RADIUS, Rad[i]);				
@@ -1960,8 +1960,8 @@ class SERVER_DECL Spell : public EventableObject
 
 		ARCEMU_INLINE static uint32 GetMechanic(SpellEntry* sp)
 		{
-			if(sp->MechanicsType)
-				return sp->MechanicsType;
+			if(sp->Mechanic)
+				return sp->Mechanic;
 			if(sp->EffectMechanic[2])
 				return sp->EffectMechanic[2];
 			if(sp->EffectMechanic[1])

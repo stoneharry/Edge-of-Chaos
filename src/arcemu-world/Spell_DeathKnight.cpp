@@ -88,7 +88,7 @@ class BloodStrikeSpell : public Spell
 		{
 			if(target != NULL)
 			{
-				uint32 count = target->GetAuraCountWithDispelType(DISPEL_DISEASE, m_caster->GetGUID());
+				uint32 count = target->GetAuraCountWithDispel(DISPEL_DISEASE, m_caster->GetGUID());
 				if(count)
 					value += value * count * (GetProto()->EffectBasePoints[2] + 1) / 200;
 			}

@@ -1527,23 +1527,23 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 	uint32 vproc = PROC_ON_ANY_HOSTILE_ACTION | PROC_ON_ANY_DAMAGE_VICTIM; /*| PROC_ON_SPELL_HIT_VICTIM;*/
 
 	//A school damage is not necessarily magic
-	switch(spellInfo->Spell_Dmg_Type)
+	switch(spellInfo->DmgClass)
 	{
-		case SPELL_DMG_TYPE_RANGED:
+		case DmgClass_RANGED:
 			{
 				aproc |= PROC_ON_RANGED_ATTACK;
 				vproc |= PROC_ON_RANGED_ATTACK_VICTIM;
 			}
 			break;
 
-		case SPELL_DMG_TYPE_MELEE:
+		case DmgClass_MELEE:
 			{
 				aproc |= PROC_ON_MELEE_ATTACK;
 				vproc |= PROC_ON_MELEE_ATTACK_VICTIM;
 			}
 			break;
 
-		case SPELL_DMG_TYPE_MAGIC:
+		case DmgClass_MAGIC:
 			{
 				aproc |= PROC_ON_SPELL_HIT;
 				vproc |= PROC_ON_SPELL_HIT_VICTIM;
@@ -1580,23 +1580,23 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 		{
 			res = this->GetCriticalDamageBonusForSpell(pVictim, spellInfo, res);
 
-			switch(spellInfo->Spell_Dmg_Type)
+			switch(spellInfo->DmgClass)
 			{
-				case SPELL_DMG_TYPE_RANGED:
+				case DmgClass_RANGED:
 					{
 						aproc |= PROC_ON_RANGED_CRIT_ATTACK;
 						vproc |= PROC_ON_RANGED_CRIT_ATTACK_VICTIM;
 					}
 					break;
 
-				case SPELL_DMG_TYPE_MELEE:
+				case DmgClass_MELEE:
 					{
 						aproc |= PROC_ON_CRIT_ATTACK;
 						vproc |= PROC_ON_CRIT_HIT_VICTIM;
 					}
 					break;
 
-				case SPELL_DMG_TYPE_MAGIC:
+				case DmgClass_MAGIC:
 					{
 						aproc |= PROC_ON_SPELL_CRIT_HIT;
 						vproc |= PROC_ON_SPELL_CRIT_HIT_VICTIM;
@@ -1615,7 +1615,7 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 		res += TO< Unit* >(this)->CalcSpellDamageReduction(pVictim, spellInfo, res);
 //------------------------------absorption--------------------------------------------------
 	uint32 ress = static_cast< uint32 >(res);
-	uint32 abs_dmg = pVictim->AbsorbDamage(spellInfo->School, &ress);
+	uint32 abs_dmg = pVictim->AbsorbDamage(spellInfo->SchoolMask, &ress);
 	uint32 ms_abs_dmg = pVictim->ManaShieldAbsorb(ress);
 	if(ms_abs_dmg)
 	{
@@ -1665,7 +1665,7 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 
 	res = static_cast< float >(ress);
 	dealdamage dmg;
-	dmg.school_type = spellInfo->School;
+	dmg.school_type = spellInfo->SchoolMask;
 	dmg.full_damage = ress;
 	dmg.resisted_damage = 0;
 	res = objmgr.ApplySpellDamageLimit(spellID, res);
@@ -1691,13 +1691,13 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 	// Paladin: Blessing of Sacrifice, and Warlock: Soul Link
 	if(pVictim->m_damageSplitTarget)
 	{
-		res = (float)pVictim->DoDamageSplitTarget((uint32)res, spellInfo->School, false);
+		res = (float)pVictim->DoDamageSplitTarget((uint32)res, spellInfo->SchoolMask, false);
 	}
 
 //==========================================================================================
 //==============================Data Sending ProcHandling===================================
 //==========================================================================================
-	SendSpellNonMeleeDamageLog(this, pVictim, spellID, static_cast< int32 >(res), static_cast< uint8 >(spellInfo->School), abs_dmg, dmg.resisted_damage, false, 0, critical, IsPlayer());
+	SendSpellNonMeleeDamageLog(this, pVictim, spellID, static_cast< int32 >(res), static_cast< uint8 >(spellInfo->SchoolMask), abs_dmg, dmg.resisted_damage, false, 0, critical, IsPlayer());
 	DealDamage(pVictim, static_cast< int32 >(res), 2, 0, spellID);
 
 	if(IsUnit())
@@ -1711,14 +1711,14 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 	}
 	if(this->IsPlayer())
 	{
-		TO< Player* >(this)->m_casted_amount[spellInfo->School] = (uint32)res;
+		TO< Player* >(this)->m_casted_amount[spellInfo->SchoolMask] = (uint32)res;
 	}
 
 	if(!(dmg.full_damage == 0 && abs_dmg))
 	{
 		//Only pushback the victim current spell if it's not fully absorbed
 		if(pVictim->GetCurrentSpell())
-			pVictim->GetCurrentSpell()->AddTime(spellInfo->School);
+			pVictim->GetCurrentSpell()->AddTime(spellInfo->SchoolMask);
 	}
 
 //==========================================================================================
@@ -1744,7 +1744,7 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 		if(IsPlayer())
 			TO< Player* >(this)->CombatStatusHandler_ResetPvPTimeout();
 	}
-	if(spellInfo->School == SCHOOL_SHADOW)
+	if(spellInfo->SchoolMask == SCHOOL_SHADOW)
 	{
 		if(pVictim->isAlive() && this->IsUnit())
 		{
@@ -1752,9 +1752,9 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 			if(spellID == 32379 || spellID == 32996 || spellID == 48157 || spellID == 48158)
 			{
 				uint32 damage2 = static_cast< uint32 >(res + abs_dmg);
-				uint32 absorbed = TO< Unit* >(this)->AbsorbDamage(spellInfo->School, &damage2);
+				uint32 absorbed = TO< Unit* >(this)->AbsorbDamage(spellInfo->SchoolMask, &damage2);
 				DealDamage(TO< Unit* >(this), damage2, 2, 0, spellID);
-				SendSpellNonMeleeDamageLog(this, this, spellID, damage2, static_cast< uint8 >(spellInfo->School), absorbed, 0, false, 0, false, IsPlayer());
+				SendSpellNonMeleeDamageLog(this, this, spellID, damage2, static_cast< uint8 >(spellInfo->SchoolMask), absorbed, 0, false, 0, false, IsPlayer());
 			}
 		}
 	}

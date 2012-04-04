@@ -246,7 +246,7 @@ bool DeadlyThrowInterrupt( uint32 i, Aura *a, bool apply ){
 	uint32 school = 0;
 
 	if( m_target->GetCurrentSpell() ){
-		school = m_target->GetCurrentSpell()->GetProto()->School;
+		school = m_target->GetCurrentSpell()->GetProto()->SchoolMask;
 	}
 	
 	m_target->InterruptSpell();
@@ -480,7 +480,7 @@ bool TeleportToCoordinates( uint32 i, Spell *s )
 	TeleportCoords *TC = ::TeleportCoordStorage.LookupEntry( s->GetProto()->Id );
 	if( TC == NULL )
 	{
-		sLog.outError("Spell %u ( %s ) has a TeleportToCoordinates scripted effect, but has no coordinates to teleport to. ", s->GetProto()->Id, s->GetProto()->Name );
+		sLog.outError("Spell %u ( %s ) has a TeleportToCoordinates scripted effect, but has no coordinates to teleport to. ", s->GetProto()->Id, s->GetProto()->SpellName[0] );
 		return true;
 	}
 
