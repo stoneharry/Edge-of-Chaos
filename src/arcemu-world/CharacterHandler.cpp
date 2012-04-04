@@ -568,8 +568,8 @@ uint8 WorldSession::DeleteCharacter(uint32 guid)
 		CharacterDatabase.Execute("DELETE FROM playerdeletedspells WHERE GUID = '%u'", guid);
 		CharacterDatabase.Execute("DELETE FROM playerreputations WHERE guid = '%u'", guid);
 		CharacterDatabase.Execute("DELETE FROM playerskills WHERE GUID = '%u'", guid);
-		CharacterDatabase.Execute("DELETE FROM character_proffesion where name = %s", name.c_str());
-		CharacterDatabase.Execute("DELETE FROM character_coursecomplete where name = %s", name.c_str());
+		CharacterDatabase.Execute("DELETE FROM character_proffesion where `name` = '%s'", name.c_str());
+		CharacterDatabase.Execute("DELETE FROM character_coursecomplete where `name` = '%s'", name.c_str());
 		/* remove player info */
 		objmgr.DeletePlayerInfo((uint32)guid);
 		return E_CHAR_DELETE_SUCCESS;
