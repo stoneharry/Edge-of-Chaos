@@ -1182,7 +1182,7 @@ void Spell::AddCooldown()
 	if(!CanAddCooldown())
 		return;
 	Player * cd = GetCooldownTarget();
-	if(!cd->CooldownCheat)
+	if(cd && !cd->CooldownCheat)
 		cd->Cooldown_Add(GetProto(), i_caster);
 }
 
@@ -1191,7 +1191,7 @@ void Spell::AddStartCooldown()
 	if(!CanAddCooldown())
 		return;
 	Player * cd = GetCooldownTarget();
-	if(!cd->CooldownCheat)
+	if(cd && !cd->CooldownCheat)
 		cd->Cooldown_AddStart(GetProto());
 }
 
@@ -6247,7 +6247,7 @@ void Spell::WriteAmmoToPacket(WorldPacket* data)
 
 bool Spell::CanAddCooldown()
 {
-	if(p_caster)
+	if(p_caster != NULL)
 		return true;
 
 	if(u_caster)
@@ -6261,7 +6261,7 @@ bool Spell::CanAddCooldown()
 				return false;
 		}
 	}
-	return true;
+	return false;
 }
 
 bool Spell::CooldownCanCast()
