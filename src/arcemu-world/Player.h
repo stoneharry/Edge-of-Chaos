@@ -1892,13 +1892,12 @@ class SERVER_DECL Player : public Unit
 		uint32 m_KickDelay;
 		uint64 m_CurrentCharm;
 		Transporter* m_CurrentTransporter;
-
 		Object* GetSummonedObject() {return m_SummonedObject;};
 		void SetSummonedObject(Object* t_SummonedObject) {m_SummonedObject = t_SummonedObject;};
 
 		void ClearCooldownsOnLine(uint32 skill_line, uint32 called_from);
 		void ResetAllCooldowns();
-		void ClearCooldownForSpell(uint32 spell_id);
+		void ClearCooldownForSpell(uint32 spell_id, uint64 guid = 0);
 
 		void Phase(uint8 command = PHASE_SET, uint32 newphase = 1);
 

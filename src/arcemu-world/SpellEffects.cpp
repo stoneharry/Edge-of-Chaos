@@ -1933,23 +1933,7 @@ void Spell::SpellEffectPersistentAA(uint32 i) // Persistent Area Aura
 
 	switch(m_targets.m_targetMask)
 	{
-		case TARGET_FLAG_SELF:
-			{
-				dynObj->Create(u_caster, this,	m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), dur, r, DYNAMIC_OBJECT_AREA_SPELL);
-			}
-			break;
 		case TARGET_FLAG_UNIT:
-			{
-				if(!unitTarget || !unitTarget->isAlive())
-				{
-					dynObj->Remove();
-					return;
-				}
-
-				dynObj->Create(u_caster, this, unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), dur, r, DYNAMIC_OBJECT_AREA_SPELL);
-			}
-			break;
-		case TARGET_FLAG_OBJECT:
 			{
 				if(!unitTarget || !unitTarget->isAlive())
 				{
@@ -2009,7 +1993,7 @@ void Spell::SpellEffectSummon(uint32 i)
 
 	LocationVector v(0.0f, 0.0f, 0.0f, 0.0f);
 
-	if((m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION) != 0)
+	if(m_targets.HasDst())
 		v = LocationVector(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ);
 	else
 		v = m_caster->GetPosition();
@@ -2489,7 +2473,7 @@ void Spell::SpellEffectTriggerMissile(uint32 i) // Trigger Missile
 	}
 
 	// Cast the triggered spell on the destination location, spells like Freezing Arrow use it
-	if((u_caster != NULL) && (m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION))
+	if((u_caster != NULL) && m_targets.HasDst())
 	{
 		u_caster->CastSpellAoF(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, spInfo, true);
 		return;
@@ -3270,7 +3254,7 @@ void Spell::SpellEffectSummonObject(uint32 i)
 			}
 			return;
 		}
-		if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION && m_targets.m_destX && m_targets.m_destY && m_targets.m_destZ)
+		if(m_targets.HasDst())
 		{
 			posx = m_targets.m_destX;
 			posy = m_targets.m_destY;
@@ -4412,7 +4396,7 @@ void Spell::SpellEffectSummonObjectSlot(uint32 i)
 	float dy = 0.0f;
 	float dz = 0.0f;
 
-	if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+	if(m_targets.HasDst())
 	{
 		dx = m_targets.m_destX;
 		dy = m_targets.m_destY;
@@ -4939,18 +4923,18 @@ void Spell::SpellEffectPlayerPull(uint32 i)
 		if(unitTarget->GetAIInterface() != NULL)
 			unitTarget->GetAIInterface()->MoveJump(x, y, z);
 	}
-	else if(m_targets.m_targetMask & (TARGET_FLAG_SOURCE_LOCATION | TARGET_FLAG_DEST_LOCATION))
+	else if(m_targets.HasDstOrSrc())
 	{
 		float x, y, z;
 
 		//this can also jump to a point
-		if(m_targets.m_targetMask & TARGET_FLAG_SOURCE_LOCATION)
+		if(m_targets.HasSrc())
 		{
 			x = m_targets.m_srcX;
 			y = m_targets.m_srcY;
 			z = m_targets.m_srcZ;
 		}
-		if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+		if(m_targets.HasDst())
 		{
 			x = m_targets.m_destX;
 			y = m_targets.m_destY;

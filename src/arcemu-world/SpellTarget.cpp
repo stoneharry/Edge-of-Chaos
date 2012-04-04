@@ -519,7 +519,7 @@ bool Spell::GenerateTargets(SpellCastTargets* t)
 
 		if(TargetType & SPELL_TARGET_NO_OBJECT)
 		{
-			t->m_targetMask = TARGET_FLAG_SELF;
+			t->m_targetMask = 0;
 			result = true;
 		}
 
@@ -542,7 +542,7 @@ bool Spell::GenerateTargets(SpellCastTargets* t)
 						}
 						else if(target->IsGameObject())
 						{
-							t->m_targetMask |= TARGET_FLAG_OBJECT;
+							t->m_targetMask |= TARGET_FLAG_GAMEOBJECT;
 							t->m_unitTarget = target->GetGUID();
 							result = true;
 						}
@@ -567,7 +567,7 @@ bool Spell::GenerateTargets(SpellCastTargets* t)
 						}
 						else if(target->IsGameObject())
 						{
-							t->m_targetMask |= TARGET_FLAG_OBJECT;
+							t->m_targetMask |= TARGET_FLAG_GAMEOBJECT;
 							t->m_unitTarget = target->GetGUID();
 							result = true;
 						}
@@ -587,7 +587,7 @@ bool Spell::GenerateTargets(SpellCastTargets* t)
 						}
 						else if(target->IsGameObject())
 						{
-							t->m_targetMask |= TARGET_FLAG_OBJECT;
+							t->m_targetMask |= TARGET_FLAG_GAMEOBJECT;
 							t->m_unitTarget = target->GetGUID();
 							result = true;
 						}

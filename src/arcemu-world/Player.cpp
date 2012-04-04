@@ -7167,12 +7167,15 @@ void Player::_Kick()
 	}
 }
 
-void Player::ClearCooldownForSpell(uint32 spell_id)
+void Player::ClearCooldownForSpell(uint32 spell_id, uint64 guid)
 {
+	if(guid == 0)
+		guid = GetGUID();
 	WorldPacket data(12);
 	data.SetOpcode(SMSG_CLEAR_COOLDOWN);
-	data << spell_id << GetGUID();
-	GetSession()->SendPacket(&data);
+	data << spell_id;
+	data << uint64(guid);
+	SendPacket(&data);
 
 	// remove cooldown data from Server side lists
 	uint32 i;

@@ -373,7 +373,9 @@ public:
 	////////////////////////////////////////////////////////////////////////
 	uint32 GetSeatEntryForPassenger( Unit *passenger );
 
-	bool IsControler(Unit *u);
+	bool IsController(Unit *u);
+
+	Unit * GetController();
 	/////////////////////////////////////////////////////////////////////////
 	//void MovePassengers( float x, float y, float z, float o )
 	//  Moves the passengers on/in the vehicle to the specified coordinates

@@ -137,6 +137,8 @@ void Player::SendCastResult(uint32 SpellId, uint8 ErrorMessage, uint8 MultiCast,
 {
 
 	WorldPacket data(SMSG_CAST_FAILED, 80);
+	if(!HasSpell(SpellId))
+		data.SetOpcode(SMSG_PET_CAST_FAILED);
 
 	data << uint8(MultiCast);
 	data << uint32(SpellId);

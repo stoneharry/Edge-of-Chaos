@@ -2421,3 +2421,20 @@ Creature * Object::GetCreatureWithEntry(uint32 entry)
 	}
 	return NULL;
 }
+
+bool Object::InBox(float centerX, float centerY, float centerZ, float BLength, float BWidth, float BHeight, float BOrientation, float delta)
+{
+	double rotation = 2*M_PI-BOrientation;
+	double sinVal = sin(rotation);
+	double cosVal = cos(rotation);
+	float playerBoxDistX = GetPositionX() - centerX;
+	float playerBoxDistY = GetPositionY() - centerY;
+	float rotationPlayerX = (float)(centerX + playerBoxDistX * cosVal - playerBoxDistY*sinVal);
+	float rotationPlayerY = (float)(centerY + playerBoxDistY * cosVal + playerBoxDistX*sinVal);
+	float dx = rotationPlayerX - centerX;
+	float dy = rotationPlayerY - centerY;
+	float dz = GetPositionZ() - centerZ;
+	if(!((fabs(dx) > BLength/2 + delta) || (fabs(dy) > BWidth/2 + delta) || (fabs(dz) > BHeight/2 + delta)))
+		return true;
+	return false;
+}

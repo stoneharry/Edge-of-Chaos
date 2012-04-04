@@ -204,4 +204,22 @@ void SummonHandler::RemoveSanctuaryFlags()
 	}
 }
 
+bool SummonHandler::HasSummon(Unit * summon)
+{
+	for(std::set< Unit* >::iterator itr = guardians.begin(); itr != guardians.end(); ++itr)
+	{
+		if((*itr) == NULL || !(*itr)->IsInWorld())
+			continue;
+		if((*itr) == summon || (*itr)->GetGUID() == summon->GetGUID())
+			return true;
+	}
 
+	for(std::tr1::array< Unit*, SUMMON_SLOTS >::iterator itr = summonslots.begin(); itr != summonslots.end(); ++itr)
+	{
+		if((*itr) == NULL || !(*itr)->IsInWorld())
+			continue;
+		if((*itr) == summon || (*itr)->GetGUID() == summon->GetGUID())
+			return true;
+	}
+	return false;
+}

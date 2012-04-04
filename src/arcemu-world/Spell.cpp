@@ -47,17 +47,18 @@ bool CanAttackCreatureType(uint32 TargetTypeMask, uint32 type)
 		return true;
 }
 
-void SpellCastTargets::read(WorldPacket & data, uint64 caster)
+void SpellCastTargets::read(WorldPacket & data, Object* caster)
 {
 	m_unitTarget = m_itemTarget = 0;
 	m_srcX = m_srcY = m_srcZ = m_destX = m_destY = m_destZ = 0;
 	m_strTarget = "";
 
 	data >> m_targetMask;
-	data >> m_targetMaskExtended;
+    if (m_targetMask == TARGET_FLAG_NONE)
+        return;
 	WoWGuid guid;
 
-	if(m_targetMask == TARGET_FLAG_SELF)
+	/*if(m_targetMask == TARGET_FLAG_SELF)
 	{
 		switch(*(uint32*)((data.contents()) + 1)) // Spell ID
 		{
@@ -88,9 +89,9 @@ void SpellCastTargets::read(WorldPacket & data, uint64 caster)
 				break;
 		}
 		return;
-	}
+	}*/
 
-	if(m_targetMask & (TARGET_FLAG_OBJECT | TARGET_FLAG_UNIT | TARGET_FLAG_CORPSE | TARGET_FLAG_CORPSE2))
+	if(m_targetMask & (TARGET_FLAG_UNIT | TARGET_FLAG_UNIT_MINIPET | TARGET_FLAG_GAMEOBJECT | TARGET_FLAG_CORPSE_ENEMY | TARGET_FLAG_CORPSE_ALLY))
 	{
 		data >> guid;
 		m_unitTarget = guid.GetOldGuid();
@@ -107,11 +108,22 @@ void SpellCastTargets::read(WorldPacket & data, uint64 caster)
 		WoWGuid guid;
 		
 		data >> guid;
-		unkuint64_1 = guid.GetOldGuid();
-		
-		data >> m_srcX;
-		data >> m_srcY;
-		data >> m_srcZ;
+		m_srcTransportGuid = guid.GetOldGuid();
+		if(m_srcTransportGuid)
+		{
+			data >> _transportOffset.x;
+			data >> _transportOffset.y;
+			data >> _transportOffset.z;
+			m_srcX = _transportOffset.x;
+			m_srcY = _transportOffset.y;
+			m_srcZ = _transportOffset.z;
+		}
+		else
+		{
+			data >> m_srcX;
+			data >> m_srcY;
+			data >> m_srcZ;
+		}
 
 		if(!(m_targetMask & TARGET_FLAG_DEST_LOCATION))
 		{
@@ -120,22 +132,51 @@ void SpellCastTargets::read(WorldPacket & data, uint64 caster)
 			m_destZ = m_srcZ;
 		}
 	}
+	else
+	{
+		if(caster)
+		{
+			m_srcX = caster->GetPositionX();
+			m_srcX = caster->GetPositionY();
+			m_srcX = caster->GetPositionZ();
+		}
+	}
 
 	if(m_targetMask & TARGET_FLAG_DEST_LOCATION)
 	{
 		WoWGuid guid;
 		data >> guid;
-		unkuint64_2 = guid.GetOldGuid();
-		
-		data >> m_destX;
-		data >> m_destY;
-		data >> m_destZ;
+		m_destTransportGuid = guid.GetOldGuid();
+		if(m_destTransportGuid)
+		{
+			data >> _transportOffset.x;
+			data >> _transportOffset.y;
+			data >> _transportOffset.z;
+			m_destX = _transportOffset.x;
+			m_destY = _transportOffset.y;
+			m_destZ = _transportOffset.z;
+		}
+		else
+		{
+			data >> m_destX;
+			data >> m_destY;
+			data >> m_destZ;
+		}
 
 		if(!(m_targetMask & TARGET_FLAG_SOURCE_LOCATION))
 		{
 			m_srcX = m_destX;
 			m_srcY = m_destY;
 			m_srcZ = m_destZ;
+		}
+	}
+	else
+	{
+		if(caster)
+		{
+			m_destX = caster->GetPositionX();
+			m_destX = caster->GetPositionY();
+			m_destX = caster->GetPositionZ();
 		}
 	}
 
@@ -150,23 +191,23 @@ void SpellCastTargets::read(WorldPacket & data, uint64 caster)
 void SpellCastTargets::write(WorldPacket & data)
 {
 	data << m_targetMask;
-	data << m_targetMaskExtended;
 
-	if(/*m_targetMask == TARGET_FLAG_SELF || */m_targetMask & (TARGET_FLAG_UNIT | TARGET_FLAG_CORPSE | TARGET_FLAG_CORPSE2 | TARGET_FLAG_OBJECT | TARGET_FLAG_GLYPH))
+	if(m_targetMask & (TARGET_FLAG_UNIT | TARGET_FLAG_CORPSE_ALLY | TARGET_FLAG_GAMEOBJECT | TARGET_FLAG_CORPSE_ENEMY | TARGET_FLAG_UNIT_MINIPET))
 		FastGUIDPack(data, m_unitTarget);
 
 	if(m_targetMask & (TARGET_FLAG_ITEM | TARGET_FLAG_TRADE_ITEM))
 		FastGUIDPack(data, m_itemTarget);
 
-	if(m_targetMask & TARGET_FLAG_SOURCE_LOCATION){
-		data << WoWGuid( unkuint64_1 );		
+	if(m_targetMask & TARGET_FLAG_SOURCE_LOCATION)
+	{
+		data << WoWGuid( m_srcTransportGuid );		
 		data << m_srcX;
 		data << m_srcY;
 		data << m_srcZ;
 	}
 
 	if(m_targetMask & TARGET_FLAG_DEST_LOCATION){
-		data << WoWGuid( unkuint64_2 );		
+		data << WoWGuid( m_destTransportGuid );		
 		data << m_destX;
 		data << m_destY;
 		data << m_destZ;
@@ -316,8 +357,7 @@ Spell::Spell(Object* Caster, SpellEntry* info, bool triggered, Aura* aur)
 
 	m_target_constraint = objmgr.GetSpellTargetConstraintForSpell(info->Id);
 	
-	m_missilePitch = 0.0f;
-	m_missileTravelTime = 0;
+	m_delayMoment = 0;
 	CleanupEffectExecuteData();
 
 }
@@ -1026,10 +1066,8 @@ uint8 Spell::prepare(SpellCastTargets* targets)
 		SendSpellStart();
 
 		// start cooldown handler
-		if(p_caster != NULL && !p_caster->CooldownCheat && !m_triggeredSpell)
-		{
+		if(!m_triggeredSpell)
 			AddStartCooldown();
-		}
 
 		if(i_caster == NULL)
 		{
@@ -1141,14 +1179,20 @@ void Spell::cancel()
 
 void Spell::AddCooldown()
 {
-	if(p_caster != NULL)
-		p_caster->Cooldown_Add(GetProto(), i_caster);
+	if(!CanAddCooldown())
+		return;
+	Player * cd = GetCooldownTarget();
+	if(!cd->CooldownCheat)
+		cd->Cooldown_Add(GetProto(), i_caster);
 }
 
 void Spell::AddStartCooldown()
 {
-	if(p_caster != NULL)
-		p_caster->Cooldown_AddStart(GetProto());
+	if(!CanAddCooldown())
+		return;
+	Player * cd = GetCooldownTarget();
+	if(!cd->CooldownCheat)
+		cd->Cooldown_AddStart(GetProto());
 }
 
 void Spell::cast(bool check)
@@ -1420,7 +1464,7 @@ void Spell::cast(bool check)
 					if(p_caster != NULL)
 					{
 						//Use channel interrupt flags here
-						if(m_targets.m_targetMask == TARGET_FLAG_DEST_LOCATION || m_targets.m_targetMask == TARGET_FLAG_SOURCE_LOCATION)
+						if(m_targets.HasDstOrSrc())
 							u_caster->SetChannelSpellTargetGUID(p_caster->GetSelection());
 						else if(p_caster->GetSelection() == m_caster->GetGUID())
 						{
@@ -1920,15 +1964,18 @@ void Spell::finish(bool successful)
 }
 void Spell::SendCustomError(uint32 message)
 {
-	if(!p_caster || GetSpellFailed())
+	Player * plr = GetCooldownTarget();
+	if(plr == NULL)
 		return;
 	SetSpellFailed();
     WorldPacket data(SMSG_CAST_FAILED, (4+1+1));
     data << uint8(extra_cast_number);                              // single cast or multi 2.3 (0/1)
+	if(plr != p_caster)
+		data.SetOpcode(SMSG_PET_CAST_FAILED);
     data << uint32(GetProto()->Id);
 	data << uint8(SPELL_FAILED_CUSTOM_ERROR);
 	data << uint32(message);
-	p_caster->SendPacket(&data);
+	plr->SendPacket(&data);
 }
 
 void Spell::SendCastResult(uint8 result, uint32 custommessage)
@@ -1942,12 +1989,9 @@ void Spell::SendCastResult(uint8 result, uint32 custommessage)
 
 	if(!m_caster->IsInWorld()) return;
 
-	Player* plr = p_caster;
-
-	if(!plr && u_caster)
-		plr = u_caster->m_redirectSpellPackets;
-	if(!plr) return;
-
+	Player * plr = GetCooldownTarget();
+	if(!plr == NULL)
+		return;
 	// for some reason, the result extra is not working for anything, including SPELL_FAILED_REQUIRES_SPELL_FOCUS
 	switch(result)
 	{
@@ -1983,101 +2027,51 @@ void Spell::SendCastResult(uint8 result, uint32 custommessage)
 	plr->SendCastResult(GetProto()->Id, result, extra_cast_number, Extra);
 }
 
-// uint16 0xFFFF
-enum SpellStartFlags
-{
-    //0x01
-    SPELL_START_FLAG_DEFAULT = 0x02, // atm set as default flag
-    //0x04
-    //0x08
-    //0x10
-    SPELL_START_FLAG_RANGED = 0x20,
-    //0x40
-    //0x80
-    //0x100
-    //0x200
-    //0x400
-    //0x800
-    //0x1000
-    //0x2000
-    //0x4000
-    //0x8000
-};
-
 void Spell::SendSpellStart()
 {
 	// no need to send this on passive spells
 	if(!m_caster->IsInWorld() || hasAttribute(SPELL_ATTR0_PASSIVE) || m_triggeredSpell)
 		return;
+	uint32 castFlags = CAST_FLAG_UNKNOWN_2;
+	if ((m_triggeredSpell && !(m_spellInfo->AttributesEx2 & SPELL_ATTR2_AUTOREPEAT_FLAG)) || m_triggeredByAura)
+        castFlags |= CAST_FLAG_PENDING;
 
-	WorldPacket data(150);
+    if (m_spellInfo->Attributes & SPELL_ATTR0_REQ_AMMO && u_caster)
+        castFlags |= CAST_FLAG_AMMO;                        // arrows/bullets visual
 
-	uint32 cast_flags = 2;
+    if ((m_caster->GetTypeId() == TYPEID_PLAYER ||
+        (m_caster->GetTypeId() == TYPEID_UNIT && u_caster->IsPet()))
+        && m_spellInfo->powerType != POWER_TYPE_HEALTH)
+        castFlags |= CAST_FLAG_POWER_LEFT_SELF; // should only be sent to self, but the current messaging doesn't make that possible
 
-	if(GetType() == DmgClass_RANGED)
-		cast_flags |= 0x20;
+    if (m_spellInfo->runeCostID && m_spellInfo->powerType == POWER_TYPE_RUNES)
+        castFlags |= CAST_FLAG_UNKNOWN_19;
 
-	// hacky yeaaaa
-	if(GetProto()->Id == 8326)   // death
-		cast_flags = 0x0F;
-
-	data.SetOpcode(SMSG_SPELL_START);
+	WorldPacket data(SMSG_SPELL_START, (8+8+4+4+2));
 	if(i_caster != NULL)
-		data << i_caster->GetNewGUID() << u_caster->GetNewGUID();
+		data << i_caster->GetNewGUID();
 	else
-		data << m_caster->GetNewGUID() << m_caster->GetNewGUID();
+		data << m_caster->GetNewGUID();
+
+	data << m_caster->GetNewGUID();
 
 	data << extra_cast_number;
 	data << GetProto()->Id;
-	data << cast_flags;
+	data << castFlags;
 	data << (uint32)m_castTime;
 
 	m_targets.write(data);
+    if (castFlags & CAST_FLAG_POWER_LEFT_SELF)
+        data << uint32(u_caster->GetPower(m_spellInfo->powerType));
 
-	if(GetType() == DmgClass_RANGED)
-	{
-		ItemPrototype* ip = NULL;
-		if(GetProto()->Id == SPELL_RANGED_THROW)   // throw
-		{
-			if(p_caster != NULL)
-			{
-				Item* itm = p_caster->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_RANGED);
-				if(itm != NULL)
-				{
-					ip = itm->GetProto();
-					/* Throwing Weapon Patch by Supalosa
-					p_caster->GetItemInterface()->RemoveItemAmt(it->GetEntry(),1);
-					(Supalosa: Instead of removing one from the stack, remove one from durability)
-					We don't need to check if the durability is 0, because you can't cast the Throw spell if the thrown weapon is broken, because it returns "Requires Throwing Weapon" or something.
-					*/
+    if (castFlags & CAST_FLAG_AMMO)
+        WriteAmmoToPacket(&data);
 
-					// burlex - added a check here anyway (wpe suckers :P)
-					if(itm->GetDurability() > 0)
-					{
-						itm->SetDurability(itm->GetDurability() - 1);
-						if(itm->GetDurability() == 0)
-							p_caster->ApplyItemMods(itm, EQUIPMENT_SLOT_RANGED, false, true);
-					}
-				}
-				else
-				{
-					ip = ItemPrototypeStorage.LookupEntry(2512);	/*rough arrow*/
-				}
-			}
-		}
-		else if(hasAttributeExC(SPELL_ATTR3_UNK15))
-		{
-			if(p_caster != NULL)
-				ip = ItemPrototypeStorage.LookupEntry(p_caster->GetUInt32Value(PLAYER_AMMO_ID));
-			else
-				ip = ItemPrototypeStorage.LookupEntry(2512);	/*rough arrow*/
-		}
-
-		if(ip != NULL)
-			data << ip->DisplayInfoID << ip->InventoryType;
-	}
-
-	data << (uint32)139; //3.0.2 seems to be some small value around 250 for shadow bolt.
+    if (castFlags & CAST_FLAG_UNKNOWN_23)
+    {
+        data << uint32(0);
+        data << uint32(0);
+    }
 	m_caster->SendMessageToSet(&data, true);
 }
 
@@ -2113,105 +2107,60 @@ void Spell::SendSpellGo()
 	// no need to send this on passive spells
 	if(!m_caster->IsInWorld() || hasAttribute(SPELL_ATTR0_PASSIVE))
 		return;
+    uint32 castFlags = CAST_FLAG_UNKNOWN_9;
+    // triggered spells with spell visual != 0
+	if ((m_triggeredSpell && !(m_spellInfo->AttributesEx2 & SPELL_ATTR2_AUTOREPEAT_FLAG)) || m_triggeredByAura)
+        castFlags |= CAST_FLAG_PENDING;
 
+    if (m_spellInfo->Attributes & SPELL_ATTR0_REQ_AMMO && u_caster)
+        castFlags |= CAST_FLAG_AMMO;                        // arrows/bullets visual
+
+    if ((m_caster->GetTypeId() == TYPEID_PLAYER ||
+        (m_caster->GetTypeId() == TYPEID_UNIT && u_caster->IsPet()))
+        && m_spellInfo->powerType != POWER_TYPE_HEALTH)
+        castFlags |= CAST_FLAG_POWER_LEFT_SELF; // should only be sent to self, but the current messaging doesn't make that possible
+
+    if ((m_caster->GetTypeId() == TYPEID_PLAYER)
+        && (p_caster->getClass() == DEATHKNIGHT)
+		&& m_spellInfo->runeCostID
+        && m_spellInfo->powerType == POWER_TYPE_RUNES)
+    {
+        castFlags |= CAST_FLAG_UNKNOWN_19;                   // same as in SMSG_SPELL_START
+        castFlags |= CAST_FLAG_RUNE_LIST;                    // rune cooldowns list
+    }
+
+    if (m_spellInfo->HasEffect(SPELL_EFFECT_ACTIVATE_RUNES))
+    {
+        castFlags |= CAST_FLAG_RUNE_LIST;                    // rune cooldowns list
+        castFlags |= CAST_FLAG_UNKNOWN_19;                   // same as in SMSG_SPELL_START
+    }
+
+	if (m_targets.HasTraj())
+        castFlags |= CAST_FLAG_ADJUST_MISSILE;
 	// Start Spell
-	WorldPacket data(200);
-	data.SetOpcode(SMSG_SPELL_GO);
-	uint32 flags = 0;
-
-	if( m_missileTravelTime != 0 )
-		flags |= CAST_FLAG_ADJUST_MISSILE;
-
-	if(GetType() == DmgClass_RANGED)
-		flags |= SPELL_GO_FLAGS_RANGED; // 0x20 RANGED
-
-	if(i_caster != NULL)
-		flags |= SPELL_GO_FLAGS_ITEM_CASTER; // 0x100 ITEM CASTER
-
-	if(ModeratedTargets.size() > 0)
-		flags |= SPELL_GO_FLAGS_EXTRA_MESSAGE; // 0x400 TARGET MISSES AND OTHER MESSAGES LIKE "Resist"
-
-	if(p_caster != NULL && GetProto()->powerType != POWER_TYPE_HEALTH)
-		flags |= SPELL_GO_FLAGS_POWER_UPDATE;
-
-	//experiments with rune updates
-	uint8 cur_have_runes = 0;
-	if(p_caster && p_caster->IsDeathKnight())   //send our rune updates ^^
-	{
-		if(GetProto()->runeCostID && GetProto()->powerType == POWER_TYPE_RUNES)
-			flags |= SPELL_GO_FLAGS_ITEM_CASTER | SPELL_GO_FLAGS_RUNE_UPDATE | SPELL_GO_FLAGS_UNK40000;
-		//see what we will have after cast
-		cur_have_runes = TO_DK(p_caster)->GetRuneFlags();
-		if(cur_have_runes != m_rune_avail_before)
-			flags |= SPELL_GO_FLAGS_RUNE_UPDATE | SPELL_GO_FLAGS_UNK40000;
-	}
-
-	// hacky..
-	if(GetProto()->Id == 8326)   // death
-		flags = SPELL_GO_FLAGS_ITEM_CASTER | 0x0D;
-
-	if(i_caster != NULL && u_caster != NULL)   // this is needed for correct cooldown on items
-	{
-		data << i_caster->GetNewGUID() << u_caster->GetNewGUID();
-	}
+	WorldPacket data(SMSG_SPELL_GO, 50);
+	if(i_caster != NULL)   // this is needed for correct cooldown on items
+		data << i_caster->GetNewGUID();
 	else
-	{
-		data << m_caster->GetNewGUID() << m_caster->GetNewGUID();
-	}
-
+		data << m_caster->GetNewGUID();
+	data << m_caster->GetNewGUID();
 	data << extra_cast_number; //3.0.2
 	data << GetProto()->Id;
-	data << flags;
+	data << castFlags;
 	data << getMSTime();
 	data << (uint8)(UniqueTargets.size()); //number of hits
 	writeSpellGoTargets(&data);
-
-	if(flags & SPELL_GO_FLAGS_EXTRA_MESSAGE)
-	{
-		data << (uint8)(ModeratedTargets.size()); //number if misses
-		writeSpellMissedTargets(&data);
-	}
-	else
-		data << uint8(0);   //moderated target size is 0 since we did not set the flag
+	data << uint8(ModeratedTargets.size()); //number if misses
+	writeSpellMissedTargets(&data);
 
 	m_targets.write(data);   // this write is included the target flag
 
-	if(flags & SPELL_GO_FLAGS_POWER_UPDATE)
-		data << (uint32) p_caster->GetPower(GetProto()->powerType);
+	if (castFlags & CAST_FLAG_POWER_LEFT_SELF)
+		data << (uint32) u_caster->GetPower(GetProto()->powerType);
 
-	// er why handle it being null inside if if you can't get into if if its null
-	if(GetType() == DmgClass_RANGED)
+	if(castFlags & CAST_FLAG_RUNE_LIST)
 	{
-		ItemPrototype* ip = NULL;
-		if(GetProto()->Id == SPELL_RANGED_THROW)
-		{
-			if(p_caster != NULL)
-			{
-				Item* it = p_caster->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_RANGED);
-				if(it != NULL)
-					ip = it->GetProto();
-			}
-			else
-				ip = ItemPrototypeStorage.LookupEntry(2512);	/*rough arrow*/
-		}
-		else
-		{
-			if(p_caster != NULL)
-				ip = ItemPrototypeStorage.LookupEntry(p_caster->GetUInt32Value(PLAYER_AMMO_ID));
-			else // HACK FIX
-				ip = ItemPrototypeStorage.LookupEntry(2512);	/*rough arrow*/
-		}
-		if(ip != NULL)
-			data << ip->DisplayInfoID << ip->InventoryType;
-		else
-			data << uint32(0) << uint32(0);
-	}
-
-	//data order depending on flags : 0x800, 0x200000, 0x20000, 0x20, 0x80000, 0x40 (this is not spellgoflag but seems to be from spellentry or packet..)
-//.text:00401110                 mov     eax, [ecx+14h] -> them
-//.text:00401115                 cmp     eax, [ecx+10h] -> us
-	if(flags & SPELL_GO_FLAGS_RUNE_UPDATE)
-	{
+		uint8 cur_have_runes = TO_DK(p_caster)->GetRuneFlags();
 		data << uint8(m_rune_avail_before);
 		data << uint8(cur_have_runes);
 		for(uint8 k = 0; k < MAX_RUNES; k++)
@@ -2222,30 +2171,26 @@ void Spell::SendSpellGo()
 		}
 	}
 
-
-
-/*
-		float dx = targets.m_destX - targets.m_srcX;
-		float dy = targets.m_destY - targets.m_srcY;
-		if (missilepitch != M_PI / 4 && missilepitch != -M_PI / 4) //lets not divide by 0 lul
-			traveltime = (sqrtf(dx * dx + dy * dy) / (cosf(missilepitch) * missilespeed)) * 1000;
-*/
-	
-	if( flags & CAST_FLAG_ADJUST_MISSILE ){
-		data << float( m_missilePitch );
-		data << uint32( m_missileTravelTime );
+    if (castFlags & CAST_FLAG_ADJUST_MISSILE)
+    {
+        data << m_targets.GetElevation();
+        data << uint32(m_delayMoment);
 	}
 
+    if (castFlags & CAST_FLAG_AMMO)
+        WriteAmmoToPacket(&data);
 
-	if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
-		data << uint8(0);   //some spells require this ? not sure if it is last byte or before that.
+    if (castFlags & CAST_FLAG_VISUAL_CHAIN)
+    {
+        data << uint32(0);
+        data << uint32(0);
+    }
 
+	if (m_targets.HasDst())
+    {
+        data << uint8(0);
+    }
 	m_caster->SendMessageToSet(&data, true);
-
-	// spell log execute is still send 2.08
-	// as I see with this combination, need to test it more
-	//if (flags != 0x120 && GetProto()->Attributes & 16) // not ranged and flag 5
-	//SendLogExecute(0,m_targets.m_unitTarget);
 }
 
 void Spell::writeSpellGoTargets(WorldPacket* data)
@@ -3294,7 +3239,7 @@ uint8 Spell::CanCast(bool tolerate)
 		/**
 		 *	Cooldowns check
 		 */
-		if(!tolerate && !p_caster->Cooldown_CanCast(GetProto()))
+		if(!tolerate && !CooldownCanCast())
 			return SPELL_FAILED_NOT_READY;
 
 		/**
@@ -3886,7 +3831,7 @@ uint8 Spell::CanCast(bool tolerate)
 	}
 
 	// Targeted Location Checks (AoE spells)
-	if(m_targets.m_targetMask == TARGET_FLAG_DEST_LOCATION)
+	if(m_targets.HasDst())
 	{
 		if(!IsInrange(m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, m_caster, (maxRange * maxRange)))
 			return SPELL_FAILED_OUT_OF_RANGE;
@@ -5825,7 +5770,7 @@ void Spell::HandleCastEffects(uint64 guid, uint32 i)
 	{
 		float destx, desty, destz, dist = 0;
 
-		if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+		if(m_targets.HasDst())
 		{
 			destx = m_targets.m_destX;
 			desty = m_targets.m_destY;
@@ -5867,18 +5812,22 @@ void Spell::HandleCastEffects(uint64 guid, uint32 i)
 		}
 		else
 		{
-			float time;
-
-			if( m_missileTravelTime != 0 )
-				time = m_missileTravelTime;
-			else
-				time = dist * 1000.0f / m_spellInfo->speed;
-
+			if (m_targets.m_speed != 0)
+			{
+				float speed = m_targets.m_speed * cos(m_targets.m_elevation);
+				if (speed > 0.0f)
+			        m_delayMoment = (uint64)floor(m_targets.GetDist2d() / speed * 1000.0f);
+			}
+			else if (m_spellInfo->speed > 0.0f)
+			{
+				float dist = sqrt(LocationVector(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ()).Distance2DSq(m_targets.m_destX, m_targets.m_destY)) - m_caster->GetObjectSize();
+				m_delayMoment = (uint64) floor(dist / m_spellInfo->speed * 1000.0f);
+			}
 			//todo: arcemu doesn't support reflected spells
 			//if (reflected)
 			//	time *= 1.25; //reflected projectiles move back 4x faster
 
-			sEventMgr.AddEvent(this, &Spell::HandleEffects, guid, i, EVENT_SPELL_HIT, float2int32(time), 1, 0);
+			sEventMgr.AddEvent(this, &Spell::HandleEffects, guid, i, EVENT_SPELL_HIT, m_delayMoment, 1, 0);
 			AddRef();
 		}
 	}
@@ -5895,7 +5844,7 @@ void Spell::HandleModeratedTarget(uint64 guid)
 	{
 		float destx, desty, destz, dist = 0;
 
-		if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+		if(m_targets.HasDst())
 		{
 			destx = m_targets.m_destX;
 			desty = m_targets.m_destY;
@@ -5993,18 +5942,18 @@ void Spell::SpellEffectJumpTarget(uint32 i)
 		if(u_caster->GetAIInterface() != NULL)
 			u_caster->GetAIInterface()->MoveJump(x, y, z, u_caster->GetOrientation(), GetProto()->Effect[i] == 145);
 	}
-	else if(m_targets.m_targetMask & (TARGET_FLAG_SOURCE_LOCATION | TARGET_FLAG_DEST_LOCATION))
+	else if(m_targets.HasDstOrSrc())
 	{
 		float x, y, z;
 
 		//this can also jump to a point
-		if(m_targets.m_targetMask & TARGET_FLAG_SOURCE_LOCATION)
+		if(m_targets.HasSrc())
 		{
 			x = m_targets.m_srcX;
 			y = m_targets.m_srcY;
 			z = m_targets.m_srcZ;
 		}
-		if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+		if(m_targets.HasDst())
 		{
 			x = m_targets.m_destX;
 			y = m_targets.m_destY;
@@ -6037,18 +5986,18 @@ void Spell::SpellEffectJumpBehindTarget(uint32 i)
 		if(u_caster->GetAIInterface() != NULL)
 			u_caster->GetAIInterface()->MoveJump(x, y, z, o);
 	}
-	else if(m_targets.m_targetMask & (TARGET_FLAG_SOURCE_LOCATION | TARGET_FLAG_DEST_LOCATION))
+	else if(m_targets.HasDstOrSrc())
 	{
 		float x, y, z;
 
 		//this can also jump to a point
-		if(m_targets.m_targetMask & TARGET_FLAG_SOURCE_LOCATION)
+		if(m_targets.HasSrc())
 		{
 			x = m_targets.m_srcX;
 			y = m_targets.m_srcY;
 			z = m_targets.m_srcZ;
 		}
-		if(m_targets.m_targetMask & TARGET_FLAG_DEST_LOCATION)
+		if(m_targets.HasDst())
 		{
 			x = m_targets.m_destX;
 			y = m_targets.m_destY;
@@ -6215,4 +6164,142 @@ void Spell::CleanupEffectExecuteData()
 {
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
         m_effectExecuteData[i] = NULL;
+}
+
+void Spell::WriteAmmoToPacket(WorldPacket* data)
+{
+    uint32 ammoInventoryType = 0;
+    uint32 ammoDisplayID = 0;
+
+    if (p_caster)
+    {
+        Item* pItem = p_caster->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_RANGED);
+        if (pItem)
+        {
+			if(pItem->GetDurability() > 0)
+			{
+				pItem->SetDurability(pItem->GetDurability() - 1);
+				if(pItem->GetDurability() == 0)
+					p_caster->ApplyItemMods(pItem, EQUIPMENT_SLOT_RANGED, false, true);
+			}
+			ammoInventoryType = pItem->GetProto()->InventoryType;
+            if (ammoInventoryType == INVTYPE_THROWN)
+                ammoDisplayID = pItem->GetProto()->DisplayInfoID;
+            else
+            {
+                uint32 ammoID = p_caster->GetUInt32Value(PLAYER_AMMO_ID);
+                if (ammoID)
+                {
+                    ItemPrototype * pProto = ItemPrototypeStorage.LookupEntry(ammoID);
+                    if (pProto)
+                    {
+                        ammoDisplayID = pProto->DisplayInfoID;
+                        ammoInventoryType = pProto->InventoryType;
+                    }
+                }
+                else if (p_caster->HasAura(46699))      // Requires No Ammo
+                {
+                    ammoDisplayID = 5996;                   // normal arrow
+                    ammoInventoryType = INVTYPE_AMMO;
+                }
+            }
+        }
+    }
+    else
+    {
+        for (uint8 i = 0; i < 3; ++i)
+        {
+            if (uint32 item_id = m_caster->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + i))
+            {
+                if (ItemPrototype* itemEntry = ItemPrototypeStorage.LookupEntry(item_id))
+                {
+                    if (itemEntry->Class == ITEM_CLASS_WEAPON)
+                    {
+                        switch (itemEntry->SubClass)
+                        {
+                            case ITEM_SUBCLASS_WEAPON_THROWN:
+								ammoDisplayID = itemEntry->DisplayInfoID;
+                                ammoInventoryType = itemEntry->InventoryType;
+                                break;
+                            case ITEM_SUBCLASS_WEAPON_BOW:
+                            case ITEM_SUBCLASS_WEAPON_CROSSBOW:
+                                ammoDisplayID = 5996;       // is this need fixing?
+                                ammoInventoryType = INVTYPE_AMMO;
+                                break;
+                            case ITEM_SUBCLASS_WEAPON_GUN:
+                                ammoDisplayID = 5998;       // is this need fixing?
+                                ammoInventoryType = INVTYPE_AMMO;
+                                break;
+                        }
+
+                        if (ammoDisplayID)
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+    *data << uint32(ammoDisplayID);
+    *data << uint32(ammoInventoryType);
+}
+
+
+bool Spell::CanAddCooldown()
+{
+	if(p_caster)
+		return true;
+
+	if(u_caster)
+	{
+		if(u_caster->m_redirectSpellPackets != NULL)
+			return true;
+		else if(u_caster->IsVehicle())
+		{
+			Unit* cont = u_caster->GetVehicleComponent()->GetController();
+			if(cont == NULL || !cont->IsPlayer())
+				return false;
+		}
+	}
+	return true;
+}
+
+bool Spell::CooldownCanCast()
+{
+	if(!CanAddCooldown())
+		return true;
+	return GetCooldownTarget()->Cooldown_CanCast(GetProto());
+}
+
+Player * Spell::GetCooldownTarget()
+{
+	if(!CanAddCooldown())
+		return NULL;
+	if(p_caster)
+		return p_caster;
+	if(u_caster->m_redirectSpellPackets != NULL)
+		return u_caster->m_redirectSpellPackets;
+	//no null check because of CanAddCooldown()
+	return TO_PLAYER(u_caster->GetVehicleComponent()->GetController());
+}
+
+uint8 Spell::CheckPetCast()
+{
+	if(u_caster == NULL && m_caster != NULL && m_caster->IsUnit())
+		u_caster = TO_UNIT(m_caster);
+	if(u_caster == NULL)
+		return SPELL_FAILED_NO_PET;
+
+	if(!u_caster->isAlive())
+	{
+		SendCustomError(SPELL_CUSTOM_ERROR_PET_IS_DEAD);
+		return SPELL_FAILED_CUSTOM_ERROR;
+	}
+
+	Player * cd = GetCooldownTarget();
+	if(cd == NULL)
+		return SPELL_FAILED_NO_PET;
+	if(!cd->Cooldown_CanCast(GetProto()))
+		return SPELL_FAILED_NOT_READY;
+	return SPELL_FAILED_SUCCESS;
 }

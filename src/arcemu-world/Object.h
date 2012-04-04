@@ -676,6 +676,10 @@ class SERVER_DECL Object : public EventableObject
 		int32 GetInstanceID() { return m_instanceId; }
 
 		int32 event_GetInstanceID();
+        float GetObjectSize() const
+        {
+            return (m_valuesCount > UNIT_FIELD_COMBATREACH) ? m_floatValues[UNIT_FIELD_COMBATREACH] : 0.388999998569489f;
+        }
 
 		// Object activation
 	private:
@@ -799,6 +803,7 @@ class SERVER_DECL Object : public EventableObject
 		Spell* GetCurrentSpell() {return m_currentSpell;}
 		void SetCurrentSpell(Spell* cSpell) { m_currentSpell = cSpell; }
 		Creature * GetCreatureWithEntry(uint32 entry);
+		bool InBox(float centerX, float centerY, float centerZ, float BLength, float BWidth, float BHeight, float BOrientation, float delta);
 		//Andy's crap
 		virtual Object* GetPlayerOwner();
 		std::set<Spell*> m_pendingSpells;

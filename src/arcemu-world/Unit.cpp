@@ -4669,6 +4669,9 @@ void Unit::castSpell(Spell* pSpell)
 
 int32 Unit::GetSpellDmgAPBonus(SpellEntry*spellInfo, bool isdot)
 {
+	if( spellInfo->c_is_flags & SPELL_FLAG_IS_NOT_USING_DMG_BONUS || spellInfo->AttributesEx3 & SPELL_ATTR3_NO_DONE_BONUS)
+		return 0;
+
 	float plus_damage = 0.0f;
 	if( spellInfo->ap_coef >= 0.0f && !isdot )
 	{

@@ -539,6 +539,7 @@ class SERVER_DECL WorldSession
 		void HandlePetCastSpell(WorldPacket & recvPacket);
 		void HandleCancelTotem(WorldPacket & recv_data);
 		void HandleUpdateProjectilePosition(WorldPacket & recv_data);
+		void HandleClientCastFlags(WorldPacket& recvPacket, uint8 castFlags, SpellCastTargets & targets);
 
 		/// Skill opcodes (SkillHandler.spp)
 		//void HandleSkillLevelUpOpcode(WorldPacket& recvPacket);

@@ -105,7 +105,7 @@ enum SPELL_LOG
     SPELL_LOG_ABSORB,
     SPELL_LOG_REFLECT
 };
-
+/*
 enum SpellCastTargetFlags
 {
     TARGET_FLAG_SELF                = 0x0000, // they are checked in following order
@@ -126,6 +126,38 @@ enum SpellCastTargetFlags
     TARGET_FLAG_OPEN_LOCK           = 0x4000, // opening object/lock
     TARGET_FLAG_CORPSE2             = 0x8000, // for resurrection spells
     TARGET_FLAG_GLYPH               = 0x20000
+};*/
+
+enum SpellCastTargetFlags
+{
+    TARGET_FLAG_NONE            = 0x00000000,
+    TARGET_FLAG_UNUSED_1        = 0x00000001,               // not used
+    TARGET_FLAG_UNIT            = 0x00000002,               // pguid
+    TARGET_FLAG_UNIT_RAID       = 0x00000004,               // not sent, used to validate target (if raid member)
+    TARGET_FLAG_UNIT_PARTY      = 0x00000008,               // not sent, used to validate target (if party member)
+    TARGET_FLAG_ITEM            = 0x00000010,               // pguid
+    TARGET_FLAG_SOURCE_LOCATION = 0x00000020,               // pguid, 3 float
+    TARGET_FLAG_DEST_LOCATION   = 0x00000040,               // pguid, 3 float
+    TARGET_FLAG_UNIT_ENEMY      = 0x00000080,               // not sent, used to validate target (if enemy)
+    TARGET_FLAG_UNIT_ALLY       = 0x00000100,               // not sent, used to validate target (if ally)
+    TARGET_FLAG_CORPSE_ENEMY    = 0x00000200,               // pguid
+    TARGET_FLAG_UNIT_DEAD       = 0x00000400,               // not sent, used to validate target (if dead creature)
+    TARGET_FLAG_GAMEOBJECT      = 0x00000800,               // pguid, used with TARGET_GAMEOBJECT_TARGET
+    TARGET_FLAG_TRADE_ITEM      = 0x00001000,               // pguid
+    TARGET_FLAG_STRING          = 0x00002000,               // string
+    TARGET_FLAG_GAMEOBJECT_ITEM = 0x00004000,               // not sent, used with TARGET_GAMEOBJECT_ITEM_TARGET
+    TARGET_FLAG_CORPSE_ALLY     = 0x00008000,               // pguid
+    TARGET_FLAG_UNIT_MINIPET    = 0x00010000,               // pguid, used to validate target (if non combat pet)
+    TARGET_FLAG_GLYPH_SLOT      = 0x00020000,               // used in glyph spells
+    TARGET_FLAG_DEST_TARGET     = 0x00040000,               // sometimes appears with DEST_TARGET spells (may appear or not for a given spell)
+    TARGET_FLAG_UNUSED20        = 0x00080000,               // uint32 counter, loop { vec3 - screen position (?), guid }, not used so far
+    TARGET_FLAG_UNIT_PASSENGER  = 0x00100000,               // guessed, used to validate target (if vehicle passenger)
+
+    TARGET_FLAG_UNIT_MASK = TARGET_FLAG_UNIT | TARGET_FLAG_UNIT_RAID | TARGET_FLAG_UNIT_PARTY
+        | TARGET_FLAG_UNIT_ENEMY | TARGET_FLAG_UNIT_ALLY | TARGET_FLAG_UNIT_DEAD | TARGET_FLAG_UNIT_MINIPET | TARGET_FLAG_UNIT_PASSENGER,
+    TARGET_FLAG_GAMEOBJECT_MASK = TARGET_FLAG_GAMEOBJECT | TARGET_FLAG_GAMEOBJECT_ITEM,
+    TARGET_FLAG_CORPSE_MASK = TARGET_FLAG_CORPSE_ALLY | TARGET_FLAG_CORPSE_ENEMY,
+    TARGET_FLAG_ITEM_MASK = TARGET_FLAG_TRADE_ITEM | TARGET_FLAG_ITEM | TARGET_FLAG_GAMEOBJECT_ITEM,
 };
 
 enum procFlags
@@ -525,44 +557,52 @@ enum SpellCustomFlags
 {
     CUSTOM_FLAG_SPELL_REQUIRES_COMBAT		= 0x1
 };
-
+/*
 enum SpellCastFlags
 {
     CAST_FLAG_UNKNOWN1           = 0x2,
     CAST_FLAG_UNKNOWN2           = 0x10, // no idea yet, i saw it in blizzard spell
     CAST_FLAG_AMMO               = 0x20 // load ammo display id (uint32) and ammo inventory type (uint32)
-};
+};*/
 
 /************************************************************************/
 /* General Spell Go Flags, for documentation reasons                    */
 /************************************************************************/
-enum SpellGoFlags
+enum SpellCastFlags
 {
-    //seems to make server send 1 less byte at the end. Byte seems to be 0 and not sent on triggered spells
-    //this is used only when server also sends power update to client
-    //maybe it is regen related ?
-    SPELL_GO_FLAGS_LOCK_PLAYER_CAST_ANIM	= 0x01,  //also do not send standstate update
-    //0x02
-    //0x04
-    //0x08 //seems like all of these mean some spell anim state
-    //0x10
-    SPELL_GO_FLAGS_RANGED           = 0x20, //2 functions are called on 2 values
-    //0x40
-    //0x80
-    SPELL_GO_FLAGS_ITEM_CASTER      = 0x100,
-    SPELL_GO_FLAGS_UNK200			= 0x200,
-    SPELL_GO_FLAGS_EXTRA_MESSAGE    = 0x400, //TARGET MISSES AND OTHER MESSAGES LIKE "Resist"
-    SPELL_GO_FLAGS_POWER_UPDATE		= 0x800, //seems to work hand in hand with some visual effect of update actually
-    //0x1000
-    SPELL_GO_FLAGS_UNK2000			= 0x2000,
-    SPELL_GO_FLAGS_UNK1000			= 0x1000, //no idea
-    //0x4000
-    SPELL_GO_FLAGS_UNK8000			= 0x8000, //seems to make server send extra 2 bytes before SPELL_GO_FLAGS_UNK1 and after SPELL_GO_FLAGS_UNK20000
-    CAST_FLAG_ADJUST_MISSILE     = 0x00020000, //seems to make server send an uint32 after m_targets.write
-    SPELL_GO_FLAGS_UNK40000			= 0x40000, //1 uint32. this is not confirmed but i have a feeling about it :D
-    SPELL_GO_FLAGS_UNK80000			= 0x80000, //2 functions called (same ones as for ranged but different)
-    SPELL_GO_FLAGS_RUNE_UPDATE		= 0x200000, //2 bytes for the rune cur and rune next flags
-    SPELL_GO_FLAGS_UNK400000		= 0x400000, //seems to make server send an uint32 after m_targets.write
+    CAST_FLAG_NONE               = 0x00000000,
+    CAST_FLAG_PENDING            = 0x00000001,              // aoe combat log?
+    CAST_FLAG_UNKNOWN_2          = 0x00000002,
+    CAST_FLAG_UNKNOWN_3          = 0x00000004,
+    CAST_FLAG_UNKNOWN_4          = 0x00000008,              // ignore AOE visual
+    CAST_FLAG_UNKNOWN_5          = 0x00000010,
+    CAST_FLAG_AMMO               = 0x00000020,              // Projectiles visual
+    CAST_FLAG_UNKNOWN_7          = 0x00000040,
+    CAST_FLAG_UNKNOWN_8          = 0x00000080,
+    CAST_FLAG_UNKNOWN_9          = 0x00000100,
+    CAST_FLAG_UNKNOWN_10         = 0x00000200,
+    CAST_FLAG_UNKNOWN_11         = 0x00000400,
+    CAST_FLAG_POWER_LEFT_SELF    = 0x00000800,
+    CAST_FLAG_UNKNOWN_13         = 0x00001000,
+    CAST_FLAG_UNKNOWN_14         = 0x00002000,
+    CAST_FLAG_UNKNOWN_15         = 0x00004000,
+    CAST_FLAG_UNKNOWN_16         = 0x00008000,
+    CAST_FLAG_UNKNOWN_17         = 0x00010000,
+    CAST_FLAG_ADJUST_MISSILE     = 0x00020000,
+    CAST_FLAG_UNKNOWN_19         = 0x00040000,
+    CAST_FLAG_VISUAL_CHAIN       = 0x00080000,
+    CAST_FLAG_UNKNOWN_21         = 0x00100000,
+    CAST_FLAG_RUNE_LIST          = 0x00200000,
+    CAST_FLAG_UNKNOWN_23         = 0x00400000,
+    CAST_FLAG_UNKNOWN_24         = 0x00800000,
+    CAST_FLAG_UNKNOWN_25         = 0x01000000,
+    CAST_FLAG_UNKNOWN_26         = 0x02000000,
+    CAST_FLAG_IMMUNITY           = 0x04000000,
+    CAST_FLAG_UNKNOWN_28         = 0x08000000,
+    CAST_FLAG_UNKNOWN_29         = 0x10000000,
+    CAST_FLAG_UNKNOWN_30         = 0x20000000,
+    CAST_FLAG_UNKNOWN_31         = 0x40000000,
+    CAST_FLAG_UNKNOWN_32         = 0x80000000,
 };
 
 /*enum School //moved to Unit.hack for headers dependencies.
@@ -1114,21 +1154,20 @@ ARCEMU_INLINE bool TargetTypeCheck(Object* obj, uint32 ReqCreatureTypeMask)
 class SpellCastTargets
 {
 	public:
-		void read(WorldPacket & data, uint64 caster);
+		void read(WorldPacket & data, Object* caster);
 		void write(WorldPacket & data);
-
-		SpellCastTargets() : m_targetMask(0), m_targetMaskExtended(0), m_unitTarget(0), m_itemTarget(0), m_srcX(0), m_srcY(0), m_srcZ(0),
-			m_destX(0), m_destY(0), m_destZ(0), unkuint64_1(0), unkuint64_2(0){}
+		SpellCastTargets() : m_targetMask(0), m_unitTarget(0), m_itemTarget(0), m_srcX(0), m_srcY(0), m_srcZ(0),
+			m_destX(0), m_destY(0), m_destZ(0), m_srcTransportGuid(0), m_destTransportGuid(0), m_elevation(0.0f), m_speed(0.0f), _transportOffset(0.0f, 0.0f, 0.0f, 0.0f){}
 
 		SpellCastTargets(uint16 TargetMask, uint64 unitTarget, uint64 itemTarget, float srcX, float srcY,
-		                 float srcZ, float destX, float destY, float destZ) : m_targetMask(TargetMask), m_targetMaskExtended(0), m_unitTarget(unitTarget),
-			m_itemTarget(itemTarget), m_srcX(srcX), m_srcY(srcY), m_srcZ(srcZ), m_destX(destX), m_destY(destY), m_destZ(destZ), unkuint64_1(0), unkuint64_2(0){}
+		                 float srcZ, float destX, float destY, float destZ) : m_targetMask(TargetMask), m_unitTarget(unitTarget),
+			m_itemTarget(itemTarget), m_srcX(srcX), m_srcY(srcY), m_srcZ(srcZ), m_destX(destX), m_destY(destY), m_destZ(destZ), m_srcTransportGuid(0), m_destTransportGuid(0), m_elevation(0.0f), m_speed(0.0f), _transportOffset(0.0f, 0.0f, 0.0f, 0.0f){}
 
-		SpellCastTargets(uint64 unitTarget) : m_targetMask(0x2), m_targetMaskExtended(0), m_unitTarget(unitTarget), m_itemTarget(0),
-			m_srcX(0), m_srcY(0), m_srcZ(0), m_destX(0), m_destY(0), m_destZ(0), unkuint64_1(0), unkuint64_2(0) {}
+		SpellCastTargets(uint64 unitTarget) : m_targetMask(0x2), m_unitTarget(unitTarget), m_itemTarget(0),
+			m_srcX(0), m_srcY(0), m_srcZ(0), m_destX(0), m_destY(0), m_destZ(0), m_srcTransportGuid(0), m_destTransportGuid(0), m_elevation(0.0f), m_speed(0.0f), _transportOffset(0.0f, 0.0f, 0.0f, 0.0f) {}
 
-		SpellCastTargets(WorldPacket & data, uint64 caster) : m_targetMask(0), m_targetMaskExtended(0), m_unitTarget(0), m_itemTarget(0), m_srcX(0), m_srcY(0), m_srcZ(0),
-			m_destX(0), m_destY(0), m_destZ(0), unkuint64_1(0), unkuint64_2(0)
+		SpellCastTargets(WorldPacket & data, Object * caster) : m_targetMask(0), m_unitTarget(0), m_itemTarget(0), m_srcX(0), m_srcY(0), m_srcZ(0),
+			m_destX(0), m_destY(0), m_destZ(0), m_srcTransportGuid(0), m_destTransportGuid(0), m_elevation(0.0f), m_speed(0.0f), _transportOffset(0.0f, 0.0f, 0.0f, 0.0f)
 		{
 			read(data, caster);
 		}
@@ -1149,24 +1188,52 @@ class SpellCastTargets
 			m_strTarget = target.m_strTarget;
 
 			m_targetMask = target.m_targetMask;
-			m_targetMaskExtended = target.m_targetMaskExtended;
-
-			unkuint64_1 = target.unkuint64_1;
-			unkuint64_2 = target.unkuint64_2;
+			m_srcTransportGuid = target.m_srcTransportGuid;
+			m_destTransportGuid = target.m_destTransportGuid;
+			m_elevation = target.m_elevation;
+			m_speed = target.m_speed;
 			return *this;
 		}
 
 		~SpellCastTargets()	{ m_strTarget.clear(); }
-		uint16 m_targetMask;
-		uint16 m_targetMaskExtended;			// this could be a 32 also
+		uint32 m_targetMask;
 		uint64 m_unitTarget;
 		uint64 m_itemTarget;
 
-		uint64 unkuint64_1;
+		uint64 m_srcTransportGuid;
 		float m_srcX, m_srcY, m_srcZ;
-		uint64 unkuint64_2;
+		uint64 m_destTransportGuid;
 		float m_destX, m_destY, m_destZ;
 		string m_strTarget;
+		float m_elevation, m_speed;
+		LocationVector _transportOffset;
+		uint32 GetTargetMask() { return m_targetMask; }
+		bool HasSrc()
+		{
+			if(GetTargetMask() & TARGET_FLAG_SOURCE_LOCATION)
+				return true;
+			return false;
+		}
+		bool HasDst() 
+		{
+			if(GetTargetMask() & TARGET_FLAG_DEST_LOCATION)
+				return true;
+			return false;
+		}
+		bool HasDstOrSrc() { return (HasSrc() || HasDst()); }
+		float GetElevation() { return m_elevation; }
+		void SetElevation(float elevation) { m_elevation = elevation; }
+		float GetSpeed() { return m_speed; }
+		void SetSpeed(float speed) { m_speed = speed; }
+		bool HasTraj() { return m_speed != 0; }
+        float GetDist2d() 
+		{
+			LocationVector src(m_srcX, m_srcY, m_srcZ);
+			return sqrt(src.Distance2DSq(m_destX, m_destY));
+		}
+
+        float GetSpeedXY() { return m_speed * cos(m_elevation); }
+        float GetSpeedZ() { return m_speed * sin(m_elevation); }
 };
 
 enum SpellState
@@ -1644,7 +1711,7 @@ class SERVER_DECL Spell : public EventableObject
 		void HandleAddAura(uint64 guid);
 		void writeSpellGoTargets(WorldPacket* data);
 		void writeSpellMissedTargets(WorldPacket* data);
-
+		void WriteAmmoToPacket(WorldPacket* data);
 		uint32 pSpellId;
 		SpellEntry* ProcedOnSpell; //some spells need to know the origins of the proc too
 		SpellCastTargets m_targets;
@@ -2100,8 +2167,7 @@ class SERVER_DECL Spell : public EventableObject
 
 	public: //Modified by LUAppArc private->public
 		virtual int32 DoCalculateEffect(uint32 i, Unit* target, int32 value);
-		float m_missilePitch;
-		uint32 m_missileTravelTime;
+		uint64 m_delayMoment;
 
 		TargetsList m_targetUnits[3];
 		void SafeAddTarget(TargetsList* tgt, uint64 guid);
@@ -2134,6 +2200,10 @@ class SERVER_DECL Spell : public EventableObject
         void ExecuteLogEffectUnsummonObject(uint8 effIndex, Object* obj);
         void ExecuteLogEffectResurrect(uint8 effIndex, Unit* target);
 
+		bool CanAddCooldown();
+		bool CooldownCanCast();
+		Player * GetCooldownTarget();
+		uint8 CheckPetCast();
 	public:
 		SpellEntry* m_spellInfo;
 		SpellEntry* m_spellInfo_override;//used by spells that should have dynamic variables in spellentry.

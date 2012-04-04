@@ -29,7 +29,7 @@ void WorldSession::HandleUseItemOpcode(WorldPacket & recvPacket)
 	Player* p_User = GetPlayer();
 	LOG_DETAIL("WORLD: got use Item packet, data length = %i", recvPacket.size());
 	int8 tmp1, slot;
-	uint8 unk; //Alice : added in 3.0.2
+	uint8 castFlags;
 	uint64 item_guid;
 	uint8 cn;
 	uint32 spellId = 0;
@@ -42,7 +42,7 @@ void WorldSession::HandleUseItemOpcode(WorldPacket & recvPacket)
 	recvPacket >> spellId;
 	recvPacket >> item_guid;
 	recvPacket >> glyphIndex;
-	recvPacket >> unk;
+	recvPacket >> castFlags;
 
 	Item* tmpItem = NULL;
 	tmpItem = p_User->GetItemInterface()->GetInventoryItem(tmp1, slot);
@@ -124,7 +124,8 @@ void WorldSession::HandleUseItemOpcode(WorldPacket & recvPacket)
 		return;
 	}
 
-	SpellCastTargets targets(recvPacket, _player->GetGUID());
+	SpellCastTargets targets(recvPacket, _player);
+	HandleClientCastFlags(recvPacket, castFlags, targets);
 
 	SpellEntry* spellInfo = dbcSpell.LookupEntryForced(spellId);
 	if(spellInfo == NULL)
@@ -327,9 +328,9 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket & recvPacket)
 	CHECK_INWORLD_RETURN
 
 	uint32 spellId;
-	uint8 cn, unk; //Alice : Added to 3.0.2
+	uint8 cn, castFlags;
 
-	recvPacket >> cn >> spellId  >> unk;
+	recvPacket >> cn >> spellId  >> castFlags;
 	// check for spell id
 	SpellEntry* spellInfo = dbcSpell.LookupEntryForced(spellId);
 
@@ -394,7 +395,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket & recvPacket)
 			{
 				_player->m_AutoShotTarget = _player->GetSelection();
 				uint32 duration = _player->GetBaseAttackTime(RANGED);
-				SpellCastTargets targets(recvPacket, GetPlayer()->GetGUID());
+				SpellCastTargets targets(recvPacket, GetPlayer());
 				if(!targets.m_unitTarget)
 				{
 					LOG_DEBUG("Cancelling auto-shot cast because targets.m_unitTarget is null!");
@@ -428,7 +429,8 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket & recvPacket)
 			}
 		}
 
-		SpellCastTargets targets(recvPacket, GetPlayer()->GetGUID());
+		SpellCastTargets targets(recvPacket, GetPlayer());
+		HandleClientCastFlags(recvPacket, castFlags, targets);
 
 		// some anticheat stuff
 		if(spellInfo->self_cast_only)
@@ -536,94 +538,62 @@ void WorldSession::HandlePetCastSpell(WorldPacket & recvPacket)
 	SpellEntry* sp = dbcSpell.LookupEntryForced(spellid);
 	if(sp == NULL)
 		return;
-	// Summoned Elemental's Freeze
-	if(spellid == 33395)
+	Unit * caster = _player->GetMapMgrUnit(guid);
+	if(caster == NULL)
 	{
-		if(!_player->GetSummon())
-			return;
+		recvPacket.rfinish();
+		return;
 	}
-	else if(guid != _player->m_CurrentCharm)
+	if(!_player->summonhandler.HasSummon(caster) && _player->GetCharmedUnitGUID() != caster->GetGUID())
 	{
-		if( _player->GetCharmedUnitGUID() != guid )
-			return;
+		recvPacket.rfinish();
+		return;
 	}
 
 	SpellCastTargets targets;
-	targets.read( recvPacket, guid );
-
-	float missilepitch = 0.0f;
-	float missilespeed = 0;
-	uint32 traveltime  = 0;
-	
-	if( castflags & 2 ){
-		recvPacket >> missilepitch;
-		recvPacket >> missilespeed;
-
-		float dx = targets.m_destX - targets.m_srcX;
-		float dy = targets.m_destY - targets.m_srcY;
-
-		if( ( missilepitch != M_PI / 4 ) && ( missilepitch != -M_PI / 4 ) ) //lets not divide by 0 lul
-			traveltime = ( sqrtf( dx * dx + dy * dy ) / ( cosf( missilepitch ) * missilespeed ) ) * 1000;
-	}
-
-	if(spellid == 33395)	// Summoned Water Elemental's freeze
+	targets.read( recvPacket, caster );
+	HandleClientCastFlags(recvPacket, castflags, targets);
+	bool check = false;
+	for(list<AI_Spell*>::iterator itr = caster->GetAIInterface()->m_spells.begin(); itr != caster->GetAIInterface()->m_spells.end(); ++itr)//.......meh. this is a crappy way of doing this, I bet.
 	{
-		Spell* pSpell = sSpellFactoryMgr.NewSpell(_player->GetSummon(), sp, false, 0);
-		pSpell->prepare(&targets);
-	}
-	else			// trinket?
-	{
-		uint64 charmguid = _player->m_CurrentCharm;
-		if( charmguid == 0 )
-			charmguid = _player->GetCharmedUnitGUID();
-
-		Unit* nc = _player->GetMapMgr()->GetUnit( charmguid );
-		if(nc)
+		if((*itr)->spell->Id == spellid)
 		{
-			bool check = false;
-			for(list<AI_Spell*>::iterator itr = nc->GetAIInterface()->m_spells.begin(); itr != nc->GetAIInterface()->m_spells.end(); ++itr)//.......meh. this is a crappy way of doing this, I bet.
-			{
-				if((*itr)->spell->Id == spellid)
-				{
-					check = true;
-					break;
-				}
-			}
-
-			if(nc->IsCreature())
-			{
-				Creature* c = TO< Creature* >(nc);
-
-				if(c->GetProto()->spelldataid != 0)
-				{
-					CreatureSpellDataEntry* spe = dbcCreatureSpellData.LookupEntry(c->GetProto()->spelldataid);
-
-					if(spe != NULL)
-						for(uint32 i = 0; i < 3; i++)
-							if(spe->Spells[ i ] == spellid)
-							{
-								check = true;
-								break;
-							}
-				}
-
-				for(uint32 i = 0; i < 8; i++)
-					if(c->GetProto()->AISpells[ i ] == spellid)
+			check = true;
+			break;
+		}
+	}
+	if(caster->IsCreature())
+	{
+		Creature* c = TO< Creature* >(caster);
+		if(c->GetProto()->spelldataid != 0)
+		{
+			CreatureSpellDataEntry* spe = dbcCreatureSpellData.LookupEntry(c->GetProto()->spelldataid);
+				if(spe != NULL)
+				for(uint32 i = 0; i < 3; i++)
+					if(spe->Spells[ i ] == spellid)
 					{
 						check = true;
 						break;
 					}
-			}
-
-			if(!check)
-				return;
-
-			Spell* pSpell = sSpellFactoryMgr.NewSpell(nc, sp, false, 0);
-			pSpell->m_missilePitch = missilepitch;
-			pSpell->m_missileTravelTime = traveltime;
-
-			pSpell->prepare(&targets);
 		}
+		for(uint32 i = 0; i < 8; i++)
+			if(c->GetProto()->AISpells[ i ] == spellid)
+			{
+				check = true;
+				break;
+			}
+	}
+	if(!check)
+		return;
+
+	Spell* pSpell = sSpellFactoryMgr.NewSpell(caster, sp, false, 0);
+	uint8 result = pSpell->CheckPetCast();
+	if(result == SPELL_FAILED_SUCCESS)
+		pSpell->prepare(&targets);
+	else
+	{
+		pSpell->finish(false);
+		delete pSpell;
 	}
 }
 
@@ -665,4 +635,34 @@ void WorldSession::HandleUpdateProjectilePosition(WorldPacket & recv_data)
     data << float(y);
     data << float(z);
     SendPacket(&data);
+}
+
+void WorldSession::HandleClientCastFlags(WorldPacket& recvPacket, uint8 castFlags, SpellCastTargets& targets)
+{
+	// some spell cast packet including more data (for projectiles?)
+	if (castFlags & 0x02)
+	{
+		// not sure about these two
+		float elevation, speed;
+		recvPacket >> elevation;
+		recvPacket >> speed;
+
+		targets.m_elevation = elevation;
+		targets.m_speed = speed;
+
+		uint8 hasMovementData;
+		recvPacket >> hasMovementData;
+		if (hasMovementData)
+		{
+			recvPacket.rfinish();
+			// movement packet for caster of the spell
+			/*recvPacket.read_skip<uint32>(); // MSG_MOVE_STOP - hardcoded in client
+			uint64 guid;
+			recvPacket.readPackGUID(guid);
+
+			MovementInfo movementInfo;
+			movementInfo.guid = guid;
+			ReadMovementInfo(recvPacket, &movementInfo);*/
+		}
+	}
 }

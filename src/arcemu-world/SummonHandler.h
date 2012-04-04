@@ -253,6 +253,7 @@ class SERVER_DECL SummonHandler
 		///////////////////////////////////////////////////////////////////////////
 		void RemoveSanctuaryFlags();
 
+		bool HasSummon(Unit * summon);
 	private:
 		std::tr1::array< Unit*, SUMMON_SLOTS > summonslots;
 		std::set< Unit* > guardians;
