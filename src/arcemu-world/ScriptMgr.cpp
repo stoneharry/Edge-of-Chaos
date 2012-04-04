@@ -385,7 +385,7 @@ void ScriptMgr::register_dummy_aura(uint32 entry, exp_handle_dummy_aura callback
 	}
 
 	if(!sp->AppliesAura(SPELL_AURA_DUMMY) && !sp->AppliesAura(SPELL_AURA_PERIODIC_TRIGGER_DUMMY))
-		LOG_ERROR("ScriptMgr has registered a dummy aura handler for Spell ID: %u ( %s ), but spell has no dummy aura!", entry, sp->SpellName);
+		LOG_ERROR("ScriptMgr has registered a dummy aura handler for Spell ID: %u ( %s ), but spell has no dummy aura!", entry, sp->SpellName[0]);
 
 	_auras.insert(HandleDummyAuraMap::value_type(entry, callback));
 }
@@ -406,7 +406,7 @@ void ScriptMgr::register_dummy_spell(uint32 entry, exp_handle_dummy_spell callba
 	}
 
 	if(!sp->HasEffect(SPELL_EFFECT_DUMMY) && !sp->HasEffect(SPELL_EFFECT_SCRIPT_EFFECT) && !sp->HasEffect(SPELL_EFFECT_SEND_EVENT))
-		LOG_ERROR("ScriptMgr has registered a dummy handler for Spell ID: %u ( %s ), but spell has no dummy/script/send event effect!", entry, sp->SpellName);
+		LOG_ERROR("ScriptMgr has registered a dummy handler for Spell ID: %u ( %s ), but spell has no dummy/script/send event effect!", entry, sp->SpellName[0]);
 
 	_spells.insert(HandleDummySpellMap::value_type(entry, callback));
 }
@@ -502,7 +502,7 @@ void ScriptMgr::register_script_effect(uint32 entry, exp_handle_script_effect ca
 	}
 
 	if(!sp->HasEffect(SPELL_EFFECT_SCRIPT_EFFECT) && !sp->HasEffect(SPELL_EFFECT_SEND_EVENT))
-		LOG_ERROR("ScriptMgr has registered a script effect handler for Spell ID: %u ( %s ), but spell has no scripted effect!", entry, sp->SpellName);
+		LOG_ERROR("ScriptMgr has registered a script effect handler for Spell ID: %u ( %s ), but spell has no scripted effect!", entry, sp->SpellName[0]);
 
 	SpellScriptEffects.insert(std::pair< uint32, exp_handle_script_effect >(entry, callback));
 }
