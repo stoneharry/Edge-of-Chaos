@@ -339,9 +339,6 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket & recvPacket)
 		return;
 	}
 
-	if(!_player->isAlive() && _player->GetShapeShift() != FORM_SPIRITOFREDEMPTION && !(spellInfo->Attributes & SPELL_ATTR0_CASTABLE_WHILE_DEAD)) //They're dead, not in spirit of redemption and the spell can't be cast while dead.
-		return;
-
 	LOG_DETAIL("WORLD: got cast spell packet, spellId - %i (%s), data length = %i",
 	           spellId, spellInfo->SpellName[0], recvPacket.size());
 
@@ -438,9 +435,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket & recvPacket)
 		{
 			if(targets.m_unitTarget && targets.m_unitTarget != _player->GetGUID())
 			{
-				// send the error message
-				_player->SendCastResult(spellInfo->Id, SPELL_FAILED_BAD_TARGETS, cn, 0);
-				return;
+				targets.m_unitTarget = _player->GetGUID();
 			}
 		}
 
