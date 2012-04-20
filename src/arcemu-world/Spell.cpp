@@ -226,8 +226,7 @@ Spell::Spell(Object* Caster, SpellEntry* info, bool triggered, Aura* aur)
 				p_caster = TO< Player* >(Caster);
 				if(p_caster->GetDuelState() == DUEL_STATE_STARTED)
 					duelSpell = true;
-			}
-			break;
+			}break;
 
 		case TYPEID_UNIT:
 			{
@@ -235,10 +234,15 @@ Spell::Spell(Object* Caster, SpellEntry* info, bool triggered, Aura* aur)
 				i_caster = NULL;
 				p_caster = NULL;
 				u_caster = TO< Unit* >(Caster);
+				if(!(u_caster->IsSummon() || u_caster->IsPet()) && u_caster->IsVehicle())
+				{
+					if(Unit * control = u_caster->GetVehicleComponent()->GetController())
+						if(control->IsPlayer())
+							p_caster = TO< Player* >(control);
+				}
 				if(u_caster->IsPet() && TO< Pet* >(u_caster)->GetPetOwner() != NULL && TO< Pet* >(u_caster)->GetPetOwner()->GetDuelState() == DUEL_STATE_STARTED)
 					duelSpell = true;
-			}
-			break;
+			}break;
 
 		case TYPEID_ITEM:
 		case TYPEID_CONTAINER:
@@ -249,8 +253,7 @@ Spell::Spell(Object* Caster, SpellEntry* info, bool triggered, Aura* aur)
 				i_caster = TO< Item* >(Caster);
 				if(i_caster->GetOwner() && i_caster->GetOwner()->GetDuelState() == DUEL_STATE_STARTED)
 					duelSpell = true;
-			}
-			break;
+			}break;
 
 		case TYPEID_GAMEOBJECT:
 			{
@@ -258,8 +261,7 @@ Spell::Spell(Object* Caster, SpellEntry* info, bool triggered, Aura* aur)
 				p_caster = NULL;
 				i_caster = NULL;
 				g_caster = TO< GameObject* >(Caster);
-			}
-			break;
+			}break;
 
 		default:
 			LOG_DEBUG("[DEBUG][SPELL] Incompatible object type, please report this to the dev's");
@@ -610,6 +612,9 @@ uint64 Spell::GetSinglePossibleEnemy(uint32 i, float prange)
 
 	for(std::set<Object*>::iterator itr = m_caster->GetInRangeSetBegin(); itr != m_caster->GetInRangeSetEnd(); itr++)
 	{
+		if((*itr) == NULL)
+			continue;
+
 		if(!((*itr)->IsUnit()) || !TO< Unit* >(*itr)->isAlive())
 			continue;
 
@@ -750,7 +755,7 @@ uint8 Spell::DidHit(uint32 effindex, Unit* target)
 	/* Unless the spell would actually dispel invulnerabilities             */
 	/************************************************************************/
 	int dispelMechanic = GetProto()->Effect[0] == SPELL_EFFECT_DISPEL_MECHANIC && GetProto()->EffectMiscValue[0] == MECHANIC_INVULNERABLE;
-	if(u_victim->SchoolImmunityList[ GetProto()->SchoolMask ] && !dispelMechanic)
+	if(u_victim->SchoolImmunityList[ GetProto()->NormalizedSchoolMask() ] && !dispelMechanic)
 		return SPELL_DID_HIT_IMMUNE;
 
 	/* Check if player target has god mode */
@@ -822,7 +827,7 @@ uint8 Spell::DidHit(uint32 effindex, Unit* target)
 	/************************************************************************/
 	/* Check if the spell is resisted.                                      */
 	/************************************************************************/
-	if(GetProto()->SchoolMask == SCHOOL_NORMAL  && GetProto()->Mechanic == MECHANIC_NONE)
+	if(GetProto()->NormalizedSchoolMask() == SCHOOL_NORMAL  && GetProto()->Mechanic == MECHANIC_NONE)
 		return SPELL_DID_HIT_SUCCESS;
 
 	bool pvp = (p_caster && p_victim);
@@ -864,12 +869,12 @@ uint8 Spell::DidHit(uint32 effindex, Unit* target)
 	}
 
 	// school hit resistance: check all schools and take the minimal
-	if(p_victim != NULL && GetProto()->SchoolMask > 0)
+	if(p_victim != NULL && GetProto()->NormalizedSchoolMask() > 0)
 	{
 		int32 min = 100;
 		for(uint8 i = 0; i < SCHOOL_COUNT; i++)
 		{
-			if(GetProto()->SchoolMask & (1 << i) && min > p_victim->m_resist_hit_spell[ i ])
+			if(GetProto()->NormalizedSchoolMask() & (1 << i) && min > p_victim->m_resist_hit_spell[ i ])
 				min = p_victim->m_resist_hit_spell[ i ];
 		}
 		resistchance += min;
@@ -1079,7 +1084,13 @@ uint8 Spell::prepare(SpellCastTargets* targets)
 					u_caster->CastSpell(m_targets.m_unitTarget ? m_targets.m_unitTarget : u_caster->GetGUID(), *i, true);
 		}
 	}
-
+	if(p_caster && CanAggro(GetProto()) && p_caster->GetSummon() && !p_caster->GetSummon()->getcombatstatus()->IsInCombat())
+		if(Unit* target = m_caster->GetMapMgr()->GetUnit(m_targets.m_unitTarget))
+			if(isAttackable(p_caster->GetSummon(), target))
+			{
+				p_caster->GetSummon()->GetAIInterface()->SetAIState(STATE_ATTACKING);
+				p_caster->GetSummon()->GetAIInterface()->AttackReaction(target, 1, 0);
+			}
 	return ccr;
 }
 
@@ -1155,20 +1166,14 @@ void Spell::cancel()
 
 void Spell::AddCooldown()
 {
-	if(!CanAddCooldown())
-		return;
-	Player * cd = GetCooldownTarget();
-	if(cd && !cd->CooldownCheat)
-		cd->Cooldown_Add(GetProto(), i_caster);
+	if(p_caster && !p_caster->CooldownCheat)
+		p_caster->Cooldown_Add(GetProto(), i_caster);
 }
 
 void Spell::AddStartCooldown()
 {
-	if(!CanAddCooldown())
-		return;
-	Player * cd = GetCooldownTarget();
-	if(cd && !cd->CooldownCheat)
-		cd->Cooldown_AddStart(GetProto());
+	if(p_caster && !p_caster->CooldownCheat)
+		p_caster->Cooldown_AddStart(GetProto());
 }
 
 void Spell::cast(bool check)
@@ -1940,15 +1945,15 @@ void Spell::finish(bool successful)
 }
 void Spell::SendCustomError(uint32 message)
 {
-	Player * plr = GetCooldownTarget();
-	if(plr == NULL)
+	Player * plr = p_caster;
+	if(plr == NULL && u_caster && u_caster->m_redirectSpellPackets)
+		plr = u_caster->m_redirectSpellPackets;
+	else
 		return;
 	SetSpellFailed();
     WorldPacket data(SMSG_CAST_FAILED, (4+1+1));
     data << uint8(extra_cast_number);                              // single cast or multi 2.3 (0/1)
-	if(plr != p_caster)
-		data.SetOpcode(SMSG_PET_CAST_FAILED);
-    data << uint32(GetProto()->Id);
+	data << uint32(GetProto()->Id);
 	data << uint8(SPELL_FAILED_CUSTOM_ERROR);
 	data << uint32(message);
 	plr->SendPacket(&data);
@@ -1964,9 +1969,10 @@ void Spell::SendCastResult(uint8 result, uint32 custommessage)
 	SetSpellFailed();
 
 	if(!m_caster->IsInWorld()) return;
-
-	Player * plr = GetCooldownTarget();
-	if(!plr == NULL)
+	Player * plr = p_caster;
+	if(plr == NULL && u_caster && u_caster->m_redirectSpellPackets)
+		plr = u_caster->m_redirectSpellPackets;
+	else
 		return;
 	// for some reason, the result extra is not working for anything, including SPELL_FAILED_REQUIRES_SPELL_FOCUS
 	switch(result)
@@ -2000,7 +2006,7 @@ void Spell::SendCastResult(uint8 result, uint32 custommessage)
 			//case SPELL_FAILED_TOTEM_CATEGORY: seems to be fully client sided.
 	}
 
-	plr->SendCastResult(GetProto()->Id, result, extra_cast_number, Extra);
+	plr->SendCastResult(GetProto()->Id, result, extra_cast_number, Extra, p_caster == NULL);
 }
 
 void Spell::SendSpellStart()
@@ -2218,9 +2224,6 @@ void Spell::writeSpellMissedTargets(WorldPacket* data)
 
 void Spell::SendLogExecute()
 {
-	WorldPacket data(SMSG_SPELLLOGEXECUTE, (8+4+4+4+4+8));
-	data << m_caster->GetNewGUID();
-	data << GetProto()->Id;
 	uint8 effCount = 0;
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
     {
@@ -2231,6 +2234,9 @@ void Spell::SendLogExecute()
     if (!effCount)
         return;
 
+	WorldPacket data(SMSG_SPELLLOGEXECUTE, (8+4+4+4+4+8));
+	data << m_caster->GetNewGUID();
+	data << GetProto()->Id;
     data << uint32(effCount);
     for (uint8 i = 0; i < MAX_SPELL_EFFECTS; ++i)
     {
@@ -2492,10 +2498,10 @@ bool Spell::HasPower()
 	else if(u_caster != NULL)
 	{
 		if(GetProto()->powerType == POWER_TYPE_MANA)
-			cost += u_caster->PowerCostMod[GetProto()->SchoolMask];//this is not percent!
+			cost += u_caster->PowerCostMod[GetProto()->NormalizedSchoolMask()];//this is not percent!
 		else
 			cost += u_caster->PowerCostMod[0];
-		cost += float2int32(cost * u_caster->GetPowerCostMultiplier(GetProto()->SchoolMask));
+		cost += float2int32(cost * u_caster->GetPowerCostMultiplier(GetProto()->NormalizedSchoolMask()));
 	}
 
 	//hackfix for shiv's energy cost
@@ -2635,10 +2641,10 @@ bool Spell::TakePower()
 	else if(u_caster != NULL)
 	{
 		if(GetProto()->powerType == POWER_TYPE_MANA)
-			cost += u_caster->PowerCostMod[GetProto()->SchoolMask];//this is not percent!
+			cost += u_caster->PowerCostMod[GetProto()->NormalizedSchoolMask()];//this is not percent!
 		else
 			cost += u_caster->PowerCostMod[0];
-		cost += float2int32(cost * u_caster->GetPowerCostMultiplier(GetProto()->SchoolMask));
+		cost += float2int32(cost * u_caster->GetPowerCostMultiplier(GetProto()->NormalizedSchoolMask()));
 	}
 
 	//hackfix for shiv's energy cost
@@ -4173,11 +4179,11 @@ uint8 Spell::CanCast(bool tolerate)
 	// Special State Checks (for creatures & players)
 	if(u_caster != NULL)
 	{
-		if(u_caster->SchoolCastPrevent[GetProto()->SchoolMask])
+		if(u_caster->SchoolCastPrevent[GetProto()->NormalizedSchoolMask()])
 		{
 			uint32 now_ = getMSTime();
-			if(now_ > u_caster->SchoolCastPrevent[GetProto()->SchoolMask]) //this limit has expired,remove
-				u_caster->SchoolCastPrevent[GetProto()->SchoolMask] = 0;
+			if(now_ > u_caster->SchoolCastPrevent[GetProto()->NormalizedSchoolMask()]) //this limit has expired,remove
+				u_caster->SchoolCastPrevent[GetProto()->NormalizedSchoolMask()] = 0;
 			else
 			{
 				// HACK FIX
@@ -4238,7 +4244,7 @@ uint8 Spell::CanCast(bool tolerate)
 		}
 
 		// can only silence non-physical
-		if(u_caster->m_silenced && GetProto()->SchoolMask != SCHOOL_NORMAL)
+		if(u_caster->m_silenced && GetProto()->NormalizedSchoolMask() != SCHOOL_NORMAL)
 		{
 			switch(GetProto()->NameHash)
 			{
@@ -4276,7 +4282,7 @@ uint8 Spell::CanCast(bool tolerate)
 		}
 
 		// only affects physical damage
-		if(u_caster->IsPacified() && GetProto()->SchoolMask == SCHOOL_NORMAL)
+		if(u_caster->IsPacified() && GetProto()->NormalizedSchoolMask() == SCHOOL_NORMAL)
 		{
 			// HACK FIX
 			switch(GetProto()->NameHash)
@@ -4943,50 +4949,9 @@ void Spell::Heal(int32 amount, bool ForceCrit)
 	//Make it critical
 	bool critical = false;
 	int32 critchance = 0;
-	int32 bonus = 0;
-	uint32 school = GetProto()->SchoolMask;
 
 	if(u_caster != NULL && !(GetProto()->AttributesEx3 & SPELL_ATTR3_NO_DONE_BONUS))
 	{
-		//Basic bonus
-		if(p_caster == NULL ||
-		        !(p_caster->getClass() == ROGUE || p_caster->getClass() == WARRIOR || p_caster->getClass() == HUNTER || p_caster->getClass() == DEATHKNIGHT))
-			bonus += u_caster->HealDoneMod[school];
-
-		bonus += unitTarget->HealTakenMod[school];
-
-		//Bonus from Intellect & Spirit
-		if(p_caster != NULL)
-		{
-			for(uint8 a = 0; a < 5; a++)
-				bonus += float2int32(p_caster->SpellHealDoneByAttribute[a][school] * p_caster->GetStat(a));
-		}
-
-		//Spell Coefficient
-		if(GetProto()->Dspell_coef_override >= 0)    //In case we have forced coefficients
-			bonus = float2int32(bonus * GetProto()->Dspell_coef_override);
-		else
-		{
-			//Bonus to DH part
-			if(GetProto()->fixed_dddhcoef >= 0)
-				bonus = float2int32(bonus * GetProto()->fixed_dddhcoef);
-		}
-
-		critchance = float2int32(u_caster->spellcritperc + u_caster->SpellCritChanceSchool[school]);
-
-		//Sacred Shield
-		if(unitTarget->HasAurasWithNameHash(SPELL_HASH_SACRED_SHIELD) && m_spellInfo->NameHash == SPELL_HASH_FLASH_OF_LIGHT)
-			critchance += 50;
-
-		if(GetProto()->SpellFamilyFlags)
-		{
-			if(Player * p = u_caster->GetSpellModOwner())
-			{
-				p->ApplySpellMod(GetProto()->Id, SPELLMOD_BONUS_MULTIPLIER, bonus, this);
-				p->ApplySpellMod(GetProto()->Id, SPELLMOD_CRITICAL_CHANCE, critchance, this);
-			}
-		}
-
 		if(p_caster != NULL)
 		{
 			if(m_spellInfo->NameHash == SPELL_HASH_LESSER_HEALING_WAVE || m_spellInfo->NameHash == SPELL_HASH_HEALING_WAVE)
@@ -5032,16 +4997,7 @@ void Spell::Heal(int32 amount, bool ForceCrit)
 				break;
 		}
 
-		amount += bonus;
-		amount += amount * (int32)(u_caster->HealDonePctMod[ school ]);
-		amount += float2int32(amount * unitTarget->HealTakenPctMod[ school ]);
-
-		if(GetProto()->SpellFamilyFlags)
-		{
-			if(Player * p = u_caster->GetSpellModOwner())
-				p->ApplySpellMod(GetProto()->Id, SPELLMOD_DAMAGE, amount, this);
-		}
-
+		amount = u_caster->SpellHealingBonus(unitTarget, GetProto(), amount, 1);
 		if(ForceCrit || ((critical = Rand(critchance)) != 0))
 		{
 			int32 critical_bonus = 100;
@@ -5065,12 +5021,12 @@ void Spell::Heal(int32 amount, bool ForceCrit)
 
 	if(amount < 0)
 		amount = 0;
-	if(p_caster && amount >=600 && (unitTarget->IsPlayer() || unitTarget->IsPet()))
+	/*if(p_caster && amount >=600 && (unitTarget->IsPlayer() || unitTarget->IsPet()))
 	{
 		amount = 600;
 		uint32 rand = RandomUInt(100);
 		amount -= rand;
-	}
+	}*/
 	uint32 overheal = 0;
 	uint32 curHealth = unitTarget->GetUInt32Value(UNIT_FIELD_HEALTH);
 	uint32 maxHealth = unitTarget->GetUInt32Value(UNIT_FIELD_MAXHEALTH);
@@ -5092,10 +5048,9 @@ void Spell::Heal(int32 amount, bool ForceCrit)
 	}
 
 	if(p_caster != NULL)
-	{
-		p_caster->m_casted_amount[ school ] = amount;
-		p_caster->HandleProc(PROC_ON_CAST_SPECIFIC_SPELL | PROC_ON_CAST_SPELL, unitTarget, GetProto());
-	}
+		p_caster->m_casted_amount[ GetProto()->NormalizedSchoolMask() ] = amount;
+
+	u_caster->HandleProc(PROC_ON_CAST_SPECIFIC_SPELL | PROC_ON_CAST_SPELL, unitTarget, GetProto(), m_triggeredSpell, amount);
 
 	unitTarget->RemoveAurasByHeal();
 
@@ -5342,7 +5297,7 @@ bool Spell::Reflect(Unit* refunit)
 
 	for(std::list<struct ReflectSpellSchool*>::iterator i = refunit->m_reflectSpellSchool.begin(); i != refunit->m_reflectSpellSchool.end(); ++i)
 	{
-		if((*i)->school == -1 || (*i)->school == (int32)GetProto()->SchoolMask)
+		if((*i)->school == -1 || (*i)->school == (int32)GetProto()->NormalizedSchoolMask())
 		{
 			if(Rand((float)(*i)->chance))
 			{
@@ -5792,18 +5747,17 @@ void Spell::HandleCastEffects(uint64 guid, uint32 i)
 			{
 				float speed = m_targets.m_speed * cos(m_targets.m_elevation);
 				if (speed > 0.0f)
-			        m_delayMoment = (uint64)floor(m_targets.GetDist2d() / speed * 1000.0f);
+			        m_delayMoment = float2int32(floor(dist / speed * 1000.0f));
 			}
 			else if (m_spellInfo->speed > 0.0f)
 			{
-				float dist = sqrt(LocationVector(m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ()).Distance2DSq(m_targets.m_destX, m_targets.m_destY)) - m_caster->GetObjectSize();
-				m_delayMoment = (uint64) floor(dist / m_spellInfo->speed * 1000.0f);
+				m_delayMoment =  float2int32(floor(dist / m_spellInfo->speed * 1000.0f));
 			}
 			//todo: arcemu doesn't support reflected spells
 			//if (reflected)
 			//	time *= 1.25; //reflected projectiles move back 4x faster
 
-			sEventMgr.AddEvent(this, &Spell::HandleEffects, guid, i, EVENT_SPELL_HIT, m_delayMoment, 1, 0);
+			sEventMgr.AddEvent(this, &Spell::HandleEffects, guid, i, EVENT_SPELL_HIT, time_t(m_delayMoment), 1, 0);
 			AddRef();
 		}
 	}
@@ -5862,11 +5816,20 @@ void Spell::HandleModeratedTarget(uint64 guid)
 		}
 		else
 		{
-			float time = dist * 1000.0f / m_spellInfo->speed;
+			if (m_targets.m_speed != 0)
+			{
+				float speed = m_targets.m_speed * cos(m_targets.m_elevation);
+				if (speed > 0.0f)
+			        m_delayMoment = float2int32(floor(dist / speed * 1000.0f));
+			}
+			else if (m_spellInfo->speed > 0.0f)
+			{
+				m_delayMoment =  float2int32(floor(dist / m_spellInfo->speed * 1000.0f));
+			}
 			//todo: arcemu doesn't support reflected spells
 			//if (reflected)
 			//	time *= 1.25; //reflected projectiles move back 4x faster
-			sEventMgr.AddEvent(this, &Spell::HandleModeratedEffects, guid, EVENT_SPELL_HIT, float2int32(time), 1, 0);
+			sEventMgr.AddEvent(this, &Spell::HandleModeratedEffects, guid, EVENT_SPELL_HIT, time_t(m_delayMoment), 1, 0);
 			AddRef();
 		}
 	}
@@ -5893,7 +5856,10 @@ void Spell::SpellEffectJumpTarget(uint32 i)
 {
 	if(u_caster == NULL)
 		return;
-	if(m_targets.m_targetMask & TARGET_FLAG_UNIT)
+	if(u_caster->GetCurrentVehicle() || u_caster->isTrainingDummy())
+		return;
+	float x, y, z;
+ 	if(m_targets.m_targetMask & TARGET_FLAG_UNIT)
 	{
 		Object* uobj = m_caster->GetMapMgr()->_GetObject(m_targets.m_unitTarget);
 
@@ -5901,7 +5867,7 @@ void Spell::SpellEffectJumpTarget(uint32 i)
 			return;
 
 		Unit* un = TO_UNIT(uobj);
-		float x, y, z;
+		
 		float rad = unitTarget->GetBoundingRadius() - u_caster->GetBoundingRadius();
 
 		float dx = m_caster->GetPositionX() - unitTarget->GetPositionX();
@@ -5915,13 +5881,9 @@ void Spell::SpellEffectJumpTarget(uint32 i)
 		x = rad * cosf(alpha) + unitTarget->GetPositionX();
 		y = rad * sinf(alpha) + unitTarget->GetPositionY();
 		z = unitTarget->GetPositionZ();
-		if(u_caster->GetAIInterface() != NULL)
-			u_caster->GetAIInterface()->MoveJump(x, y, z, u_caster->GetOrientation(), GetProto()->Effect[i] == 145);
 	}
 	else if(m_targets.HasDstOrSrc())
 	{
-		float x, y, z;
-
 		//this can also jump to a point
 		if(m_targets.HasSrc())
 		{
@@ -5935,16 +5897,26 @@ void Spell::SpellEffectJumpTarget(uint32 i)
 			y = m_targets.m_destY;
 			z = m_targets.m_destZ;
 		}
-
-		if(u_caster->GetAIInterface() != NULL)
-			u_caster->GetAIInterface()->MoveJump(x, y, z, u_caster->GetOrientation(), GetProto()->Effect[i] == 145);
 	}
+	float speedZ = 0.0f;
+    if (m_spellInfo->EffectMiscValue[i])
+        speedZ = float(m_spellInfo->EffectMiscValue[i])/10;
+    else if (m_spellInfo->EffectMiscValueB[i])
+        speedZ = float(m_spellInfo->EffectMiscValueB[i])/10;
+	float o = unitTarget->calcRadAngle(u_caster->GetPositionX(), u_caster->GetPositionY(), x, y);
+	if(speedZ <= 0.0f)
+		u_caster->GetAIInterface()->MoveJump(x, y, z, o, GetProto()->Effect[i] == 145);
+	else
+		u_caster->GetAIInterface()->MoveJumpExt(x,y,z,o,speedZ, GetProto()->Effect[i] == 145);
 }
 
 void Spell::SpellEffectJumpBehindTarget(uint32 i)
 {
 	if(u_caster == NULL)
 		return;
+	if(u_caster->GetCurrentVehicle() || u_caster->isTrainingDummy())
+		return;
+	float x, y, z, o = 0.0f;
 	if(m_targets.m_targetMask & TARGET_FLAG_UNIT)
 	{
 		Object* uobj = m_caster->GetMapMgr()->_GetObject(m_targets.m_unitTarget);
@@ -5954,17 +5926,17 @@ void Spell::SpellEffectJumpBehindTarget(uint32 i)
 		Unit* un = TO_UNIT(uobj);
 		float rad = un->GetBoundingRadius() + u_caster->GetBoundingRadius();
 		float angle = un->GetOrientation() + M_PI; //behind
-		float x = un->GetPositionX() + cosf(angle) * rad;
-		float y = un->GetPositionY() + sinf(angle) * rad;
-		float z = un->GetPositionZ();
-		float o = un->calcRadAngle(x, y, un->GetPositionX(), un->GetPositionY());
+		x = un->GetPositionX() + cosf(angle) * rad;
+		y = un->GetPositionY() + sinf(angle) * rad;
+		z = un->GetPositionZ();
+		o = un->calcRadAngle(x, y, un->GetPositionX(), un->GetPositionY());
 
 		if(u_caster->GetAIInterface() != NULL)
 			u_caster->GetAIInterface()->MoveJump(x, y, z, o);
 	}
 	else if(m_targets.HasDstOrSrc())
 	{
-		float x, y, z;
+		
 
 		//this can also jump to a point
 		if(m_targets.HasSrc())
@@ -5983,6 +5955,17 @@ void Spell::SpellEffectJumpBehindTarget(uint32 i)
 		if(u_caster->GetAIInterface() != NULL)
 			u_caster->GetAIInterface()->MoveJump(x, y, z);
 	}
+	if(o == 0.0f)
+		unitTarget->calcRadAngle(u_caster->GetPositionX(), u_caster->GetPositionY(), x, y);
+	float speedZ = 0.0f;
+    if (m_spellInfo->EffectMiscValue[i])
+        speedZ = float(m_spellInfo->EffectMiscValue[i])/10;
+    else if (m_spellInfo->EffectMiscValueB[i])
+        speedZ = float(m_spellInfo->EffectMiscValueB[i])/10;
+	if(speedZ <= 0.0f)
+		u_caster->GetAIInterface()->MoveJump(x, y, z, o, GetProto()->Effect[i] == 145);
+	else
+		u_caster->GetAIInterface()->MoveJumpExt(x,y,z,o,speedZ, GetProto()->Effect[i] == 145);
 }
 
 void Spell::HandleTargetNoObject()
@@ -6071,69 +6054,69 @@ void Spell::InitEffectExecuteData(uint8 effIndex)
 
 void Spell::ExecuteLogEffectTakeTargetPower(uint8 effIndex, Unit* target, uint32 powerType, uint32 powerTaken, float gainMultiplier)
 {
-    InitEffectExecuteData(effIndex);
+    /*InitEffectExecuteData(effIndex);
 	m_effectExecuteData[effIndex]->append(target->GetNewGUID());
     *m_effectExecuteData[effIndex] << uint32(powerTaken);
     *m_effectExecuteData[effIndex] << uint32(powerType);
-    *m_effectExecuteData[effIndex] << float(gainMultiplier);
+    *m_effectExecuteData[effIndex] << float(gainMultiplier);*/
 }
 
 void Spell::ExecuteLogEffectExtraAttacks(uint8 effIndex,uint64 victim, uint32 attCount)
 {
-    InitEffectExecuteData(effIndex);
+    /*InitEffectExecuteData(effIndex);
 	m_effectExecuteData[effIndex]->appendPackGUID(victim);
-    *m_effectExecuteData[effIndex] << uint32(attCount);
+    *m_effectExecuteData[effIndex] << uint32(attCount);*/
 }
 
 void Spell::ExecuteLogEffectInterruptCast(uint8 effIndex, Unit* victim, uint32 spellId)
 {
-    InitEffectExecuteData(effIndex);
+    /*InitEffectExecuteData(effIndex);
     m_effectExecuteData[effIndex]->append(victim->GetNewGUID());
-    *m_effectExecuteData[effIndex] << uint32(spellId);
+    *m_effectExecuteData[effIndex] << uint32(spellId);*/
 }
 
 void Spell::ExecuteLogEffectDurabilityDamage(uint8 effIndex, Unit* victim, uint32 damage)
 {
-    InitEffectExecuteData(effIndex);
+    /*InitEffectExecuteData(effIndex);
     m_effectExecuteData[effIndex]->append(victim->GetNewGUID());
     *m_effectExecuteData[effIndex] << uint32(m_spellInfo->Id);
-    *m_effectExecuteData[effIndex] << uint32(damage);
+    *m_effectExecuteData[effIndex] << uint32(damage);*/
 }
 
 void Spell::ExecuteLogEffectOpenLock(uint8 effIndex, Object* obj)
 {
-    InitEffectExecuteData(effIndex);
-    m_effectExecuteData[effIndex]->append(obj->GetNewGUID());
+    //InitEffectExecuteData(effIndex);
+   // m_effectExecuteData[effIndex]->append(obj->GetNewGUID());
 }
 
 void Spell::ExecuteLogEffectCreateItem(uint8 effIndex, uint32 entry)
 {
-    InitEffectExecuteData(effIndex);
-    *m_effectExecuteData[effIndex] << uint32(entry);
+    //InitEffectExecuteData(effIndex);
+    //*m_effectExecuteData[effIndex] << uint32(entry);
 }
 
 void Spell::ExecuteLogEffectDestroyItem(uint8 effIndex, uint32 entry)
 {
-    InitEffectExecuteData(effIndex);
-    *m_effectExecuteData[effIndex] << uint32(entry);
+    //InitEffectExecuteData(effIndex);
+    //*m_effectExecuteData[effIndex] << uint32(entry);
 }
 
 void Spell::ExecuteLogEffectSummonObject(uint8 effIndex, Object* obj)
 {
-    InitEffectExecuteData(effIndex);
-    m_effectExecuteData[effIndex]->append(obj->GetNewGUID());
+    //InitEffectExecuteData(effIndex);
+    //m_effectExecuteData[effIndex]->append(obj->GetNewGUID());
 }
 
 void Spell::ExecuteLogEffectUnsummonObject(uint8 effIndex, Object* obj)
 {
-    InitEffectExecuteData(effIndex);
-    m_effectExecuteData[effIndex]->append(obj->GetNewGUID());
+    //InitEffectExecuteData(effIndex);
+    //m_effectExecuteData[effIndex]->append(obj->GetNewGUID());
 }
 
 void Spell::ExecuteLogEffectResurrect(uint8 effIndex, Unit* target)
 {
-    InitEffectExecuteData(effIndex);
-    m_effectExecuteData[effIndex]->append(target->GetNewGUID());
+    //InitEffectExecuteData(effIndex);
+    //m_effectExecuteData[effIndex]->append(target->GetNewGUID());
 }
 
 void Spell::CleanupEffectExecuteData()
@@ -6220,62 +6203,9 @@ void Spell::WriteAmmoToPacket(WorldPacket* data)
     *data << uint32(ammoInventoryType);
 }
 
-
-bool Spell::CanAddCooldown()
-{
-	if(p_caster != NULL)
-		return true;
-
-	if(u_caster)
-	{
-		if(u_caster->m_redirectSpellPackets != NULL)
-			return true;
-		else if(u_caster->IsVehicle())
-		{
-			Unit* cont = u_caster->GetVehicleComponent()->GetController();
-			if(cont == NULL || !cont->IsPlayer())
-				return false;
-		}
-	}
-	return false;
-}
-
 bool Spell::CooldownCanCast()
 {
-	if(!CanAddCooldown())
+	if(!p_caster)
 		return true;
-	return GetCooldownTarget()->Cooldown_CanCast(GetProto());
-}
-
-Player * Spell::GetCooldownTarget()
-{
-	if(!CanAddCooldown())
-		return NULL;
-	if(p_caster)
-		return p_caster;
-	if(u_caster->m_redirectSpellPackets != NULL)
-		return u_caster->m_redirectSpellPackets;
-	//no null check because of CanAddCooldown()
-	return TO_PLAYER(u_caster->GetVehicleComponent()->GetController());
-}
-
-uint8 Spell::CheckPetCast()
-{
-	if(u_caster == NULL && m_caster != NULL && m_caster->IsUnit())
-		u_caster = TO_UNIT(m_caster);
-	if(u_caster == NULL)
-		return SPELL_FAILED_NO_PET;
-
-	if(!u_caster->isAlive())
-	{
-		SendCustomError(SPELL_CUSTOM_ERROR_PET_IS_DEAD);
-		return SPELL_FAILED_CUSTOM_ERROR;
-	}
-
-	Player * cd = GetCooldownTarget();
-	if(cd == NULL)
-		return SPELL_FAILED_NO_PET;
-	if(!cd->Cooldown_CanCast(GetProto()))
-		return SPELL_FAILED_NOT_READY;
-	return SPELL_FAILED_SUCCESS;
+	return p_caster->Cooldown_CanCast(GetProto());
 }

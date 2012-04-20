@@ -417,7 +417,6 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 
 		if(_player->m_CurrentTransporter == NULL)
 		{
-			_player->UpdateUnderwaterState(movementInfo.x, movementInfo.y, movementInfo.z);
 			if(!_player->SetPosition(movementInfo.x, movementInfo.y, movementInfo.z, movementInfo.orientation))
 				_player->EjectFromInstance();
 		}

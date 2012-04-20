@@ -105,18 +105,6 @@ void ApplyNormalFixes()
 		SCHOOL_ARCANE = 64
 		*/
 
-		// Save School as SchoolMask, and set School as an index
-		for (i= 0; i<SCHOOL_COUNT; i++)
-		{
-			if (sp->SchoolMask & (1<<i))
-			{
-				sp->SchoolMask = i;
-				break;
-			}
-		}
-	
-		Arcemu::Util::ArcemuAssert(sp->SchoolMask < SCHOOL_COUNT);
-
 		// correct caster/target aura states
 		if( sp->CasterAuraState > 1 )
 			sp->CasterAuraState = 1 << ( sp->CasterAuraState - 1 );
@@ -639,7 +627,7 @@ void ApplyNormalFixes()
 		// Winter's Chill handled by frost school
 		else if( strstr( sp->SpellName[0], "Winter's Chill"))
 		{
-			sp->SchoolMask = SCHOOL_FROST;
+			sp->SchoolMask = 16;
 		}
 		//more triggered spell ids are wrong. I think blizz is trying to outsmart us :S
 		//Chain Heal all ranks %50 heal value (49 + 1)
@@ -752,7 +740,7 @@ void ApplyNormalFixes()
 		if( sp->NameHash == SPELL_HASH_SEAL_OF_COMMAND )
 		{
 			sp->procChance = 25;
-			sp->SchoolMask = SCHOOL_HOLY; //the procspells of the original seal of command have physical school instead of holy
+			sp->SchoolMask = 2; //the procspells of the original seal of command have physical school instead of holy
 			sp->DmgClass = DmgClass_MAGIC; //heh, crazy spell uses melee/ranged/magic dmg type for 1 spell. Now which one is correct ?
 		}
 
@@ -1016,7 +1004,7 @@ void ApplyNormalFixes()
 		// Shield of Righteousness
 		if( sp->NameHash == SPELL_HASH_SHIELD_OF_RIGHTEOUSNESS)
 		{
-			sp->SchoolMask = SCHOOL_HOLY;
+			sp->SchoolMask = 2;
 			sp->Effect[0] = SPELL_EFFECT_DUMMY;
 			sp->Effect[1] = SPELL_EFFECT_NULL; //hacks, handling it in Spell::SpellEffectSchoolDMG(uint32 i)
 			sp->Effect[2] = SPELL_EFFECT_SCHOOL_DAMAGE; //hack
@@ -1025,7 +1013,7 @@ void ApplyNormalFixes()
 		// Paladin - Consecration
         if( sp->NameHash == SPELL_HASH_CONSECRATION   )
         {
-            sp->SchoolMask = SCHOOL_HOLY; //Consecration is a holy redirected spell.
+            sp->SchoolMask = 2; //Consecration is a holy redirected spell.
             sp->DmgClass = DmgClass_MAGIC; //Speaks for itself.
         }
 
@@ -1913,7 +1901,7 @@ void ApplyNormalFixes()
 		{
 			sp->EffectApplyAuraName[0] = SPELL_AURA_PROC_TRIGGER_SPELL;
 			sp->EffectTriggerSpell[0] = 53719;
-			sp->SchoolMask = SCHOOL_HOLY;
+			sp->SchoolMask = 2;
 			sp->procFlags = PROC_ON_MELEE_ATTACK;
 		}
 		//Paladin - seal of blood
@@ -1922,20 +1910,20 @@ void ApplyNormalFixes()
 		{
 			sp->EffectApplyAuraName[0] = SPELL_AURA_PROC_TRIGGER_SPELL;
 			sp->EffectTriggerSpell[0] = 31893;	
-			sp->SchoolMask = SCHOOL_HOLY;
+			sp->SchoolMask = 2;
 			sp->procFlags = PROC_ON_MELEE_ATTACK;
 		}
 		sp = CheckAndReturnSpellEntry( 53719 );
 		if( sp != NULL )
 		{
-			sp->SchoolMask = SCHOOL_HOLY;
+			sp->SchoolMask = 2;
 			sp->DmgClass = DmgClass_MAGIC;
 		}
 		sp = CheckAndReturnSpellEntry( 31893 );
 		if( sp != NULL )
 		{
 			sp->procFlags = PROC_ON_PHYSICAL_ATTACK;
-			sp->SchoolMask = SCHOOL_HOLY;
+			sp->SchoolMask = 2;
 			sp->DmgClass = DmgClass_MAGIC;
 		}
 
@@ -5124,28 +5112,28 @@ void ApplyNormalFixes()
 		if( sp != NULL )
 		{
 			sp->Attributes |= SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY;
-			sp->SchoolMask = SCHOOL_FIRE;
+			sp->SchoolMask = 4;
 		}
 
 		sp = CheckAndReturnSpellEntry( 59170 );
 		if( sp != NULL )
 		{
 			sp->Attributes |= SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY;
-			sp->SchoolMask = SCHOOL_FIRE;
+			sp->SchoolMask = 4;
 		}
 
 		sp = CheckAndReturnSpellEntry( 59171 );
 		if( sp != NULL )
 		{
 			sp->Attributes |= SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY;
-			sp->SchoolMask = SCHOOL_FIRE;
+			sp->SchoolMask = 4;
 		}
 
 		sp = CheckAndReturnSpellEntry( 59172 );
 		if( sp != NULL )
 		{
 			sp->Attributes |= SPELL_ATTR0_UNAFFECTED_BY_INVULNERABILITY;
-			sp->SchoolMask = SCHOOL_FIRE;
+			sp->SchoolMask = 4;
 		}
 		// End Warlock chaos bolt
 
@@ -7019,5 +7007,37 @@ void ApplyNormalFixes()
 		sp->EffectTriggerSpell[0] = 26470;
 		sp->Attributes |= SPELL_ATTR0_HIDDEN_CLIENTSIDE | SPELL_ATTR0_PASSIVE;
 		sp->DurationIndex = 0;
+		sp->procFlags = PROC_ON_CAST_SPELL;
+	}
+	sp = CheckAndReturnSpellEntry(63024);
+	if(sp)
+	{
+		sp->EffectBasePoints[0] = 0;
+		sp->Effect[1] = NULL;
+		sp->Effect[2] = NULL;
+		sp->TargetAuraState = 0;
+		sp->casterAuraSpell = 0;
+		sp->CasterAuraState = 0;
+		sp->CasterAuraStateNot = 0;
+		sp->TargetAuraStateNot = 0;
+		sp->targetAuraSpell = 0;
+		sp->excludeCasterAuraSpell = 0;
+		sp->excludeTargetAuraSpell = 0;
+		sp->c_is_flags |= SPELL_FLAG_IS_FORCEDDEBUFF;
+		sp->Attributes |= SPELL_ATTR0_NEGATIVE_1;
+	}
+	sp = CheckAndReturnSpellEntry(63025);
+	if(sp)
+	{
+		sp->Effect[0] = SPELL_EFFECT_DUMMY;
+		sp->Effect[1] = SPELL_EFFECT_NULL;
+		sp->Effect[2] = SPELL_EFFECT_NULL;
+		sp->EffectBasePoints[0] = 2000;
+		sp->EffectDieSides[0] = 1000;
+	}
+	sp = CheckAndReturnSpellEntry(62775);
+	if(sp)
+	{
+		sp->EffectBasePoints[0] = 1430;
 	}
 }

@@ -254,6 +254,10 @@ class SERVER_DECL SummonHandler
 		void RemoveSanctuaryFlags();
 
 		bool HasSummon(Unit * summon);
+
+		void OnOwnerAttack(Unit * target);
+
+		void SyncFactions(uint32 faction);
 	private:
 		std::tr1::array< Unit*, SUMMON_SLOTS > summonslots;
 		std::set< Unit* > guardians;

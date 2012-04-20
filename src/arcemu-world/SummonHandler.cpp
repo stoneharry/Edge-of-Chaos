@@ -223,3 +223,41 @@ bool SummonHandler::HasSummon(Unit * summon)
 	}
 	return false;
 }
+
+void SummonHandler::OnOwnerAttack(Unit * target)
+{
+	for(std::set< Unit* >::iterator itr = guardians.begin(); itr != guardians.end(); ++itr)
+	{
+		if(!(*itr)->getcombatstatus()->IsInCombat() && isAttackable((*itr), target))
+		{
+			(*itr)->GetAIInterface()->SetAIState(STATE_ATTACKING);
+			(*itr)->GetAIInterface()->AttackReaction(target, 1, 0);
+		}
+	}
+
+	for(std::tr1::array< Unit*, SUMMON_SLOTS >::iterator itr = summonslots.begin(); itr != summonslots.end(); ++itr)
+	{
+		Unit* u = (*itr);
+		if(u != NULL)
+		{
+			if(!(*itr)->getcombatstatus()->IsInCombat() && isAttackable(u, target))
+			{
+				u->GetAIInterface()->SetAIState(STATE_ATTACKING);
+				u->GetAIInterface()->AttackReaction(target, 1, 0);
+			}
+		}
+	}
+}
+
+void SummonHandler::SyncFactions(uint32 faction)
+{
+	for(std::set< Unit* >::iterator itr = guardians.begin(); itr != guardians.end(); ++itr)
+		(*itr)->SetFaction(faction);
+
+	for(std::tr1::array< Unit*, SUMMON_SLOTS >::iterator itr = summonslots.begin(); itr != summonslots.end(); ++itr)
+	{
+		Unit* u = (*itr);
+		if(u != NULL)
+			u->SetFaction(faction);
+	}
+}

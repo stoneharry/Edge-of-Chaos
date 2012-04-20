@@ -210,6 +210,8 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
 			WorldPacket spells( SMSG_PET_SPELLS, 100 );
 			owner->BuildPetSpellList( spells );
 			passenger->SendPacket( &spells );
+			if(owner->IsCreature() && !TO_PLAYER(passenger)->m_bg)
+				owner->SetFaction(passenger->GetFaction());
 		}
 		passenger->AddExtraUnitMovementFlag(GetMoveFlags2());
 		GetOwner()->AddExtraUnitMovementFlag(GetMoveFlags2());
@@ -308,6 +310,8 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 
 			// send null spells if needed
 			static_cast< Player* >( passenger )->SendEmptyPetSpellList();
+			if(owner->IsCreature())
+				owner->SetFaction(TO_CREATURE(owner)->GetProto()->Faction);
 		}
 	}	
 
@@ -343,25 +347,30 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 	if( passenger->IsPlayer() )
 		static_cast< Player* >( passenger )->SpawnActivePet();
 
-	if( passenger->IsCreature() ){
+	if( passenger->IsCreature() )
+	{
 		Creature *c = static_cast< Creature* >( passenger );
-
-		if( c->GetScript() != NULL ){
-			c->GetScript()->OnExitVehicle();
-		}
-	}
-	if( owner->IsCreature() ){
-		Creature *c = static_cast< Creature* >( owner );
-
 		if(owner->IsPlayer())
 		{
 			c->Despawn(1000, 0);
 			return;
 		}
+
 		if( c->GetScript() != NULL ){
+			c->GetScript()->OnExitVehicle();
+		}
+	}
+	if( owner->IsCreature() )
+	{
+		Creature *c = static_cast< Creature* >( owner );
+
+		if( c->GetScript() != NULL )
+		{
 			if( passengercount == 0 )
 				c->GetScript()->OnLastPassengerLeft( passenger );
-		}else{
+		}
+		else
+		{
 			// The passenger summoned the vehicle, and we have no script to remove it, so we remove it here
 			if( ( passengercount == 0 ) && ( c->GetSummonedByGUID() == passenger->GetGUID() ) )
 				c->Despawn( 1 * 1000, 0 );

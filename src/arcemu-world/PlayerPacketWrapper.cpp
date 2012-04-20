@@ -133,11 +133,11 @@ void Player::SendLogXPGain(uint64 guid, uint32 NormalXP, uint32 RestedXP, bool t
 	m_session->SendPacket(&data);
 }
 
-void Player::SendCastResult(uint32 SpellId, uint8 ErrorMessage, uint8 MultiCast, uint32 Extra)
+void Player::SendCastResult(uint32 SpellId, uint8 ErrorMessage, uint8 MultiCast, uint32 Extra, bool pet)
 {
 
 	WorldPacket data(SMSG_CAST_FAILED, 80);
-	if(!HasSpell(SpellId))
+	if(pet)
 		data.SetOpcode(SMSG_PET_CAST_FAILED);
 
 	data << uint8(MultiCast);
@@ -146,7 +146,6 @@ void Player::SendCastResult(uint32 SpellId, uint8 ErrorMessage, uint8 MultiCast,
 
 	if(Extra)
 		data << uint32(Extra);
-
 	m_session->SendPacket(&data);
 }
 

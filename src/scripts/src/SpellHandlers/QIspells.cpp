@@ -3336,6 +3336,7 @@ bool ProtectingOurOwn(uint32 i, Spell* pSpell)
 
    return true;
 }
+
 bool IcyGrip(uint32 i, Spell * pSpell)
 {
 	if(pSpell->u_caster == NULL || pSpell->GetUnitTarget() == NULL)
@@ -3343,6 +3344,103 @@ bool IcyGrip(uint32 i, Spell * pSpell)
 	pSpell->GetUnitTarget()->CastSpell(pSpell->u_caster, 70122, true);
 	return true;
 }
+
+bool SummonZeGhouls(uint32 i, Spell* pSpell)
+{
+	if(pSpell->u_caster == NULL)
+		return true;
+
+	Unit* cast = pSpell->u_caster;
+	float rad = pSpell->GetRadius(i);
+	float x,y,z;
+	for (uint8 i = 0; i < 15; ++i)
+	{
+		cast->GetRandomPoint(rad, x, y, z);
+		cast->CastSpellAoF(x, y,z,dbcSpell.LookupEntryForced(54522), true);
+	}
+ 
+   return true;
+}
+
+bool DevourHumanoid(uint32 i, Spell* pSpell)
+{
+	if(pSpell->u_caster == NULL)
+		return true;
+
+	Unit* cast = pSpell->u_caster;
+	Unit* utarg = pSpell->GetUnitTarget();
+	if(utarg)
+		utarg->CastSpell(cast, pSpell->damage, true);
+   return true;
+}
+
+bool GrabCrate(uint32 i, Spell* pSpell)
+{
+	if(pSpell->u_caster == NULL)
+		return true;
+
+	Unit* cast = pSpell->u_caster;
+	Unit* utarg = pSpell->GetUnitTarget();
+	if(utarg)
+	{
+		if (Unit* vehicle = cast->GetVehicleBase())
+		{
+			cast->CastSpell(cast, 62496, true);
+			utarg->CastSpell(cast, utarg->GetSpellDamage(pSpell, utarg, i, 0), false);
+		}
+	}
+   return true;
+}
+
+bool CreateFoamSword(uint32 i, Spell* pSpell)
+{
+	if(pSpell->GetUnitTarget() == NULL || !pSpell->GetUnitTarget()->IsPlayer())
+		return true;
+
+	Player* targ = TO_PLAYER(pSpell->GetUnitTarget());
+	static uint32 const itemId[] = {45061, 45176, 45177, 45178, 45179, 0};
+	targ->GetItemInterface()->AddItemById(itemId[RandomUInt(4)], 1, 0);
+   return true;
+}
+
+bool CloneMe(uint32 i, Spell* pSpell)
+{
+	if(pSpell->u_caster == NULL)
+		return true;
+
+	Unit* cast = pSpell->u_caster;
+	Unit* utarg = pSpell->GetUnitTarget();
+	if(utarg)
+		cast->CastSpell(utarg, pSpell->damage, true);
+   return true;
+}
+
+bool GravityBomb(uint32 i, Spell* pSpell)
+{
+	if(pSpell->u_caster == NULL)
+		return true;
+
+	Unit* cast = pSpell->u_caster;
+	float dist = pSpell->GetRadius(i);
+	pSpell->SetUnitTarget(cast);
+	pSpell->SpellEffectSchoolDMG(0);
+	for( set< Object* >::iterator itr = cast->GetInRangeSetBegin(); itr != cast->GetInRangeSetEnd(); ++itr ) 
+	{
+		if(cast->CalcDistance((*itr)) > dist )
+			continue;
+		if((*itr)->IsUnit() && !TO_UNIT((*itr))->GetCurrentVehicle() || (*itr)->IsVehicle())
+		{
+			if(isHostile(cast, (*itr)))
+				continue;
+			pSpell->SetUnitTarget(TO_UNIT((*itr)));
+			pSpell->SpellEffectSchoolDMG(0);
+			pSpell->SpellEffectPlayerPull(1);
+		}
+	}
+	
+   return true;
+}
+
 void SetupQuestItems(ScriptMgr * mgr)
 {
 	mgr->register_dummy_spell(3607, &YennikuRelease);
@@ -3498,5 +3596,14 @@ void SetupQuestItems(ScriptMgr * mgr)
 
 	mgr->register_script_effect(32578, &ProtectingOurOwn);
 
+	mgr->register_script_effect(51904, &SummonZeGhouls);
 
+	mgr->register_script_effect(53110, &DevourHumanoid);
+
+	mgr->register_script_effect(62482, &GrabCrate);
+
+	mgr->register_script_effect(64142, &CreateFoamSword);
+
+	mgr->register_script_effect(45204, &CloneMe);
+	mgr->register_dummy_spell(63025, &GravityBomb);
 }

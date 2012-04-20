@@ -24,11 +24,11 @@ class FireNova : public Spell
 	SPELL_FACTORY_FUNCTION(FireNova);
 		uint8 CanCast(bool tolerate)
 		{
-			if(p_caster && !p_caster->GetSession()->HasPermissions())
+			/*if(p_caster && !p_caster->GetSession()->HasPermissions())
 			{
 				SendCustomError(SPELL_CUSTOM_ERROR_GM_ONLY);
 				return SPELL_FAILED_CUSTOM_ERROR;
-			}
+			}*/
 			uint8 result = Spell::CanCast(tolerate);
 
 			if(result == SPELL_CANCAST_OK)

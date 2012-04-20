@@ -205,6 +205,10 @@ bool Pet::CreateAsSummon(uint32 entry, CreatureInfo* ci, Creature* created_from_
 		SetBoundingRadius(0.5f);
 		SetCombatReach(0.75f);
 		SetPowerType(POWER_TYPE_MANA);
+		uint32 fire  = m_Owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SCHOOL_FIRE);
+		uint32 shadow = m_Owner->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + SCHOOL_SHADOW);
+		uint32 val  = (fire > shadow) ? fire : shadow;
+		SetBonusDamage(int32 (val * 0.15f));
 	}
 	else // Hunter pet
 	{
@@ -225,6 +229,8 @@ bool Pet::CreateAsSummon(uint32 entry, CreatureInfo* ci, Creature* created_from_
 		SetMaxPower(POWER_TYPE_FOCUS, 100);
 		SetUInt32Value(UNIT_FIELD_BYTES_2, 1  /* | (0x28 << 8) */ | (PET_RENAME_ALLOWED << 16));  // 0x3 -> Enable pet rename.
 		SetPowerType(POWER_TYPE_FOCUS);
+		float bonusAP = owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.22f;
+		SetBonusDamage(float2int32(owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.1287f));
 	}
 	SetFaction(owner->GetFaction());
 
@@ -306,6 +312,7 @@ Pet::Pet(uint64 guid) : Creature(guid)
 	m_AISpellStore.clear();
 	mSpells.clear();
 	mPi = NULL;
+	m_bonusSpellDamage = 0;
 }
 
 Pet::~Pet()
@@ -2187,7 +2194,15 @@ void Pet::Die(Unit* pAttacker, uint32 damage, uint32 spellid)
 		m_mapMgr->m_battleground->HookOnUnitDied( this );
 }
 
+void Pet::SetBonusDamage(int32 damage)
+{
+	m_bonusSpellDamage = damage;
+	if(GetPlayerOwner())
+		GetPlayerOwner()->SetUInt32Value(PLAYER_PET_SPELL_POWER, damage);
+}
+
 Object* Pet::GetPlayerOwner()
 {
 	return m_Owner;
 }
+

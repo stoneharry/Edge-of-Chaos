@@ -541,6 +541,8 @@ void WorldSession::HandlePetCancelAura(WorldPacket & recvPacket)
 	if(info != NULL && info->Attributes & static_cast<uint32>(SPELL_ATTR0_CANT_CANCEL))
 		return;
 	Creature* pet = _player->GetMapMgr()->GetCreature(guid);
+	if(!pet)
+		return;
 	if(!_player->summonhandler.HasSummon(pet) && _player->GetCharmedUnitGUID() != pet->GetGUID())
 		return;
 	pet->RemoveAura(spellid);

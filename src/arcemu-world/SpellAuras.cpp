@@ -129,8 +129,8 @@ pSpellAura SpellAuraHandler[TOTAL_SPELL_AURAS] =
 	&Aura::SpellAuraWaterWalk,//SPELL_AURA_WATER_WALK = 104,
 	&Aura::SpellAuraFeatherFall,//SPELL_AURA_FEATHER_FALL = 105,
 	&Aura::SpellAuraHover,//SPELL_AURA_HOVER = 106,
-	&Aura::ApplySpellMod,//SPELL_AURA_ADD_FLAT_MODIFIER = 107,
-	&Aura::ApplySpellMod,//SPELL_AURA_ADD_PCT_MODIFIER = 108,
+	&Aura::SpellAuraApplySpellMod,//SPELL_AURA_ADD_FLAT_MODIFIER = 107,
+	&Aura::SpellAuraApplySpellMod,//SPELL_AURA_ADD_PCT_MODIFIER = 108,
 	&Aura::SpellAuraAddClassTargetTrigger,//SPELL_AURA_ADD_CLASS_TARGET_TRIGGER = 109,
 	&Aura::SpellAuraModPowerRegPerc,//SPELL_AURA_MOD_POWER_REGEN_PERCENT = 110,
 	&Aura::SpellAuraNULL,//SPELL_AURA_ADD_CASTER_HIT_TRIGGER = 111,
@@ -780,6 +780,7 @@ Aura::Aura(SpellEntry* proto, int32 duration, Object* caster, Unit* target, bool
 	m_interrupted = -1;
 	m_flags = 0;
 	//fixed_amount = 0;//used only por percent values to be able to recover value correctly.No need to init this if we are not using it
+	m_tickNumber = 0;
 }
 
 Aura::~Aura()
@@ -1749,19 +1750,21 @@ void Aura::SpellAuraPeriodicDamage(bool apply)
 				}
 			}
 		}
-		
+		uint32 amp = GetSpellProto()->EffectAmplitude[mod->i];		
 		if(c != NULL)
 		{
 			if(Player * p = c->GetSpellModOwner())
+			{
 				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_DOT, dmg);
+				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_ACTIVATION_TIME, amp);
+			}
 		}
-
 		if(dmg <= 0)
 			return; //who would want a negative dmg here ?
 
 		LOG_DEBUG("Adding periodic dmg aura, spellid: %lu", this->GetSpellId());
 		sEventMgr.AddEvent(this, &Aura::EventPeriodicDamage, (uint32)dmg,
-		                   EVENT_AURA_PERIODIC_DAMAGE, GetSpellProto()->EffectAmplitude[mod->i], 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+		                   EVENT_AURA_PERIODIC_DAMAGE, amp, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 
 		/*TO< Player* >( c )->GetSession()->SystemMessage("dot will do %u damage every %u seconds (total of %u)", dmg,m_spellProto->EffectAmplitude[mod->i],(GetDuration()/m_spellProto->EffectAmplitude[mod->i])*dmg);
 		printf("dot will do %u damage every %u seconds (total of %u)\n", dmg,m_spellProto->EffectAmplitude[mod->i],(GetDuration()/m_spellProto->EffectAmplitude[mod->i])*dmg);*/
@@ -1794,7 +1797,7 @@ void Aura::EventPeriodicDamage(uint32 amount)
 	if(! m_target->isAlive())
 		return;
 
-	if(m_target->SchoolImmunityList[GetSpellProto()->SchoolMask])
+	if(m_target->SchoolImmunityList[GetSpellProto()->NormalizedSchoolMask()])
 	{
 		if(GetUnitCaster() != NULL)
 			SendTickImmune(m_target, GetUnitCaster());
@@ -1803,8 +1806,7 @@ void Aura::EventPeriodicDamage(uint32 amount)
 
 	float res = float(amount);
 	uint32 abs_dmg = 0;
-	int bonus = 0;
-	uint32 school = GetSpellProto()->SchoolMask;
+	uint32 school = GetSpellProto()->NormalizedSchoolMask();
 	Unit* c = GetUnitCaster();
 	uint32 aproc = PROC_ON_ANY_HOSTILE_ACTION;
 	uint32 vproc = PROC_ON_ANY_HOSTILE_ACTION | PROC_ON_ANY_DAMAGE_VICTIM;
@@ -1820,14 +1822,24 @@ void Aura::EventPeriodicDamage(uint32 amount)
 
 			if(GetDuration() && GetSpellProto()->NameHash != SPELL_HASH_IGNITE)    //static damage for Ignite. Need to be reworked when "static DoTs" will be implemented
 			{
-				bonus += c->GetSpellDmgBonus(m_target, m_spellProto, amount, true) * amp / GetDuration();
-				bonus += c->GetSpellDmgAPBonus(m_spellProto, true) * amp / GetDuration();
-				res += static_cast< float >( bonus );
+				//bonus += c->GetSpellDmgBonus(m_target, m_spellProto, amount, true) * amp / GetDuration();
+				//bonus += c->GetSpellDmgAPBonus(m_spellProto, true) * amp / GetDuration();
+				//res = c->SpellDamageBonus(m_target, m_spellProto, amount, 2) * (amp / GetDuration());
+				c->SpellDamageBonus(m_target, m_spellProto, mod->m_amount, 2);
 				// damage taken is reduced after bonus damage is calculated and added
-				res += c->CalcSpellDamageReduction(m_target, m_spellProto, res);
+				//res += c->CalcSpellDamageReduction(m_target, m_spellProto, res);
 			}
-			res += bonus;
-
+			if (GetSpellProto()->SpellFamilyName == 5 && (GetSpellProto()->SpellFamilyFlags[0] & 0x400) && GetSpellProto()->SpellIconID == 544)
+			{
+				uint32 totalTick = amp / GetDuration();
+				// 1..4 ticks, 1/2 from normal tick damage
+				if (m_tickNumber <= totalTick / 3)
+					res = res/2;
+				// 9..12 ticks, 3/2 from normal tick damage
+				else if (m_tickNumber > totalTick * 2 / 3)
+					res += (res+1)/2;           // +1 prevent 0.5 damage possible lost at 1..4 ticks
+				// 5..8 ticks have normal tick damage
+			}
 			if(res < 0)
 				res = 0;
 			else
@@ -1892,14 +1904,14 @@ void Aura::EventPeriodicDamage(uint32 amount)
 				res = float(dmg.full_damage - dmg.resisted_damage);
 		}
 
-		m_target->SendPeriodicAuraLog(m_casterGuid, m_target->GetNewGUID(), GetSpellProto()->Id, school, float2int32(res), abs_dmg, dmg.resisted_damage, FLAG_PERIODIC_DAMAGE, is_critical);
+		m_target->SendPeriodicAuraLog(m_casterGuid, m_target->GetNewGUID(), GetSpellProto()->Id, GetSpellProto()->SchoolMask, float2int32(res), abs_dmg, dmg.resisted_damage, FLAG_PERIODIC_DAMAGE, is_critical);
 	}
 
 	// grep: this is hack.. some auras seem to delete this shit.
 	SpellEntry* sp = m_spellProto;
 
 	if(m_target->m_damageSplitTarget)
-		res = (float)m_target->DoDamageSplitTarget((uint32)res, GetSpellProto()->SchoolMask, false);
+		res = (float)m_target->DoDamageSplitTarget((uint32)res, GetSpellProto()->NormalizedSchoolMask(), false);
 
 	if(c != NULL)
 		c->DealDamage(m_target, float2int32(res),  2, 0, GetSpellId());
@@ -1919,6 +1931,7 @@ void Aura::EventPeriodicDamage(uint32 amount)
 		m_target->HandleProc(vproc, c, sp, false, dmg, abs_dmg);
 		m_target->m_procCounter = 0;
 	}
+	m_tickNumber++;
 }
 
 void Aura::SpellAuraDummy(bool apply)
@@ -2153,6 +2166,7 @@ void Aura::SpellAuraPeriodicHeal(bool apply)
 		{
 			if(Player * p = c->GetSpellModOwner())
 				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_ALL_EFFECTS, val);
+			val = c->SpellHealingBonus(m_target, GetSpellProto(), val, 2);
 		}
 
 		if(val > 0)
@@ -2182,66 +2196,12 @@ void Aura::EventPeriodicHeal(uint32 amount)
 
 	Unit* c = GetUnitCaster();
 
-	int32 bonus = 0;
 	bool is_critical = false;
-
-	if(c != NULL)
-	{
-		bonus += c->HealDoneMod[m_spellProto->SchoolMask] + m_target->HealTakenMod[m_spellProto->SchoolMask];
-		if(c->IsPlayer())
-		{
-			for(uint32 a = 0; a < 5; a++)
-				bonus += float2int32(TO< Player* >(c)->SpellHealDoneByAttribute[a][m_spellProto->SchoolMask] * TO< Player* >(c)->GetStat(a));
-		}
-		//Spell Coefficient
-		if(m_spellProto->OTspell_coef_override >= 0)   //In case we have forced coefficients
-			bonus = float2int32(bonus * m_spellProto->OTspell_coef_override);
-		else
-		{
-			//Bonus to HoT part
-			if(m_spellProto->fixed_hotdotcoef >= 0)
-			{
-				bonus = float2int32(bonus * m_spellProto->fixed_hotdotcoef);
-				//we did most calculations in world.cpp, but talents that increase DoT spells duration
-				//must be included now.
-				if(c->IsPlayer())
-				{
-					int durmod = 0;
-					if(Player * p = c->GetSpellModOwner())
-						p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_DURATION, durmod);
-					bonus += bonus * durmod / 15000;
-				}
-			}
-		}
-	}
-
-	if(c != NULL && m_spellProto->SpellFamilyFlags)
-	{
-		if(Player * p = c->GetSpellModOwner())
-			p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_BONUS_MULTIPLIER, bonus);
-
-	}
 
 	int amp = m_spellProto->EffectAmplitude[mod->i];
 	if(!amp)
 		amp = event_GetEventPeriod(EVENT_AURA_PERIODIC_HEAL);
-//	if(m_spellProto->NameHash != SPELL_HASH_HEALING_STREAM)// Healing Stream is not a HOT
-	{
-		int32 dur = GetDuration();
-		//example : Citrine Pendant of Golden Healing is in AA aura that does not have duration. In this case he would have full healbonus benefit
-		if((dur == 0 || dur == -1) && GetSpellProto()->DurationIndex)
-		{
-			SpellDuration* sd = dbcSpellDuration.LookupEntry(GetSpellProto()->DurationIndex);
-			dur = ::GetDuration(sd);
-		}
-		if(dur && dur != -1)
-		{
-			int ticks = (amp > 0) ? dur / amp : 0;
-			bonus = (ticks > 0) ? bonus / ticks : 0;
-		}
-		//removed by Zack : Why is this directly setting bonus to 0 ? It's not logical
-//		else bonus = 0;
-	}
+
 	/*Downranking
 	if( c != NULL && c->IsPlayer() )
 	{
@@ -2259,10 +2219,11 @@ void Aura::EventPeriodicHeal(uint32 amount)
 	    }
 	}*/
 
-	int add = (bonus + amount > 0) ? bonus + amount : 0;
+	int add = amount;
+	
 	if(c != NULL)
 	{
-		add += float2int32(add * (m_target->HealTakenPctMod[m_spellProto->SchoolMask] + c->HealDonePctMod[GetSpellProto()->SchoolMask]));
+		add = c->SpellHealingBonus(m_target, this->GetSpellProto(), add, 2);
 		if(m_spellProto->SpellFamilyFlags)
 			if(Player * p = c->GetSpellModOwner())
 				p->ApplySpellMod(GetSpellProto()->Id, SPELLMOD_DOT, add);
@@ -2341,6 +2302,7 @@ void Aura::EventPeriodicHeal(uint32 amount)
 		if(m_target->IsInWorld() && u_caster->IsInWorld())
 			u_caster->CombatStatus.WeHealed(m_target);
 	}
+	m_tickNumber++;
 }
 
 void Aura::SpellAuraModAttackSpeed(bool apply)
@@ -2421,7 +2383,8 @@ void Aura::SpellAuraModTaunt(bool apply)
 
 void Aura::SpellAuraModStun(bool apply)
 {
-	if(apply && !isFriendly(GetCaster(), GetTarget()))
+	//if(apply && !isFriendly(GetCaster(), GetTarget()))
+	if(apply)
 		SetNegative(100);
 
 	if(apply)
@@ -2655,7 +2618,7 @@ void Aura::SpellAuraDamageShield(bool apply)
 		DamageProc ds;// = new DamageShield();
 		ds.m_damage = mod->m_amount;
 		ds.m_spellId = GetSpellProto()->Id;
-		ds.m_school = GetSpellProto()->SchoolMask;
+		ds.m_school = GetSpellProto()->NormalizedSchoolMask();
 		ds.m_flags = PROC_ON_MELEE_ATTACK_VICTIM | PROC_MISC; //maybe later we might want to add other flags too here
 		ds.owner = (void*)this;
 		m_target->m_damageShields.push_back(ds);
@@ -2913,7 +2876,7 @@ void Aura::EventPeriodicHealPct(float RegenPct)
 	else
 		m_target->SetHealth(m_target->GetMaxHealth());
 
-	m_target->SendPeriodicAuraLog(m_casterGuid, m_target->GetNewGUID(), m_spellProto->Id, m_spellProto->SchoolMask, add, 0, 0, FLAG_PERIODIC_HEAL, false);
+	m_target->SendPeriodicAuraLog(m_casterGuid, m_target->GetNewGUID(), m_spellProto->Id, GetSpellProto()->SchoolMask, add, 0, 0, FLAG_PERIODIC_HEAL, false);
 
 	if(GetSpellProto()->AuraInterruptFlags & AURA_INTERRUPT_ON_STAND_UP)
 	{
@@ -2921,6 +2884,7 @@ void Aura::EventPeriodicHealPct(float RegenPct)
 	}
 
 	m_target->RemoveAurasByHeal();
+	m_tickNumber++;
 }
 
 void Aura::SpellAuraModTotalManaRegenPct(bool apply)
@@ -2954,12 +2918,14 @@ void Aura::EventPeriodicManaPct(float RegenPct)
 	{
 		m_target->Emote(EMOTE_ONESHOT_EAT);
 	}
+	m_tickNumber++;
 }
 
 void Aura::EventPeriodicTriggerDummy()
 {
 	sScriptMgr.CallScriptedDummyAura(m_spellProto->Id, mod->i, this, true);
 	//LOG_ERROR("Spell %u ( %s ) has an apply periodic trigger dummy aura effect, but no handler for it.", m_spellProto->Id, m_spellProto->Name);
+	m_tickNumber++;
 }
 
 void Aura::SpellAuraModResistance(bool apply)
@@ -3112,6 +3078,7 @@ void Aura::EventPeriodicTriggerSpell(SpellEntry* spellInfo, bool overridevalues,
 	SpellCastTargets targets;
 	spell->GenerateTargets(&targets);
 	spell->prepare(&targets);
+	m_tickNumber++;
 }
 
 void Aura::SpellAuraPeriodicEnergize(bool apply)
@@ -3140,6 +3107,7 @@ void Aura::EventPeriodicEnergize(uint32 amount, uint32 type)
 	{
 		m_target->Emote(EMOTE_ONESHOT_EAT);
 	}
+	m_tickNumber++;
 }
 
 void Aura::SpellAuraModPacify(bool apply)
@@ -3170,6 +3138,9 @@ void Aura::SpellAuraModPacify(bool apply)
 
 void Aura::SpellAuraModRoot(bool apply)
 {
+	//if(apply && !isFriendly(GetCaster(), GetTarget()))
+	if(apply)
+		SetNegative(100);
 	if(apply)
 	{
 		// Check Mechanic Immunity
@@ -3194,7 +3165,7 @@ void Aura::SpellAuraModRoot(bool apply)
 			m_target->EventStunOrImmobilize(caster, true);
 		}
 
-		if(GetSpellProto()->SchoolMask == SCHOOL_FROST && !m_target->asc_frozen++)
+		if(GetSpellProto()->NormalizedSchoolMask() == SCHOOL_FROST && !m_target->asc_frozen++)
 			m_target->SetFlag(UNIT_FIELD_AURASTATE, AURASTATE_FLAG_FROZEN);
 
 		/* -Supalosa- TODO: Mobs will attack nearest enemy in range on aggro list when rooted. */
@@ -3209,13 +3180,16 @@ void Aura::SpellAuraModRoot(bool apply)
 		if(m_target->IsCreature())
 			m_target->GetAIInterface()->AttackReaction(GetUnitCaster(), 1, 0);
 
-		if(GetSpellProto()->SchoolMask == SCHOOL_FROST && !--m_target->asc_frozen)
+		if(GetSpellProto()->NormalizedSchoolMask() == SCHOOL_FROST && !--m_target->asc_frozen)
 			m_target->RemoveFlag(UNIT_FIELD_AURASTATE, AURASTATE_FLAG_FROZEN);
 	}
 }
 
 void Aura::SpellAuraModSilence(bool apply)
 {
+	//if(apply && !isFriendly(GetCaster(), GetTarget()))
+	if(apply)
+		SetNegative(100);
 	if(apply)
 	{
 		m_target->m_silenced++;
@@ -3399,6 +3373,8 @@ void Aura::SpellAuraModCreatureRangedAttackPower(bool apply)
 
 void Aura::SpellAuraModDecreaseSpeed(bool apply)
 {
+	if(apply && !isFriendly(GetCaster(), GetTarget()))
+		SetNegative(100);
 	//there can not be 2 slow downs only most powerful is applied
 	if(apply)
 	{
@@ -3414,7 +3390,7 @@ void Aura::SpellAuraModDecreaseSpeed(bool apply)
 		}
 
 		//let's check Mage talents if we proc anything
-		if(m_spellProto->SchoolMask == SCHOOL_FROST)
+		if(m_spellProto->NormalizedSchoolMask() == SCHOOL_FROST)
 		{
 			//yes we are freezing the bastard, so can we proc anything on this ?
 			Unit* caster = GetUnitCaster();
@@ -3436,7 +3412,7 @@ void Aura::UpdateAuraModDecreaseSpeed()
 	}
 
 	//let's check Mage talents if we proc anything
-	if(m_spellProto->SchoolMask == SCHOOL_FROST)
+	if(m_spellProto->NormalizedSchoolMask() == SCHOOL_FROST)
 	{
 		//yes we are freezing the bastard, so can we proc anything on this ?
 		Unit* caster = GetUnitCaster();
@@ -3988,7 +3964,7 @@ void Aura::SpellAuraProcTriggerDamage(bool apply)
 		DamageProc ds;
 		ds.m_damage = mod->m_amount;
 		ds.m_spellId = GetSpellProto()->Id;
-		ds.m_school = GetSpellProto()->SchoolMask;
+		ds.m_school = GetSpellProto()->NormalizedSchoolMask();
 		ds.m_flags = m_spellProto->procFlags;
 		ds.owner = (void*)this;
 		m_target->m_damageShields.push_back(ds);
@@ -4172,7 +4148,7 @@ void Aura::EventPeriodicLeech(uint32 amount)
 
 	SpellEntry* sp = GetSpellProto();
 
-	if(m_target->SchoolImmunityList[sp->SchoolMask])
+	if(m_target->SchoolImmunityList[sp->NormalizedSchoolMask()])
 	{
 		SendTickImmune(m_target, m_caster);
 		return;
@@ -4190,13 +4166,12 @@ void Aura::EventPeriodicLeech(uint32 amount)
 
 	if(GetDuration())
 	{
-		float fbonus = m_caster->GetSpellDmgBonus(m_target, sp, amount, true) * 0.5f;
+		float fbonus = m_caster->SpellDamageBonus(m_target, sp, amount, 2) * 0.5f;
 		if(fbonus < 0)
 			fbonus = 0.0f;
 		bonus = float2int32(fbonus * amp / GetDuration());
+		amount = bonus;
 	}
-
-	amount += bonus;
 
 	if(sp->SpellFamilyFlags)
 	{
@@ -4286,11 +4261,11 @@ void Aura::EventPeriodicLeech(uint32 amount)
 		m_caster->SetHealth(mh);
 
 	m_target->SendPeriodicHealAuraLog(m_caster->GetNewGUID(), m_caster->GetNewGUID(), sp->Id, heal_amount, 0, false);
-	m_target->SendPeriodicAuraLog(m_target->GetNewGUID(), m_target->GetNewGUID(), sp->Id, sp->SchoolMask, heal_amount, 0, 0, FLAG_PERIODIC_LEECH, is_critical);
+	m_target->SendPeriodicAuraLog(m_target->GetNewGUID(), m_target->GetNewGUID(), sp->Id, GetSpellProto()->SchoolMask, heal_amount, 0, 0, FLAG_PERIODIC_LEECH, is_critical);
 
 	//deal damage before we add healing bonus to damage
 	m_caster->DealDamage(m_target, dmg_amount, 0, 0, sp->Id, true);
-	m_caster->SendSpellNonMeleeDamageLog(m_caster, m_target, sp->Id, dmg_amount, (uint8) sp->SchoolMask, 0, 0, true, 0, is_critical, true);
+	m_caster->SendSpellNonMeleeDamageLog(m_caster, m_target, sp->Id, dmg_amount, (uint8) sp->NormalizedSchoolMask(), 0, 0, true, 0, is_critical, true);
 
 	m_caster->HandleProc(aproc, m_target, sp, false, dmg_amount);
 	m_caster->m_procCounter = 0;
@@ -4303,6 +4278,7 @@ void Aura::EventPeriodicLeech(uint32 amount)
 	m_target->m_procCounter = 0;
 
 	m_target->RemoveAurasByHeal();
+	m_tickNumber++;
 }
 
 void Aura::SendTickImmune(Unit* target, Unit* caster)
@@ -4740,10 +4716,11 @@ void Aura::EventPeriodicHealthFunnel(uint32 amount)
 		else
 			m_caster->SetHealth(mh);
 
-		m_target->SendPeriodicAuraLog(m_target->GetNewGUID(), m_target->GetNewGUID(), m_spellProto->Id, m_spellProto->SchoolMask, 1000, 0, 0, FLAG_PERIODIC_LEECH, false);
+		m_target->SendPeriodicAuraLog(m_target->GetNewGUID(), m_target->GetNewGUID(), m_spellProto->Id, GetSpellProto()->SchoolMask, 1000, 0, 0, FLAG_PERIODIC_LEECH, false);
 
 		m_caster->RemoveAurasByHeal();
 	}
+	m_tickNumber++;
 }
 
 void Aura::SpellAuraPeriodicManaLeech(bool apply)
@@ -4783,6 +4760,7 @@ void Aura::EventPeriodicManaLeech(uint32 amount)
 			m_caster->SetPower(POWER_TYPE_MANA, mm);
 		m_target->ModPower(POWER_TYPE_MANA, -amt);
 	}
+	m_tickNumber++;
 }
 
 void Aura::SpellAuraModCastingSpeed(bool apply)
@@ -5034,7 +5012,7 @@ void Aura::SpellAuraReflectSpellsSchool(bool apply)
 		if(m_spellProto->Attributes == 0x400D0 && m_spellProto->AttributesEx == 0)
 			rss->school = (int)(log10((float)mod->m_miscValue) / log10((float)2));
 		else
-			rss->school = m_spellProto->SchoolMask;
+			rss->school = m_spellProto->NormalizedSchoolMask();
 
 		rss->charges = 0;
 
@@ -5604,7 +5582,7 @@ void Aura::EventPeriodicDamagePercent(uint32 amount)
 	//DOT
 	if(!m_target->isAlive())
 		return;
-	if(m_target->SchoolImmunityList[GetSpellProto()->SchoolMask])
+	if(m_target->SchoolImmunityList[GetSpellProto()->NormalizedSchoolMask()])
 		return;
 
 	uint32 damage = float2int32(amount / 100.0f * m_target->GetMaxHealth());
@@ -5613,7 +5591,7 @@ void Aura::EventPeriodicDamagePercent(uint32 amount)
 
 	if(m_target->m_damageSplitTarget)
 	{
-		damage = m_target->DoDamageSplitTarget(damage, GetSpellProto()->SchoolMask, false);
+		damage = m_target->DoDamageSplitTarget(damage, GetSpellProto()->NormalizedSchoolMask(), false);
 	}
 
 	if(c)
@@ -5865,22 +5843,51 @@ void Aura::SpellAuraHover(bool apply)
 	m_target->SendHover(apply);
 }
 
+void Aura::SpellAuraApplySpellMod(bool apply)
+{
+	if(!m_target->IsPlayer())
+		return;
+	/*Player * p = TO_PLAYER(m_target);
+	if(apply)
+	{
+		SpellModifier *smod = new SpellModifier(this);
+		smod->op = SpellModOp(mod->m_miscValue);
+		smod->value = mod->m_amount;
+		smod->type = SpellModType(mod->m_type);    // SpellModType value == spell aura types
+		smod->spellId = GetSpellProto()->Id;
+		smod->charges = p->GetAuraStackCount(GetSpellProto()->Id);
+		smod->ownerAura = this;
+		smod->mask = GetSpellProto()->EffectSpellClassMask[mod->i];
+		p->AddSpellMod(smod, apply);
+	}
+	else
+		p->RemoveSpellMod(SpellModOp(mod->m_miscValue), GetSpellId());*/
+}
+
+/*
 void Aura::ApplySpellMod(bool apply)
 {
 	if(!m_target->IsPlayer())
 		return;
 	Player * p = TO_PLAYER(m_target);
-    SpellModifier *smod = new SpellModifier;
-	smod->op = SpellModOp(mod->m_miscValue);
-	smod->value = mod->m_amount;
-	smod->type = SpellModType(mod->m_type);    // SpellModType value == spell aura types
-	smod->spellId = GetSpellProto()->Id;
-	smod->charges = p->GetAuraStackCount(GetSpellProto()->Id);
-    smod->ownerAura = this;
-	smod->mask = GetSpellProto()->SpellFamilyFlags;
-	p->AddSpellMod(smod, apply);
+	uint32 i = mod->i;
+	if(apply)
+	{
+		m_spellmods[i] = new SpellModifier(this);
+		m_spellmods[i]->op = SpellModOp(mod->m_miscValue);
+		m_spellmods[i]->type = SpellModType(mod->m_type);    // SpellModType value == spell aura types
+		m_spellmods[i]->spellId = GetSpellProto()->Id;
+		m_spellmods[i]->mask = GetSpellProto()->EffectSpellClassMask[mod->i];
+		m_spellmods[i]->charges = 255;
+		m_spellmods[i]->value = mod->m_amount;
+		p->AddSpellMod(m_spellmods[i], apply);
+	}
+	else
+		p->AddSpellMod(m_spellmods[i], apply);
+	//else
+		//p->RemoveSpellMod(mod->m_miscValue, GetSpellId());
 }
-
+*/
 void Aura::SpellAuraAddClassTargetTrigger(bool apply)
 {
 	if(apply)
@@ -6690,13 +6697,13 @@ void Aura::EventPeriodicBurn(uint32 amount, uint32 misc)
 
 	if(m_target->isAlive() && m_caster->isAlive())
 	{
-		if(m_target->SchoolImmunityList[GetSpellProto()->SchoolMask])
+		if(m_target->SchoolImmunityList[GetSpellProto()->NormalizedSchoolMask()])
 			return;
 
 		uint32 Amount = (uint32)min(amount, m_target->GetPower(misc));
 		uint32 newHealth = m_target->GetPower(misc) - Amount ;
 
-		m_target->SendPeriodicAuraLog(m_target->GetNewGUID(), m_target->GetNewGUID(), m_spellProto->Id, m_spellProto->SchoolMask, newHealth, 0, 0, FLAG_PERIODIC_DAMAGE, false);
+		m_target->SendPeriodicAuraLog(m_target->GetNewGUID(), m_target->GetNewGUID(), m_spellProto->Id, GetSpellProto()->SchoolMask, newHealth, 0, 0, FLAG_PERIODIC_DAMAGE, false);
 		m_caster->DealDamage(m_target, Amount, 0, 0, GetSpellProto()->Id);
 	}
 }
@@ -8039,7 +8046,7 @@ void Aura::SpellAuraModSpellDamageDOTPct(bool apply)
 	int32 val = (apply) ? mod->m_amount : -mod->m_amount;
 
 	if(m_spellProto->NameHash == SPELL_HASH_HAUNT)
-		m_target->DoTPctIncrease[m_spellProto->SchoolMask] += val;
+		m_target->DoTPctIncrease[m_spellProto->NormalizedSchoolMask()] += val;
 	else
 		for(uint32 x = 0; x < 7; x++)
 		{
@@ -8326,10 +8333,10 @@ void AbsorbAura::SpellAuraSchoolAbsorb(bool apply)
 
 		//For spells Affected by Bonus Healing we use Dspell_coef_override.
 		if(GetSpellProto()->Dspell_coef_override >= 0)
-			val += float2int32(caster->HealDoneMod[GetSpellProto()->SchoolMask] * GetSpellProto()->Dspell_coef_override);
+			val += float2int32(caster->HealDoneMod[GetSpellProto()->NormalizedSchoolMask()] * GetSpellProto()->Dspell_coef_override);
 		//For spells Affected by Bonus Damage we use OTspell_coef_override.
 		else if(GetSpellProto()->OTspell_coef_override >= 0)
-			val += float2int32(caster->GetDamageDoneMod(GetSpellProto()->SchoolMask) * GetSpellProto()->OTspell_coef_override);
+			val += float2int32(caster->GetDamageDoneMod(GetSpellProto()->NormalizedSchoolMask()) * GetSpellProto()->OTspell_coef_override);
 	}
 
 	m_total_amount = val;

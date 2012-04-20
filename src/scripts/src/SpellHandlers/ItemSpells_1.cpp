@@ -980,6 +980,41 @@ bool DrinkDummyAura( uint32 i, Aura *a, bool apply ){
 	return true;
 }
 
+bool DwarvenDice( uint32 i, Spell *s )
+{
+	Unit *u_caster = s->u_caster;
+
+	if( u_caster == NULL )
+		return true;
+	char buf[128];
+	const char *gender = "his";
+	if (u_caster->getGender() > 0)
+		gender = "her";
+	sprintf(buf, "%s rubs %s [Decahedral Dwarven Dice] between %s hands and rolls. One %u and one %u.", u_caster->GetName(), gender, gender, RandomUInt(10), RandomUInt(10));
+	if(s->p_caster)
+		s->p_caster->SendChatMessage(CHAT_MSG_MONSTER_EMOTE, LANG_UNIVERSAL, buf);
+	else if(u_caster->IsCreature())
+		TO_CREATURE(u_caster)->SendChatMessage(CHAT_MSG_MONSTER_EMOTE, LANG_UNIVERSAL, buf);
+	return true;
+}
+
+bool TrollDice( uint32 i, Spell *s )
+{
+	Unit *u_caster = s->u_caster;
+
+	if( u_caster == NULL )
+		return true;
+	char buf[128];
+	const char *gender = "his";
+	if (u_caster->getGender() > 0)
+		gender = "her";
+	sprintf(buf, "%s causually tosses %s [Worn Troll Dice]. One %u and one %u.", u_caster->GetName(), gender, RandomUInt(6), RandomUInt(6));
+	if(s->p_caster)
+		s->p_caster->SendChatMessage(CHAT_MSG_MONSTER_EMOTE, LANG_UNIVERSAL, buf);
+	else if(u_caster->IsCreature())
+		TO_CREATURE(u_caster)->SendChatMessage(CHAT_MSG_MONSTER_EMOTE, LANG_UNIVERSAL, buf);
+	return true;
+}
 // ADD NEW FUNCTIONS ABOVE THIS LINE
 // *****************************************************************************
 
@@ -1065,6 +1100,8 @@ void SetupItemSpells_1(ScriptMgr * mgr)
 	};
 	mgr->register_dummy_aura( DrinkDummySpellIDs, &::DrinkDummyAura );
 
+	mgr->register_script_effect( 47770, &DwarvenDice );
+	mgr->register_script_effect( 47776, &TrollDice );
 
 // REGISTER NEW DUMMY SPELLS ABOVE THIS LINE
 // *****************************************************************************

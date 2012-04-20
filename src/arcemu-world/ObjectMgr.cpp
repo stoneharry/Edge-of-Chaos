@@ -4028,3 +4028,27 @@ const std::vector<int32>* ObjectMgr::GetSpellLinked(int32 spell_id) const
     SpellLinkedMap::const_iterator itr = mSpellLinkedMap.find(spell_id);
     return itr != mSpellLinkedMap.end() ? &(itr->second) : NULL;
 }
+
+SpellEntry* ObjectMgr::GetRankOneSpell(uint32 baseId)
+{
+	SpellEntry * sp = dbcSpell.LookupEntry(baseId);
+	if(sp == NULL)
+		return NULL;
+	if(sp->RankNumber == 1 || sp->RankNumber == 0)
+		return sp;
+	uint32 NameHash = sp->NameHash;
+	SpellEntry *sp2 = NULL;
+	for(uint32 x= 0; x < dbcSpell.GetNumRows(); x++)
+	{
+		sp2 = dbcSpell.LookupEntryForced(x);
+		if(sp2 != NULL)
+		{
+			if(sp2->NameHash == NameHash)
+			{
+				if(sp2->RankNumber == 1)
+					return sp2;
+			}
+		}
+	}
+	return sp;
+}

@@ -197,7 +197,7 @@ void LogonCommServerSocket::HandleRegister(WorldPacket & recvData)
 	realm->flags = 0;
 	recvData >> realm->Address >> realm->flags >> realm->Icon >> realm->TimeZone >> realm->Population >> realm->Lock;
 
-	sLog.outString("TEST FLAGS %u", realm->flags);
+	//sLog.outString("TEST FLAGS %u", realm->flags);
 
 
 //	uint32 my_id = sInfoCore.GenerateRealmID();

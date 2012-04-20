@@ -1607,7 +1607,7 @@ class SERVER_DECL Spell : public EventableObject
 		bool GenerateTargets(SpellCastTargets* store_buff);
 		// Fills the target map of the spell packet
 		void FillTargetMap(uint32);
-
+		float GetDirectionAngle(uint32 TargetType);
 		void HandleTargetNoObject();
 
 		// See if we hit the target or can it resist (evade/immune/resist on spellgo) (0=success)
@@ -1782,6 +1782,7 @@ class SERVER_DECL Spell : public EventableObject
 		void SpellEffectThreat(uint32 i);
 		void SpellEffectClearQuest(uint32 i);
 		void SpellEffectTriggerSpell(uint32 i);
+		void SpellEffectForceCast(uint32 i);
 		void SpellEffectApplyRaidAA(uint32 i);
 		void SpellEffectPowerFunnel(uint32 i);
 		void SpellEffectHealMaxHealth(uint32 i);
@@ -2199,11 +2200,7 @@ class SERVER_DECL Spell : public EventableObject
         void ExecuteLogEffectSummonObject(uint8 effIndex, Object* obj);
         void ExecuteLogEffectUnsummonObject(uint8 effIndex, Object* obj);
         void ExecuteLogEffectResurrect(uint8 effIndex, Unit* target);
-
-		bool CanAddCooldown();
 		bool CooldownCanCast();
-		Player * GetCooldownTarget();
-		uint8 CheckPetCast();
 	public:
 		SpellEntry* m_spellInfo;
 		SpellEntry* m_spellInfo_override;//used by spells that should have dynamic variables in spellentry.

@@ -696,7 +696,7 @@ class SERVER_DECL ObjectMgr : public Singleton < ObjectMgr >, public EventableOb
 		void CreateDummySpell(uint32 id, const char * name);
 		void LoadSpellLinked();
 		const std::vector<int32> *GetSpellLinked(int32 spell_id) const;
-
+		SpellEntry* GetRankOneSpell(uint32 baseId);
 #undef ENABLE_ALWAYS_SERIOUS_MODE_GCC_STL_HACK
 
 // it's for private persons (pps)

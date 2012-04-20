@@ -246,7 +246,7 @@ bool DeadlyThrowInterrupt( uint32 i, Aura *a, bool apply ){
 	uint32 school = 0;
 
 	if( m_target->GetCurrentSpell() ){
-		school = m_target->GetCurrentSpell()->GetProto()->SchoolMask;
+		school = m_target->GetCurrentSpell()->GetProto()->NormalizedSchoolMask();
 	}
 	
 	m_target->InterruptSpell();

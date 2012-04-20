@@ -1361,7 +1361,7 @@ void Group::UpdateAchievementCriteriaForInrange(Object* o, AchievementCriteriaTy
 
 #endif
 
-void Group::Teleport(uint32 map, uint32 instanceid, float x, float y, float z, float o)
+void Group::Teleport(WorldSession* m_session)
 {
 	GroupMembersSet::iterator itr1, itr2;
 	uint32 i = 0;
@@ -1383,8 +1383,8 @@ void Group::Teleport(uint32 map, uint32 instanceid, float x, float y, float z, f
 				// skip offline players and not in world players
 				if(member == NULL || !member->IsInWorld())
 					continue;
-
-				member->SafeTeleport(map, instanceid, x, y, z, o);
+				sChatHandler.HandleSummonCommand(member->GetName(), m_session);
+				//member->SafeTeleport(map, instanceid, x, y, z, o);
 			}
 		}
 	}
@@ -1469,6 +1469,8 @@ void Group::SyncFactions()
 				if((*itr)->m_loggedInPlayer == NULL)
 					continue;
 				Player * mem = (*itr)->m_loggedInPlayer;
+				if(faction == mem->GetFaction())
+					continue;
 				if(mem->getLevel() >= 19)
 				{
 					mem->SetTeam(team);

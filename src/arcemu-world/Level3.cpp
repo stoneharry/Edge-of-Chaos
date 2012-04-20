@@ -4452,11 +4452,17 @@ bool ChatHandler::HandleGroupAddMemberCommand(const char* args, WorldSession* m_
 	if(addmember == NULL)
 		addmember = m_session->GetPlayer();
 
-	Player * GroupMember = objmgr.GetPlayer(args, false);
-	if(GroupMember == NULL)
+	Player * GroupMember = NULL;
+	if(*args == 0)
+		GroupMember = m_session->GetPlayer();
+	else
 	{
-		RedSystemMessage(m_session, "Unable to find player with name %s", args);
-		return true;
+		GroupMember = objmgr.GetPlayer(args, false);
+		if(GroupMember == NULL)
+		{
+			RedSystemMessage(m_session, "Unable to find player with name %s", args);
+			return true;
+		}
 	}
 	
 	if(addmember->GetGroup())
@@ -4486,7 +4492,7 @@ bool ChatHandler::HandleGroupRemoveMemberCommand(const char* args, WorldSession*
 	{
 		if(*args != 0)
 			RedSystemMessage(m_session, "Player %s not found, selecting target instead.", args);
-		removemember = getSelectedChar(m_session);
+		removemember = getSelectedChar(m_session, false);
 	}
 	
 	Group * grp = removemember->GetGroup();
@@ -4508,7 +4514,7 @@ bool ChatHandler::HandleGroupDisbandCommand(const char* args, WorldSession* m_se
 	{
 		if(*args != 0)
 			RedSystemMessage(m_session, "Player %s not found, selecting target instead.", args);
-		groupmember = getSelectedChar(m_session);
+		groupmember = getSelectedChar(m_session, false);
 	}
 	
 	Group * grp = groupmember->GetGroup();
@@ -4530,7 +4536,7 @@ bool ChatHandler::HandleGroupTeleportCommand(const char* args, WorldSession* m_s
 	{
 		if(*args != 0)
 			RedSystemMessage(m_session, "Player %s not found, selecting target instead.", args);
-		groupmember = getSelectedChar(m_session);
+		groupmember = getSelectedChar(m_session, false);
 	}
 	
 	Group * grp = groupmember->GetGroup();
@@ -4539,8 +4545,9 @@ bool ChatHandler::HandleGroupTeleportCommand(const char* args, WorldSession* m_s
 		RedSystemMessage(m_session,"%s is not in a group", groupmember->GetName());
 		return true;
 	}
-	Player * p = m_session->GetPlayer();
-	grp->Teleport(p->GetMapId(), p->GetInstanceID(), p->GetPositionX(), p->GetPositionY(), p->GetPositionZ(), p->GetOrientation());
+	//Player * p = m_session->GetPlayer();
+	grp->Teleport(m_session);
+	//grp->Teleport(p->GetMapId(), p->GetInstanceID(), p->GetPositionX(), p->GetPositionY(), p->GetPositionZ(), p->GetOrientation());
 	return true;
 }
 

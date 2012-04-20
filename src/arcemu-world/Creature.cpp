@@ -552,18 +552,11 @@ void Creature::SaveToDB()
 		// Add spawn to map
 		GetMapMgr()->GetBaseMap()->GetSpawnsListAndCreate(x, y)->CreatureSpawns.push_back(m_spawn);
 	}
-
+	uint32 map = GetMapId();
+	if(map <= 800)
+		map = GetMapMgr()->GetMapId();
 	std::stringstream ss;
-
-	ss << "DELETE FROM creature_spawns WHERE id = ";
-	ss << spawnid;
-	ss << ";";
-
-	WorldDatabase.Execute(ss.str().c_str());
-
-	ss.rdbuf()->str("");
-
-	ss << "INSERT INTO creature_spawns VALUES("
+	ss << "REPLACE INTO creature_spawns VALUES("
 	   << spawnid << ","
 	   << GetEntry() << ","
 	   << GetMapId() << ","
@@ -572,13 +565,13 @@ void Creature::SaveToDB()
 	   << m_position.z << ","
 	   << m_position.o << ","
 	   << m_aiInterface->getMoveType() << ","
-	   << m_uint32Values[UNIT_FIELD_DISPLAYID] << ","
+	   << GetDisplayId() << ","
 	   << GetFaction() << ","
-	   << m_uint32Values[UNIT_FIELD_FLAGS] << ","
-	   << m_uint32Values[UNIT_FIELD_BYTES_0] << ","
-	   << m_uint32Values[UNIT_FIELD_BYTES_1] << ","
-	   << m_uint32Values[UNIT_FIELD_BYTES_2] << ","
-	   << m_uint32Values[UNIT_NPC_EMOTESTATE] << ",0,";
+	   << GetUInt32Value(UNIT_FIELD_FLAGS) << ","
+	   << GetUInt32Value(UNIT_FIELD_BYTES_0) << ","
+	   << GetUInt32Value(UNIT_FIELD_BYTES_1) << ","
+	   << GetUInt32Value(UNIT_FIELD_BYTES_2) << ","
+	   << GetUInt32Value(UNIT_NPC_EMOTESTATE) << ",0,";
 
 	ss << m_spawn->channel_spell << "," << m_spawn->channel_target_go << "," << m_spawn->channel_target_creature << ",";
 
@@ -2056,14 +2049,31 @@ void Creature::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint
 			pVictim->SetHealth(1);
 			return;
 		}
-		if(pVictim->IsCreature())
-			if(Player* p = TO< Player* >(GetPlayerOwner()))
+		if(Player* p = TO< Player* >(GetPlayerOwner()))
+		{
+			if(pVictim->IsPlayer() && p->DuelingWith != NULL && p->DuelingWith->GetGUID() == pVictim->GetGUID())
+			{
+				if(pVictim->GetHealth() <= damage)
+				{
+					uint32 NewHP = pVictim->GetMaxHealth() / 100;
+
+					if(NewHP < 5)
+						NewHP = 5;
+
+					pVictim->SetHealth(NewHP);
+					p->EndDuel(DUEL_WINNER_KNOCKOUT);
+					pVictim->Emote(EMOTE_ONESHOT_BEG);
+					return;
+				}
+			}
+			if(pVictim->IsCreature())
 				sQuestMgr.OnPlayerKill(p, TO_CREATURE(pVictim), true);
+		}
 		pVictim->Die(this, damage, spellId);
 	}
 	else
 	{
-		if(!(pVictim->IsCreature() && !IsPet() && pVictim->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_IMMUNE_TO_CREATURE_DAMAGE)))
+		if(!(pVictim->IsCreature() && !IsPet() && IsImmuneToCreatureDamage()))
 			pVictim->TakeDamage(this, damage, spellId, no_remove_auras);
 	}
 }

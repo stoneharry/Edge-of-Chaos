@@ -1696,8 +1696,10 @@ void WorldSession::HandleLearnMultipleTalentsOpcode(WorldPacket & recvPacket)
 		recvPacket >> talentid;
 		recvPacket >> rank;
 
-		_player->LearnTalent(talentid, rank, true);
+		//_player->LearnTalent(talentid, rank, true);
+		//_player->LearnTalent(talentid, rank);
 	}
+	SystemMessage("The preview talent system is currently disabled at this time due to exploits.");
 }
 
 void WorldSession::SendMOTD()

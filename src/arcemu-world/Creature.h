@@ -356,8 +356,9 @@ class SERVER_DECL Creature : public Unit
 		virtual ~Creature();
 		
 		// For derived subclasses of Creature
-		bool IsVehicle(){
-			if( proto->vehicleid != 0 )
+		bool IsVehicle()
+		{
+			if( proto && proto->vehicleid != 0 )
 				return true;
 			else
 				return false;

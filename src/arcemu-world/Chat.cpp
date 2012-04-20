@@ -958,7 +958,7 @@ int ChatHandler::ParseCommands(const char* text, WorldSession* session)
 		return 0;
 
 	/* skip '..' :P that pisses me off */
-	if(text[1] == '.')
+	if(text[1] == '.' || text[1] == ' ')
 		return 0;
 
 	text++;

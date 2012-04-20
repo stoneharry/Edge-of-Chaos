@@ -2288,17 +2288,7 @@ void Player::SaveToDB(bool bNewCharacter /* =false */)
 
 	std::stringstream ss;
 
-	ss << "DELETE FROM characters WHERE guid = " << GetLowGUID() << ";";
-
-	if(bNewCharacter)
-		CharacterDatabase.WaitExecuteNA(ss.str().c_str());
-	else
-		buf->AddQueryNA(ss.str().c_str());
-
-
-	ss.rdbuf()->str("");
-
-	ss << "INSERT INTO characters VALUES ("
+	ss << "REPLACE INTO characters VALUES ("
 
 	   << GetLowGUID() << ", "
 	   << GetSession()->GetAccountId(true) << ","
@@ -12033,7 +12023,10 @@ void Player::SendPreventSchoolCast(uint32 SpellSchool, uint32 unTimeMs)
 		if(spellInfo->Attributes & SPELL_ATTR0_DISABLED_WHILE_ACTIVE)
 			continue;
 
-		if(spellInfo->SchoolMask == SpellSchool)
+        if (spellInfo->PreventionType != 1)
+            continue;
+
+		if(spellInfo->NormalizedSchoolMask() == SpellSchool)
 		{
 			data << uint32(SpellId);
 			data << uint32(unTimeMs);                       // in m.secs
@@ -12373,7 +12366,7 @@ void Player::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint32
 
 		SendPartyKillLog(pVictim->GetGUID());
 
-		if(pVictim->IsPvPFlagged())
+		if(pVictim->IsPvPFlagged() && pVictim->GetGUID() != GetGUID())
 		{
 			uint32 team = GetTeam();
 
@@ -13474,6 +13467,8 @@ void Player::ExitInstanceReleaseSpirit(uint32 mapid, const LocationVector & v, b
 	SetPosition(v);
 	SpeedCheatReset();
 	z_axisposition = 0.0f;
+	setDeathState(CORPSE);
+	Unroot();
 	//Repop is giving weird results.
 	//RepopAtGraveyard(GetPositionX(), GetPositionY(), GetPositionZ(), GetMapId());
 }
@@ -13724,8 +13719,32 @@ bool Player::IsAffectedBySpellmod(SpellEntry * spellInfo, SpellModifier* mod, Sp
     // +duration to infinite duration spells making them limited
 	if (mod->op == SPELLMOD_DURATION && GetDuration(dbcSpellDuration.LookupEntry( spellInfo->DurationIndex)) <= 0)
         return false;
+	if (spellInfo->IsNotAffectedBySpellMods())
+		return false;
+	SpellEntry* affectSpell = dbcSpell.LookupEntry(mod->spellId);
+    if (!affectSpell || affectSpell->SpellFamilyName != spellInfo->SpellFamilyName)
+        return false;
+
+	// true
+	if (mod->mask & spellInfo->SpellFamilyFlags)
+		return true;
 	
-	return IsAffectedBySpellMod(spellInfo, dbcSpell.LookupEntry(mod->spellId), mod->mask);
+	return false;
+}
+
+void Player::RemoveSpellMod(uint32 op, uint32 spellid)
+{
+    int32 value = 0;
+	uint16 Opcode = 0;
+	flag96 modmask;
+	SpellModType type = SPELLMOD_FLAT;
+	for (SpellModList::iterator itr = m_spellMods[op].begin(); itr != m_spellMods[op].end(); ++itr)
+	{
+		if((*itr) == NULL)
+			continue;
+		if((*itr)->spellId == spellid)
+			AddSpellMod((*itr), false);
+	}
 }
 
 void Player::AddSpellMod(SpellModifier* mod, bool apply)
@@ -14105,6 +14124,20 @@ bool Player::IsUnderWater()
 
 void Player::UpdateUnderwaterState(float x, float y, float z)
 {
+	m_MirrorTimerFlags = 0;
+	if(!IsInWorld())
+		return;
+	if(!HasUnitMovementFlag(MOVEFLAG_SWIMMING))
+	{
+		if(m_MirrorTimer[BREATH_TIMER] != DISABLED_MIRROR_TIMER)
+		{
+			StopMirrorTimers();
+			m_MirrorTimer[BREATH_TIMER] = getMaxTimer(BREATH_TIMER);
+		}
+		return;
+	}
+	//if(GetPositionZ() > (GetMapMgr()->GetLiquidHeight(GetPositionX(), GetPositionY())-2))
+		//return;
 	uint8 liquidType = GetMapMgr()->GetLiquidType(x,y);
 	m_MirrorTimerFlags = 0;
 	switch(liquidType)
@@ -14114,6 +14147,9 @@ void Player::UpdateUnderwaterState(float x, float y, float z)
 		{
 			m_MirrorTimerFlags |= UNDERWATER_INWATER;
 		}break;
+		case MAP_LIQUID_TYPE_DARK_WATER+MAP_LIQUID_TYPE_OCEAN:
+		case MAP_LIQUID_TYPE_DARK_WATER+MAP_LIQUID_TYPE_WATER:
+		case MAP_LIQUID_TYPE_DARK_WATER+MAP_LIQUID_TYPE_OCEAN+MAP_LIQUID_TYPE_WATER:
 		case MAP_LIQUID_TYPE_DARK_WATER:
 		{
 			m_MirrorTimerFlags |= UNDERWARER_INDARKWATER | UNDERWATER_INWATER;
@@ -14127,7 +14163,8 @@ void Player::UpdateUnderwaterState(float x, float y, float z)
 			m_MirrorTimerFlags |= UNDERWATER_INSLIME;
 		}break;
 		default:
-			printf("Dafaq how we get here, liquid %u", liquidType);
+			if(liquidType != 0)
+				printf("Dafaq how we get here, liquid %u\n", liquidType);
 	}
 /*  LiquidData liquid_status;
     ZLiquidStatus res = GetMapMgr()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &liquid_status);
@@ -14327,7 +14364,7 @@ void Player::HandleDrowning(uint32 time_diff)
                 //uint32 damage = urand(600, 700);
                 //if (m_MirrorTimerFlags & UNDERWATER_INLAVA)
                     //EnvironmentalDamage(DAMAGE_LAVA, damage);
-                uint32 damage = GetMaxHealth() / 5 + RandomUInt(getLevel()-1);
+                uint32 damage = GetMaxHealth()/5;
 				SendEnvironmentalDamageLog(GetGUID(), DAMAGE_LAVA, damage);
 				DealDamage(this, damage, 0, 0, 0);
                 // need to skip Slime damage in Undercity,

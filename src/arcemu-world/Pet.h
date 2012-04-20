@@ -257,6 +257,8 @@ class SERVER_DECL Pet : public Creature
 		void DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint32 unitEvent, uint32 spellId, bool no_remove_auras = false);
 		void TakeDamage(Unit* pAttacker, uint32 damage, uint32 spellid, bool no_remove_auras = false);
 		void Die(Unit* pAttacker, uint32 damage, uint32 spellid);
+		int32 GetBonusDamage() { return m_bonusSpellDamage; }
+		void SetBonusDamage(int32 damage);
 
 		Object* GetPlayerOwner();
 
@@ -289,6 +291,7 @@ class SERVER_DECL Pet : public Creature
 		void SafeDelete();
 
 		list<AI_Spell*> m_autoCastSpells[AUTOCAST_EVENT_COUNT];
+		int32 m_bonusSpellDamage;
 };
 
 #define PET_HAPPINESS_UPDATE_VALUE 333000

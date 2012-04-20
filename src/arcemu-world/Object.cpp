@@ -741,6 +741,7 @@ bool Object::SetPosition(float newX, float newY, float newZ, float newOrientatio
 		if(IsPlayer())
 		{
 			TO< Player* >(this)->AddGroupUpdateFlag(GROUP_UPDATE_FLAG_POSITION);
+			TO< Player* >(this)->UpdateUnderwaterState(newX, newY, newZ);
 		}
 	}
 
@@ -902,11 +903,10 @@ void Object::RemoveFromWorld(bool free_guid)
 	ARCEMU_ASSERT(m_mapMgr != NULL);
 
 	OnPreRemoveFromWorld();
-
-	MapMgr* m = m_mapMgr;
+	MapMgr * m = m_mapMgr;
+	m->RemoveObject(this, free_guid);
 	m_mapMgr = NULL;
 
-	m->RemoveObject(this, free_guid);
 
 	OnRemoveFromWorld();
 
@@ -1560,8 +1560,11 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 		Unit* caster = TO< Unit* >(this);
 
 		caster->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_START_ATTACK);
-		res += static_cast< float >( caster->GetSpellDmgBonus(pVictim, spellInfo, damage, false) );
-		res += static_cast< float >( caster->GetSpellDmgAPBonus(spellInfo, false));
+		res = static_cast<float>(caster->SpellDamageBonus(pVictim, spellInfo, damage, 1));
+		//if(caster->IsPlayer() && caster->getLevel() >= 19)
+			//res /= 2;
+		//res += static_cast< float >( caster->GetSpellDmgBonus(pVictim, spellInfo, damage, false) );
+		//res += static_cast< float >( caster->GetSpellDmgAPBonus(spellInfo, false));
 
 		if(res < 0.0f)
 			res = 0.0f;
@@ -1615,7 +1618,7 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 		res += TO< Unit* >(this)->CalcSpellDamageReduction(pVictim, spellInfo, res);
 //------------------------------absorption--------------------------------------------------
 	uint32 ress = static_cast< uint32 >(res);
-	uint32 abs_dmg = pVictim->AbsorbDamage(spellInfo->SchoolMask, &ress);
+	uint32 abs_dmg = pVictim->AbsorbDamage(spellInfo->NormalizedSchoolMask(), &ress);
 	uint32 ms_abs_dmg = pVictim->ManaShieldAbsorb(ress);
 	if(ms_abs_dmg)
 	{
@@ -1665,7 +1668,7 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 
 	res = static_cast< float >(ress);
 	dealdamage dmg;
-	dmg.school_type = spellInfo->SchoolMask;
+	dmg.school_type = spellInfo->NormalizedSchoolMask();
 	dmg.full_damage = ress;
 	dmg.resisted_damage = 0;
 	res = objmgr.ApplySpellDamageLimit(spellID, res);
@@ -1697,7 +1700,7 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 //==========================================================================================
 //==============================Data Sending ProcHandling===================================
 //==========================================================================================
-	SendSpellNonMeleeDamageLog(this, pVictim, spellID, static_cast< int32 >(res), static_cast< uint8 >(spellInfo->SchoolMask), abs_dmg, dmg.resisted_damage, false, 0, critical, IsPlayer());
+	SendSpellNonMeleeDamageLog(this, pVictim, spellID, static_cast< int32 >(res), static_cast< uint8 >(spellInfo->NormalizedSchoolMask()), abs_dmg, dmg.resisted_damage, false, 0, critical, IsPlayer());
 	DealDamage(pVictim, static_cast< int32 >(res), 2, 0, spellID);
 
 	if(IsUnit())
@@ -1711,14 +1714,14 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 	}
 	if(this->IsPlayer())
 	{
-		TO< Player* >(this)->m_casted_amount[spellInfo->SchoolMask] = (uint32)res;
+		TO< Player* >(this)->m_casted_amount[spellInfo->NormalizedSchoolMask()] = (uint32)res;
 	}
 
 	if(!(dmg.full_damage == 0 && abs_dmg))
 	{
 		//Only pushback the victim current spell if it's not fully absorbed
 		if(pVictim->GetCurrentSpell())
-			pVictim->GetCurrentSpell()->AddTime(spellInfo->SchoolMask);
+			pVictim->GetCurrentSpell()->AddTime(spellInfo->NormalizedSchoolMask());
 	}
 
 //==========================================================================================
@@ -1744,7 +1747,7 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 		if(IsPlayer())
 			TO< Player* >(this)->CombatStatusHandler_ResetPvPTimeout();
 	}
-	if(spellInfo->SchoolMask == SCHOOL_SHADOW)
+	if(spellInfo->NormalizedSchoolMask() == SCHOOL_SHADOW)
 	{
 		if(pVictim->isAlive() && this->IsUnit())
 		{
@@ -1752,9 +1755,9 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 			if(spellID == 32379 || spellID == 32996 || spellID == 48157 || spellID == 48158)
 			{
 				uint32 damage2 = static_cast< uint32 >(res + abs_dmg);
-				uint32 absorbed = TO< Unit* >(this)->AbsorbDamage(spellInfo->SchoolMask, &damage2);
+				uint32 absorbed = TO< Unit* >(this)->AbsorbDamage(spellInfo->NormalizedSchoolMask(), &damage2);
 				DealDamage(TO< Unit* >(this), damage2, 2, 0, spellID);
-				SendSpellNonMeleeDamageLog(this, this, spellID, damage2, static_cast< uint8 >(spellInfo->SchoolMask), absorbed, 0, false, 0, false, IsPlayer());
+				SendSpellNonMeleeDamageLog(this, this, spellID, damage2, static_cast< uint8 >(spellInfo->NormalizedSchoolMask()), absorbed, 0, false, 0, false, IsPlayer());
 			}
 		}
 	}

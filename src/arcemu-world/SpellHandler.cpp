@@ -587,14 +587,7 @@ void WorldSession::HandlePetCastSpell(WorldPacket & recvPacket)
 		return;
 
 	Spell* pSpell = sSpellFactoryMgr.NewSpell(caster, sp, false, 0);
-	uint8 result = pSpell->CheckPetCast();
-	if(result == SPELL_FAILED_SUCCESS)
-		pSpell->prepare(&targets);
-	else
-	{
-		pSpell->finish(false);
-		delete pSpell;
-	}
+	pSpell->prepare(&targets);
 }
 
 void WorldSession::HandleCancelTotem(WorldPacket & recv_data)

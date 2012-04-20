@@ -772,7 +772,7 @@ class SERVER_DECL Aura : public EventableObject
 		void SpellAuraConvertRune(bool apply);
 		void SpellAuraPreventResurrection(bool apply);
 		void UpdateAuraModDecreaseSpeed();
-		void ApplySpellMod(bool apply);
+		void SpellAuraApplySpellMod(bool apply);
 		// Events
 		void EventPeriodicDamage(uint32);
 		void EventPeriodicDamagePercent(uint32);
@@ -805,6 +805,7 @@ class SERVER_DECL Aura : public EventableObject
 
 		int32 GetModAmount(uint32 i) { if(i < 3) return m_modList[i].m_amount; return 0; }
 		int32 GetModAmountByMod() { return mod->m_amount; };
+		Modifier GetMod(uint32 i) { return m_modList[i]; }
 		uint32 GetAuraFlags() { return m_flags; }
 		void AssignModifiers(Aura* aura);
 
@@ -849,10 +850,11 @@ class SERVER_DECL Aura : public EventableObject
 		uint32 m_modcount;
 		Modifier m_modList[3];
 		Modifier* mod;
-
+		uint32 m_tickNumber;
 		void SendInterrupted(uint8 result, Object* m_caster);
 		void SendChannelUpdate(uint32 time, Object* m_caster);
 		void SendTickImmune(Unit* target, Unit* caster);
+		SpellModifier * m_spellmods[3];
 	public:
 		bool m_temporary;	// Skip saving
 		bool m_deleted;

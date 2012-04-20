@@ -914,6 +914,38 @@ enum School
     SCHOOL_COUNT
 };
 
+enum WeaponAttackType
+{
+    BASE_ATTACK   = 0,
+    OFF_ATTACK    = 1,
+    RANGED_ATTACK = 2,
+    MAX_ATTACK
+};
+
+enum SpellSchoolMask
+{
+    SPELL_SCHOOL_MASK_NONE    = 0x00,                       // not exist
+    SPELL_SCHOOL_MASK_NORMAL  = (1 << SCHOOL_NORMAL), // PHYSICAL (Armor)
+    SPELL_SCHOOL_MASK_HOLY    = (1 << SCHOOL_HOLY),
+    SPELL_SCHOOL_MASK_FIRE    = (1 << SCHOOL_FIRE),
+    SPELL_SCHOOL_MASK_NATURE  = (1 << SCHOOL_NATURE),
+    SPELL_SCHOOL_MASK_FROST   = (1 << SCHOOL_FROST),
+    SPELL_SCHOOL_MASK_SHADOW  = (1 << SCHOOL_SHADOW),
+    SPELL_SCHOOL_MASK_ARCANE  = (1 << SCHOOL_ARCANE),
+
+    // unions
+
+    // 124, not include normal and holy damage
+    SPELL_SCHOOL_MASK_SPELL   = (SPELL_SCHOOL_MASK_FIRE   |
+                                  SPELL_SCHOOL_MASK_NATURE | SPELL_SCHOOL_MASK_FROST  |
+                                  SPELL_SCHOOL_MASK_SHADOW | SPELL_SCHOOL_MASK_ARCANE),
+    // 126
+    SPELL_SCHOOL_MASK_MAGIC   = (SPELL_SCHOOL_MASK_HOLY | SPELL_SCHOOL_MASK_SPELL),
+
+    // 127
+    SPELL_SCHOOL_MASK_ALL     = (SPELL_SCHOOL_MASK_NORMAL | SPELL_SCHOOL_MASK_MAGIC)
+};
+
 #define UNIT_SUMMON_SLOTS 6
 
 typedef std::list<struct ProcTriggerSpellOnSpell> ProcTriggerSpellOnSpellList;
@@ -1273,6 +1305,7 @@ class SERVER_DECL Unit : public Object
 		float GetTotalAuraMultiplier(uint32 AuraName, uint32 ignorerspell = 0);
 		int32 GetTotalAuraModifier(uint32 AuraName, uint32 ignorerspell = 0);
 		int32 GetMaxNegativeAuraModifier(uint32 AuraName, uint32 ignorerspell = 0);
+		int32 GetTotalAuraModifierByMiscMask(uint32 auratype, uint32 misc_mask);
 		bool IsControlledByPlayer();
 		//******************************************************
 		// Auras that can affect only one target at a time
@@ -1316,7 +1349,18 @@ class SERVER_DECL Unit : public Object
 		int32 GetSpellDmgBonus(Unit* pVictim, SpellEntry* spellInfo, int32 base_dmg, bool isdot);
 		int32 GetSpellDmgAPBonus(SpellEntry*spellInfo, bool isdot);
 		int32 GetSpellDamage(Spell * s, Unit * target, uint32 i, int32 base_dmg);
+        //static bool IsDamageReducedByArmor(uint32 damageSchoolMask, SpellEntry* spellInfo = NULL, uint8 effIndex = MAX_SPELL_EFFECTS);
+        //uint32 CalcArmorReducedDamage(Unit* victim, const uint32 damage, SpellEntry* spellInfo, WeaponAttackType attackType=MAX_ATTACK);
+        //uint32 CalculateSpellDamageTaken(Unit * victim, int32 damage, SpellEntry * spellInfo, uint8 attackType = BASE_ATTACK, bool crit = false);
+        uint32 SpellDamageBonus(Unit* victim, SpellEntry* spellProto, uint32 damage, uint32 damagetype, uint32 stack = 1);
+        uint32 SpellHealingBonus(Unit* victim, SpellEntry* spellProto, uint32 healamount, uint32 damagetype, uint32 stack = 1);
+		float GetModPercentDamageDoneBonus(SpellEntry *proto, float DoneTotal);
 		float ApplyEffectModifiers(SpellEntry * sp, uint8 effect_index, float value);
+		float GetTotalAttackPowerValue(uint8 attType);
+        int32 SpellBaseDamageBonus(uint32 schoolMask);
+        int32 SpellBaseHealingBonus(uint32 schoolMask);
+        int32 SpellBaseDamageBonusForVictim(uint32 schoolMask, Unit* victim);
+        int32 SpellBaseHealingBonusForVictim(uint32 schoolMask, Unit* victim);
 		uint32 m_addDmgOnce;
 		uint32 m_ObjectSlots[4];
 		uint32 m_triggerSpell;
@@ -1476,11 +1520,7 @@ class SERVER_DECL Unit : public Object
 
 		uint32 GetFaction() { return GetUInt32Value(UNIT_FIELD_FACTIONTEMPLATE); }
 
-		void SetFaction(uint32 factionId)
-		{
-			SetUInt32Value(UNIT_FIELD_FACTIONTEMPLATE, factionId);
-			_setFaction();
-		}
+		void SetFaction(uint32 factionId);
 
 		virtual void SendChatMessage(uint8 type, uint32 lang, const char* msg, uint32 delay = 0) = 0;
 		virtual void SendChatMessageToPlayer(uint8 type, uint32 lang, const char* msg, Player* plr) = 0;
@@ -2048,6 +2088,13 @@ class SERVER_DECL Unit : public Object
 
 		bool IsMoving();
 		bool IsTurning();
+
+		uint32 GetSpellCharges(uint32 spellid);
+		uint32 GetSpellCastTime(SpellEntry * sp);
+		uint32 GetCastingTimeForBonus(SpellEntry* spellProto, uint8 damagetype, uint32 CastingTime);
+		float CalculateLevelPenalty(SpellEntry* spellProto);
+		float GetModDamageFromCaster(uint64 casterguid, SpellEntry *proto, float ModTaken);
+		float GetMechanicDamageTakenPct(SpellEntry*proto, float ModTaken);
 };
 
 

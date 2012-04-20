@@ -937,11 +937,67 @@ struct SpellEntry
 		return -1;
 	}
 
-	bool IsAffectedBySpellMods()
+	bool IsNotAffectedBySpellMods()
 	{
-		return !(AttributesEx3 & 0x20000000);
+		if(AttributesEx3 & 0x20000000)
+			return true;
+		return false;
 	}
 
+	bool IsRangedWeaponSpell()
+	{
+		return (SpellFamilyName == 9 && !(SpellFamilyFlags[1] & 0x10000000)) // for 53352, cannot find better way
+			|| (EquippedItemSubClassMask & ((1 << 2) | (1 << 3) | (1 << 18) | (1 << 16)));
+	}
+
+	bool IsChanneled()
+	{
+		if(AttributesEx & 4 || AttributesEx & 64)
+			return true;
+		return false;
+	}
+
+	uint32 NormalizedSchoolMask()
+	{
+		uint32 mask = 0;
+		for (uint32 i= 0; i<7; i++)
+		{
+			if (SchoolMask & (1<<i))
+			{
+				mask = i;
+			}
+		}
+		return mask;
+	}
+
+	uint32 GetAllEffectsMechanicMask()
+	{
+		uint32 mask = 0;
+		if (Mechanic)
+			mask |= 1 << Mechanic;
+		for (int i = 0; i < MAX_SPELL_EFFECTS; ++i)
+			if (Effect[i] != 0 && EffectMechanic[i])
+				mask |= 1 << EffectMechanic[i];
+		return mask;
+	}
+
+	uint32 GetEffectMechanicMask(uint8 effIndex)
+	{
+		uint32 mask = 0;
+		if (Mechanic)
+			mask |= 1 << Mechanic;
+		if (Effect[effIndex] != 0 && EffectMechanic[effIndex])
+			mask |= 1 << EffectMechanic[effIndex];
+		return mask;
+	}
+
+	bool HasDBCoef()
+	{
+		if(ap_coef >= 0.0f || ap_dot_coef >= 0.0f ||
+			Dspell_coef_override >= 0.0f || OTspell_coef_override >= 0.0f)
+			return true;
+		return false;
+	}
 
 	SpellEntry()
 	{
@@ -993,8 +1049,6 @@ struct SpellEntry
 		is_melee_spell= false;                  //!!! CUSTOM,
 		is_ranged_spell= false;                 //!!! CUSTOM,
 		noproc= false;
-
-		SchoolMask= 0;                      // Custom
 	}
 };
 
@@ -1871,20 +1925,6 @@ ARCEMU_INLINE float GetMinRange(SpellRange* range)
 ARCEMU_INLINE uint32 GetDuration(SpellDuration* dur)
 {
 	return dur->Duration1;
-}
-
-ARCEMU_INLINE bool IsAffectedBySpellMod(SpellEntry *sp, SpellEntry * sp2, flag96 mask)
-{
-	if (!sp->IsAffectedBySpellMods())
-		return false;
-	
-	// False if affect_spell == NULL or spellFamily not equal
-	if (!sp2|| sp2->SpellFamilyName != sp->SpellFamilyName)
-		return false;
-	// true
-	if (mask & sp->SpellFamilyFlags)
-		return true;
-	return false;
 }
 
 #define SAFE_DBC_CODE_RETURNS        /* undefine this to make out of range/nulls return null. */

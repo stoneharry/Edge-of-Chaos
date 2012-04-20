@@ -162,11 +162,11 @@ pSpellEffect SpellEffectsHandler[TOTAL_SPELL_EFFECTS] =
 	&Spell::SpellEffectRestorePowerPct,			// Restore Power % - 137 // http://www.thottbot.com/s41542
 	&Spell::SpellEffectKnockBack2,				// knockback2 - 138 // related to superjump or even "*jump" spells http://www.thottbot.com/?e=Unknown%20138
 	&Spell::SpellEffectClearQuest,				// Remove Quest - 139
-	&Spell::SpellEffectTriggerSpell,			// triggers a spell from target back to caster - used at Malacrass f.e.
-	&Spell::SpellEffectNULL,					// unknown - 141 // triggers spell, magic one,  (Mother spell) http://www.thottbot.com/s41065
+	&Spell::SpellEffectForceCast,			    // triggers a spell from target back to caster - used at Malacrass f.e.
+	&Spell::SpellEffectForceCast,				// unknown - 141 // triggers spell, magic one,  (Mother spell) http://www.thottbot.com/s41065
 	&Spell::SpellEffectTriggerSpellWithValue,	//SPELL_EFFECT_TRIGGER_SPELL_WITH_VALUE - 142 // triggers some kind of "Put spell on target" thing... (dono for sure) http://www.thottbot.com/s40872 and http://www.thottbot.com/s33076
 	&Spell::SpellEffectApplyOwnerAA,			// Apply Aura on summon owner - 143 // Master -> demon effecting spell, http://www.thottbot.com/s25228 and http://www.thottbot.com/s35696
-	&Spell::SpellEffectNULL,					// unknown - 144
+	&Spell::SpellEffectKnockBack,				// unknown - 144
 	&Spell::SpellEffectPlayerPull,				// - 145
 	&Spell::SpellEffectActivateRunes,			// Activate Rune - 146
 	&Spell::SpellEffectNULL,					// Quest Fail - 147
@@ -530,7 +530,7 @@ void Spell::SpellEffectSchoolDMG(uint32 i) // dmg school
 	if(!unitTarget || !unitTarget->isAlive())
 		return;
 
-	if(unitTarget->SchoolImmunityList[GetProto()->SchoolMask])
+	if(unitTarget->SchoolImmunityList[GetProto()->NormalizedSchoolMask()])
 	{
 		SendCastResult(SPELL_FAILED_IMMUNE);
 		return;
@@ -626,13 +626,13 @@ void Spell::SpellEffectSchoolDMG(uint32 i) // dmg school
 					}
 				}
 				break;
-			case SPELL_HASH_ARCANE_SHOT: //hunter - arcane shot
+			/*case SPELL_HASH_ARCANE_SHOT: //hunter - arcane shot
 				{
 					if(u_caster)
 						dmg += float2int32(u_caster->GetRAP() * 0.15f);
 					dmg = float2int32(dmg * (0.9f + RandomFloat(0.2f)));      // randomized damage
 				}
-				break;
+				break;*/
 			case SPELL_HASH_GORE: // boar/ravager: Gore (50% chance of double damage)
 				{
 					dmg *= Rand(50) ? 2 : 1;
@@ -745,19 +745,6 @@ void Spell::SpellEffectSchoolDMG(uint32 i) // dmg school
 				break;*/
 
 			default:
-				if(u_caster && u_caster->IsPlayer() && u_caster->getLevel() == 19 && dmg >= 175)
-				{
-					switch(u_caster->getClass())
-					{
-						case SHAMAN:
-						case DRUID:
-						case PRIEST:
-						{
-							uint32 rand = RandomUInt(55);
-							dmg -= rand;
-						}break;
-					}
-				}
 				break;
 		}
 
@@ -1178,7 +1165,7 @@ void Spell::SpellEffectPowerDrain(uint32 i)  // Power Drain
 		// Resilience - reduces the effect of mana drains by (CalcRating*2)%.
 		damage = float2int32(damage * (1 - ((TO< Player* >(unitTarget)->CalcRating(PLAYER_RATING_MODIFIER_SPELL_CRIT_RESILIENCE) * 2) / 100.0f)));
 	}
-	uint32 amt = damage + ((u_caster->GetDamageDoneMod(GetProto()->SchoolMask) * 80) / 100);
+	uint32 amt = damage + ((u_caster->GetDamageDoneMod(GetProto()->NormalizedSchoolMask()) * 80) / 100);
 	if(amt > curPower)
 		amt = curPower;
 	uint32 newDamage = curPower - amt;
@@ -1935,7 +1922,7 @@ void Spell::SpellEffectPersistentAA(uint32 i) // Persistent Area Aura
 	{
 		case TARGET_FLAG_UNIT:
 			{
-				if(!unitTarget || !unitTarget->isAlive())
+				if(!unitTarget)
 				{
 					dynObj->Remove();
 					return;
@@ -1954,9 +1941,26 @@ void Spell::SpellEffectPersistentAA(uint32 i) // Persistent Area Aura
 				dynObj->Create(u_caster ? u_caster : g_caster->m_summoner, this, m_targets.m_destX, m_targets.m_destY, m_targets.m_destZ, dur, r, DYNAMIC_OBJECT_AREA_SPELL);
 			}
 			break;
+		case TARGET_FLAG_GAMEOBJECT:
+			{
+				if(!unitTarget || !unitTarget->isAlive())
+				{
+					dynObj->Remove();
+					return;
+				}
+
+				dynObj->Create(u_caster, this, unitTarget->GetPositionX(), unitTarget->GetPositionY(), unitTarget->GetPositionZ(), dur, r, DYNAMIC_OBJECT_AREA_SPELL);
+			}
+			break;
 		default:
-			dynObj->Remove();
-			return;
+			if(u_caster)
+				dynObj->Create(u_caster, this,	m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), dur, r, DYNAMIC_OBJECT_AREA_SPELL);
+			else
+			{
+				dynObj->Remove();
+				sLog.outError("Error creating dynamic object, target flag %u", m_targets.m_targetMask);
+				return;
+			}
 	}
 
 	if(u_caster != NULL)
@@ -2206,7 +2210,7 @@ void Spell::SpellEffectSummonTotem(uint32 i, SummonPropertiesEntry* spe, Creatur
 {
 	if(u_caster == NULL)
 		return;
-
+	//u_caster->summonhandler.RemoveSummonFromSlot(spe->Slot - 1);
 	v.x += (float(spe->Slot) - 1.5f);
 	v.y += (float(spe->Slot) - 1.5f);
 
@@ -2281,10 +2285,17 @@ void Spell::SpellEffectSummonCompanion(uint32 i, SummonPropertiesEntry* spe, Cre
 	Summon* s = u_caster->GetMapMgr()->CreateSummon(proto->Id, SUMMONTYPE_COMPANION);
 	if(s == NULL)
 		return;
+	float angle_for_each_spawn = -M_PI_FLOAT * 2 / damage;
+	float followangle = angle_for_each_spawn * i;
+	float x = 3 * (cosf(followangle + u_caster->GetOrientation()));
+	float y = 3 * (sinf(followangle + u_caster->GetOrientation()));
+	v.x += x;
+	v.y += y;
 
 	s->Load(proto, u_caster, v, m_spellInfo->Id, spe->Slot - 1);
 	s->SetCreatedBySpell(m_spellInfo->Id);
 	s->GetAIInterface()->SetFollowDistance(GetRadius(i));
+	s->GetAIInterface()->SetUnitToFollowAngle(followangle);
 	s->PushToWorld(u_caster->GetMapMgr());
 	u_caster->SetSummonedCritterGUID(s->GetGUID());
 	ExecuteLogEffectSummonObject(i, s);
@@ -2932,7 +2943,7 @@ void Spell::SpellEffectDispel(uint32 i) // Dispel
 	{
 		start = MAX_POSITIVE_AURAS_EXTEDED_START;
 		end = MAX_POSITIVE_AURAS_EXTEDED_END;
-		if(unitTarget->SchoolImmunityList[GetProto()->SchoolMask])
+		if(unitTarget->SchoolImmunityList[GetProto()->NormalizedSchoolMask()])
 			return;
 	}
 	else
@@ -3729,20 +3740,19 @@ void Spell::SpellEffectInterruptCast(uint32 i) // Interrupt Cast
 		}
 	}
 
-	Spell *TargetSpell = unitTarget->GetCurrentSpell(); // Get target's casting spell
-	if(TargetSpell)
+	Spell *spell = unitTarget->GetCurrentSpell(); // Get target's casting spell
+	if(spell)
 	{
-		uint32 school = TargetSpell->GetProto()->SchoolMask; // Get target's casting spell school
+		uint32 school = spell->GetProto()->NormalizedSchoolMask(); // Get target's casting spell school
 		int32 duration = GetDuration(); // Duration of school lockout
-
+		SpellEntry * curSpellInfo = spell->GetProto();
 		// Check for CastingTime (to prevent interrupting instant casts), PreventionType
 		// and InterruptFlags of target's casting spell
-		if(school
-			&& (TargetSpell->getState() == SPELL_STATE_CASTING
-			|| (TargetSpell->getState() == SPELL_STATE_PREPARING && TargetSpell->GetProto()->CastingTimeIndex > 0))
-			&& TargetSpell->GetProto()->PreventionType == PREVENTION_TYPE_SILENCE
-			&& ((TargetSpell->GetProto()->InterruptFlags & CAST_INTERRUPT_ON_INTERRUPT_SCHOOL)
-			|| (TargetSpell->GetProto()->ChannelInterruptFlags & CHANNEL_INTERRUPT_ON_4 )))
+		if ((spell->getState() == SPELL_STATE_CASTING
+				|| (spell->getState() == SPELL_STATE_PREPARING && curSpellInfo->CastingTimeIndex > 0))
+                && curSpellInfo->PreventionType == 1
+                && ((curSpellInfo->InterruptFlags & CAST_INTERRUPT_ON_INTERRUPT_SCHOOL)
+                || (curSpellInfo->ChannelInterruptFlags & CHANNEL_INTERRUPT_ON_4)))
 		{
 			if(unitTarget->IsPlayer())
 			{
@@ -3757,8 +3767,8 @@ void Spell::SpellEffectInterruptCast(uint32 i) // Interrupt Cast
 			else
 				// Prevent unit from casting in that school
 				unitTarget->SchoolCastPrevent[school] = duration + getMSTime();
-			ExecuteLogEffectInterruptCast(i, unitTarget, TargetSpell->GetProto()->Id);
-			TargetSpell->cancel(); // Interrupt the spell cast
+			ExecuteLogEffectInterruptCast(i, unitTarget, curSpellInfo->Id);
+			spell->cancel(); // Interrupt the spell cast
 		}
 	}
 }
@@ -4227,23 +4237,35 @@ void Spell::SpellEffectCharge(uint32 i)
 		SendInterrupted(SPELL_FAILED_NOPATH);
 		SendCastResult(SPELL_FAILED_NOPATH);
 	}
+	else
+	{
+		if(u_caster->IsPlayer())
+			u_caster->smsg_AttackStart(unitTarget);
+	}
 }
 
 void Spell::SpellEffectKnockBack(uint32 i)
 {
 	if(unitTarget == NULL || !unitTarget->isAlive())
 		return;
+	if(unitTarget->GetCurrentVehicle())
+		return;
 	if(unitTarget->IsCreature())
 	{
 		if(TO_CREATURE(unitTarget)->GetProto()->modImmunities & 262144)
 			return;
 	}
-	unitTarget->HandleKnockback(m_caster, GetProto()->EffectMiscValue[i] / 10, damage / 10);
+	float ratio = 0.1f;
+	float speedxy = float(m_spellInfo->EffectMiscValue[i]) * ratio;
+	float speedz = float(damage) * ratio;
+	unitTarget->HandleKnockback(m_caster, speedxy, speedz);
 }
 
 void Spell::SpellEffectKnockBack2(uint32 i)
 {
 	if(unitTarget == NULL || !unitTarget->isAlive())
+		return;
+	if(unitTarget->GetCurrentVehicle())
 		return;
 
 	if(unitTarget->IsCreature())
@@ -4251,7 +4273,10 @@ void Spell::SpellEffectKnockBack2(uint32 i)
 		if(TO_CREATURE(unitTarget)->GetProto()->modImmunities & 262144)
 			return;
 	}
-	unitTarget->HandleKnockback(m_caster, GetProto()->EffectMiscValue[i] / 10, damage / 10);
+	float ratio = 0.1f;
+	float speedxy = float(m_spellInfo->EffectMiscValue[i]) * ratio;
+	float speedz = float(damage) * ratio;
+	unitTarget->HandleKnockback(m_caster, speedxy, speedz);
 }
 
 void Spell::SpellEffectDisenchant(uint32 i)
@@ -4899,7 +4924,11 @@ void Spell::SpellEffectPlayerPull(uint32 i)
 
 	if(u_caster == NULL)
 		return;
-	if(unitTarget->IsCreature())
+
+	if(unitTarget->GetCurrentVehicle())
+		return;
+
+	if(unitTarget->IsCreature() || unitTarget->isTrainingDummy())
 	{
 		if(TO_CREATURE(unitTarget)->GetProto()->modImmunities & 262144)
 			return;
@@ -4920,8 +4949,8 @@ void Spell::SpellEffectPlayerPull(uint32 i)
 		x = rad * cosf(alpha) + u_caster->GetPositionX();
 		y = rad * sinf(alpha) + u_caster->GetPositionY();
 		z = u_caster->GetPositionZ();
-		if(unitTarget->GetAIInterface() != NULL)
-			unitTarget->GetAIInterface()->MoveJump(x, y, z);
+		float o = unitTarget->calcRadAngle(unitTarget->GetPositionX(), unitTarget->GetPositionY(), x, y);
+		unitTarget->GetAIInterface()->MoveJumpExt(x, y, z, o, m_spellInfo->EffectMiscValue[i]/10, GetProto()->Effect[i] == 145);
 	}
 	else if(m_targets.HasDstOrSrc())
 	{
@@ -4940,8 +4969,8 @@ void Spell::SpellEffectPlayerPull(uint32 i)
 			y = m_targets.m_destY;
 			z = m_targets.m_destZ;
 		}
-
-		unitTarget->GetAIInterface()->MoveJump(x, y, z);
+		float o = unitTarget->calcRadAngle(unitTarget->GetPositionX(), unitTarget->GetPositionY(), x, y);
+		unitTarget->GetAIInterface()->MoveJumpExt(x, y, z, o, m_spellInfo->EffectMiscValue[i]/10, GetProto()->Effect[i] == 145);
 	}
 }
 
@@ -5141,6 +5170,50 @@ void Spell::SpellEffectRestorePowerPct(uint32 i)
 
 	uint32 amount = damage * unitTarget->GetMaxPower(power_type) / 100;
 	u_caster->Energize(unitTarget, GetProto()->Id, amount, power_type);
+}
+
+void Spell::SpellEffectForceCast(uint32 i)
+{
+
+    if (!unitTarget || !u_caster)
+        return;
+
+	uint32 triggered_spell_id = m_spellInfo->EffectTriggerSpell[i];
+
+    // normal case
+    SpellEntry * spellInfo = dbcSpell.LookupEntryForced(triggered_spell_id);
+
+    if (!spellInfo)
+    {
+        sLog.outError("Spell::SpellEffectForceCast of spell %u: triggering unknown spell id %i", m_spellInfo->Id, triggered_spell_id);
+        return;
+    }
+
+    if (m_spellInfo->Effect[i] == 140&& damage)
+    {
+        switch (m_spellInfo->Id)
+        {
+            case 52588: // Skeletal Gryphon Escape
+            case 48598: // Ride Flamebringer Cue
+                unitTarget->RemoveAura(damage);
+                break;
+            case 52463: // Hide In Mine Car
+            case 52349: // Overtake
+				unitTarget->CastSpell(unitTarget, spellInfo, damage, true);
+                //unitTarget->CastCustomSpell(unitTarget, spellInfo->Id, &damage, NULL, NULL, true, NULL, NULL, m_originalCasterGUID);
+                return;
+            case 72378: // Blood Nova
+            case 73058: // Blood Nova
+				u_caster->CastSpell(unitTarget, damage, true);
+                //m_caster->CastSpell(unitTarget, damage, true);   // additional spell cast
+                break;
+        }
+    }
+	Spell* sp = sSpellFactoryMgr.NewSpell(unitTarget, spellInfo, true, NULL);
+	SpellCastTargets tgt(m_caster->GetGUID());
+	for(uint32 x = 0; x < 3; x++)
+		sp->forced_basepoints[x] = damage;
+	sp->prepare(&tgt);
 }
 
 void Spell::SpellEffectTriggerSpellWithValue(uint32 i)
