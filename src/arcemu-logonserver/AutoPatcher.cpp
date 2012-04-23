@@ -30,7 +30,9 @@ initialiseSingleton(PatchMgr);
 PatchMgr::PatchMgr()
 {
 	// load patches
+	Log.Debug("PatchMgr", "Starting up.");
 #ifdef WIN32
+	Log.Debug("PatchMgr", "Main function has been called.");
 	Log.Notice("PatchMgr", "Loading Patches...");
 	char Buffer[MAX_PATH*10];
 	char Buffer2[MAX_PATH*10];
@@ -59,7 +61,14 @@ PatchMgr::PatchMgr()
 	{
 		snprintf(Buffer3,MAX_PATH*10,"%s\\ClientPatches\\%s",Buffer2,fd.cFileName);
 		if(sscanf(fd.cFileName,"%4s%u.", locality, &srcversion) != 2)
+		{
+			Log.Notice("Found Incorrect : %s %s", locality, fd.cFileName);
 			continue;
+		}
+		else
+		{
+			Log.Notice("Found Correct : %s %s", locality, fd.cFileName);
+		}
 
 		hFile = CreateFile(Buffer3, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_ARCHIVE, NULL);
 		if(hFile == INVALID_HANDLE_VALUE)
@@ -197,20 +206,104 @@ PatchMgr::~PatchMgr()
 
 Patch * PatchMgr::FindPatchForClient(uint32 Version, const char * Locality)
 {
+
+	Log.Debug("PatchMgr", "Main function has been called.");
+	Log.Notice("PatchMgr", "Loading Patches...");
+	char Buffer[MAX_PATH*10];
+	char Buffer2[MAX_PATH*10];
+	char Buffer3[MAX_PATH*10];
+
+	WIN32_FIND_DATA fd;
+	HANDLE fHandle;
+	MD5Hash md5;
+	Patch * pPatch;
+	DWORD size,sizehigh;
+	HANDLE hFile;
+	uint32 srcversion;
+	char locality[5];
+	uint32 i;
+
+	if(!GetCurrentDirectory(MAX_PATH*10, Buffer))
+		return NULL;
+
+	strcpy(Buffer2,Buffer);
+	strcat(Buffer, "\\ClientPatches\\*.*");
+	fHandle = FindFirstFile(Buffer, &fd);
+	if(fHandle == INVALID_HANDLE_VALUE)
+		return NULL;
+
+	do 
+	{
+		snprintf(Buffer3,MAX_PATH*10,"%s\\ClientPatches\\%s",Buffer2,fd.cFileName);
+		if(sscanf(fd.cFileName,"%4s%u.", locality, &srcversion) != 2)
+		{
+			Log.Notice("Found Incorrect : %4s %s", locality, fd.cFileName);
+			continue;
+		}
+		else
+		{
+			Log.Notice("Found Correct : %s %s", locality, fd.cFileName);
+		}
+
+		hFile = CreateFile(Buffer3, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_ARCHIVE, NULL);
+		if(hFile == INVALID_HANDLE_VALUE)
+			continue;
+
+		Log.Notice("PatchMgr", "Found patch for %u locale `%s`.", srcversion,locality);
+		pPatch = new Patch;
+		size = GetFileSize(hFile, &sizehigh);
+		Log.Debug("PatchMgr", "Patch size : %u", size);
+		pPatch->FileSize = size;
+		pPatch->Data = new uint8[size];
+		pPatch->Version = srcversion;
+		Log.Debug("PatchMgr", "Patch version : %u", srcversion);
+		for(i = 0; i < 4; ++i)
+			pPatch->Locality[i] = static_cast<char>(tolower(locality[i]));
+		pPatch->Locality[4] = 0;
+		pPatch->uLocality = *(uint32*)pPatch->Locality;
+
+		if(pPatch->Data== NULL)
+		{
+			// shouldn't really happen
+			delete pPatch;
+			CloseHandle(hFile);
+			continue;
+		}
+
+		// read the whole file
+		ASSERT(ReadFile(hFile, pPatch->Data, pPatch->FileSize, &size, NULL));
+		ASSERT(size == pPatch->FileSize);
+
+		// close the handle, no longer needed
+		CloseHandle(hFile);
+
+		// md5hash the file
+		md5.Initialize();
+		md5.UpdateData(pPatch->Data, pPatch->FileSize);
+		md5.Finalize();
+		memcpy(pPatch->MD5, md5.GetDigest(), MD5_DIGEST_LENGTH);
+		
+		// add the patch to the patchlist
+		m_patches.push_back(pPatch);
+
+	} while(FindNextFile(fHandle,&fd));
+	FindClose(fHandle);
+
 	char tmplocality[5];
 	uint32 ulocality;
-	uint32 i;
+	//uint32 i;
 	vector<Patch*>::iterator itr;
 	Patch * fallbackPatch = NULL;
 	for(i = 0; i < 4; ++i)
 		tmplocality[i]= static_cast<char>( tolower(Locality[i]) );
 	tmplocality[4]= 0;
 	ulocality = *(uint32*)tmplocality;
-
 	for(itr = m_patches.begin(); itr != m_patches.end(); ++itr)
 	{
 		// since localities are always 4 bytes we can do a simple int compare,
 		// saving a string compare ;)
+		Log.Debug("Patch", "Loop Happening");
+		//Log.Debug("Patch", "Stuff %u %s", (*itr)->Version, (*itr)->uLocality);
 		if((*itr)->uLocality==ulocality)
 		{
 			if(fallbackPatch== NULL && (*itr)->Version== 0)
@@ -226,6 +319,7 @@ Patch * PatchMgr::FindPatchForClient(uint32 Version, const char * Locality)
 
 void PatchMgr::BeginPatchJob(Patch * pPatch, AuthSocket * pClient, uint32 Skip)
 {
+	Log.Debug("AutoPatcher","Creating new job.");
 	PatchJob * pJob;
 
 	pJob = new PatchJob(pPatch,pClient,Skip);
@@ -233,10 +327,12 @@ void PatchMgr::BeginPatchJob(Patch * pPatch, AuthSocket * pClient, uint32 Skip)
 	m_patchJobLock.Acquire();
 	m_patchJobs.push_back(pJob);
 	m_patchJobLock.Release();
+	Log.Debug("AutoPatcher","New Job Created.");
 }
 
 void PatchMgr::UpdateJobs()
 {
+	//Log.Debug("AutoPatcher","Updating Jobs...");
 	list<PatchJob*>::iterator itr, itr2;
 	m_patchJobLock.Acquire();
 	for(itr = m_patchJobs.begin(); itr != m_patchJobs.end();)
@@ -246,6 +342,7 @@ void PatchMgr::UpdateJobs()
 
 		if(!(*itr2)->Update())
 		{
+			Log.Debug("AutoPatcher","Deleting job.");
 			(*itr2)->GetClient()->m_patchJob= NULL;
 			delete (*itr2);
 			m_patchJobs.erase(itr2);
@@ -283,7 +380,7 @@ struct TransferInitiatePacket
 {
 	uint8 cmd;
 	uint8 strsize;
-	char name[6];
+	char name[5];
 	uint64 filesize;
 	uint8 md5hash[MD5_DIGEST_LENGTH];
 };
@@ -298,10 +395,14 @@ struct TransferDataPacket
 
 bool PatchJob::Update()
 {
+	//Log.Debug("AutoPatcher","Updating PatchJob...");
 	// don't update unless the write buffer is empty
+
 	m_client->BurstBegin();
 	if(m_client->writeBuffer.GetSize()!= 0)
 	{
+		Log.Debug("AutoPatcher","Write buffer still got data since last write.");
+		Log.Debug("PatchJob", "Client Write Buffer Size: %u", m_client->writeBuffer.GetSize());
 		m_client->BurstEnd();
 		return true;
 	}
@@ -311,7 +412,7 @@ bool PatchJob::Update()
 	bool result;
 	header.cmd = 0x31;
 	header.chunk_size = static_cast<uint16>( (m_bytesLeft>1500)?1500:m_bytesLeft );
-	//Log.Debug("PatchJob", "Sending %u byte chunk", header.chunk_size);
+	Log.Debug("PatchJob", "Sending %u byte chunk", header.chunk_size);
 
 	result = m_client->BurstSend((const uint8*)&header,sizeof(TransferDataPacket));
 	if(result)
@@ -326,29 +427,42 @@ bool PatchJob::Update()
 	}
 
 	if(result)
+	{
+		Log.Debug("PatchJob", "BurtPush()");
 		m_client->BurstPush();
+	}
 
+	//Log.Debug("AutoPatcher", "Sent 1500byte chunk.");
 	m_client->BurstEnd();
-
+	Log.Debug("PatchJob", "Bytes Left: %u", m_bytesLeft);
+	Log.Debug("PatchJob", "Client Write Buffer Size: %u", m_client->writeBuffer.GetSize());
 	// no need to check the result here, could just be a full buffer and not necessarily a fatal error.
 	return (m_bytesLeft>0)?true:false;
 }
 
 bool PatchMgr::InitiatePatch(Patch * pPatch, AuthSocket * pClient)
 {
+	Log.Debug("AutoPatcher","Initiating patch.");
 	// send initiate packet
 	TransferInitiatePacket init;
 	bool result;
 
 	init.cmd = 0x30;
 	init.strsize=5;
-	init.name[0] = 'P'; init.name[1] = 'a'; init.name[2] = 't'; init.name[3] = 'c'; init.name[4] = 'h'; init.name[5] = '\0';
+	init.name[0] = 'P';
+	init.name[1] = 'a';
+	init.name[2] = 't';
+	init.name[3] = 'c';
+	init.name[4] = 'h';
+	//init.name[5] = '\0';
 	init.filesize = pPatch->FileSize;
+	Log.Debug("AutoPatcher", "File Size : %u", pPatch->FileSize);
 	memcpy(init.md5hash, pPatch->MD5, MD5_DIGEST_LENGTH);
 
 	// send it to the client
 	pClient->BurstBegin();
 	result = pClient->BurstSend((const uint8*)&init,sizeof(TransferInitiatePacket));
+	Log.Debug("AutoPatcher","Burst Result : %s", (result)?"true":"false");
 	if(result)
 		pClient->BurstPush();
 	pClient->BurstEnd();

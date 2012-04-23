@@ -468,13 +468,13 @@ void LogonServer::Run(int argc, char ** argv)
 		sLog.outString("Success! Ready for connections");
 		while(mrunning.GetVal())
 		{
-			if(!(++loop_counter % 20))	 // 20 seconds
+			if(!(++loop_counter % 20000))	 // 20 seconds
 				CheckForDeadSockets();
 
-			if(!(loop_counter%300))	// 5mins
+			if(!(loop_counter%300000))	// 5mins
 				ThreadPool.IntegrityCheck();
 
-			if(!(loop_counter%5))
+			if(!(loop_counter%5000))
 			{
 				sInfoCore.TimeoutSockets();
 				sSocketGarbageCollector.Update();
@@ -484,7 +484,8 @@ void LogonServer::Run(int argc, char ** argv)
 			}
 
 			PatchMgr::getSingleton().UpdateJobs();
-			Arcemu::Sleep(1000);
+			// This really needs to be on a seperate thread for update jobs
+			Arcemu::Sleep(1);
 		}
 
 		sLog.outString("Shutting down...");

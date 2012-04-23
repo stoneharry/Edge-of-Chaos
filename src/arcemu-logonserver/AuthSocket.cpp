@@ -73,7 +73,6 @@ void AuthSocket::OnDisconnect()
 
 void AuthSocket::HandleChallenge()
 {
-	//sAccountMgr.ReloadAccounts(true);
 	// No header
 	if(readBuffer.GetContiguiousBytes() < 4){
 		LOG_ERROR( "[AuthChallenge] Packet has no header. Refusing to handle." );
@@ -128,6 +127,8 @@ void AuthSocket::HandleChallenge()
 		flippedloc[1] = m_challenge.country[2];
 		flippedloc[2] = m_challenge.country[1];
 		flippedloc[3] = m_challenge.country[0];
+
+		Log.Debug("Patch", "Patch %u %s for client.", build,flippedloc);
 
 		m_patch = PatchMgr::getSingleton().FindPatchForClient(build, flippedloc);
 		if(m_patch == NULL)
@@ -534,6 +535,9 @@ void AuthSocket::OnRead()
 		return;
 
 	uint8 Command = *(uint8*)readBuffer.GetBufferStart();
+
+	Log.Debug("AuthOpcode", "Got opcode/command %d", Command);
+
 	last_recv = UNIXTIME;
 	if(Command < MAX_AUTH_CMD && Handlers[Command] != NULL)
 		(this->*Handlers[Command])();
@@ -712,15 +716,17 @@ void AuthSocket::HandleTransferResume()
 	LOG_DEBUG("Resuming transfer");
 	if(!m_patch)
 		return;
-
+	LOG_DEBUG("Patch found");
 	//RemoveReadBufferBytes(1,false);
 	readBuffer.Remove(1);
 	uint64 size;
 	//Read(8,(uint8*)&size);
 	readBuffer.Read(&size, 8);
+	LOG_DEBUG("If %u is bigger than %u", size, m_patch->FileSize);
 	if(size>=m_patch->FileSize)
 		return;
 
+	LOG_DEBUG("Begin Patch Job");
 	PatchMgr::getSingleton().BeginPatchJob(m_patch,this,(uint32)size);
 }
 

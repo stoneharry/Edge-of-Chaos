@@ -125,7 +125,6 @@ public:
 
 	Account* GetAccount(string Name)
 	{
-		
 		setBusy.Acquire();
 		Account * pAccount = NULL;
 		// this should already be uppercase!
