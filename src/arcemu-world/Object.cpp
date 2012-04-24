@@ -1340,7 +1340,7 @@ bool Object::HasInArc(float arc, float x, float y)
     // move angle to range -pi ... +pi
     angle = NormalizeOrientation(angle);
     if (angle > M_PI)
-        angle -= 2.0f*M_PI;
+        angle -= 2.0f*float(M_PI);
 
     float lborder = -1 * (arc/2.0f);                        // in range -pi..0
     float rborder = (arc/2.0f);                             // in range 0..pi
@@ -2352,6 +2352,7 @@ Creature * Object::CreateCreature(uint32 entry, float x, float y, float z, float
 		pCreature->Despawn(duration, 0);
 	if(save)
 		pCreature->SaveToDB();
+	return pCreature;
 }
 
 Object* Object::GetPlayerOwner()

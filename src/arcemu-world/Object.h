@@ -808,12 +808,12 @@ class SERVER_DECL Object : public EventableObject
 		bool InBox(float centerX, float centerY, float centerZ, float BLength, float BWidth, float BHeight, float BOrientation, float delta);
 		bool HasInLine(Object * target, float width);
 		float GetAngle(float x, float y);
-		float GetExactDist2dSq(float x, float y) { float dx = m_positionX - x; float dy = m_positionY - y; return dx*dx + dy*dy; }
+		float GetExactDist2dSq(float x, float y) { float dx = GetPositionX() - x; float dy = GetPositionY() - y; return dx*dx + dy*dy; }
 		float GetExactDist2d(float x, float y) { return sqrt(GetExactDist2dSq(x, y)); }
-		float GetExactDist2dSq(float, x, float y, float x2, float y2) { float dx = x - x2; float dy = y - y2; return dx*dx + dy*dy; }
-		float GetExactDist2d(float, x, float y, float x2, float y2) { return sqrt(GetExactDist2dSq(x, y, x2, y2)); }
+		float GetExactDist2dSq(float x, float y, float x2, float y2) { float dx = x - x2; float dy = y - y2; return dx*dx + dy*dy; }
+		float GetExactDist2d(float x, float y, float x2, float y2) { return sqrt(GetExactDist2dSq(x, y, x2, y2)); }
 		float GetExactDistSq(float x, float y, float z)
-        { float dz = m_positionZ - z; return GetExactDist2dSq(x, y) + dz*dz; }
+        { float dz = GetPositionZ() - z; return GetExactDist2dSq(x, y) + dz*dz; }
 		//Andy's crap
 		virtual Object* GetPlayerOwner();
 		std::set<Spell*> m_pendingSpells;
