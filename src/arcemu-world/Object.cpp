@@ -1314,6 +1314,38 @@ float Object::getEasyAngle(float angle)
 		angle = angle - 360;
 	return angle;
 }
+static float NormalizeOrientation(float o)
+{
+	// fmod only supports positive numbers. Thus we have
+	// to emulate negative numbers
+	if (o < 0)
+	{
+		float mod = o *-1;
+		mod = fmod(mod, 2.0f * static_cast<float>(M_PI));
+		mod = -mod + 2.0f * static_cast<float>(M_PI);
+		return mod;
+	}
+	return fmod(o, 2.0f * static_cast<float>(M_PI));
+}
+
+bool Object::HasInArc(float arc, float x, float y)
+{
+
+    // move arc to range 0.. 2*pi
+    arc = NormalizeOrientation(arc);
+
+    float angle = GetAngle(x, y);
+	angle -= GetOrientation();
+
+    // move angle to range -pi ... +pi
+    angle = NormalizeOrientation(angle);
+    if (angle > M_PI)
+        angle -= 2.0f*M_PI;
+
+    float lborder = -1 * (arc/2.0f);                        // in range -pi..0
+    float rborder = (arc/2.0f);                             // in range 0..pi
+    return ((angle >= lborder) && (angle <= rborder));
+}
 
 bool Object::inArc(float Position1X, float Position1Y, float FOV, float Orientation, float Position2X, float Position2Y)
 {

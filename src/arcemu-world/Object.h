@@ -738,6 +738,8 @@ class SERVER_DECL Object : public EventableObject
 		/* Main Function called by isInFront(); */
 		bool inArc(float Position1X, float Position1Y, float FOV, float Orientation, float Position2X, float Position2Y);
 
+		bool HasInArc(float arc, float x, float y);
+
 		LocationVector m_position;
 		LocationVector m_lastMapUpdatePosition;
 		LocationVector m_spawnLocation;

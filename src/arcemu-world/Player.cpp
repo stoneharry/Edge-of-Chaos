@@ -1136,7 +1136,7 @@ void Player::_EventAttack(bool offhand)
 		}
 		setAttackTimer(300, offhand);
 	}
-	else if(!isInFront(pVictim))
+	else if(!HasInArc(2*M_PI/3, pVictim->GetPositionX(), pVictim->GetPositionY()))
 	{
 		// We still have to do this one.
 		if(m_AttackMsgTimer != 2)
