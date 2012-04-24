@@ -6135,12 +6135,12 @@ void Spell::WriteAmmoToPacket(WorldPacket* data)
         Item* pItem = p_caster->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_RANGED);
         if (pItem)
         {
-			if(pItem->GetDurability() > 0)
+			/*if(pItem->GetDurability() > 0)
 			{
 				pItem->SetDurability(pItem->GetDurability() - 1);
 				if(pItem->GetDurability() == 0)
 					p_caster->ApplyItemMods(pItem, EQUIPMENT_SLOT_RANGED, false, true);
-			}
+			}*/
 			ammoInventoryType = pItem->GetProto()->InventoryType;
             if (ammoInventoryType == INVTYPE_THROWN)
                 ammoDisplayID = pItem->GetProto()->DisplayInfoID;
