@@ -550,39 +550,12 @@ class LuaUnit
 			uint32 equip3 = luaL_optint(L, 10, 1);
 			uint32 phase = luaL_optint(L, 11, ptr->m_phase);
 			bool save = luaL_optint(L, 12, 0) ? true : false;
-
-			if(!entry)
-			{
-				lua_pushnil(L);
-				return 1;
-			}
-			CreatureProto* p = CreatureProtoStorage.LookupEntry(entry);
-			CreatureInfo* i = CreatureNameStorage.LookupEntry(entry);
-
-			if(p == NULL || i == NULL)
-			{
-				lua_pushnil(L);
-				return 1;
-			}
-
-			Creature* pCreature = ptr->GetMapMgr()->CreateCreature(entry);
+			Creature* pCreature = ptr->CreateCreature(entry, x, y, z, o, faction, duration, equip1, equip2, equip3, phase, save);
 			if(pCreature == NULL)
 			{
 				lua_pushnil(L);
 				return 1;
 			}
-			pCreature->Load(p, x, y, z, o);
-			pCreature->SetFaction(faction);
-			pCreature->SetEquippedItem(MELEE, equip1);
-			pCreature->SetEquippedItem(OFFHAND, equip2);
-			pCreature->SetEquippedItem(RANGED, equip3);
-			pCreature->Phase(PHASE_SET, phase);
-			pCreature->m_noRespawn = true;
-			pCreature->PushToWorld(ptr->GetMapMgr());
-			if(duration)
-				pCreature->Despawn(duration, 0);
-			if(save)
-				pCreature->SaveToDB();
 			PUSH_UNIT(L, pCreature);
 			return 1;
 		}

@@ -1608,6 +1608,8 @@ class SERVER_DECL Spell : public EventableObject
 		// Fills the target map of the spell packet
 		void FillTargetMap(uint32);
 		float GetDirectionAngle(uint32 TargetType);
+
+		void SelectTrajectoryTargets();
 		void HandleTargetNoObject();
 
 		// See if we hit the target or can it resist (evade/immune/resist on spellgo) (0=success)

@@ -329,7 +329,7 @@ class SERVER_DECL Object : public EventableObject
 		Creature* GetMapMgrCreature(const uint64 & guid);
 		GameObject* GetMapMgrGameObject(const uint64 & guid);
 		DynamicObject* GetMapMgrDynamicObject(const uint64 & guid);
-
+		Creature * CreateCreature(uint32 entry, float x, float y, float z, float o, uint32 faction, uint32 duration, uint32 equip1, uint32 equip2, uint32 equip3, uint32 phase, bool save);
 		void SetMapId(uint32 newMap) { m_mapId = newMap; }
 		void SetZoneId(uint32 newZone);
 
@@ -804,6 +804,14 @@ class SERVER_DECL Object : public EventableObject
 		void SetCurrentSpell(Spell* cSpell) { m_currentSpell = cSpell; }
 		Creature * GetCreatureWithEntry(uint32 entry);
 		bool InBox(float centerX, float centerY, float centerZ, float BLength, float BWidth, float BHeight, float BOrientation, float delta);
+		bool HasInLine(Object * target, float width);
+		float GetAngle(float x, float y);
+		float GetExactDist2dSq(float x, float y) { float dx = m_positionX - x; float dy = m_positionY - y; return dx*dx + dy*dy; }
+		float GetExactDist2d(float x, float y) { return sqrt(GetExactDist2dSq(x, y)); }
+		float GetExactDist2dSq(float, x, float y, float x2, float y2) { float dx = x - x2; float dy = y - y2; return dx*dx + dy*dy; }
+		float GetExactDist2d(float, x, float y, float x2, float y2) { return sqrt(GetExactDist2dSq(x, y, x2, y2)); }
+		float GetExactDistSq(float x, float y, float z)
+        { float dz = m_positionZ - z; return GetExactDist2dSq(x, y) + dz*dz; }
 		//Andy's crap
 		virtual Object* GetPlayerOwner();
 		std::set<Spell*> m_pendingSpells;

@@ -512,7 +512,7 @@ bool ChatHandler::HandleAppearCommand(const char* args, WorldSession* m_session)
 	if(args)
 		chr = objmgr.GetPlayer(args, false);
 	else
-		chr = getSelectedChar(m_session, false);
+		chr = getSelectedChar(m_session);
 
 	// Appear Blocking
 	if(!stricmp(args, "on"))

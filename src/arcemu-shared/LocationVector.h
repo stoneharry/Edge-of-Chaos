@@ -134,6 +134,29 @@ class SERVER_DECL LocationVector
 			y = Y;
 			z = Z;
 		}
+		float GetExactDist2d(float tx, float ty)
+        { return sqrt(GetExactDist2dSq(tx, ty)); }
+
+		float GetExactDist2dSq(float tx, float ty)
+        { 
+			float dx = x - tx; 
+			float dy = y - ty; 
+			return dx*dx + dy*dy; 
+		}
+
+		float GetAngle(float tx, float ty) const
+		{
+			float dx = tx - x;
+			float dy = ty - y;
+
+			float ang = atan2(dy, dx);
+			ang = (ang >= 0) ? ang : 2 * 3.14159265358979323846f + ang;
+			return ang;
+		}
+		float GetRelativeAngle(float tx, float ty) const { return GetAngle(tx, ty) - o; }
+
+		float GetExactDistSq(float tx, float ty, float tz)
+        { float dz = z - tz; return GetExactDist2dSq(tx, ty) + dz*dz; }
 
 		// add/subtract/equality vectors
 		LocationVector & operator += (const LocationVector & add)

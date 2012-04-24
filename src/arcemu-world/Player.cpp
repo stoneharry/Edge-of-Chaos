@@ -4382,7 +4382,7 @@ void Player::RepopRequestedPlayer()
 	if(corpse)
 		CreateCorpse();
 
-
+	BuildPlayerRepop();
 	if(InInstance())
 	{
 		MapInfo* map = WorldMapInfoStorage.LookupEntry(GetMapId());
@@ -4392,9 +4392,6 @@ void Player::RepopRequestedPlayer()
 			return;
 		}
 	}
-
-	BuildPlayerRepop();
-
 
 	// Cebernic: don't do this.
 	if(!m_bg || (m_bg && m_bg->HasStarted()))

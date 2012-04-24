@@ -903,13 +903,6 @@ void Object::RemoveFromWorld(bool free_guid)
 	ARCEMU_ASSERT(m_mapMgr != NULL);
 
 	OnPreRemoveFromWorld();
-	MapMgr * m = m_mapMgr;
-	m->RemoveObject(this, free_guid);
-	m_mapMgr = NULL;
-
-
-	OnRemoveFromWorld();
-
 	std::set<Spell*>::iterator itr, itr2;
 	Spell* sp;
 	for(itr = m_pendingSpells.begin(); itr != m_pendingSpells.end();)
@@ -923,6 +916,13 @@ void Object::RemoveFromWorld(bool free_guid)
 		else
 			delete sp;
 	}
+	MapMgr * m = m_mapMgr;
+	m->RemoveObject(this, free_guid);
+	m_mapMgr = NULL;
+
+
+	OnRemoveFromWorld();
+
 	//shouldnt need to clear, spell destructor will erase
 	//m_pendingSpells.clear();
 
@@ -2295,6 +2295,33 @@ DynamicObject* Object::GetMapMgrDynamicObject(const uint64 & guid)
 	return GetMapMgr()->GetDynamicObject(GET_LOWGUID_PART(guid));
 }
 
+Creature * Object::CreateCreature(uint32 entry, float x, float y, float z, float o, uint32 faction, uint32 duration, uint32 equip1, uint32 equip2, uint32 equip3, uint32 phase, bool save)
+{
+	if(!entry)
+		return NULL;
+	CreatureProto* p = CreatureProtoStorage.LookupEntry(entry);
+	CreatureInfo* i = CreatureNameStorage.LookupEntry(entry);
+
+	if(p == NULL || i == NULL)
+		return NULL;
+
+	Creature* pCreature = GetMapMgr()->CreateCreature(entry);
+	if(pCreature == NULL)
+		return NULL;
+	pCreature->Load(p, x, y, z, o);
+	pCreature->SetFaction(faction);
+	pCreature->SetEquippedItem(MELEE, equip1);
+	pCreature->SetEquippedItem(OFFHAND, equip2);
+	pCreature->SetEquippedItem(RANGED, equip3);
+	pCreature->Phase(PHASE_SET, phase);
+	pCreature->m_noRespawn = true;
+	pCreature->PushToWorld(GetMapMgr());
+	if(duration)
+		pCreature->Despawn(duration, 0);
+	if(save)
+		pCreature->SaveToDB();
+}
+
 Object* Object::GetPlayerOwner()
 {
 	return NULL;
@@ -2440,4 +2467,23 @@ bool Object::InBox(float centerX, float centerY, float centerZ, float BLength, f
 	if(!((fabs(dx) > BLength/2 + delta) || (fabs(dy) > BWidth/2 + delta) || (fabs(dz) > BHeight/2 + delta)))
 		return true;
 	return false;
+}
+
+float Object::GetAngle(float x, float y)
+{
+    float dx = x - GetPositionX();
+    float dy = y - GetPositionY();
+
+    float ang = atan2(dy, dx);
+    ang = (ang >= 0) ? ang : 2 * M_PI + ang;
+    return ang;
+}
+
+bool Object::HasInLine(Object * target, float width)
+{
+    if (!HasInArc(3.14159265358979323846f, target))
+        return false;
+    width += target->GetObjectSize();
+	float angle = GetAngle(target->GetPositionX(), target->GetPositionY()) - GetOrientation();
+    return fabs(sin(angle)) * GetExactDist2d(target->GetPositionX(), target->GetPositionY()) < width;
 }

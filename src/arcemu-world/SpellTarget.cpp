@@ -52,7 +52,7 @@ void InitImplicitTargetFlags()
 	SET_TARGET_TYPE(29, SPELL_TARGET_OBJECT_SELF | SPELL_TARGET_AREA_PARTY | SPELL_TARGET_AREA_SELF);
 	SET_TARGET_TYPE(30, SPELL_TARGET_REQUIRE_FRIENDLY);
 	SET_TARGET_TYPE(31, SPELL_TARGET_REQUIRE_FRIENDLY | SPELL_TARGET_AREA);
-	SET_TARGET_TYPE(32, SPELL_TARGET_OBJECT_SELF | SPELL_TARGET_AREA);
+	//SET_TARGET_TYPE(32, SPELL_TARGET_OBJECT_SELF | SPELL_TARGET_AREA);
 	SET_TARGET_TYPE(33, SPELL_TARGET_AREA_SELF | SPELL_TARGET_AREA_PARTY);
 	SET_TARGET_TYPE(34, SPELL_TARGET_AREA_SELF | SPELL_TARGET_AREA_PARTY);
 	SET_TARGET_TYPE(35, SPELL_TARGET_AREA_PARTY);
@@ -790,4 +790,135 @@ float Spell::GetDirectionAngle(uint32 TargetType)
 	if(TargetType & SPELL_TARGET_AREA_RANDOM)
 		return RandomFloat()*static_cast<float>(2*M_PI);
 	return 0.0f;
+}
+
+float tangent(float x)
+{
+    x = tan(x);
+    //if (x < std::numeric_limits<float>::max() && x > -std::numeric_limits<float>::max()) return x;
+    //if (x >= std::numeric_limits<float>::max()) return std::numeric_limits<float>::max();
+    //if (x <= -std::numeric_limits<float>::max()) return -std::numeric_limits<float>::max();
+    if (x < 100000.0f && x > -100000.0f) return x;
+    if (x >= 100000.0f) return 100000.0f;
+    if (x <= 100000.0f) return -100000.0f;
+    return 0.0f;
+}
+
+void Spell::SelectTrajectoryTargets()
+{
+    if (!m_targets.HasTraj())
+        return;
+
+    float dist2d = m_targets.GetDist2d();
+    if (!dist2d)
+        return;
+
+	float srcToDestDelta = m_targets.m_destZ - m_targets.m_srcZ;
+    float b = tangent(m_targets.GetElevation());
+    float a = (srcToDestDelta - dist2d * b) / (dist2d * dist2d);
+    if (a > -0.0001f)
+        a = 0;
+
+    float bestDist = GetMaxRange(dbcSpellRange.LookupEntry(m_spellInfo->rangeIndex));
+	LocationVector src(m_targets.m_srcX, m_targets.m_srcY, m_targets.m_srcZ, m_caster->GetOrientation());
+	ObjectSet::iterator itr = m_caster->GetInRangeSetBegin();
+	for(; itr != m_caster->GetInRangeSetEnd(); ++itr)
+	{
+		Object * target = (*itr);
+		if(!m_caster->HasInLine(target, 0))
+			continue;
+		if(m_caster->GetGUID() == target->GetGUID())
+			continue;
+		if(target->IsUnit())
+			if(TO_UNIT(target)->GetCurrentVehicle())
+				continue;
+        const float size = std::max((*itr)->GetObjectSize() * 0.7f, 1.0f); // 1/sqrt(3)
+		
+        // TODO: all calculation should be based on src instead of m_caster
+		float objDist2d = src.GetExactDist2d(target->GetPositionX(), target->GetPositionY()) * cos(src.GetRelativeAngle(target->GetPositionX(), target->GetPositionY()));
+		float dz = (*itr)->GetPositionZ() - m_targets.m_srcZ;
+        float dist = objDist2d - size;
+        float height = dist * (a * dist + b);
+        if (dist < bestDist && height < dz + size && height > dz - size)
+        {
+            bestDist = dist > 0 ? dist : 0;
+            break;
+        }
+#define CHECK_DIST {\
+            sLog.outDebug("Spell::SelectTrajTargets: dist %f, height %f.", dist, height);\
+            if (dist > bestDist)\
+                continue;\
+            if (dist < objDist2d + size && dist > objDist2d - size)\
+            {\
+                bestDist = dist;\
+                break;\
+            }\
+        }
+        if (!a)
+        {
+            height = dz - size;
+            dist = height / b;
+            CHECK_DIST;
+
+            height = dz + size;
+            dist = height / b;
+            CHECK_DIST;
+
+            continue;
+        }
+
+        height = dz - size;
+        float sqrt1 = b * b + 4 * a * height;
+        if (sqrt1 > 0)
+        {
+            sqrt1 = sqrt(sqrt1);
+            dist = (sqrt1 - b) / (2 * a);
+            CHECK_DIST;
+        }
+
+        height = dz + size;
+        float sqrt2 = b * b + 4 * a * height;
+        if (sqrt2 > 0)
+        {
+            sqrt2 = sqrt(sqrt2);
+            dist = (sqrt2 - b) / (2 * a);
+            CHECK_DIST;
+
+            dist = (-sqrt2 - b) / (2 * a);
+            CHECK_DIST;
+        }
+
+        if (sqrt1 > 0)
+        {
+            dist = (-sqrt1 - b) / (2 * a);
+            CHECK_DIST;
+        }
+	}
+
+
+	if (src.GetExactDist2d(m_targets.m_destX, m_targets.m_destY) > bestDist)
+    {
+		float x = src.x + cos(m_caster->GetOrientation()) * bestDist;
+        float y = src.y + sin(m_caster->GetOrientation()) * bestDist;
+        float z = src.z + bestDist * (a * bestDist + b);
+
+        if (itr != m_caster->GetInRangeSetEnd())
+        {
+            float distSq = (*itr)->GetExactDistSq(x, y, z);
+            float sizeSq = (*itr)->GetObjectSize();
+            sizeSq *= sizeSq;
+            if (distSq > sizeSq)
+            {
+                float factor = 1 - sqrt(sizeSq / distSq);
+                x += factor * ((*itr)->GetPositionX() - x);
+                y += factor * ((*itr)->GetPositionY() - y);
+                z += factor * ((*itr)->GetPositionZ() - z);
+
+                distSq = (*itr)->GetExactDistSq(x, y, z);
+            }
+        }
+		m_targets.m_destX = x;
+		m_targets.m_destY = y;
+		m_targets.m_destZ = z;
+    }
 }
