@@ -3353,11 +3353,11 @@ bool SummonZeGhouls(uint32 i, Spell* pSpell)
 	Unit* cast = pSpell->u_caster;
 	float rad = pSpell->GetRadius(i);
 	float x,y,z;
-	for (uint8 i = 0; i < 15; ++i)
-	{
+	//for (uint8 i = 0; i < 15; ++i)
+	//{
 		cast->GetRandomPoint(rad, x, y, z);
 		cast->CastSpellAoF(x, y,z,dbcSpell.LookupEntryForced(54522), true);
-	}
+	//}
  
    return true;
 }

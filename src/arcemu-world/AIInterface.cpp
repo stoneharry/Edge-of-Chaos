@@ -2926,7 +2926,7 @@ uint32 AIInterface::getThreatByPtr(Unit* obj)
 
 void AIInterface::SendThreatListUpdate()
 {
-	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature())
+	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature() || m_Unit->IsTotem())
 		return;
 	if(m_aiTargets.empty())
 		return;
@@ -2945,7 +2945,7 @@ void AIInterface::SendThreatListUpdate()
 
 void AIInterface::SendChangeCurrentVictimOpcode(uint64 guid)
 {
-	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature())
+	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature() || m_Unit->IsTotem())
 		return;
 	if(m_aiTargets.empty())
 		return;
@@ -2965,7 +2965,7 @@ void AIInterface::SendChangeCurrentVictimOpcode(uint64 guid)
 
 void AIInterface::SendClearThreatListOpcode()
 {
-	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature())
+	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature() || m_Unit->IsTotem())
 		return;
 	WorldPacket data(SMSG_THREAT_CLEAR, 8);
 	data.append(m_Unit->GetNewGUID());
@@ -2974,7 +2974,7 @@ void AIInterface::SendClearThreatListOpcode()
 
 void AIInterface::SendRemoveFromThreatListOpcode(uint64 guid)
 {
-	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature())
+	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature() || m_Unit->IsTotem())
 		return;
 	WorldPacket data(SMSG_THREAT_REMOVE, 8 + 8);
 	data.appendPackGUID(m_Unit->GetGUID());

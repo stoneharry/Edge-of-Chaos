@@ -396,7 +396,16 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
     {
         // now client not include swimming flag in case jumping under water
 		_player->SetInWater(!_player->IsInWater() || movementInfo.z < (_player->GetMapMgr()->GetLiquidHeight(movementInfo.x, movementInfo.y)-2));
+		_player->UpdateUnderwaterState(movementInfo.x, movementInfo.y, movementInfo.z);
     }
+	else
+	{
+		if(_player->m_MirrorTimer[BREATH_TIMER] != DISABLED_MIRROR_TIMER)
+		{
+			_player->StopMirrorTimers();
+			_player->m_MirrorTimer[BREATH_TIMER] = _player->getMaxTimer(BREATH_TIMER);
+		}
+	}
 
 	/************************************************************************/
 	/* Remove Spells                                                        */
@@ -571,8 +580,8 @@ void WorldSession::HandleMoveKnockBackAck(WorldPacket & recv_data)
     _player->BuildMovementPacket(&data);
 	data << movementInfo.redirectSin;
 	data << movementInfo.redirectCos;
-	data << movementInfo.redirectVelocity;
 	data << movementInfo.redirect2DSpeed;
+	data << movementInfo.redirectVelocity;
 	_player->SendMessageToSet(&data, false);
 }
 

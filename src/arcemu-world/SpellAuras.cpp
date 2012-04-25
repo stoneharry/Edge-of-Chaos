@@ -4918,14 +4918,18 @@ void Aura::SpellAuraModDisarm(bool apply)
 
 void Aura::SpellAuraModStalked(bool apply)
 {
+	if(m_target->HasAuraWithName(SPELL_AURA_MOD_STALKED, GetSpellId()))
+		return;
 	if(apply)
 	{
 		m_target->stalkedby = m_casterGuid;
 		SetNegative();
+		m_target->SetFlag(UNIT_DYNAMIC_FLAGS, U_DYN_FLAG_UNIT_TRACKABLE);
 	}
 	else
 	{
 		m_target->stalkedby = 0;
+		m_target->RemoveFlag(UNIT_DYNAMIC_FLAGS, U_DYN_FLAG_UNIT_TRACKABLE);
 	}
 }
 
@@ -6573,11 +6577,12 @@ void Aura::SpellAuraModShieldBlockPCT(bool apply)
 
 void Aura::SpellAuraTrackStealthed(bool apply)
 {
-	Unit* c = GetUnitCaster();
-	if(c == NULL)
+	if(p_target == NULL)
 		return;
-
-	c->trackStealth = apply;
+	if(apply)
+		p_target->SetFlag(PLAYER_FIELD_BYTES, PLAYER_FIELD_BYTE_TRACK_STEALTHED);
+	else
+		p_target->RemoveFlag(PLAYER_FIELD_BYTES, PLAYER_FIELD_BYTE_TRACK_STEALTHED);
 }
 
 void Aura::SpellAuraModDetectedRange(bool apply)

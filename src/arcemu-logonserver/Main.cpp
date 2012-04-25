@@ -559,7 +559,7 @@ void LogonServer::CheckForDeadSockets()
 		++itr;
 
 		diff = t - s->GetLastRecv();
-		if(diff > 300)		   // More than 5mins
+		if(diff > 300 && !s->m_patchJob)		   // More than 5mins
 		{
 			_authSockets.erase(it2);
 			s->removedFromSet = true;

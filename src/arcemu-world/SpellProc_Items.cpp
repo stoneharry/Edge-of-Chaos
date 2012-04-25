@@ -67,9 +67,9 @@ class PersistentShield : public SpellProc
 			if(!CastingSpell->HasEffect(SPELL_EFFECT_HEAL))
 				return true;
 
-			dmg_overwrite[0] = dmg * 0.15;
-			dmg_overwrite[1] = dmg * 0.15;
-			dmg_overwrite[2] = dmg * 0.15;
+			dmg_overwrite[0] = mTarget->SpellHealingBonus(victim, CastingSpell, CastingSpell->EffectBasePoints[0] + 1, 0) * 0.15;
+			dmg_overwrite[1] = mTarget->SpellHealingBonus(victim, CastingSpell, CastingSpell->EffectBasePoints[0] + 1, 0) * 0.15;
+			dmg_overwrite[2] = mTarget->SpellHealingBonus(victim, CastingSpell, CastingSpell->EffectBasePoints[0] + 1, 0) * 0.15;
 
 			return false;
 		}
