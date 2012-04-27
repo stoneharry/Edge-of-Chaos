@@ -2347,7 +2347,7 @@ Creature * Object::CreateCreature(uint32 entry, float x, float y, float z, float
 	pCreature->SetEquippedItem(RANGED, equip3);
 	pCreature->Phase(PHASE_SET, phase);
 	pCreature->m_noRespawn = true;
-	pCreature->PushToWorld(GetMapMgr());
+	pCreature->AddToWorld(GetMapMgr());
 	if(duration)
 		pCreature->Despawn(duration, 0);
 	if(save)

@@ -69,7 +69,7 @@ public:
 	{
 		if(m_account->GMFlags == NULL)
 			return false;
-		if(m_account->GMFlags[0] == 'a' && m_account->GMFlags[1] == 'z' || m_account->GMFlags != NULL)
+		if(m_account->GMFlags != "")
 			return true;
 		return false;
 	}

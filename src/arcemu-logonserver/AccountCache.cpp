@@ -491,18 +491,18 @@ void InformationCore::SendRealms(AuthSocket * Socket)
 	bool gm = Socket->IsGMAccount();
 	//Developer Realm
 	//sAuthLogonChallenge_C * client = Socket->GetChallenge();
-	if(!gm && m_realms.size() >= 2)
-		data << uint16(m_realms.size()-1);
-	else
-		data << uint16(m_realms.size());
+	//if(!gm && m_realms.size() >= 2)
+		//data << uint16(m_realms.size()-1);
+	//else
+	data << uint16(m_realms.size());
 	
 	// loop realms :/
 	map<uint32, Realm*>::iterator itr = m_realms.begin();
 	HM_NAMESPACE::hash_map<uint32, uint8>::iterator it;
 	for(; itr != m_realms.end(); ++itr)
 	{
-		if(!gm && itr->second->Name == "Developer Realm")
-			continue;
+		//if(!gm)
+			//continue;
 		uint8 lock = itr->second->Lock;
 		if(gm)
 			lock = 0;
