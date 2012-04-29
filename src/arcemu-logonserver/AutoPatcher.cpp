@@ -29,6 +29,16 @@
 initialiseSingleton(PatchMgr);
 PatchMgr::PatchMgr()
 {
+
+}
+
+PatchMgr::~PatchMgr()
+{
+
+}
+
+void PatchMgr::InitializePatchList()
+{
 	// load patches
 	Log.Debug("PatchMgr", "Starting up.");
 #ifdef WIN32
@@ -199,99 +209,11 @@ PatchMgr::PatchMgr()
 #endif
 }
 
-PatchMgr::~PatchMgr()
-{
-
-}
-
 Patch * PatchMgr::FindPatchForClient(uint32 Version, const char * Locality)
 {
-
-	Log.Debug("PatchMgr", "Main function has been called.");
-	Log.Notice("PatchMgr", "Loading Patches...");
-	char Buffer[MAX_PATH*10];
-	char Buffer2[MAX_PATH*10];
-	char Buffer3[MAX_PATH*10];
-
-	WIN32_FIND_DATA fd;
-	HANDLE fHandle;
-	MD5Hash md5;
-	Patch * pPatch;
-	DWORD size,sizehigh;
-	HANDLE hFile;
-	uint32 srcversion;
-	char locality[5];
-	uint32 i;
-
-	if(!GetCurrentDirectory(MAX_PATH*10, Buffer))
-		return NULL;
-
-	strcpy(Buffer2,Buffer);
-	strcat(Buffer, "\\ClientPatches\\*.*");
-	fHandle = FindFirstFile(Buffer, &fd);
-	if(fHandle == INVALID_HANDLE_VALUE)
-		return NULL;
-
-	do 
-	{
-		snprintf(Buffer3,MAX_PATH*10,"%s\\ClientPatches\\%s",Buffer2,fd.cFileName);
-		if(sscanf(fd.cFileName,"%4s%u.", locality, &srcversion) != 2)
-		{
-			Log.Notice("Found Incorrect : %4s %s", locality, fd.cFileName);
-			continue;
-		}
-		else
-		{
-			Log.Notice("Found Correct : %s %s", locality, fd.cFileName);
-		}
-
-		hFile = CreateFile(Buffer3, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_ARCHIVE, NULL);
-		if(hFile == INVALID_HANDLE_VALUE)
-			continue;
-
-		Log.Notice("PatchMgr", "Found patch for %u locale `%s`.", srcversion,locality);
-		pPatch = new Patch;
-		size = GetFileSize(hFile, &sizehigh);
-		Log.Debug("PatchMgr", "Patch size : %u", size);
-		pPatch->FileSize = size;
-		pPatch->Data = new uint8[size];
-		pPatch->Version = srcversion;
-		Log.Debug("PatchMgr", "Patch version : %u", srcversion);
-		for(i = 0; i < 4; ++i)
-			pPatch->Locality[i] = static_cast<char>(tolower(locality[i]));
-		pPatch->Locality[4] = 0;
-		pPatch->uLocality = *(uint32*)pPatch->Locality;
-
-		if(pPatch->Data== NULL)
-		{
-			// shouldn't really happen
-			delete pPatch;
-			CloseHandle(hFile);
-			continue;
-		}
-
-		// read the whole file
-		ASSERT(ReadFile(hFile, pPatch->Data, pPatch->FileSize, &size, NULL));
-		ASSERT(size == pPatch->FileSize);
-
-		// close the handle, no longer needed
-		CloseHandle(hFile);
-
-		// md5hash the file
-		md5.Initialize();
-		md5.UpdateData(pPatch->Data, pPatch->FileSize);
-		md5.Finalize();
-		memcpy(pPatch->MD5, md5.GetDigest(), MD5_DIGEST_LENGTH);
-		
-		// add the patch to the patchlist
-		m_patches.push_back(pPatch);
-
-	} while(FindNextFile(fHandle,&fd));
-	FindClose(fHandle);
-
 	char tmplocality[5];
 	uint32 ulocality;
-	//uint32 i;
+	uint32 i;
 	vector<Patch*>::iterator itr;
 	Patch * fallbackPatch = NULL;
 	for(i = 0; i < 4; ++i)

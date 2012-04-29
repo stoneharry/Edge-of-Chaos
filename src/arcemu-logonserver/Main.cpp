@@ -465,6 +465,10 @@ void LogonServer::Run(int argc, char ** argv)
 		}
 		uint32 loop_counter = 0;
 		//ThreadPool.Gobble();
+		
+		sLog.outString("Loading possible patches..");
+		PatchMgr::getSingleton().InitializePatchList();
+		
 		sLog.outString("Success! Ready for connections");
 		while(mrunning.GetVal())
 		{

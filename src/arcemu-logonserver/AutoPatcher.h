@@ -55,6 +55,7 @@ public:
 	void UpdateJobs();
 	void AbortPatchJob(PatchJob * pJob);
 	bool InitiatePatch(Patch * pPatch, AuthSocket * pClient);
+	void InitializePatchList();
 
 protected:
 	vector<Patch*> m_patches;
