@@ -29,78 +29,71 @@ class PatchJob;
 
 class AuthSocket : public Socket
 {
-	friend class LogonCommServerSocket;
-public:
+		friend class LogonCommServerSocket;
+	public:
 
-	///////////////////////////////////////////////////
-	// Netcore shit
-	//////////////////////////
-	AuthSocket(SOCKET fd);
-	~AuthSocket();
+		///////////////////////////////////////////////////
+		// Netcore shit
+		//////////////////////////
+		AuthSocket(SOCKET fd);
+		~AuthSocket();
 
-	void OnRead();
+		void OnRead();
 
-	///////////////////////////////////////////////////
-	// Client Packet Handlers
-	//////////////////////////
+		///////////////////////////////////////////////////
+		// Client Packet Handlers
+		//////////////////////////
 
-	void HandleChallenge();
-	void HandleProof();
-	void HandleRealmlist();
-	void HandleReconnectChallenge();
-	void HandleReconnectProof();
-	void HandleTransferAccept();
-	void HandleTransferResume();
-	void HandleTransferCancel();
+		void HandleChallenge();
+		void HandleProof();
+		void HandleRealmlist();
+		void HandleReconnectChallenge();
+		void HandleReconnectProof();
+		void HandleTransferAccept();
+		void HandleTransferResume();
+		void HandleTransferCancel();
 
-	///////////////////////////////////////////////////
-	// Server Packet Builders
-	//////////////////////////
+		///////////////////////////////////////////////////
+		// Server Packet Builders
+		//////////////////////////
 
-	void SendChallengeError(uint8 Error);
-	void SendProofError(uint8 Error, uint8 * M2);
-	ARCEMU_INLINE sAuthLogonChallenge_C * GetChallenge() { return &m_challenge; }
-	ARCEMU_INLINE void SendPacket(const uint8* data, const uint16 len) { Send(data, len); }
-	void OnDisconnect();
-	ARCEMU_INLINE time_t GetLastRecv() { return last_recv; }
-	bool removedFromSet;
-	ARCEMU_INLINE uint32 GetAccountID() { return m_account ? m_account->AccountId : 0; }
-	bool IsGMAccount() 
-	{
-		if(m_account->GMFlags == NULL)
-			return false;
-		if(m_account->GMFlags != "")
-			return true;
-		return false;
-	}
-protected:
+		void SendChallengeError(uint8 Error);
+		void SendProofError(uint8 Error, uint8* M2);
+		ARCEMU_INLINE sAuthLogonChallenge_C* GetChallenge() { return &m_challenge; }
+		ARCEMU_INLINE void SendPacket(const uint8* data, const uint16 len) { Send(data, len); }
+		void OnDisconnect();
+		ARCEMU_INLINE time_t GetLastRecv() { return last_recv; }
+		bool removedFromSet;
+		ARCEMU_INLINE uint32 GetAccountID() { return m_account ? m_account->AccountId : 0; }
 
-	sAuthLogonChallenge_C m_challenge;
-	Account * m_account;
-	bool m_authenticated;
+	protected:
 
-	// BigNumbers for the SRP6 implementation
-	BigNumber N; // Safe prime
-	BigNumber g; // Generator
-	BigNumber s; // Salt
-	BigNumber v; // Verifier
-	BigNumber b; // server private value
-	BigNumber B; // server public value
-	BigNumber rs;
+		sAuthLogonChallenge_C m_challenge;
+		Account* m_account;
+		bool m_authenticated;
 
-	//////////////////////////////////////////////////
-	// Session Key
-	/////////////////////////
+		// BigNumbers for the SRP6 implementation
+		BigNumber N; // Safe prime
+		BigNumber g; // Generator
+		BigNumber s; // Salt
+		BigNumber v; // Verifier
+		BigNumber b; // server private value
+		BigNumber B; // server public value
+		BigNumber rs;
 
-	BigNumber m_sessionkey;
-	time_t last_recv;
+		//////////////////////////////////////////////////
+		// Session Key
+		/////////////////////////
 
-	//////////////////////////////////////////////////////////////////////////
-	// Patching stuff
-	//////////////////////////////////////////////////////////////////////////
-public:
-	Patch * m_patch;
-	PatchJob * m_patchJob;
+		BigNumber m_sessionkey;
+		time_t last_recv;
+
+		//////////////////////////////////////////////////////////////////////////
+		// Patching stuff
+		//////////////////////////////////////////////////////////////////////////
+	public:
+		Patch* m_patch;
+		PatchJob* m_patchJob;
 };
 
 #endif
