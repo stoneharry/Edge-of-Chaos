@@ -2107,7 +2107,7 @@ class SERVER_DECL Spell : public EventableObject
 
 
 		Spell* m_reflectedParent;
-
+		int32 GetTimer() { return m_timer; }
 	protected:
 
 		/// Spell state's

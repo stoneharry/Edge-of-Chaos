@@ -2107,6 +2107,17 @@ void Creature::TakeDamage(Unit* pAttacker, uint32 damage, uint32 spellid, bool n
 
 void Creature::Die(Unit* pAttacker, uint32 damage, uint32 spellid)
 {
+	if(IsFlying())
+	{
+		float Fz = CollideInterface.GetHeight(GetMapId(), this->GetPositionX(), GetPositionY(), GetPositionZ());
+		if(Fz == NO_WMO_HEIGHT)
+			Fz = GetMapMgr()->GetADTLandHeight(GetPositionX(), GetPositionY());
+		if(Fz != GetPositionZ())
+		{
+			SetPosition(GetPositionX(), GetPositionY(), Fz, GetOrientation());
+			SendMovementFlagUpdate();
+		}
+	}
 	if( GetVehicleComponent() != NULL ){
 		GetVehicleComponent()->RemoveAccessories();
 		GetVehicleComponent()->EjectAllPassengers();

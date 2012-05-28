@@ -7040,4 +7040,12 @@ void ApplyNormalFixes()
 	{
 		sp->EffectBasePoints[0] = 1430;
 	}
+
+	sp = CheckAndReturnSpellEntry(6201);
+	if(sp)
+	{
+		sp->Effect[0] = SPELL_EFFECT_CREATE_ITEM;
+		sp->EffectItemType[0] = 19005;
+		sp->EffectDieSides[0] = 1;
+	}
 }

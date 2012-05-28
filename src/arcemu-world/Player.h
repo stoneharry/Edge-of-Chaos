@@ -2301,10 +2301,6 @@ class SERVER_DECL Player : public Unit
 
 		Item* getTradeItem(uint32 slot) {return mTradeItems[slot];};
 
-		/* Mind Control */
-		void Possess(uint64 GUID, uint32 delay = 0);
-		void UnPossess();
-
 		/* Last Speeds */
 		void UpdateLastSpeeds()
 		{
@@ -2673,7 +2669,12 @@ class SERVER_DECL Player : public Unit
         void StopMirrorTimer(uint32 Type);
         void HandleDrowning(uint32 time_diff);
         int32 getMaxTimer(MirrorTimerType timer);
-
+		void SetClientControl(Unit* target, uint8 allowMove);
+		void SetMover(Unit* target)
+		{
+			GetSession()->m_MoverWoWGuid.Init(target->GetGUID());
+        }
+		uint32 m_flycheckdelay;
 };
 
 

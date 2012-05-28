@@ -92,7 +92,7 @@ pSpellEffect SpellEffectsHandler[TOTAL_SPELL_EFFECTS] =
 	&Spell::SpellEffectHealMaxHealth,			//SPELL_EFFECT_HEAL_MAX_HEALTH - 67
 	&Spell::SpellEffectInterruptCast,			//SPELL_EFFECT_INTERRUPT_CAST - 68
 	&Spell::SpellEffectDistract,				//SPELL_EFFECT_DISTRACT - 69
-	&Spell::SpellEffectNULL,					//SPELL_EFFECT_PULL - 70
+	&Spell::SpellEffectPlayerPull,				//SPELL_EFFECT_PULL - 70
 	&Spell::SpellEffectPickpocket,				//SPELL_EFFECT_PICKPOCKET - 71
 	&Spell::SpellEffectAddFarsight,				//SPELL_EFFECT_ADD_FARSIGHT - 72
 	&Spell::SpellEffectNULL,					//SPELL_EFFECT_UNTRAIN_TALENTS? - 73
@@ -109,7 +109,7 @@ pSpellEffect SpellEffectsHandler[TOTAL_SPELL_EFFECTS] =
 	&Spell::SpellEffectStuck,					//SPELL_EFFECT_STUCK - 84
 	&Spell::SpellEffectSummonPlayer,			//SPELL_EFFECT_SUMMON_PLAYER - 85
 	&Spell::SpellEffectActivateObject,			//SPELL_EFFECT_ACTIVATE_OBJECT - 86
-	&Spell::SpellEffectBuildingDamage,				//SPELL_EFFECT_BUILDING_DAMAGE - 87
+	&Spell::SpellEffectBuildingDamage,			//SPELL_EFFECT_BUILDING_DAMAGE - 87
 	&Spell::SpellEffectNULL,					//SPELL_EFFECT_BUILDING_REPAIR - 88
 	&Spell::SpellEffectNULL,					//SPELL_EFFECT_BUILDING_SWITCH_STATE - 89
 	&Spell::SpellEffectNULL,					//SPELL_EFFECT_KILL_CREDIT_90 - 90
@@ -2258,7 +2258,7 @@ void Spell::SpellEffectSummonPossessed(uint32 i, SummonPropertiesEntry* spe, Cre
 	s->SetCreatedBySpell(m_spellInfo->Id);
 	s->PushToWorld(p_caster->GetMapMgr());
 	ExecuteLogEffectSummonObject(i, s);
-	p_caster->Possess(s->GetGUID(), 1000);
+	p_caster->Possess(s, 1000);
 }
 
 
@@ -4540,7 +4540,7 @@ void Spell::SpellEffectDestroyAllTotems(uint32 i)
 
 	std::vector< uint32 > spellids;
 
-	p_caster->summonhandler.GetSummonSlotSpellIDs(spellids);
+	p_caster->summonhandler.GetSummonSlotTotemSpellIDs(spellids);
 
 	for(std::vector< uint32 >::iterator itr = spellids.begin(); itr != spellids.end(); ++itr)
 	{
@@ -4560,7 +4560,7 @@ void Spell::SpellEffectDestroyAllTotems(uint32 i)
 		}
 	}
 
-	p_caster->summonhandler.ExpireSummonsInSlot();
+	p_caster->summonhandler.RemoveAllTotems();
 
 	p_caster->Energize(p_caster, GetProto()->Id, RetreivedMana, POWER_TYPE_MANA);
 }

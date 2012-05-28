@@ -141,7 +141,6 @@ namespace VMAP
 			// despite making little sense, there ARE some (slightly) tilted WMOs...
 			// we can only determine liquid height in LOCAL z-direction (heightmap data),
 			// so with increasing tilt, liquid calculation gets increasingly wrong...not my fault, really :p
-			//liqHeight = zLevel * iScale + iPos.z;
 			liqHeight = (zLevel - pModel.z) * iScale + p.z;
 			return true;
 		}

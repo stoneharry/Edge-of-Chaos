@@ -883,9 +883,7 @@ void Group::SaveToDB()
 void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket* Packet)
 {
 	uint32 mask = pPlayer->GetGroupUpdateFlags();
-	//if( pPlayer->GetCurrentVehicle() != NULL && !(mask & GROUP_UPDATE_FLAG_VEHICLE_SEAT))
-		//mask |= GROUP_UPDATE_FLAG_VEHICLE_SEAT;
-   if (mask & GROUP_UPDATE_FLAG_POWER_TYPE)                // if update power type, update current/max power also
+  if (mask & GROUP_UPDATE_FLAG_POWER_TYPE)                // if update power type, update current/max power also
         mask |= (GROUP_UPDATE_FLAG_CUR_POWER | GROUP_UPDATE_FLAG_MAX_POWER);
 
     if (mask & GROUP_UPDATE_FLAG_PET_POWER_TYPE)            // same for pets
@@ -1018,7 +1016,7 @@ void Group::UpdateOutOfRangePlayer(Player* pPlayer, bool Distribute, WorldPacket
 
     if (mask & GROUP_UPDATE_FLAG_VEHICLE_SEAT)
     {
-		if (Vehicle* veh = pPlayer->GetVehicleComponent())
+		if (Vehicle* veh = pPlayer->GetCurrentVehicle())
 			*data << (uint32) veh->GetVehicleInfo()->seatID[pPlayer->GetMovementInfo()->transSeat];
     }
 

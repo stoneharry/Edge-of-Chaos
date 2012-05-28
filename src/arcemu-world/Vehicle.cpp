@@ -169,10 +169,7 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
 	// root passenger
 	passenger->Root();
 
-	WorldPacket ack( 0x049D );
-	passenger->SendPacket( &ack );
-
-	passenger->SendHopOnVehicle( owner, seatid );
+	passenger->SendHopOnVehicle( owner );
 
 	LocationVector v( owner->GetPosition() );
 	v.x += seats[ seatid ]->GetSeatInfo()->attachmentOffsetX;
@@ -202,7 +199,7 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
 			ack.Initialize( SMSG_CLIENT_CONTROL_UPDATE );
 			ack << owner->GetNewGUID() << uint8(1);
 			passenger->SendPacket(&ack);
-
+			owner->m_redirectSpellPackets = TO_PLAYER(passenger);
 			passenger->SetCharmedUnitGUID( owner->GetGUID() );
 			owner->SetCharmedByGUID( passenger->GetGUID() );
 			owner->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED_CREATURE );
@@ -213,18 +210,14 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
 			if(owner->IsCreature() && !TO_PLAYER(passenger)->m_bg)
 				owner->SetFaction(passenger->GetFaction());
 		}
-		passenger->AddExtraUnitMovementFlag(GetMoveFlags2());
 		GetOwner()->AddExtraUnitMovementFlag(GetMoveFlags2());
 		GetOwner()->SetSpeeds(TURN, vehicle_info->turnSpeed);
 		GetOwner()->SetSpeeds(PITCH, vehicle_info->pitchSpeed);
-		GetOwner()->AddExtraUnitMovementFlag(GetMoveFlags2());
-		passenger->SetSpeeds(TURN, vehicle_info->turnSpeed);
-		passenger->SetSpeeds(PITCH, vehicle_info->pitchSpeed);
 	}
 
 	seats[ seatid ]->AddPassenger( passenger->GetGUID() );
 	passenger->SetCurrentVehicle( this );
-
+	passenger->SendBreakTarget();
 	if( seats[ seatid ]->HidesPassenger() )
 		passenger->SetFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NOT_ATTACKABLE_2 );
 

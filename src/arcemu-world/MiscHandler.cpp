@@ -894,14 +894,12 @@ void WorldSession::HandleZoneUpdateOpcode(WorldPacket & recv_data)
 	uint32 newZone;
 
 	recv_data >> newZone;
-
-	if(GetPlayer()->GetZoneId() == newZone)
-		return;
-
-	sWeatherMgr.SendWeather(GetPlayer());
+	//AreaTable* at = _player->GetMapMgr()->GetArea(_player->GetPositionX(), _player->GetPositionY(), _player->GetPositionZ());
+	//_player->ZoneUpdate(at != NULL ? at->ZoneId : newZone);
 	_player->ZoneUpdate(newZone);
 
 	//clear buyback
+	sWeatherMgr.SendWeather(GetPlayer());
 	_player->GetItemInterface()->EmptyBuyBack();
 }
 
@@ -1796,8 +1794,6 @@ void WorldSession::HandleInspectOpcode(WorldPacket & recv_data)
 	CHECK_INWORLD_RETURN;
 
 	uint64 guid;
-	uint32 talent_points = 0x0000003D;
-	ByteBuffer m_Packed_GUID;
 	recv_data >> guid;
 
 	Player* player = _player->GetMapMgr()->GetPlayer((uint32)guid);
@@ -1818,12 +1814,8 @@ void WorldSession::HandleInspectOpcode(WorldPacket & recv_data)
 //	WorldPacket data( SMSG_INSPECT_TALENT, 4 + talent_points );
 	WorldPacket data(SMSG_INSPECT_TALENT, 1000);
 
-	m_Packed_GUID.appendPackGUID(player->GetGUID());
-	uint32 guid_size;
-	guid_size = (uint32)m_Packed_GUID.size();
-
-	data.append(m_Packed_GUID);
-	data << uint32(talent_points);
+	data.appendPackGUID(player->GetGUID());
+	data << uint32(player->GetUInt32Value(PLAYER_CHARACTER_POINTS1));
 
 	data << uint8(player->m_talentSpecsCount);
 	data << uint8(player->m_talentActiveSpec);
@@ -1954,13 +1946,23 @@ void WorldSession::HandleAcknowledgementOpcodes(WorldPacket & recv_data)
 
 	switch(recv_data.GetOpcode())
 	{
-		case CMSG_MOVE_WATER_WALK_ACK:
-			_player->m_waterwalk = _player->m_setwaterwalk;
-			break;
-
 		case CMSG_MOVE_SET_CAN_FLY_ACK:
-			_player->FlyCheat = _player->m_setflycheat;
-			break;
+			{
+				uint64 guid;                                            // guid - unused
+				recv_data.readPackGUID(guid);
+				recv_data.read_skip<uint32>();                          // unk
+
+				MovementInfo movementInfo;
+				movementInfo.guid = guid;
+				ReadMovementInfo(recv_data, &movementInfo);
+
+				recv_data.read_skip<float>();                           // unk2
+				Unit *mover = _player->GetMapMgr()->GetUnit( m_MoverWoWGuid.GetOldGuid() );
+				if( mover == NULL )
+					return;
+
+				mover->GetMovementInfo()->flags = movementInfo.flags;
+			}break;
 	}
 }
 

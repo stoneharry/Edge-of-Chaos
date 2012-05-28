@@ -98,6 +98,17 @@ void SummonHandler::GetSummonSlotSpellIDs(std::vector< uint32 > &spellids)
 	}
 }
 
+void SummonHandler::GetSummonSlotTotemSpellIDs(std::vector< uint32 > &spellids)
+{
+	for(std::tr1::array< Unit*, SUMMON_SLOTS >::iterator itr = summonslots.begin(); itr != summonslots.end(); ++itr)
+	{
+		Unit* u = (*itr);
+
+		if(u != NULL)
+			if(u->GetCreatedBySpell() != 0 && u->IsTotem())
+				spellids.push_back(u->GetCreatedBySpell());
+	}
+}
 bool SummonHandler::HasSummonInSlot(uint8 slot)
 {
 	if(summonslots[ slot ] != 0)
@@ -123,6 +134,19 @@ Unit * SummonHandler::GetSummonWithEntry(uint32 entry)
 			return (*itr);
 	}
 	return NULL;
+}
+
+void SummonHandler::RemoveAllTotems()
+{
+	for(std::set< Unit* >::iterator itr = guardians.begin(); itr != guardians.end(); ++itr)
+		if((*itr) != NULL && (*itr)->IsTotem())
+			return (*itr)->Delete();
+
+	for(std::tr1::array< Unit*, SUMMON_SLOTS >::iterator itr = summonslots.begin(); itr != summonslots.end(); ++itr)
+	{
+		if((*itr) != NULL && (*itr)->IsTotem())
+			return (*itr)->Delete();
+	}
 }
 
 void SummonHandler::SetPvPFlags()
@@ -228,7 +252,7 @@ void SummonHandler::OnOwnerAttack(Unit * target)
 {
 	for(std::set< Unit* >::iterator itr = guardians.begin(); itr != guardians.end(); ++itr)
 	{
-		if(!(*itr)->getcombatstatus()->IsInCombat() && isAttackable((*itr), target))
+		if(isAttackable((*itr), target))
 		{
 			(*itr)->GetAIInterface()->SetAIState(STATE_ATTACKING);
 			(*itr)->GetAIInterface()->AttackReaction(target, 1, 0);
@@ -238,9 +262,9 @@ void SummonHandler::OnOwnerAttack(Unit * target)
 	for(std::tr1::array< Unit*, SUMMON_SLOTS >::iterator itr = summonslots.begin(); itr != summonslots.end(); ++itr)
 	{
 		Unit* u = (*itr);
-		if(u != NULL)
+		if(u != NULL && !u->IsTotem())
 		{
-			if(!(*itr)->getcombatstatus()->IsInCombat() && isAttackable(u, target))
+			if(isAttackable(u, target))
 			{
 				u->GetAIInterface()->SetAIState(STATE_ATTACKING);
 				u->GetAIInterface()->AttackReaction(target, 1, 0);

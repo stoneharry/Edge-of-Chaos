@@ -336,6 +336,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket & recvPacket)
 
 	if(!spellInfo)
 	{
+		_player->SendCastResult(spellInfo->Id, SPELL_FAILED_DONT_REPORT, cn, 0);
 		LOG_ERROR("WORLD: unknown spell id %i", spellId);
 		return;
 	}
@@ -349,12 +350,15 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket & recvPacket)
 
 	if(!GetPlayer()->HasSpell(spellId))
 	{
+		_player->SendCastResult(spellInfo->Id, SPELL_FAILED_DONT_REPORT, cn, 0);
 		sCheatLog.writefromsession(this, "Cast spell %lu but doesn't have that spell.", spellId);
 		LOG_DETAIL("WORLD: Spell isn't cast because player \'%s\' is cheating", GetPlayer()->GetName());
+		_player->SendCastResult(spellInfo->Id, SPELL_FAILED_SPELL_IN_PROGRESS, cn, 0);
 		return;
 	}
 	if(spellInfo->Attributes & SPELL_ATTR0_PASSIVE)
 	{
+		_player->SendCastResult(spellInfo->Id, SPELL_FAILED_DONT_REPORT, cn, 0);
 		sCheatLog.writefromsession(this, "Cast passive spell %lu.", spellId);
 		LOG_DETAIL("WORLD: Spell isn't cast because player \'%s\' is cheating", GetPlayer()->GetName());
 		return;
@@ -398,6 +402,7 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket & recvPacket)
 				SpellCastTargets targets(recvPacket, GetPlayer());
 				if(!targets.m_unitTarget)
 				{
+					_player->SendCastResult(spellInfo->Id, SPELL_FAILED_BAD_TARGETS, cn, 0);
 					LOG_DEBUG("Cancelling auto-shot cast because targets.m_unitTarget is null!");
 					return;
 				}
@@ -416,17 +421,8 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket & recvPacket)
 
 		if(_player->m_currentSpell)
 		{
-			if(_player->m_currentSpell->getState() == SPELL_STATE_CASTING)
-			{
-				// cancel the existing channel spell, cast this one
-				_player->m_currentSpell->cancel();
-			}
-			else
-			{
-				// send the error message
-				_player->SendCastResult(spellInfo->Id, SPELL_FAILED_SPELL_IN_PROGRESS, cn, 0);
-				return;
-			}
+			_player->SendCastResult(spellInfo->Id, SPELL_FAILED_SPELL_IN_PROGRESS, cn, 0);
+			return;
 		}
 
 		SpellCastTargets targets(recvPacket, GetPlayer());

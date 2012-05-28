@@ -150,10 +150,10 @@ namespace VMAP
 	{
 		float tx_f = (pos.x - iCorner.x) / LIQUID_TILE_SIZE;
 		G3D::uint32 tx = G3D::uint32(tx_f);
-		if(tx < 0 || tx >= iTilesX) return false;
+		if(tx_f < 0.0f || tx >= iTilesX) return false;
 		float ty_f = (pos.y - iCorner.y) / LIQUID_TILE_SIZE;
 		G3D::uint32 ty = G3D::uint32(ty_f);
-		if(ty < 0 || ty >= iTilesY) return false;
+		if(ty_f < 0.0f || ty >= iTilesY) return false;
 
 		// check if tile shall be used for liquid level
 		// checking for 0x08 *might* be enough, but disabled tiles always are 0x?F:
@@ -452,12 +452,6 @@ namespace VMAP
 						zDist = group_Z;
 						hit = prims + entry;
 					}
-#ifdef VMAP_DEBUG
-					const GroupModel & gm = prims[entry];
-					printf("%10u %8X %7.3f,%7.3f,%7.3f | %7.3f,%7.3f,%7.3f | z=%f, p_z=%f\n", gm.GetWmoID(), gm.GetMogpFlags(),
-					       gm.GetBound().low().x, gm.GetBound().low().y, gm.GetBound().low().z,
-					       gm.GetBound().high().x, gm.GetBound().high().y, gm.GetBound().high().z, group_Z, point.z);
-#endif
 				}
 				//}
 				//std::cout << "trying to intersect '" << prims[entry].name << "'\n";

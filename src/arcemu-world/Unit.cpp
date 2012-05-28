@@ -6075,10 +6075,6 @@ void Unit::EnableFlight()
 	{
 		if(IsCreature()) // give them a "flying" animation so they don't just airwalk lul
 			SetByteFlag( UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_UNK_2 );
-		WorldPacket data(SMSG_MOVE_SET_CAN_FLY, 13);
-		data << GetNewGUID();
-		data << uint32(2);
-		SendMessageToSet(&data, true);
 	}
 	else
 	{
@@ -6086,8 +6082,14 @@ void Unit::EnableFlight()
 		*data << GetNewGUID();
 		*data << uint32(2);
 		SendMessageToSet(data, false);
+	}
+	WorldPacket data(SMSG_MOVE_SET_CAN_FLY, 13);
+	data << GetNewGUID();
+	data << uint32(2);
+	SendMessageToSet(&data, true);
+	if(IsPlayer())
+	{
 		TO< Player* >(this)->z_axisposition = 0.0f;
-		TO< Player* >(this)->delayedPackets.add(data);
 		TO< Player* >(this)->m_setflycheat = true;
 	}
 	AddUnitMovementFlag(MOVEFLAG_CAN_FLY);
@@ -6096,27 +6098,14 @@ void Unit::EnableFlight()
 
 void Unit::DisableFlight()
 {
-	if(!IsPlayer() || TO_PLAYER(this)->m_changingMaps)
-	{
-		if(IsCreature())
-			RemoveByteFlag(UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_UNK_2 );
-		WorldPacket data(SMSG_MOVE_UNSET_CAN_FLY, 13);
-		data << GetNewGUID();
-		data << uint32(5);
-		SendMessageToSet(&data, true);
-	}
-	else
-	{
-		WorldPacket* data = new WorldPacket(SMSG_MOVE_UNSET_CAN_FLY, 13);
-		*data << GetNewGUID();
-		*data << uint32(5);
-		SendMessageToSet(data, false);
-		TO< Player* >(this)->z_axisposition = 0.0f;
-		TO< Player* >(this)->delayedPackets.add(data);
-		TO< Player* >(this)->m_setflycheat = false;
-	}
+	WorldPacket data(SMSG_MOVE_UNSET_CAN_FLY, 13);
+	data << GetNewGUID();
+	data << uint32(5);
+	SendMessageToSet(&data, true);
 	RemoveUnitMovementFlag(MOVEFLAG_MASK_FLYING);
 	SendMovementFlagUpdate();
+	if(IsPlayer())
+		TO_PLAYER(this)-> m_flycheckdelay = getMSTime() + (30*IN_MILLISECONDS);
 }
 
 bool Unit::IsDazed()
@@ -6261,7 +6250,9 @@ int32 Unit::GetAP()
 {
 	int32 baseap = GetAttackPower() + GetAttackPowerMods();
 	int32 totalap = float2int32(baseap * (GetFloatValue(UNIT_FIELD_ATTACK_POWER_MULTIPLIER) + 1));
-	return	totalap;
+	if(totalap >= 0)
+		return float2int32(totalap);
+	return	0;
 }
 
 int32 Unit::GetRAP()
@@ -7795,25 +7786,21 @@ void Unit::CastOnMeleeSpell(){
 	SetOnMeleeSpell(0);
 }
 
-void Unit::SendHopOnVehicle( Unit *vehicleowner, uint32 seat ){
+void Unit::SendHopOnVehicle( Unit *vehicleowner)
+{
 	WorldPacket data(SMSG_MONSTER_MOVE_TRANSPORT, 50);
 	data << GetNewGUID();
 	data << vehicleowner->GetNewGUID();
-	data << uint8( seat );
-
-	if( IsPlayer() )
-		data << uint8( 1 );
-	else
-		data << uint8( 0 );
-
+	data << uint8( transporter_info.seat );
+	data << uint8( 0 );
 	data << float( GetPositionX() /* - vehicleowner->GetPositionX() */ );
 	data << float( GetPositionY() /* - vehicleowner->GetPositionY() */ );
 	data << float( GetPositionZ() /* - vehicleowner->GetPositionZ() */ );
 	data << getMSTime();
 	data << uint8( 4 ); // splinetype_facing_angle
-	data << float( 0.0f ); // facing angle
+	data << float( transporter_info.o ); // facing angle
 	data << uint32( 0x00800000 ); // splineflag transport
-	data << uint32( 0 ); // movetime
+	data << uint32( GetMovementInfo()->transTime ); // movetime
 	data << uint32( 1 ); // wp count
 	data << float( 0.0f ); // x
 	data << float( 0.0f ); // y
@@ -7822,18 +7809,12 @@ void Unit::SendHopOnVehicle( Unit *vehicleowner, uint32 seat ){
 	SendMessageToSet( &data, true );
 }
 
-void Unit::SendHopOffVehicle( Unit *vehicleowner, LocationVector &landposition ){
+void Unit::SendHopOffVehicle( Unit *vehicleowner, LocationVector &landposition )
+{
 	WorldPacket data(SMSG_MONSTER_MOVE, 1+12+4+1+4+4+4+12+8 );
 	data << GetNewGUID();
-
-	if( IsPlayer() )
-		data << uint8( 1 );
-	else
-		data << uint8( 0 );
-
-	data << float( GetPositionX() );
-	data << float( GetPositionY() );
-	data << float( GetPositionZ() );
+	data << uint8(IsPlayer() ? 1 : 0);
+	data << GetPositionX() << GetPositionY() << GetPositionZ();
 	data << uint32( getMSTime() );
 	data << uint8( 4 /* SPLINETYPE_FACING_ANGLE */ );
 	data << float( GetOrientation() );                        // guess
@@ -8010,22 +7991,22 @@ int32 Unit::GetTotalAuraModifierByMiscMask(uint32 auratype, uint32 misc_mask)
 	return modifer;
 }
 
-bool Unit::HasFlyingAura(uint32 skipspell)
+bool Unit::CanFly(uint32 skipspell)
 {
-	if(HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT, skipspell))
+	if(GetVehicleBase())
+		return GetVehicleBase()->CanFly(skipspell);
+
+	if(HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT, skipspell) || HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT2, skipspell) ||
+		HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT_WITH_UNMOUNTED_SPEED, skipspell) || HasAuraWithName(SPELL_AURA_ALLOW_FLIGHT, skipspell) ||
+		HasAuraWithName(SPELL_AURA_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS, skipspell) || HasAuraWithName(SPELL_AURA_MOD_VEHICLE_SPEED_ALWAYS, skipspell) ||
+		HasAuraWithName(SPELL_AURA_MOD_FLIGHT_SPEED_NOT_STACK, skipspell))
 		return true;
-	if(HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT2, skipspell))
-		return true;
-	if(HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT_WITH_UNMOUNTED_SPEED, skipspell))
-		return true;
-	if(HasAuraWithName(SPELL_AURA_ALLOW_FLIGHT, skipspell))
-		return true;
-	if(HasAuraWithName(SPELL_AURA_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS, skipspell))
-		return true;
-	if(HasAuraWithName(SPELL_AURA_MOD_VEHICLE_SPEED_ALWAYS, skipspell))
-		return true;
-	if(HasAuraWithName(SPELL_AURA_MOD_FLIGHT_SPEED_NOT_STACK, skipspell))
-		return true;
+	if(IsPlayer())
+	{
+		Player * plr = TO_PLAYER(this);
+		if(plr->FlyCheat || plr->m_setflycheat || plr->flying_aura || plr->GetTaxiState() || plr->m_CurrentTransporter)
+			return true;
+	}
 	return false;
 }
 
@@ -8335,7 +8316,7 @@ bool Unit::IsFlying()
 {
 	if(GetAIInterface()->Flying())
 		return true;
-	if(HasFlyingAura(0))
+	if(CanFly())
 		return true;
 	if(HasUnitMovementFlag(MOVEFLAG_AIR_SWIMMING))
 		return true;
@@ -9070,8 +9051,8 @@ uint32 Unit::SpellDamageBonus(Unit* victim, SpellEntry* spellProto, uint32 pdama
             {
                 uint8 attType = (spellProto->IsRangedWeaponSpell() && spellProto->DmgClass != 2) ? 2 : 0;
                 float APbonus = (float) victim->GetTotalAuraModifier(attType == 0 ? SPELL_AURA_MELEE_ATTACK_POWER_ATTACKER_BONUS : SPELL_AURA_RANGED_ATTACK_POWER_ATTACKER_BONUS);
-                APbonus += GetTotalAttackPowerValue(attType);
-                DoneTotal += int32(bonusEntry->ap_dot_coef * stack * ApCoeffMod * APbonus);
+				APbonus += attType == 0 ? GetAP() : GetRAP();
+                DoneTotal += int32(bonusEntry->ap_dot_coef * APbonus);
             }
         }
         else
@@ -10024,4 +10005,132 @@ int32 Unit::SpellBaseHealingBonusForVictim(uint32 schoolMask, Unit* victim)
 		}
 	}
     return AdvertisedBenefit;
+}
+
+void Unit::Possess(Unit *pTarget, uint32 delay)
+{
+	Player * pThis = NULL;
+	if(IsPlayer())
+		pThis = TO_PLAYER(this);
+	if(GetCharmedUnitGUID())
+		return;
+
+	Root();
+
+	if(delay != 0)
+	{
+		sEventMgr.AddEvent(this, &Unit::Possess, pTarget, uint32(0), 0, delay, 1, 0);
+		return;
+	}
+	if(pTarget == NULL)
+	{
+		Unroot();
+		return;
+	}
+
+	if(pTarget->IsCreature())
+	{
+		// unit-only stuff.
+		pTarget->setAItoUse(false);
+		pTarget->GetAIInterface()->StopMovement(0);
+	}
+
+	m_noInterrupt++;
+	SetCharmedUnitGUID(pTarget->GetGUID());
+	pTarget->SetCharmedByGUID(GetGUID());
+	pTarget->SetCharmTempVal(pTarget->GetFaction());
+
+	if(pThis)
+	{
+		pThis->SetFarsightTarget(pTarget->GetGUID());
+		pThis->m_CurrentCharm = pTarget->GetGUID();
+		pThis->SetClientControl(pTarget, 1);
+		pTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED_CREATURE);
+		pTarget->m_redirectSpellPackets = pThis;
+	}
+
+	pTarget->SetFaction(GetFaction());
+	SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
+		
+	if(pTarget->IsPlayer())
+	{
+		Player * pTarg = TO_PLAYER(pTarget);
+		pTarg->SetClientControl(pTarg, 0);
+		pTarg->SetMover(this);
+	}
+	/* update target faction set */
+	pTarget->UpdateOppFactionSet();
+	pTarget->UpdateSameFactionSet();
+
+	if(pThis)
+	{
+		if(pTarget->IsCreature())
+		{
+			WorldPacket data(SMSG_PET_SPELLS, 4 * 4 + 20);
+			pTarget->BuildPetSpellList(data);
+			pThis->SendPacket(&data);
+		}
+	}
+
+}
+
+void Unit::UnPossess()
+{
+	Player * pThis = NULL;
+	if(IsPlayer())
+		pThis = TO_PLAYER(this);
+	if(!GetCharmedUnitGUID())
+		return;
+
+	Unit* pTarget = GetMapMgr()->GetUnit(GetCharmedUnitGUID());
+	if(!pTarget)
+		return;
+
+	if(pTarget->IsCreature())
+	{
+		// unit-only stuff.
+		pTarget->setAItoUse(true);
+		pTarget->m_redirectSpellPackets = NULL;
+	}
+	else
+	{
+		Player * pTarg = TO_PLAYER(pTarget);
+		pTarg->SetClientControl(pTarg, 1);
+		pTarg->SetMover(pTarg);
+	}
+
+	m_noInterrupt--;
+	if(pThis)
+	{
+		pThis->SetFarsightTarget(0);
+		pThis->SetClientControl(pTarget, 0);
+	}
+
+	SetCharmedUnitGUID(0);
+	pTarget->SetCharmedByGUID(0);
+	RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
+	pTarget->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED_CREATURE | UNIT_FLAG_PVP_ATTACKABLE);
+	pTarget->SetFaction(pTarget->GetCharmTempVal());
+	pTarget->UpdateOppFactionSet();
+	pTarget->UpdateSameFactionSet();
+	if(pThis)
+	{
+		if(pTarget->IsCreature())
+			pThis->SendEmptyPetSpellList();
+	}
+
+	Unroot();
+
+	if(!pTarget->IsPet() && (pTarget->GetCreatedByGUID() == GetGUID()))
+	{
+		sEventMgr.AddEvent(TO< Object* >(pTarget), &Object::Delete, 0, 1, 1, 0);
+		return;
+	}
+}
+
+void Unit::SendBreakTarget()
+{
+	WorldPacket data(SMSG_BREAK_TARGET, sizeof(GetNewGUID()));
+    data.append(GetNewGUID());
+    SendMessageToSet(&data, false);
 }

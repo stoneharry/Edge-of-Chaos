@@ -168,6 +168,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 		if(_player->numberofchats >= 30)
 		{
 			m_muted = uint32(UNIXTIME+WEEK*IN_MILLISECONDS);
+			sLogonCommHandler.Account_SetMute(GetAccountNameS(), uint32(UNIXTIME+WEEK*IN_MILLISECONDS));
 			SystemMessage("You have been muted for spamming, if you wish to appeal this make a ticket.");
 			return;
 		}
@@ -573,6 +574,16 @@ void WorldSession::HandleEmoteOpcode(WorldPacket & recv_data)
 
 	uint32 emote;
 	recv_data >> emote;
+	if(_player->lastchattime == 0)
+		_player->lastchattime = getMSTime() + (MINUTE*IN_MILLISECONDS);
+	_player->numberofchats++;
+	if(_player->numberofchats >= 30)
+	{
+		m_muted = uint32(UNIXTIME+WEEK*IN_MILLISECONDS);
+		sLogonCommHandler.Account_SetMute(GetAccountNameS(), uint32(UNIXTIME+WEEK*IN_MILLISECONDS));
+		SystemMessage("You have been muted for spamming, if you wish to appeal this make a ticket.");
+		return;
+	}
 	_player->Emote((EmoteType)emote);
 #ifdef ENABLE_ACHIEVEMENTS
 	_player->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_DO_EMOTE, emote, 0, 0);

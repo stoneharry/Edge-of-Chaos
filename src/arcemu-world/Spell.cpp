@@ -234,12 +234,6 @@ Spell::Spell(Object* Caster, SpellEntry* info, bool triggered, Aura* aur)
 				i_caster = NULL;
 				p_caster = NULL;
 				u_caster = TO< Unit* >(Caster);
-				if(!(u_caster->IsSummon() || u_caster->IsPet()) && u_caster->IsVehicle())
-				{
-					if(Unit * control = u_caster->GetVehicleComponent()->GetController())
-						if(control->IsPlayer())
-							p_caster = TO< Player* >(control);
-				}
 				if(u_caster->IsPet() && TO< Pet* >(u_caster)->GetPetOwner() != NULL && TO< Pet* >(u_caster)->GetPetOwner()->GetDuelState() == DUEL_STATE_STARTED)
 					duelSpell = true;
 			}break;
@@ -1706,24 +1700,13 @@ void Spell::update(uint32 difftime)
 	// TODO: determine which spells can be cast while moving.
 	// Client knows this, so it should be easy once we find the flag.
 	// XD, it's already there!
-	if((GetProto()->InterruptFlags & CAST_INTERRUPT_ON_MOVEMENT) &&
-	        ((m_castTime / 1.5f) > m_timer) &&
-//		float(m_castTime)/float(m_timer) >= 2.0f		&&
-	        (
-	            m_castPositionX != m_caster->GetPositionX() ||
-	            m_castPositionY != m_caster->GetPositionY() ||
-	            m_castPositionZ != m_caster->GetPositionZ()
-	        )
-	  )
+	if(GetProto()->InterruptFlags & CAST_INTERRUPT_ON_MOVEMENT && p_caster && m_timer != 0 && (p_caster->IsMoving() || 
+		m_castPositionX != p_caster->GetPositionX() || 
+		m_castPositionY != p_caster->GetPositionY() ||
+	    m_castPositionZ != p_caster->GetPositionZ()))
 	{
-		if(u_caster != NULL)
-		{
-			if(u_caster->HasNoInterrupt() == 0 && GetProto()->EffectMechanic[1] != 14)
-			{
-				cancel();
-				return;
-			}
-		}
+		if(!m_triggeredSpell && !p_caster->m_AutoShotTarget)
+			cancel();
 	}
 
 	if(m_cancelled)
@@ -1961,8 +1944,6 @@ void Spell::SendCustomError(uint32 message)
 
 void Spell::SendCastResult(uint8 result, uint32 custommessage)
 {
-	if(GetSpellFailed())
-		return;
 	uint32 Extra = 0;
 	if(result == SPELL_CANCAST_OK) return;
 

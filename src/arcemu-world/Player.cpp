@@ -476,6 +476,7 @@ Player::Player(uint32 guid)
     m_MirrorTimerFlags = UNDERWATER_NONE;
     m_MirrorTimerFlagsLast = UNDERWATER_NONE;
     m_isInWater = false;
+	m_flycheckdelay = 0;
 }
 
 void Player::OnLogin()
@@ -1041,11 +1042,13 @@ void Player::Update(uint32 p_time)
 		delete pending_packet;
 		pending_packet = m_cache->m_pendingPackets.pop();
 	}
-	if(lastchattime >= getMSTime())
+	if(lastchattime && lastchattime <= getMSTime())
 	{
 		lastchattime = 0;
 		numberofchats = 0;
 	}
+	if(m_flycheckdelay && m_flycheckdelay <= getMSTime())
+		m_flycheckdelay = 0;
 	SendUpdateToOutOfRangeGroupMembers();
 	HandleDrowning(p_time);
 }
@@ -3534,6 +3537,7 @@ void Player::AddToWorld()
 		m_session->SetInstance(m_mapMgr->GetInstanceID());
 
 	SendInstanceDifficulty(m_mapMgr->iInstanceMode);
+	//SetMover(this);
 }
 
 void Player::AddToWorld(MapMgr* pMapMgr)
@@ -7602,12 +7606,10 @@ void Player::ZoneUpdate(uint32 ZoneId)
 			return;
 		}
 	}
-	if(ZoneId == m_zoneId || ZoneId == m_AreaID)
+	if(ZoneId == m_zoneId)
 		return;
-	m_playerInfo->lastZone = ZoneId;
 	sHookInterface.OnZone(this, ZoneId, oldzone);
 	CALL_INSTANCE_SCRIPT_EVENT(m_mapMgr, OnZoneChange)(this, ZoneId, oldzone);
-
 	AreaTable* at = GetMapMgr()->GetArea(GetPositionX(), GetPositionY(), GetPositionZ());
 	if(at && (at->category == AREAC_SANCTUARY || at->AreaFlags & AREA_SANCTUARY))
 	{
@@ -7627,6 +7629,8 @@ void Player::ZoneUpdate(uint32 ZoneId)
 	}
 
 	at = dbcArea.LookupEntryForced(ZoneId);
+	if(at && at->AreaId != GetAreaID())
+		SetAreaID(at->AreaId);
 
 	if(!m_channels.empty() && at)
 	{
@@ -9586,116 +9590,6 @@ void Player::SoftDisconnect()
 	WorldSession* session = GetSession();
 	session->LogoutPlayer(true);
 	session->Disconnect();
-}
-
-void Player::Possess(uint64 GUID, uint32 delay)
-{
-	if(m_CurrentCharm)
-		return;
-
-	Root();
-
-	if(delay != 0)
-	{
-		sEventMgr.AddEvent(this, &Player::Possess, GUID, uint32(0), 0, delay, 1, 0);
-		return;
-	}
-
-	Unit* pTarget = m_mapMgr->GetUnit(GUID);
-	if(pTarget == NULL)
-	{
-		Unroot();
-		return;
-	}
-
-	m_CurrentCharm = GUID;
-	if(pTarget->IsCreature())
-	{
-		// unit-only stuff.
-		pTarget->setAItoUse(false);
-		pTarget->GetAIInterface()->StopMovement(0);
-		pTarget->m_redirectSpellPackets = this;
-	}
-
-	m_noInterrupt++;
-	SetCharmedUnitGUID(pTarget->GetGUID());
-	pTarget->SetCharmedByGUID(GetGUID());
-	pTarget->SetCharmTempVal(pTarget->GetFaction());
-	SetFarsightTarget(pTarget->GetGUID());
-	pTarget->SetFaction(GetFaction());
-	pTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED_CREATURE | UNIT_FLAG_PVP_ATTACKABLE);
-
-	SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
-	/* send "switch mover" packet */
-	WorldPacket data1(SMSG_CLIENT_CONTROL_UPDATE, 10);
-	data1 << pTarget->GetNewGUID() << uint8(1);
-	m_session->SendPacket(&data1);
-	if(pTarget->IsPlayer())
-	{
-		Player * charmed = TO_PLAYER(pTarget);
-		WorldPacket data1(SMSG_CLIENT_CONTROL_UPDATE, 10);
-		data1 << pTarget->GetNewGUID() << uint8(0);
-		charmed->SendPacket(&data1);
-	}
-	/* update target faction set */
-	pTarget->UpdateOppFactionSet();
-
-
-	if(!(pTarget->IsPet() && TO< Pet* >(pTarget) == GetSummon()))
-	{
-		WorldPacket data(SMSG_PET_SPELLS, 4 * 4 + 20);
-		pTarget->BuildPetSpellList(data);
-		m_session->SendPacket(&data);
-	}
-
-}
-
-void Player::UnPossess()
-{
-	if(m_CurrentCharm == 0)
-		return;
-
-	Unit* pTarget = GetMapMgr()->GetUnit(m_CurrentCharm);
-	if(!pTarget)
-		return;
-
-	m_CurrentCharm = 0;
-
-	SpeedCheatReset();
-
-	if(pTarget->IsCreature())
-	{
-		// unit-only stuff.
-		pTarget->setAItoUse(true);
-		pTarget->m_redirectSpellPackets = 0;
-	}
-
-	m_noInterrupt--;
-	SetFarsightTarget(0);
-	SetCharmedUnitGUID(0);
-	pTarget->SetCharmedByGUID(0);
-	SetCharmedUnitGUID(0);
-
-	RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
-	pTarget->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED_CREATURE | UNIT_FLAG_PVP_ATTACKABLE);
-	pTarget->SetFaction(pTarget->GetCharmTempVal());
-	pTarget->UpdateOppFactionSet();
-
-	/* send "switch mover" packet */
-	WorldPacket data(SMSG_CLIENT_CONTROL_UPDATE, 10);
-	data << pTarget->GetNewGUID() << uint8(0);
-	m_session->SendPacket(&data);
-
-	if(!(pTarget->IsPet() && TO< Pet* >(pTarget) == GetSummon()))
-		SendEmptyPetSpellList();
-
-	Unroot();
-
-	if(!pTarget->IsPet() && (pTarget->GetCreatedByGUID() == GetGUID()))
-	{
-		sEventMgr.AddEvent(TO< Object* >(pTarget), &Object::Delete, 0, 1, 1, 0);
-		return;
-	}
 }
 
 void Player::SummonRequest(uint32 Requestor, uint32 ZoneID, uint32 MapID, uint32 InstanceID, const LocationVector & Position)
@@ -13918,12 +13812,10 @@ void Player::SendCombatEquipCooldown()
 
 void Player::ApplyEquipCooldown(Item* pItem)
 {
-/*	if(!IsInWorld())
+	if(/*!IsInWorld() ||*/ pItem->GetProto()->HasFlag(ITEM_FLAG_NO_EQUIP_COOLDOWN))
 		return;
 	uint32 mstime = getMSTime();
 	int32 cool_time = 30*1000;
-    if (pItem->GetProto()->HasFlag(ITEM_FLAG_NO_EQUIP_COOLDOWN))
-        return;
 	for (uint8 i = 0; i < 5; ++i)
 	{
 		ItemSpell* is = &pItem->GetProto()->Spells[i];
@@ -13935,7 +13827,7 @@ void Player::ApplyEquipCooldown(Item* pItem)
 		data << pItem->GetGUID();
 		data << uint32(is->Id);
 		SendPacket(&data);
-	}*/
+	}
 }
 
 void Player::SetBattlegroundEntryPoint()
@@ -14410,4 +14302,13 @@ int32 Player::getMaxTimer(MirrorTimerType timer)
         default:
             return 0;
     }
+}
+
+void Player::SetClientControl(Unit* target, uint8 allowMove)
+{
+	WorldPacket ack( SMSG_CLIENT_CONTROL_UPDATE, 200 );
+	ack << GetNewGUID() << uint8(allowMove);
+	SendPacket(&ack);
+	if (target == this)
+		SetMover(this);
 }

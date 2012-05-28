@@ -741,7 +741,7 @@ bool Object::SetPosition(float newX, float newY, float newZ, float newOrientatio
 		if(IsPlayer())
 		{
 			TO< Player* >(this)->AddGroupUpdateFlag(GROUP_UPDATE_FLAG_POSITION);
-			TO< Player* >(this)->UpdateUnderwaterState(newX, newY, newZ);
+			//TO< Player* >(this)->UpdateUnderwaterState(newX, newY, newZ);
 		}
 	}
 
@@ -2080,13 +2080,38 @@ void Object::RemoveByteFlag(uint16 index, uint8 offset, uint8 oldFlag)
 
 void Object::SetZoneId(uint32 newZone)
 {
-	m_zoneId = newZone;
+	/*if(IsPlayer() && IsInWorld() && GetMapId() != 13)
+	{
+		AreaTable * at = dbcArea.LookupEntryForced(newZone);
+		if(at == NULL)
+		{
+			at = GetMapMgr()->GetArea(GetPositionX(), GetPositionY(), GetPositionZ());
+			if(at == NULL)
+			{
+				at = GetMapMgr()->GetArea(GetPositionX(), GetPositionY(), GetPositionZ()+50.0f); //should compensate some maps not getting area id's
+				if(at != NULL && newZone != at->ZoneId)
+					m_zoneId = at->ZoneId;
+			}
+			else if(newZone != at->ZoneId)
+				m_zoneId = at->ZoneId;
+		}
+		else if(newZone != at->ZoneId)
+			m_zoneId = at->ZoneId;
+	}
+	else*/
+		m_zoneId = newZone;
 
 	if(IsPlayer())
 	{
-		TO_PLAYER(this)->m_cache->SetUInt32Value(CACHE_PLAYER_ZONEID, newZone);
-		if(TO_PLAYER(this)->GetGroup() != NULL)
-			TO_PLAYER(this)->AddGroupUpdateFlag(GROUP_UPDATE_FLAG_ZONE);
+		Player * pObj = TO_PLAYER(this);
+		pObj->m_cache->SetUInt32Value(CACHE_PLAYER_ZONEID, newZone);
+		if(IsInWorld())
+		{
+			if(pObj->GetGroup() != NULL)
+				pObj->AddGroupUpdateFlag(GROUP_UPDATE_FLAG_ZONE);
+			if(pObj->getPlayerInfo())
+				pObj->getPlayerInfo()->lastZone = newZone;
+		}
 	}
 }
 

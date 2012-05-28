@@ -1222,7 +1222,7 @@ class SERVER_DECL Unit : public Object
 		bool RemoveAuraByNameHash(uint32 namehash);//required to remove weaker instances of a spell
 		bool RemoveAuras(uint32* SpellIds);
 		bool RemoveAurasByHeal();
-		bool HasFlyingAura(uint32 skipspell);
+		bool CanFly(uint32 skipspell = 0);
 		////////////////////////////////////////////////////////////////////////////////////////
 		//bool AuraActionIf( AuraAction *a, AuraCondition *c )
 		//  Performs the specified action on the auras that meet the specified condition
@@ -1366,9 +1366,10 @@ class SERVER_DECL Unit : public Object
 		uint32 m_triggerSpell;
 		uint32 m_triggerDamage;
 		uint32 m_canMove;
-
+		void Possess(Unit *pTarget, uint32 delay = 0);
+		void UnPossess();
 		const char* GetName();
-
+		void SendBreakTarget();
 		SummonHandler summonhandler;
 
 		// Spell Effect Variables
@@ -1695,8 +1696,6 @@ class SERVER_DECL Unit : public Object
 			else
 				return false;
 		}
-
-		virtual void UnPossess() {}
 
 		virtual bool isTrainingDummy() { return false; }
 
@@ -2039,7 +2038,7 @@ class SERVER_DECL Unit : public Object
 		virtual void AddVehicleComponent( uint32 creature_entry, uint32 vehicleid ){}
 		virtual void RemoveVehicleComponent(){}
 
-		void SendHopOnVehicle( Unit *vehicleowner, uint32 seat );
+		void SendHopOnVehicle( Unit *vehicleowner);
 		void SendHopOffVehicle( Unit *vehicleowner, LocationVector &landposition );
 
 		Unit* GetVehicleBase();

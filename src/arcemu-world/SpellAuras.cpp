@@ -1624,27 +1624,19 @@ void Aura::SpellAuraBindSight(bool apply)
 
 void Aura::SpellAuraModPossess(bool apply)
 {
-	Player* caster = GetPlayerCaster();
+	Unit* caster = GetUnitCaster();
 
 	if(apply)
 	{
 		if(caster != NULL && caster->IsInWorld())
-			TO< Player* >(caster)->Possess(m_target->GetGUID());
+			caster->Possess(m_target);
 	}
 	else
 	{
-		bool unpossessfailed = false;
 		if(caster != NULL && caster->IsInWorld())
 		{
 			caster->UnPossess();
 			m_target->RemoveAura(GetSpellId());
-			if(caster->GetFarsightTarget() != 0)
-			{
-				unpossessfailed = true;
-				caster->SetFarsightTarget(0);
-				caster->SetCharmedUnitGUID(0);
-				caster->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
-			}
 		}
 
 		// make sure Player::UnPossess() didn't fail, if it did we will just free the target here
@@ -7478,7 +7470,7 @@ void Aura::SpellAuraEnableFlight(bool apply)
 	}
 	else
 	{
-		if(!m_target->HasFlyingAura(GetSpellId()))
+		if(!m_target->CanFly(GetSpellId()))
 			m_target->DisableFlight();
 		m_target->m_flyspeedModifier -= mod->m_amount;
 		m_target->UpdateSpeed(GetSpellId());
@@ -7604,7 +7596,7 @@ void Aura::SpellAuraAllowFlight(bool apply)
 		m_target->EnableFlight();
 	else
 	{
-		if(!m_target->HasFlyingAura(GetSpellId()))
+		if(!m_target->CanFly(GetSpellId()))
 			m_target->DisableFlight();
 	}
 }
@@ -7842,7 +7834,7 @@ void Aura::SpellAuraModPossessPet(bool apply)
 		{
 			if(apply)
 			{
-				pCaster->Possess(m_target->GetGUID());
+				pCaster->Possess(m_target);
 				pCaster->SpeedCheatDelay(GetDuration());
 			}
 			else

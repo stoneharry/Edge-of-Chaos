@@ -90,11 +90,11 @@ void InitImplicitTargetFlags()
 	SET_TARGET_TYPE(70, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_BACK_LEFT);
 	SET_TARGET_TYPE(71, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_FRONT_LEFT);
 	SET_TARGET_TYPE(72, SPELL_TARGET_AREA_SELF | SPELL_TARGET_AREA_RANDOM);
-	SET_TARGET_TYPE(73, SPELL_TARGET_AREA_SELF | SPELL_TARGET_AREA_RANDOM);
-	SET_TARGET_TYPE(74, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_AREA | SPELL_TARGET_AREA_RANDOM);
-	SET_TARGET_TYPE(75, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_AREA | SPELL_TARGET_AREA_RANDOM);
-	SET_TARGET_TYPE(76, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_AREA);
-	SET_TARGET_TYPE(77, SPELL_TARGET_AREA_CURTARGET);
+	SET_TARGET_TYPE(73, SPELL_TARGET_AREA_RANDOM);
+	SET_TARGET_TYPE(74, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_AREA_RANDOM);
+	SET_TARGET_TYPE(75, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_AREA_RANDOM);
+	SET_TARGET_TYPE(76, SPELL_TARGET_ANY_OBJECT);
+	SET_TARGET_TYPE(77, SPELL_TARGET_ANY_OBJECT);
 	SET_TARGET_TYPE(78, SPELL_TARGET_AREA);
 	SET_TARGET_TYPE(79, SPELL_TARGET_AREA | SPELL_TARGET_BACK);
 	SET_TARGET_TYPE(80, SPELL_TARGET_AREA | SPELL_TARGET_RIGHT);
@@ -148,7 +148,8 @@ void Spell::FillTargetMap(uint32 i)
 		HandleTargetNoObject();
 		return;
 	}
-
+	if(m_targets.HasTraj())
+		SelectTrajectoryTargets();
 
 	//always add this guy :P
 	if(!(TargetType & (SPELL_TARGET_AREA | SPELL_TARGET_AREA_SELF | SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_AREA_CONE | SPELL_TARGET_OBJECT_SELF | SPELL_TARGET_OBJECT_PETOWNER)))
@@ -680,11 +681,20 @@ bool Spell::GenerateTargets(SpellCastTargets* t)
 				++attempts;
 				if(attempts > 10)
 					return false;
-
-				t->m_destX = m_caster->GetPositionX() + (cosf(angle) * dist);
-				t->m_destY = m_caster->GetPositionY() + (sinf(angle) * dist);
-				t->m_destZ = m_caster->GetMapMgr()->GetLandHeight(t->m_destX, t->m_destY, m_caster->GetPositionZ() + 2.0f);
-				t->m_targetMask = TARGET_FLAG_DEST_LOCATION;
+				if(t->m_targetMask & TARGET_FLAG_DEST_LOCATION)
+				{
+					t->m_destX = t->m_destX + (cosf(angle) * dist);
+					t->m_destY = t->m_destY + (sinf(angle) * dist);
+					t->m_destZ = m_caster->GetMapMgr()->GetLandHeight(t->m_destX, t->m_destY, t->m_destX + 2.0f);
+					t->m_targetMask = TARGET_FLAG_DEST_LOCATION;
+				}
+				else
+				{
+					t->m_destX = m_caster->GetPositionX() + (cosf(angle) * dist);
+					t->m_destY = m_caster->GetPositionY() + (sinf(angle) * dist);
+					t->m_destZ = m_caster->GetMapMgr()->GetLandHeight(t->m_destX, t->m_destY, m_caster->GetPositionZ() + 2.0f);
+					t->m_targetMask = TARGET_FLAG_DEST_LOCATION;
+				}
 			}
 			while(sWorld.Collision && !(GetProto()->AttributesEx2 & SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS) && !CollideInterface.CheckLOS(m_caster->GetMapId(), m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), t->m_destX, t->m_destY, t->m_destZ));
 			result = true;
@@ -720,6 +730,12 @@ bool Spell::GenerateTargets(SpellCastTargets* t)
 					t->m_destX = u_caster->GetPositionX() + (cosf(angle) * dist);
 					t->m_destY = u_caster->GetPositionY() + (sinf(angle) * dist);
 					t->m_destZ = u_caster->GetPositionZ();
+					result = true;
+				}
+				else
+				{
+					t->m_destX = t->m_destX + (cosf(angle) * dist);
+					t->m_destY = t->m_destY + (sinf(angle) * dist);
 					result = true;
 				}
 			}

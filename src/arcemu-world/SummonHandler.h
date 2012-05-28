@@ -145,6 +145,7 @@ class SERVER_DECL SummonHandler
 		///////////////////////////////////////////////////////////////////////////
 		void GetSummonSlotSpellIDs(std::vector< uint32 > &spellids);
 
+		void GetSummonSlotTotemSpellIDs(std::vector< uint32 > &spellids);
 
 		///////////////////////////////////////////////////////////////////////////
 		//bool HasSummonInSlot( uint8 slot )
@@ -163,7 +164,7 @@ class SERVER_DECL SummonHandler
 
 		Unit * GetSummonInSlot(uint8 slot);
 		Unit * GetSummonWithEntry(uint32 entry);
-
+		void RemoveAllTotems();
 		///////////////////////////////////////////////////////////////////////////
 		//void SetPvPFlags()
 		//  Flags all summons for PvP

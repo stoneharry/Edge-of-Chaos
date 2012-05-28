@@ -445,7 +445,7 @@ void AIInterface::_UpdateTargets()
 			Unit* ai_t = m_Unit->GetMapMgr()->GetUnit(it2->first);
 			if(ai_t == NULL)
 			{
-				SendRemoveFromThreatListOpcode(it2->first);
+				//SendRemoveFromThreatListOpcode(it2->first);
 				m_aiTargets.erase(it2);
 			}
 			else
@@ -465,7 +465,7 @@ void AIInterface::_UpdateTargets()
 
 				if(ai_t->event_GetCurrentInstanceId() != m_Unit->event_GetCurrentInstanceId() || !ai_t->isAlive() || ((!instance && m_Unit->GetDistanceSq(ai_t) >= 6400.0f) || !(ai_t->m_phase & m_Unit->m_phase)))
 				{
-					SendRemoveFromThreatListOpcode(it2->first);
+					//SendRemoveFromThreatListOpcode(it2->first);
 					m_aiTargets.erase(it2);
 				}
 			}
@@ -1126,7 +1126,7 @@ void AIInterface::HealReaction(Unit* caster, Unit* victim, SpellEntry* sp, uint3
 void AIInterface::OnDeath(Object* pKiller)
 {
 	StopMovement(0);
-	SendClearThreatListOpcode();
+	//SendClearThreatListOpcode();
 	if(pKiller->IsUnit())
 		HandleEvent(EVENT_UNITDIED, TO< Unit* >(pKiller), 0);
 	else
@@ -2926,7 +2926,7 @@ uint32 AIInterface::getThreatByPtr(Unit* obj)
 
 void AIInterface::SendThreatListUpdate()
 {
-	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature() || m_Unit->IsTotem())
+	/*if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature() || m_Unit->IsTotem())
 		return;
 	if(m_aiTargets.empty())
 		return;
@@ -2940,12 +2940,12 @@ void AIInterface::SendThreatListUpdate()
 		data << uint32(itr->first);
 		data << uint32(getThreatByGUID(itr->first) * 100);
 	}
-	m_Unit->SendMessageToSet(&data, false);
+	m_Unit->SendMessageToSet(&data, false);*/
 }
 
 void AIInterface::SendChangeCurrentVictimOpcode(uint64 guid)
 {
-	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature() || m_Unit->IsTotem())
+	/*if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature() || m_Unit->IsTotem())
 		return;
 	if(m_aiTargets.empty())
 		return;
@@ -2960,26 +2960,26 @@ void AIInterface::SendChangeCurrentVictimOpcode(uint64 guid)
 		data << uint32(itr->first);
 		data << uint32(getThreatByGUID(itr->first));
 	}
-	m_Unit->SendMessageToSet(&data, false);
+	m_Unit->SendMessageToSet(&data, false);*/
 }
 
 void AIInterface::SendClearThreatListOpcode()
 {
-	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature() || m_Unit->IsTotem())
+	/*if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature() || m_Unit->IsTotem())
 		return;
 	WorldPacket data(SMSG_THREAT_CLEAR, 8);
 	data.append(m_Unit->GetNewGUID());
-	m_Unit->SendMessageToSet(&data, false);
+	m_Unit->SendMessageToSet(&data, false);*/
 }
 
 void AIInterface::SendRemoveFromThreatListOpcode(uint64 guid)
 {
-	if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature() || m_Unit->IsTotem())
+	/*if(m_Unit == NULL || !m_Unit->IsInWorld() || !m_Unit->IsCreature() || m_Unit->IsTotem())
 		return;
 	WorldPacket data(SMSG_THREAT_REMOVE, 8 + 8);
 	data.appendPackGUID(m_Unit->GetGUID());
 	data.appendPackGUID(guid);
-	m_Unit->SendMessageToSet(&data, false);
+	m_Unit->SendMessageToSet(&data, false);*/
 }
 
 //should return a valid target
@@ -3016,7 +3016,7 @@ Unit* AIInterface::GetMostHated()
 		{
 			if(getNextTarget() == ai_t)
 				resetNextTarget();
-			SendRemoveFromThreatListOpcode(itr->first);
+			//SendRemoveFromThreatListOpcode(itr->first);
 			m_aiTargets.erase(itr);
 			continue;
 		}
@@ -3027,7 +3027,7 @@ Unit* AIInterface::GetMostHated()
 			currentTarget.first = ai_t;
 			currentTarget.second = itr->second + ai_t->GetThreatModifyer();
 			m_currentHighestThreat = currentTarget.second;
-			SendChangeCurrentVictimOpcode(ai_t->GetGUID());
+			//SendChangeCurrentVictimOpcode(ai_t->GetGUID());
 		}
 
 		/* there are no more checks needed here... the needed checks are done by CheckTarget() */
@@ -3061,7 +3061,7 @@ Unit* AIInterface::GetSecondHated()
 		Unit* ai_t = m_Unit->GetMapMgr()->GetUnit(itr->first);
 		if(!ai_t || ai_t->GetInstanceID() != m_Unit->GetInstanceID() || !ai_t->isAlive() || !isAttackable(m_Unit, ai_t))
 		{
-			SendRemoveFromThreatListOpcode(itr->first);
+			//SendRemoveFromThreatListOpcode(itr->first);
 			m_aiTargets.erase(itr);
 			continue;
 		}
@@ -3178,7 +3178,7 @@ void AIInterface::RemoveThreatByPtr(Unit* obj)
 	TargetMap::iterator it = m_aiTargets.find(obj->GetGUID());
 	if(it != m_aiTargets.end())
 	{
-		SendRemoveFromThreatListOpcode(it->first);
+		//SendRemoveFromThreatListOpcode(it->first);
 		m_aiTargets.erase(it);
 		//check if we are in combat and need a new target
 		if(obj == getNextTarget())
@@ -3204,7 +3204,7 @@ void AIInterface::WipeHateList()
 	for(TargetMap::iterator itr = m_aiTargets.begin(); itr != m_aiTargets.end(); ++itr)
 		itr->second = 0;
 	m_currentHighestThreat = 0;
-	SendClearThreatListOpcode();
+	//SendClearThreatListOpcode();
 }
 
 void AIInterface::ClearHateList() //without leaving combat
@@ -3212,7 +3212,7 @@ void AIInterface::ClearHateList() //without leaving combat
 	for(TargetMap::iterator itr = m_aiTargets.begin(); itr != m_aiTargets.end(); ++itr)
 		itr->second = 1;
 	m_currentHighestThreat = 1;
-	SendClearThreatListOpcode();
+	//SendClearThreatListOpcode();
 }
 
 void AIInterface::WipeTargetList()
@@ -3225,7 +3225,7 @@ void AIInterface::WipeTargetList()
 	m_aiTargets.clear();
 	LockAITargets(false);
 	m_Unit->CombatStatus.Vanished();
-	SendClearThreatListOpcode();
+	//SendClearThreatListOpcode();
 }
 
 bool AIInterface::taunt(Unit* caster, bool apply)
@@ -3355,7 +3355,7 @@ void AIInterface::CheckTarget(Unit* target)
 		m_Unit->CombatStatus.RemoveAttackTarget(target);
 		if(it2 != m_aiTargets.end())
 		{
-			SendRemoveFromThreatListOpcode(it2->first);
+			//SendRemoveFromThreatListOpcode(it2->first);
 			m_aiTargets.erase(it2);
 		}
 
@@ -3377,7 +3377,7 @@ void AIInterface::CheckTarget(Unit* target)
 		if(it2 != target->GetAIInterface()->m_aiTargets.end())
 		{
 			target->GetAIInterface()->LockAITargets(true);
-			target->GetAIInterface()->SendRemoveFromThreatListOpcode(it2->first);
+			//target->GetAIInterface()->SendRemoveFromThreatListOpcode(it2->first);
 			target->GetAIInterface()->m_aiTargets.erase(it2);
 			target->GetAIInterface()->LockAITargets(false);
 		}
@@ -3508,7 +3508,7 @@ void AIInterface::WipeCurrentTarget()
 		TargetMap::iterator itr = m_aiTargets.find(nextTarget->GetGUID());
 		if(itr != m_aiTargets.end())
 		{
-			SendRemoveFromThreatListOpcode(itr->first);
+			//SendRemoveFromThreatListOpcode(itr->first);
 			m_aiTargets.erase(itr);
 		}
 		LockAITargets(false);
@@ -3541,7 +3541,7 @@ void AIInterface::setNextTarget(uint64 nextTarget)
 {
 	m_nextTarget = nextTarget;
 	m_Unit->SetTargetGUID(m_nextTarget);
-	SendChangeCurrentVictimOpcode(nextTarget);
+	//SendChangeCurrentVictimOpcode(nextTarget);
 }
 
 void AIInterface::resetNextTarget()
@@ -4171,7 +4171,7 @@ void AIInterface::EventLeaveCombat(Unit* pUnit, uint32 misc1)
 	// restart emote
 	if(m_Unit->IsCreature())
 	{
-		SendClearThreatListOpcode();
+		//SendClearThreatListOpcode();
 		Creature* creature = TO_CREATURE(m_Unit);
 		creature->HandleMonsterSayEvent(MONSTER_SAY_EVENT_ON_COMBAT_STOP);
 

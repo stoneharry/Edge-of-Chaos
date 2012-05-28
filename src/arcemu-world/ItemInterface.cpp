@@ -309,6 +309,9 @@ AddItemResult ItemInterface::m_AddItem(Item* item, int8 ContainerSlot, int16 slo
 
 	if(m_pOwner->IsInWorld() && slot < INVENTORY_SLOT_BAG_END && ContainerSlot == INVENTORY_SLOT_NOT_SET)
 	{
+		if(GetOwner()->getcombatstatus()->IsInCombat() && (item->GetProto()->Class == ITEM_CLASS_WEAPON || item->GetProto()->InventoryType == INVTYPE_RELIC))
+			GetOwner()->SendCombatEquipCooldown();
+		GetOwner()->ApplyEquipCooldown(item);
 		m_pOwner->ApplyItemMods(item, slot, true);
 	}
 
@@ -358,12 +361,6 @@ AddItemResult ItemInterface::m_AddItem(Item* item, int8 ContainerSlot, int16 slo
 		// otherwise we will send the updates in Player::Onpushtoworld anyways
 		if(m_pOwner->IsInWorld())
 			sEventMgr.AddEvent(item, &Item::SendDurationUpdate, EVENT_SEND_PACKET_TO_PLAYER_AFTER_LOGIN, 0, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
-	}
-	if(IsEquipped(item->GetEntry()))
-	{
-		if(GetOwner()->getcombatstatus()->IsInCombat() && (item->GetProto()->Class == ITEM_CLASS_WEAPON || item->GetProto()->InventoryType == INVTYPE_RELIC))
-			GetOwner()->SendCombatEquipCooldown();
-		GetOwner()->ApplyEquipCooldown(item);
 	}
 	return ADD_ITEM_RESULT_OK;
 }

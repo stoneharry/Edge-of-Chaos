@@ -3430,17 +3430,17 @@ class LuaUnit
 
 		static int Possess(lua_State* L, Unit* ptr)
 		{
-			TEST_PLAYER()
+			TEST_UNIT()
 			Unit* target = CHECK_UNIT(L, 1);
 			if(target)
-				TO_PLAYER(ptr)->Possess(target->GetGUID());
+				ptr->Possess(target);
 			return 0;
 		}
 
 		static int Unpossess(lua_State* L, Unit* ptr)
 		{
-			TEST_PLAYER()
-			TO_PLAYER(ptr)->UnPossess();
+			TEST_UNIT()
+			ptr->UnPossess();
 			return 0;
 		}
 

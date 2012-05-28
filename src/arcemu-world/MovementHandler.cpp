@@ -237,7 +237,18 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 	/************************************************************************/
 	/* Update player movement state                                         */
 	/************************************************************************/
-
+	if(!_player->m_flycheckdelay && !HasGMPermissions() && movementInfo.HasMovementFlag(MOVEFLAG_MASK_CHECK_FLYING) && !mover->CanFly())
+	{
+		if(!_player->m_KickDelay)
+		{
+			SystemMessage("Fly hacking attempt detected, kicking in 7 seconds, if you think this is an error, report exactly what was happening when this happened..");
+			sCheatLog.writefromsession(this, "Detected fly hacking");
+			_player->Kick(8000);
+			mover->Root();
+			_player->Root();
+		}
+		return;
+	}
 	/*Anti Multi-Jump Check*/
 	if(recv_data.GetOpcode() == MSG_MOVE_JUMP && _player->HasUnitMovementFlag(MOVEFLAG_JUMPING) && !GetPermissionCount())
 	{
@@ -426,8 +437,10 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 
 		if(_player->m_CurrentTransporter == NULL)
 		{
-			if(!_player->SetPosition(movementInfo.x, movementInfo.y, movementInfo.z, movementInfo.orientation))
-				_player->EjectFromInstance();
+			if(!_player->isRooted())
+				_player->SetPosition(movementInfo.x, movementInfo.y, movementInfo.z, movementInfo.orientation);
+			/*if(!_player->SetPosition(movementInfo.x, movementInfo.y, movementInfo.z, movementInfo.orientation))
+				_player->EjectFromInstance();*/
 		}
 	}
 	else
