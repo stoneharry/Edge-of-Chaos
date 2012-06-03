@@ -513,7 +513,7 @@ void Object::_BuildValuesUpdate(ByteBuffer* data, UpdateMask* updateMask, Player
 	bool reset = false;
 	uint32 oldflags = 0;
 
-	if(updateMask->GetBit(OBJECT_FIELD_GUID) && target)	   // We're creating.
+	if(target)	   // We're creating.
 	{
 		if(IsCreature())
 		{
@@ -555,7 +555,6 @@ void Object::_BuildValuesUpdate(ByteBuffer* data, UpdateMask* updateMask, Player
 				reset = true;
 			}
 		}
-
 		if(target && IsGameObject())
 		{
 			GameObject* go = TO_GAMEOBJECT(this);

@@ -5926,7 +5926,6 @@ int Unit::HasAurasWithNameHash(uint32 name_hash)
 
 bool Unit::HasAuraWithName(uint32 name, uint32 skipspell)
 {
-
 	for(uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i)
 	{
 		if(m_auras[ i ] != NULL && m_auras[ i ]->GetSpellProto()->Id != skipspell && m_auras[ i ]->GetSpellProto()->AppliesAura(name))
@@ -5936,6 +5935,19 @@ bool Unit::HasAuraWithName(uint32 name, uint32 skipspell)
 	return false;
 }
 
+bool Unit::HasFlyingAura(uint32 skipspell)
+{
+	for(uint32 i = MAX_TOTAL_AURAS_START; i < MAX_TOTAL_AURAS_END; ++i)
+	{
+		if(m_auras[ i ] != NULL && m_auras[i]->GetSpellId() != skipspell && (m_auras[ i ]->GetSpellProto()->AppliesAura(SPELL_AURA_ENABLE_FLIGHT) ||
+			m_auras[ i ]->GetSpellProto()->AppliesAura(SPELL_AURA_ENABLE_FLIGHT2) || m_auras[ i ]->GetSpellProto()->AppliesAura(SPELL_AURA_ENABLE_FLIGHT_WITH_UNMOUNTED_SPEED) || 
+			m_auras[ i ]->GetSpellProto()->AppliesAura(SPELL_AURA_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS) || m_auras[ i ]->GetSpellProto()->AppliesAura(SPELL_AURA_ALLOW_FLIGHT) || 
+			m_auras[ i ]->GetSpellProto()->AppliesAura(SPELL_AURA_MOD_VEHICLE_SPEED_ALWAYS) || m_auras[ i ]->GetSpellProto()->AppliesAura(SPELL_AURA_MOD_FLIGHT_SPEED_NOT_STACK)))
+			return true;
+	}
+
+	return false;
+}
 uint32 Unit::GetAuraCountWithName(uint32 name)
 {
 	uint32 count = 0;
@@ -6071,18 +6083,11 @@ void Unit::RemoveAurasOfSchool(uint32 School, bool Positive, bool Immune)
 
 void Unit::EnableFlight()
 {
-	if(!IsPlayer() || TO_PLAYER(this)->m_changingMaps)
-	{
-		if(IsCreature()) // give them a "flying" animation so they don't just airwalk lul
-			SetByteFlag( UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_UNK_2 );
-	}
-	else
-	{
-		WorldPacket* data = new WorldPacket(SMSG_MOVE_SET_CAN_FLY, 13);
-		*data << GetNewGUID();
-		*data << uint32(2);
-		SendMessageToSet(data, false);
-	}
+	if(!IsInWorld())
+		return;
+	if(IsCreature())
+		SetByteFlag( UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_UNK_2 );
+
 	WorldPacket data(SMSG_MOVE_SET_CAN_FLY, 13);
 	data << GetNewGUID();
 	data << uint32(2);
@@ -6098,6 +6103,10 @@ void Unit::EnableFlight()
 
 void Unit::DisableFlight()
 {
+	if(!IsInWorld())
+		return;
+	if(IsCreature())
+		RemoveByteFlag( UNIT_FIELD_BYTES_1, 3, UNIT_BYTE1_FLAG_UNK_2 );
 	WorldPacket data(SMSG_MOVE_UNSET_CAN_FLY, 13);
 	data << GetNewGUID();
 	data << uint32(5);
@@ -6105,7 +6114,7 @@ void Unit::DisableFlight()
 	RemoveUnitMovementFlag(MOVEFLAG_MASK_FLYING);
 	SendMovementFlagUpdate();
 	if(IsPlayer())
-		TO_PLAYER(this)-> m_flycheckdelay = getMSTime() + (30*IN_MILLISECONDS);
+		TO_PLAYER(this)->m_flycheckdelay = getMSTime() + (10*IN_MILLISECONDS);
 }
 
 bool Unit::IsDazed()
@@ -7993,21 +8002,16 @@ int32 Unit::GetTotalAuraModifierByMiscMask(uint32 auratype, uint32 misc_mask)
 
 bool Unit::CanFly(uint32 skipspell)
 {
-	if(GetVehicleBase())
-		return GetVehicleBase()->CanFly(skipspell);
-
-	if(HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT, skipspell) || HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT2, skipspell) ||
-		HasAuraWithName(SPELL_AURA_ENABLE_FLIGHT_WITH_UNMOUNTED_SPEED, skipspell) || HasAuraWithName(SPELL_AURA_ALLOW_FLIGHT, skipspell) ||
-		HasAuraWithName(SPELL_AURA_MOD_MOUNTED_FLIGHT_SPEED_ALWAYS, skipspell) || HasAuraWithName(SPELL_AURA_MOD_VEHICLE_SPEED_ALWAYS, skipspell) ||
-		HasAuraWithName(SPELL_AURA_MOD_FLIGHT_SPEED_NOT_STACK, skipspell))
+	if(GetCurrentVehicle())
 		return true;
+
 	if(IsPlayer())
 	{
 		Player * plr = TO_PLAYER(this);
-		if(plr->FlyCheat || plr->m_setflycheat || plr->flying_aura || plr->GetTaxiState() || plr->m_CurrentTransporter)
+		if(plr->GetSession()->HasGMPermissions() || plr->m_flycheckdelay || plr->FlyCheat || plr->m_setflycheat || plr->flying_aura || plr->GetTaxiState() || plr->m_CurrentTransporter)
 			return true;
 	}
-	return false;
+	return HasFlyingAura(skipspell);
 }
 
 float Unit::CalcSpellDamageReduction(Unit* victim, SpellEntry* spell, float res)
@@ -8316,8 +8320,8 @@ bool Unit::IsFlying()
 {
 	if(GetAIInterface()->Flying())
 		return true;
-	if(CanFly())
-		return true;
+	//if(CanFly())
+		//return true;
 	if(HasUnitMovementFlag(MOVEFLAG_AIR_SWIMMING))
 		return true;
 	if(HasUnitMovementFlag(MOVEFLAG_CAN_FLY))
@@ -10036,13 +10040,14 @@ void Unit::Possess(Unit *pTarget, uint32 delay)
 	}
 
 	m_noInterrupt++;
+	SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
 	SetCharmedUnitGUID(pTarget->GetGUID());
 	pTarget->SetCharmedByGUID(GetGUID());
 	pTarget->SetCharmTempVal(pTarget->GetFaction());
 
 	if(pThis)
 	{
-		pThis->SetFarsightTarget(pTarget->GetGUID());
+		//pThis->SetFarsightTarget(pTarget->GetGUID());
 		pThis->m_CurrentCharm = pTarget->GetGUID();
 		pThis->SetClientControl(pTarget, 1);
 		pTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED_CREATURE);
@@ -10050,7 +10055,6 @@ void Unit::Possess(Unit *pTarget, uint32 delay)
 	}
 
 	pTarget->SetFaction(GetFaction());
-	SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
 		
 	if(pTarget->IsPlayer())
 	{
@@ -10085,13 +10089,9 @@ void Unit::UnPossess()
 	Unit* pTarget = GetMapMgr()->GetUnit(GetCharmedUnitGUID());
 	if(!pTarget)
 		return;
-
+	pTarget->m_redirectSpellPackets = NULL;
 	if(pTarget->IsCreature())
-	{
-		// unit-only stuff.
-		pTarget->setAItoUse(true);
-		pTarget->m_redirectSpellPackets = NULL;
-	}
+		pTarget->setAItoUse(true);	
 	else
 	{
 		Player * pTarg = TO_PLAYER(pTarget);
@@ -10102,7 +10102,7 @@ void Unit::UnPossess()
 	m_noInterrupt--;
 	if(pThis)
 	{
-		pThis->SetFarsightTarget(0);
+		//pThis->SetFarsightTarget(0);
 		pThis->SetClientControl(pTarget, 0);
 	}
 

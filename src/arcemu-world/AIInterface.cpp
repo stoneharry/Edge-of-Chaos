@@ -3716,13 +3716,20 @@ bool AIInterface::Move(float & x, float & y, float & z, float o /*= 0*/)
 	m_currentSplineFinalOrientation = o;
 
 	//Add new points
-#ifdef TEST_PATHFINDING
-	if(!Flying() && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
+	if(sWorld.Use_MMAPS)
 	{
-		if(!CreatePath(x, y, z))
+		if(!Flying() && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
 		{
-			StopMovement(0); //old spline is probly still active on client, need to keep in sync
-			return false;
+			if(!CreatePath(x, y, z))
+			{
+				StopMovement(0); //old spline is probly still active on client, need to keep in sync
+				return false;
+			}
+		}
+		else
+		{
+			AddSpline(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ());
+			AddSpline(x, y, z);
 		}
 	}
 	else
@@ -3730,11 +3737,6 @@ bool AIInterface::Move(float & x, float & y, float & z, float o /*= 0*/)
 		AddSpline(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ());
 		AddSpline(x, y, z);
 	}
-#else
-	AddSpline(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ());
-	AddSpline(x, y, z);
-#endif
-
 
 	SendMoveToPacket();
 	return true;
@@ -4669,13 +4671,20 @@ bool AIInterface::MoveCharge(float x, float y, float z)
 
 	m_runSpeed *= 3.5f;
 
-#ifdef TEST_PATHFINDING
-	if(!Flying() && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
+	if(sWorld.Use_MMAPS)
 	{
-		if(!CreatePath(x, y, z))
+		if(!Flying() && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
 		{
-			StopMovement(0); //old spline is probly still active on client, need to keep in sync
-			return false;
+			if(!CreatePath(x, y, z))
+			{
+				StopMovement(0); //old spline is probly still active on client, need to keep in sync
+				return false;
+			}
+		}
+		else
+		{
+			AddSpline(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ());
+			AddSpline(x, y, z);
 		}
 	}
 	else
@@ -4683,10 +4692,7 @@ bool AIInterface::MoveCharge(float x, float y, float z)
 		AddSpline(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ());
 		AddSpline(x, y, z);
 	}
-#else
-	AddSpline(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ());
-	AddSpline(x, y, z);
-#endif
+
 
 	UpdateSpeeds(); //reset run speed
 

@@ -1072,7 +1072,7 @@ void Player::EventDismount(uint32 money, float x, float y, float z)
 	UpdateSpeed();
 
 	sEventMgr.RemoveEvents(this, EVENT_PLAYER_TAXI_INTERPOLATE);
-
+	m_flycheckdelay = getMSTime() + (10*IN_MILLISECONDS);
 	// Save to database on dismount
 	SaveToDB(false);
 

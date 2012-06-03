@@ -1209,6 +1209,7 @@ class SERVER_DECL Unit : public Object
 		bool HasAurasOfBuffType(uint32 buff_type, const uint64 & guid, uint32 skip);
 		int	 HasAurasWithNameHash(uint32 name_hash);
 		bool HasAuraWithName(uint32 name, uint32 skipspell = 0);
+		bool HasFlyingAura(uint32 skipspell = 0);
 		uint32 GetAuraCountWithName(uint32 name);
 		uint32 FindAuraCountByHash(uint32 HashName, uint32 maxcount = 0);
 		uint32 GetAuraCountWithDispel(uint32 dispel_type, uint64 guid);

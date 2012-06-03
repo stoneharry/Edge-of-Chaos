@@ -237,7 +237,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 	/************************************************************************/
 	/* Update player movement state                                         */
 	/************************************************************************/
-	if(!_player->m_flycheckdelay && !HasGMPermissions() && movementInfo.HasMovementFlag(MOVEFLAG_MASK_CHECK_FLYING) && !mover->CanFly())
+	if(movementInfo.HasMovementFlag(MOVEFLAG_MASK_CHECK_FLYING) && !mover->CanFly())
 	{
 		if(!_player->m_KickDelay)
 		{
@@ -250,7 +250,7 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 		return;
 	}
 	/*Anti Multi-Jump Check*/
-	if(recv_data.GetOpcode() == MSG_MOVE_JUMP && _player->HasUnitMovementFlag(MOVEFLAG_JUMPING) && !GetPermissionCount())
+	if(recv_data.GetOpcode() == MSG_MOVE_JUMP && _player->HasUnitMovementFlag(MOVEFLAG_MASK_CHECK_JUMPING) && !GetPermissionCount())
 	{
 		sCheatLog.writefromsession(this, "Detected jump hacking");
 		Disconnect();
@@ -484,7 +484,7 @@ void WorldSession::HandleSetActiveMoverOpcode(WorldPacket & recv_data)
 		if( _player->GetCurrentVehicle() && _player->GetCurrentVehicle()->GetOwner() && 
 			_player->GetCurrentVehicle()->GetOwner()->GetGUID() != guid )
 			return;
-	}*/
+	}
 	// ^ till is fixed
 	if(_player->GetMapMgr()->GetUnit(guid) || guid == 0)
 	{
@@ -493,7 +493,7 @@ void WorldSession::HandleSetActiveMoverOpcode(WorldPacket & recv_data)
 			m_MoverWoWGuid.Init(guid);
 		else
 			m_MoverWoWGuid.Init(_player->GetGUID());
-	}
+	}*/
 }
 
 void WorldSession::HandleMoveSplineCompleteOpcode(WorldPacket & recvPacket)
