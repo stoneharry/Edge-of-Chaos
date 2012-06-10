@@ -403,10 +403,9 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 	/* Breathing System                                                     */
 	/************************************************************************/
 	//_HandleBreathing(movementInfo, _player, this);
-    if (((movementInfo.flags & MOVEFLAG_SWIMMING) != 0) != _player->IsInWater())
+    if (((movementInfo.flags & MOVEFLAG_SWIMMING) != 0) != _player->IsInWater() && movementInfo.z+2.0f < (_player->GetMapMgr()->GetLiquidHeight(movementInfo.x, movementInfo.y)-2.0f))
     {
-        // now client not include swimming flag in case jumping under water
-		_player->SetInWater(!_player->IsInWater() || movementInfo.z < (_player->GetMapMgr()->GetLiquidHeight(movementInfo.x, movementInfo.y)-2));
+		_player->SetInWater(true);
 		_player->UpdateUnderwaterState(movementInfo.x, movementInfo.y, movementInfo.z);
     }
 	else
@@ -416,6 +415,8 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 			_player->StopMirrorTimers();
 			_player->m_MirrorTimer[BREATH_TIMER] = _player->getMaxTimer(BREATH_TIMER);
 		}
+		if(_player->IsInWater())
+			_player->SetInWater(false);
 	}
 
 	/************************************************************************/

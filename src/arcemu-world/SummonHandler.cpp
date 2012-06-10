@@ -252,6 +252,8 @@ void SummonHandler::OnOwnerAttack(Unit * target)
 {
 	for(std::set< Unit* >::iterator itr = guardians.begin(); itr != guardians.end(); ++itr)
 	{
+		if((*itr) == NULL || !(*itr)->IsInWorld())
+			continue;
 		if(isAttackable((*itr), target))
 		{
 			(*itr)->GetAIInterface()->SetAIState(STATE_ATTACKING);
@@ -262,7 +264,7 @@ void SummonHandler::OnOwnerAttack(Unit * target)
 	for(std::tr1::array< Unit*, SUMMON_SLOTS >::iterator itr = summonslots.begin(); itr != summonslots.end(); ++itr)
 	{
 		Unit* u = (*itr);
-		if(u != NULL && !u->IsTotem())
+		if(u != NULL && u->IsInWorld() && !u->IsTotem())
 		{
 			if(isAttackable(u, target))
 			{
@@ -276,12 +278,16 @@ void SummonHandler::OnOwnerAttack(Unit * target)
 void SummonHandler::SyncFactions(uint32 faction)
 {
 	for(std::set< Unit* >::iterator itr = guardians.begin(); itr != guardians.end(); ++itr)
+	{
+		if((*itr) == NULL || !(*itr)->IsInWorld())
+			continue;
 		(*itr)->SetFaction(faction);
+	}
 
 	for(std::tr1::array< Unit*, SUMMON_SLOTS >::iterator itr = summonslots.begin(); itr != summonslots.end(); ++itr)
 	{
 		Unit* u = (*itr);
-		if(u != NULL)
+		if(u != NULL && u->IsInWorld())
 			u->SetFaction(faction);
 	}
 }

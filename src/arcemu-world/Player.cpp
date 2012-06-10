@@ -5525,7 +5525,8 @@ bool Player::CanSee(Object* obj) // * Invisibility & Stealth Detection - Partha 
 {
 	if (obj == this)
 	   return true;
-
+	if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM) && HasFlag(PLAYER_FLAGS, PLAYER_FLAG_DEVELOPER))
+		return true;
 
 	uint32 object_type = obj->GetTypeId();
 
@@ -13981,8 +13982,8 @@ void Player::SendUpdateToOutOfRangeGroupMembers()
 		group->UpdateOutOfRangePlayer(this, true, NULL);
 
     GroupUpdateFlags = GROUP_UPDATE_FLAG_NONE;
-    m_auraRaidUpdateMask = 0;
-	ResetAuraUpdateMaskForRaid();
+    //m_auraRaidUpdateMask = 0;
+	//ResetAuraUpdateMaskForRaid();
     if (Pet* pet = GetSummon())
         pet->ResetAuraUpdateMaskForRaid();
 }
@@ -13991,18 +13992,8 @@ void Player::SetInWater(bool apply)
 {
     if (m_isInWater == apply)
         return;
-
-    //define player in water by opcodes
-    //move player's guid into HateOfflineList of those mobs
-    //which can't swim and move guid back into ThreatList when
-    //on surface.
-    //TODO: exist also swimming mobs, and function must be symmetric to enter/leave water
     m_isInWater = apply;
-
-    // remove auras that need water/land
     RemoveAurasByInterruptFlag(apply ? AURA_INTERRUPT_ON_ENTER_WATER : AURA_INTERRUPT_ON_LEAVE_WATER);
-
-    //getHostileRefManager().updateThreatTables();
 }
 
 bool Player::IsUnderWater() 
@@ -14027,8 +14018,10 @@ void Player::UpdateUnderwaterState(float x, float y, float z)
 	}
 	//if(GetPositionZ() > (GetMapMgr()->GetLiquidHeight(GetPositionX(), GetPositionY())-2))
 		//return;
-	uint8 liquidType = GetMapMgr()->GetLiquidType(x,y);
-	m_MirrorTimerFlags = 0;
+	//uint8 liquidType = GetMapMgr()->GetLiquidType(x,y);
+	//m_MirrorTimerFlags = 0;
+	m_MirrorTimerFlags |= UNDERWATER_INWATER;
+	/*
 	switch(liquidType)
 	{
 		case MAP_LIQUID_TYPE_WATER:
@@ -14054,7 +14047,7 @@ void Player::UpdateUnderwaterState(float x, float y, float z)
 		default:
 			if(liquidType != 0)
 				printf("Dafaq how we get here, liquid %u\n", liquidType);
-	}
+	}*/
 /*  LiquidData liquid_status;
     ZLiquidStatus res = GetMapMgr()->getLiquidStatus(x, y, z, MAP_ALL_LIQUIDS, &liquid_status);
     if (!res)

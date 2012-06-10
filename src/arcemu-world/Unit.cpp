@@ -6098,7 +6098,6 @@ void Unit::EnableFlight()
 		TO< Player* >(this)->m_setflycheat = true;
 	}
 	AddUnitMovementFlag(MOVEFLAG_CAN_FLY);
-	SendMovementFlagUpdate();
 }
 
 void Unit::DisableFlight()
@@ -6111,10 +6110,12 @@ void Unit::DisableFlight()
 	data << GetNewGUID();
 	data << uint32(5);
 	SendMessageToSet(&data, true);
-	RemoveUnitMovementFlag(MOVEFLAG_MASK_FLYING);
-	SendMovementFlagUpdate();
+	RemoveUnitMovementFlag(MOVEFLAG_CAN_FLY);
 	if(IsPlayer())
+	{
 		TO_PLAYER(this)->m_flycheckdelay = getMSTime() + (10*IN_MILLISECONDS);
+		TO< Player* >(this)->m_setflycheat = false;
+	}
 }
 
 bool Unit::IsDazed()
