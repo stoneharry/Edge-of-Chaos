@@ -550,12 +550,38 @@ class LuaUnit
 			uint32 equip3 = luaL_optint(L, 10, 1);
 			uint32 phase = luaL_optint(L, 11, ptr->m_phase);
 			bool save = luaL_optint(L, 12, 0) ? true : false;
-			Creature* pCreature = ptr->CreateCreature(entry, x, y, z, o, faction, duration, equip1, equip2, equip3, phase, save);
+
+			if(!entry)
+			{
+				lua_pushnil(L);
+				return 1;
+			}
+			CreatureProto* p = CreatureProtoStorage.LookupEntry(entry);
+			CreatureInfo* i = CreatureNameStorage.LookupEntry(entry);
+
+			if(p == NULL || i == NULL)
+			{
+				lua_pushnil(L);
+				return 1;
+			}
+			Creature* pCreature = ptr->GetMapMgr()->CreateCreature(entry);
 			if(pCreature == NULL)
 			{
 				lua_pushnil(L);
 				return 1;
 			}
+			pCreature->Load(p, x, y, z, o);
+			pCreature->SetFaction(faction);
+			pCreature->SetEquippedItem(MELEE, equip1);
+			pCreature->SetEquippedItem(OFFHAND, equip2);
+			pCreature->SetEquippedItem(RANGED, equip3);
+			pCreature->Phase(PHASE_SET, phase);
+			pCreature->m_noRespawn = true;
+			pCreature->AddToWorld(ptr->GetMapMgr());
+			if(duration)
+				pCreature->Despawn(duration, 0);
+			if(save)
+				pCreature->SaveToDB();
 			PUSH_UNIT(L, pCreature);
 			return 1;
 		}
@@ -573,13 +599,20 @@ class LuaUnit
 			bool save = luaL_optint(L, 9, 0) ? true : false;
 			if(entry_id)
 			{
+				GameObjectInfo* i = GameObjectNameStorage.LookupEntry(entry_id);
+
+				if(i == NULL)
+				{
+					lua_pushnil(L);
+					return 1;
+				}
+
 				GameObject* go = ptr->GetMapMgr()->CreateGameObject(entry_id);
 				uint32 mapid = ptr->GetMapId();
 				go->CreateFromProto(entry_id, mapid, x, y, z, o);
 				go->Phase(PHASE_SET, phase);
 				go->SetScale(scale);
-
-				go->AddToWorld(ptr->GetMapMgr());
+				go->AddToWorld( ptr->GetMapMgr() );
 
 				if(duration)
 					sEventMgr.AddEvent(go, &GameObject::ExpireAndDelete, EVENT_GAMEOBJECT_UPDATE, duration, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
