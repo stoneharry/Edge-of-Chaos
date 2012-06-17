@@ -19,6 +19,7 @@
 
 #include "LogonStdAfx.h"
 #include <openssl/md5.h>
+#include <sha.h>;
 
 enum _errors
 {
@@ -32,6 +33,21 @@ enum _errors
 	CE_WRONG_BUILD_NUMBER= 0x09,						 //Unable to validate game version.  This may be caused by file corruption or the interference of another program.
 	CE_UPDATE_CLIENT= 0x0a,
 	CE_ACCOUNT_FREEZED= 0x0c
+	/*
+	DOWNLOADFILE__OK = 0AH
+	FAILED_SUSPENDED = 0CH
+	FAILED_FAILED = 0Dh
+	Failed_ParentalControl = 0Fh
+	Failed_Locked_Enforced = 10h
+	Failed_Trial_Expired = 11h
+	Failed_Account_Converted = 12h
+	Failed_Chargeback = 16h
+	Failed_IGR_Without_BNET = 17h
+	FAILED_Game_Account_Locked = 18h
+	Failed_Unlockable_Lock = 19h
+	Failed_Conversion_Required = 20h
+	Failed_Disconnected = 0FFh
+	*/
 } ;
 
 AuthSocket::AuthSocket(SOCKET fd) : Socket(fd, 32768, 4096)
@@ -127,8 +143,6 @@ void AuthSocket::HandleChallenge()
 		flippedloc[1] = m_challenge.country[2];
 		flippedloc[2] = m_challenge.country[1];
 		flippedloc[3] = m_challenge.country[0];
-
-		Log.Debug("Patch", "Patch %u %s for client.", build,flippedloc);
 
 		m_patch = PatchMgr::getSingleton().FindPatchForClient(build, flippedloc);
 		if(m_patch == NULL)
@@ -414,6 +428,34 @@ void AuthSocket::HandleProof()
 	// Store sessionkey
 	m_account->SetSessionKey(m_sessionkey.AsByteArray());
 
+	// Hash the session key so that the logon DB can know
+	//char HASH_CONSTANT = 0x7A0B;
+
+	//const char* temp = m_sessionkey.AsHexStr();
+	/*SHA1_CONTEXT sha_context;
+	SHA1_Init(&sha_context);
+	SHA1_Update(&sha_context, temp, 40);
+	SHA1_Update(&sha_context, &HASH_CONSTANT, 2);
+	char keyhash[24];
+	SHA1_Final(keyhash, &sha_context);*/
+
+	static const unsigned short hash_constant (0x7a0b);
+	Sha1Hash newone;
+	newone.UpdateBigNumbers (&m_sessionkey, NULL);
+	newone.UpdateData ((uint8*)&hash_constant, sizeof (hash_constant));
+	newone.Finalize();
+	const unsigned char* hashed_session_key (newone.GetDigest());
+
+	std::stringstream stream;  
+    for(int i = 0; i < 20; i++)
+	{
+		stream << std::hex << (unsigned int)hashed_session_key[i];
+	}
+    std::string printable = (stream.str());
+
+	// Let the DB know
+	sLogonSQL->Execute("UPDATE `account_messages` SET `hash` = '%s' WHERE `account` = '%s';", printable, m_account->UsernamePtr);
+
 	// let the client know
 	sha.Initialize();
 	sha.UpdateBigNumbers(&A, &M, &m_sessionkey, 0);
@@ -447,7 +489,6 @@ void AuthSocket::SendProofError(uint8 Error, uint8 * M2)
 	buffer[1] = Error;
 	if(M2 == 0)
 	{
-
 		*(uint32*)&buffer[2] = 3;
 
 		Send(buffer, 6);
@@ -456,7 +497,7 @@ void AuthSocket::SendProofError(uint8 Error, uint8 * M2)
 
 	memcpy(&buffer[2], M2, 20);
     buffer[22]= 0x01; //<-- ARENA TOURNAMENT ACC FLAG!
-
+	buffer[30]= 1; // Unread messages
 	Send(buffer, 32);
 }
 
@@ -535,9 +576,6 @@ void AuthSocket::OnRead()
 		return;
 
 	uint8 Command = *(uint8*)readBuffer.GetBufferStart();
-
-	Log.Debug("AuthOpcode", "Got opcode/command %d", Command);
-
 	last_recv = UNIXTIME;
 	if(Command < MAX_AUTH_CMD && Handlers[Command] != NULL)
 		(this->*Handlers[Command])();
@@ -716,17 +754,15 @@ void AuthSocket::HandleTransferResume()
 	LOG_DEBUG("Resuming transfer");
 	if(!m_patch)
 		return;
-	LOG_DEBUG("Patch found");
+
 	//RemoveReadBufferBytes(1,false);
 	readBuffer.Remove(1);
 	uint64 size;
 	//Read(8,(uint8*)&size);
 	readBuffer.Read(&size, 8);
-	LOG_DEBUG("If %u is bigger than %u", size, m_patch->FileSize);
 	if(size>=m_patch->FileSize)
 		return;
 
-	LOG_DEBUG("Begin Patch Job");
 	PatchMgr::getSingleton().BeginPatchJob(m_patch,this,(uint32)size);
 }
 
