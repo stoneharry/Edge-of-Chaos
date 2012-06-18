@@ -428,33 +428,20 @@ void AuthSocket::HandleProof()
 	// Store sessionkey
 	m_account->SetSessionKey(m_sessionkey.AsByteArray());
 
+	// Disabled because the server algorithm seems to be unable to generate the same result as the client.
+	/*
 	// Hash the session key so that the logon DB can know
-	//char HASH_CONSTANT = 0x7A0B;
-
-	//const char* temp = m_sessionkey.AsHexStr();
-	/*SHA1_CONTEXT sha_context;
-	SHA1_Init(&sha_context);
-	SHA1_Update(&sha_context, temp, 40);
-	SHA1_Update(&sha_context, &HASH_CONSTANT, 2);
-	char keyhash[24];
-	SHA1_Final(keyhash, &sha_context);*/
-
 	static const unsigned short hash_constant (0x7a0b);
 	Sha1Hash newone;
 	newone.UpdateBigNumbers (&m_sessionkey, NULL);
 	newone.UpdateData ((uint8*)&hash_constant, sizeof (hash_constant));
 	newone.Finalize();
-	const unsigned char* hashed_session_key (newone.GetDigest());
-
-	std::stringstream stream;  
-    for(int i = 0; i < 20; i++)
-	{
-		stream << std::hex << (unsigned int)hashed_session_key[i];
-	}
-    std::string printable = (stream.str());
+	BigNumber hashed_session_key;
+	hashed_session_key.SetBinary (newone.GetDigest(), newone.GetLength());
 
 	// Let the DB know
-	sLogonSQL->Execute("UPDATE `account_messages` SET `hash` = '%s' WHERE `account` = '%s';", printable, m_account->UsernamePtr);
+	sLogonSQL->Execute("UPDATE `account_messages` SET `hash` = '%s' WHERE `account` = '%s';", hashed_session_key.AsDecStr(), m_account->UsernamePtr);
+	*/
 
 	// let the client know
 	sha.Initialize();
