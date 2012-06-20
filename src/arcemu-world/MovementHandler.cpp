@@ -149,6 +149,142 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket & recv_data)
 
 }
 
+void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSession* pSession)
+{
+	// no water breathing is required
+	if(!sWorld.BreathingEnabled || _player->FlyCheat || _player->m_bUnlimitedBreath || !_player->isAlive() || _player->GodModeCheat)
+	{
+		// player is flagged as in water
+		if(_player->m_UnderwaterState & UNDERWATERSTATE_SWIMMING)
+			_player->m_UnderwaterState &= ~UNDERWATERSTATE_SWIMMING;
+
+		// player is flagged as under water
+		if(_player->m_UnderwaterState & UNDERWATERSTATE_UNDERWATER)
+		{
+			_player->m_UnderwaterState &= ~UNDERWATERSTATE_UNDERWATER;
+			WorldPacket data(SMSG_START_MIRROR_TIMER, 20);
+			data << uint32(TIMER_BREATH) << _player->m_UnderwaterTime << _player->m_UnderwaterMaxTime << int32(-1) << uint32(0);
+
+			pSession->SendPacket(&data);
+		}
+		if(pSession->m_bIsWLevelSet)
+		{
+			if(movement_info.z + _player->m_noseLevel <= _player->GetMapMgr()->GetLiquidHeight(movement_info.x, movement_info.y))
+			{
+				_player->m_UnderwaterTime = 0;
+				_player->m_UnderwaterMaxTime = 0;
+				_player->m_UnderwaterState = UNDERWATERSTATE_NONE;
+				_player->StopMirrorTimer(TIMER_BREATH);
+				_player->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_LEAVE_WATER);
+				// unset swim session water level
+				pSession->m_bIsWLevelSet = false;
+			}
+		}
+		return;
+	}
+
+	//player is swimming and not flagged as in the water
+	if(movement_info.flags & MOVEFLAG_SWIMMING && !(_player->m_UnderwaterState & UNDERWATERSTATE_SWIMMING))
+	{
+		if( ( _player->GetZoneId() == 46 )&& !(_player->m_UnderwaterState & UNDERWATERSTATE_LAVA))
+			_player->m_UnderwaterState |= UNDERWATERSTATE_LAVA;
+
+		_player->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_ENTER_WATER);
+
+		// get water level only if it was not set before
+		if(!pSession->m_bIsWLevelSet)
+		{
+			// water level is somewhere below the nose of the character when entering water
+			pSession->m_wLevel = movement_info.z + _player->m_noseLevel * 0.95f;
+			pSession->m_bIsWLevelSet = true;
+		}
+
+		_player->m_UnderwaterState |= UNDERWATERSTATE_SWIMMING;
+	}
+
+	// player is not swimming and is not stationary and is flagged as in the water
+	if(!(movement_info.flags & MOVEFLAG_SWIMMING) && (movement_info.flags != MOVEFLAG_MOVE_STOP) && (_player->m_UnderwaterState & UNDERWATERSTATE_SWIMMING))
+	{
+		if(movement_info.z + _player->m_noseLevel <= _player->GetMapMgr()->GetLiquidHeight(movement_info.x, movement_info.y))
+		{
+			_player->m_UnderwaterTime = 0;
+			_player->m_UnderwaterMaxTime = 0;
+			_player->m_UnderwaterState = UNDERWATERSTATE_NONE;
+			_player->StopMirrorTimer(TIMER_BREATH);
+			_player->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_LEAVE_WATER);
+			pSession->m_bIsWLevelSet = false;
+			return;
+		}
+		// player is above water level
+		if((movement_info.z + _player->m_noseLevel) > pSession->m_wLevel)
+		{
+			if( ( _player->GetZoneId() == 46 ) && (_player->m_UnderwaterState & UNDERWATERSTATE_LAVA))
+				_player->m_UnderwaterState &= ~UNDERWATERSTATE_LAVA;
+
+			_player->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_LEAVE_WATER);
+
+			// unset swim session water level
+			pSession->m_bIsWLevelSet = false;
+
+			_player->m_UnderwaterState &= ~UNDERWATERSTATE_SWIMMING;
+		}
+	}
+
+	// player is flagged as in the water and is not flagged as under the water
+	if(_player->m_UnderwaterState & UNDERWATERSTATE_SWIMMING && !(_player->m_UnderwaterState & UNDERWATERSTATE_UNDERWATER))
+	{
+		//the player is in the water and has gone under water, requires breath bar.
+		if(movement_info.z + _player->m_noseLevel < _player->GetMapMgr()->GetLiquidHeight(movement_info.x, movement_info.y))
+		{
+			_player->m_UnderwaterState |= UNDERWATERSTATE_UNDERWATER;
+			if( ( _player->GetZoneId() == 46 ) && !(_player->m_UnderwaterState & UNDERWATERSTATE_LAVA))
+				_player->m_UnderwaterState |= UNDERWATERSTATE_LAVA;
+			else
+			{
+				WorldPacket data(SMSG_START_MIRROR_TIMER, 20);
+				data << uint32( TIMER_BREATH ) << _player->m_UnderwaterTime << _player->m_UnderwaterMaxTime << int32(-1) << uint32(0);
+				pSession->SendPacket(&data);
+			}
+		}
+	}
+
+	// player is flagged as in the water and is flagged as under the water
+	if(_player->m_UnderwaterState & UNDERWATERSTATE_SWIMMING && _player->m_UnderwaterState & UNDERWATERSTATE_UNDERWATER)
+	{
+		//the player is in the water but their face is above water, no breath bar needed.
+		if(movement_info.z + _player->m_noseLevel > _player->GetMapMgr()->GetLiquidHeight(movement_info.x, movement_info.y))
+		{
+			_player->m_UnderwaterState &= ~UNDERWATERSTATE_UNDERWATER;
+			if( ( _player->GetZoneId() == 46) && (_player->m_UnderwaterState & UNDERWATERSTATE_LAVA))
+				_player->m_UnderwaterState &= ~UNDERWATERSTATE_LAVA;
+			else
+			{
+				WorldPacket data(SMSG_START_MIRROR_TIMER, 20);
+				data << uint32( TIMER_BREATH ) << _player->m_UnderwaterTime << _player->m_UnderwaterMaxTime << int32(10) << uint32(0);
+				pSession->SendPacket(&data);
+			}
+		}
+	}
+
+	// player is flagged as not in the water and is flagged as under the water
+	if(!(_player->m_UnderwaterState & UNDERWATERSTATE_SWIMMING) && _player->m_UnderwaterState & UNDERWATERSTATE_UNDERWATER)
+	{
+		//the player is out of the water, no breath bar needed.
+		if(movement_info.z + _player->m_noseLevel > _player->GetMapMgr()->GetLiquidHeight(movement_info.x, movement_info.y))
+		{
+			if( ( _player->GetZoneId() == 46 ) && (_player->m_UnderwaterState & UNDERWATERSTATE_LAVA))
+				_player->m_UnderwaterState &= ~UNDERWATERSTATE_LAVA;
+			else
+			{
+				WorldPacket data(SMSG_START_MIRROR_TIMER, 20);
+				data << uint32( TIMER_BREATH ) << _player->m_UnderwaterTime << _player->m_UnderwaterMaxTime << int32(10) << uint32(0);
+				pSession->SendPacket(&data);
+			}
+		}
+	}
+
+}
+
 struct MovementFlagName
 {
 	uint32 flag;
@@ -402,22 +538,8 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 	/************************************************************************/
 	/* Breathing System                                                     */
 	/************************************************************************/
-	//_HandleBreathing(movementInfo, _player, this);
-    if (((movementInfo.flags & MOVEFLAG_SWIMMING) != 0) != _player->IsInWater() && movementInfo.z+2.0f < (_player->GetMapMgr()->GetLiquidHeight(movementInfo.x, movementInfo.y)-2.0f))
-    {
-		_player->SetInWater(true);
-		_player->UpdateUnderwaterState(movementInfo.x, movementInfo.y, movementInfo.z);
-    }
-	else
-	{
-		if(_player->m_MirrorTimer[BREATH_TIMER] != DISABLED_MIRROR_TIMER)
-		{
-			_player->StopMirrorTimers();
-			_player->m_MirrorTimer[BREATH_TIMER] = _player->getMaxTimer(BREATH_TIMER);
-		}
-		if(_player->IsInWater())
-			_player->SetInWater(false);
-	}
+
+	_HandleBreathing(movementInfo, _player, this);
 
 	/************************************************************************/
 	/* Remove Spells                                                        */
@@ -425,6 +547,10 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 	if((movementInfo.flags & MOVEFLAG_MASK_MOVING) != 0)
 		mover->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_MOVEMENT);
 
+	if(!(movementInfo.flags & MOVEFLAG_SWIMMING || movementInfo.flags & MOVEFLAG_FALLING))
+		mover->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_LEAVE_WATER);
+	if(movementInfo.flags & MOVEFLAG_SWIMMING)
+		mover->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_ENTER_WATER);
 	if(movementInfo.flags & (MOVEFLAG_TURN_LEFT | MOVEFLAG_TURN_RIGHT))
 		mover->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_TURNING);
 
@@ -438,10 +564,8 @@ void WorldSession::HandleMovementOpcodes(WorldPacket & recv_data)
 
 		if(_player->m_CurrentTransporter == NULL)
 		{
-			if(!_player->isRooted())
-				_player->SetPosition(movementInfo.x, movementInfo.y, movementInfo.z, movementInfo.orientation);
-			/*if(!_player->SetPosition(movementInfo.x, movementInfo.y, movementInfo.z, movementInfo.orientation))
-				_player->EjectFromInstance();*/
+			if(!_player->SetPosition(movementInfo.x, movementInfo.y, movementInfo.z, movementInfo.orientation))
+				_player->EjectFromInstance();
 		}
 	}
 	else

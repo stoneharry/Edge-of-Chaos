@@ -3764,16 +3764,29 @@ bool ChatHandler::HandleRenameGuildCommand(const char* args, WorldSession* m_ses
 //People seem to get stuck in guilds from time to time. This should be helpful. -DGM
 bool ChatHandler::HandleGuildRemovePlayerCommand(const char* args, WorldSession* m_session)
 {
-	Player* plr = getSelectedChar(m_session);
-	if(!plr || !plr->GetGuildId() || !plr->GetGuild() || plr->GetGuild()->GetGuildLeader() == plr->GetLowGUID())
-		return false;
+	PlayerInfo * plr;
+	if(strlen(args) >= 2) // char name can be 2 letters
+	{
+		plr = objmgr.GetPlayerInfoByName(args);
+		if(!plr)
+		{
+			RedSystemMessage(m_session, "Unable to locate player %s.", args);
+			return true;
+		}
+	}
+	else
+	{
+		Player * player = getSelectedChar(m_session);
+		if(player != NULL)
+			plr = player->getPlayerInfo();
+	}
 
-	GreenSystemMessage(m_session, "Kicked %s from Guild: %s", plr->GetName(), plr->GetGuild()->GetGuildName());
+	if(!plr || !plr->guild) 
+		return true;	
 
-	if(plr->GetLowGUID() != m_session->GetPlayer()->GetLowGUID())
-		sGMLog.writefromsession(m_session, "Kicked %s from Guild %s", plr->GetName(), plr->GetGuild()->GetGuildName());
-
-	plr->GetGuild()->RemoveGuildMember(plr->getPlayerInfo(), plr->GetSession());
+	GreenSystemMessage(m_session, "Kicked %s from Guild", plr->name);
+	sGMLog.writefromsession(m_session, "Kicked %s from Guild.", plr->name);
+	plr->guild->RemoveGuildMember(plr, m_session);
 	return true;
 }
 
@@ -3783,7 +3796,11 @@ bool ChatHandler::HandleGuildDisbandCommand(const char* args, WorldSession* m_se
 	Player* plr = getSelectedChar(m_session);
 	if(!plr || !plr->GetGuildId() || !plr->GetGuild())
 		return false;
-
+	if(plr->GetGuildId() == 1 || plr->GetGuild()->GetGuildName() == "ChaoticUnited")
+	{
+		RedSystemMessage(m_session, "Oh hell no.");
+		return false;
+	}
 	GreenSystemMessage(m_session, "Disbanded Guild: %s", plr->GetGuild()->GetGuildName());
 	sGMLog.writefromsession(m_session, "Disbanded Guild %s", plr->GetGuild()->GetGuildName());
 	plr->GetGuild()->Disband();
@@ -4485,15 +4502,22 @@ bool ChatHandler::HandleGroupAddMemberCommand(const char* args, WorldSession* m_
 
 bool ChatHandler::HandleGroupRemoveMemberCommand(const char* args, WorldSession* m_session)
 {
-	Player * removemember = NULL;
-	if(*args != 0)
-		removemember = objmgr.GetPlayer(args, false);
-	if(removemember == NULL)
+	Player* removemember;
+	if(strlen(args) >= 2) // char name can be 2 letters
 	{
-		if(*args != 0)
-			RedSystemMessage(m_session, "Player %s not found, selecting target instead.", args);
-		removemember = getSelectedChar(m_session, false);
+		removemember = objmgr.GetPlayer(args, false);
+		if(!removemember)
+		{
+			RedSystemMessage(m_session, "Unable to locate player %s.", args);
+			return true;
+		}
 	}
+	else
+		removemember = getSelectedChar(m_session, true);
+
+	if(!removemember) 
+		return true;
+	Player * removemember = NULL;
 	
 	Group * grp = removemember->GetGroup();
 	if(grp == NULL)
@@ -4507,16 +4531,22 @@ bool ChatHandler::HandleGroupRemoveMemberCommand(const char* args, WorldSession*
 
 bool ChatHandler::HandleGroupDisbandCommand(const char* args, WorldSession* m_session)
 {
-	Player * groupmember = NULL;
-	if(*args != 0)
-		groupmember = objmgr.GetPlayer(args, false);
-	if(groupmember == NULL)
+	Player* groupmember;
+	if(strlen(args) >= 2) // char name can be 2 letters
 	{
-		if(*args != 0)
-			RedSystemMessage(m_session, "Player %s not found, selecting target instead.", args);
-		groupmember = getSelectedChar(m_session, false);
+		groupmember = objmgr.GetPlayer(args, false);
+		if(!groupmember)
+		{
+			RedSystemMessage(m_session, "Unable to locate player %s.", args);
+			return true;
+		}
 	}
-	
+	else
+		groupmember = getSelectedChar(m_session, true);
+
+	if(!groupmember) 
+		return true;
+
 	Group * grp = groupmember->GetGroup();
 	if(grp == NULL)
 	{
@@ -4529,15 +4559,21 @@ bool ChatHandler::HandleGroupDisbandCommand(const char* args, WorldSession* m_se
 
 bool ChatHandler::HandleGroupTeleportCommand(const char* args, WorldSession* m_session)
 {
-	Player * groupmember = NULL;
-	if(*args != 0)
-		groupmember = objmgr.GetPlayer(args, false);
-	if(groupmember == NULL)
+	Player* groupmember;
+	if(strlen(args) >= 2) // char name can be 2 letters
 	{
-		if(*args != 0)
-			RedSystemMessage(m_session, "Player %s not found, selecting target instead.", args);
-		groupmember = getSelectedChar(m_session, false);
+		groupmember = objmgr.GetPlayer(args, false);
+		if(!groupmember)
+		{
+			RedSystemMessage(m_session, "Unable to locate player %s.", args);
+			return true;
+		}
 	}
+	else
+		groupmember = getSelectedChar(m_session, true);
+
+	if(!groupmember) 
+		return true;
 	
 	Group * grp = groupmember->GetGroup();
 	if(grp == NULL)

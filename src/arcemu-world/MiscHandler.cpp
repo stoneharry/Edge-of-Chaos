@@ -1778,7 +1778,7 @@ void WorldSession::HandlePlayedTimeOpcode(WorldPacket & recv_data)
 	//
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 
-	WorldPacket data(SMSG_PLAYED_TIME, 9); //VLack: again, an Aspire trick, with an uint8(0) -- I hate packet structure changes...
+	WorldPacket data(SMSG_PLAYED_TIME, 9);
 	data << (uint32)_player->m_playedtime[1];
 	data << (uint32)_player->m_playedtime[0];
 	data << uint8(displayinui);

@@ -738,6 +738,9 @@ void WorldSession::LoadPlayerFromDBProc(QueryResultVector & results)
 	}
 
 	plr->SetSession(this);
+
+	m_bIsWLevelSet = false;
+
 	Log.Debug("WorldSession", "Async loading player %u", (uint32)playerGuid);
 	m_loggingInPlayer = plr;
 	plr->LoadFromDB((uint32)playerGuid);
