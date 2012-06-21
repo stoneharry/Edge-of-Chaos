@@ -3021,9 +3021,9 @@ class LuaUnit
 			TEST_PLAYER()
 			if(ptr)
 			{
-				if(TO_PLAYER(ptr)->IsInWater())
-					lua_pushboolean(L, 1);
-				else
+				//if(TO_PLAYER(ptr)->IsInWater())
+					//lua_pushboolean(L, 1);
+				//else
 					lua_pushboolean(L, 0);
 			}
 			return 1;

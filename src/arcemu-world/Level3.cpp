@@ -4517,7 +4517,6 @@ bool ChatHandler::HandleGroupRemoveMemberCommand(const char* args, WorldSession*
 
 	if(!removemember) 
 		return true;
-	Player * removemember = NULL;
 	
 	Group * grp = removemember->GetGroup();
 	if(grp == NULL)
