@@ -201,6 +201,7 @@ void World::RemoveSession(uint32 id)
 
 void World::AddSession(WorldSession* s)
 {
+
 	ARCEMU_ASSERT(s != NULL);
 
 	m_sessionlock.AcquireWriteLock();
@@ -213,6 +214,7 @@ void World::AddSession(WorldSession* s)
 	s->SendAccountDataTimes(GLOBAL_CACHE_MASK);
 
 	m_sessionlock.ReleaseWriteLock();
+
 }
 
 void World::AddGlobalSession(WorldSession* session)
@@ -222,6 +224,25 @@ void World::AddGlobalSession(WorldSession* session)
 	SessionsMutex.Acquire();
 	Sessions.insert(session);
 	SessionsMutex.Release();
+	std::string ip = session->GetSocket()->GetRemoteIP();
+	if(ip != "noip")
+	{
+		m_sessionlock.AcquireReadLock();
+		SessionMap::iterator itr;
+		for(itr = m_sessions.begin(); itr != m_sessions.end(); itr++)
+		{
+			if(itr->second->GetAccountId() == session->GetAccountId())
+				continue;
+			if(itr->second->GetSocket() == NULL)
+				continue;
+			if(ip == itr->second->GetSocket()->GetRemoteIP())
+			{
+				session->Disconnect();
+				itr->second->Disconnect();
+			}
+		}
+		m_sessionlock.ReleaseReadLock();
+	}
 }
 
 void World::RemoveGlobalSession(WorldSession* session)

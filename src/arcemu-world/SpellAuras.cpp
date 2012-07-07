@@ -5118,7 +5118,7 @@ void Aura::SpellAuraMounted(bool apply)
 		}
 
 		u_target->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_MOUNT);
-		u_target->RemoveAllAuraType(SPELL_AURA_MOUNTED, GetSpellId());
+		u_target->RemoveAllAuraType(SPELL_AURA_MOUNTED, u_target->GetCurrentVehicle() ? 0 : GetSpellId());
 		CreatureInfo* ci = CreatureNameStorage.LookupEntry(mod->m_miscValue);
 		if(!ci) 
 			return;
@@ -5843,7 +5843,7 @@ void Aura::SpellAuraApplySpellMod(bool apply)
 {
 	if(!m_target->IsPlayer())
 		return;
-	/*Player * p = TO_PLAYER(m_target);
+	Player * p = TO_PLAYER(m_target);
 	if(apply)
 	{
 		SpellModifier *smod = new SpellModifier(this);
@@ -5854,10 +5854,10 @@ void Aura::SpellAuraApplySpellMod(bool apply)
 		smod->charges = p->GetAuraStackCount(GetSpellProto()->Id);
 		smod->ownerAura = this;
 		smod->mask = GetSpellProto()->EffectSpellClassMask[mod->i];
-		p->AddSpellMod(smod, apply);
+		p->AddSpellMod(smod);
 	}
 	else
-		p->RemoveSpellMod(SpellModOp(mod->m_miscValue), GetSpellId());*/
+		p->RemoveSpellMod(SpellModOp(mod->m_miscValue), GetSpellId());
 }
 
 /*
