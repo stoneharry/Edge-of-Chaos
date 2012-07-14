@@ -169,7 +169,10 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
 	// root passenger
 	passenger->Root();
 
-	passenger->SendHopOnVehicle( owner );
+	WorldPacket ack( 0x049D );
+	passenger->SendPacket( &ack );
+
+	passenger->SendHopOnVehicle(owner, seatid );
 
 	LocationVector v( owner->GetPosition() );
 	v.x += seats[ seatid ]->GetSeatInfo()->attachmentOffsetX;
@@ -199,7 +202,7 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
 			ack.Initialize( SMSG_CLIENT_CONTROL_UPDATE );
 			ack << owner->GetNewGUID() << uint8(1);
 			passenger->SendPacket(&ack);
-			owner->m_redirectSpellPackets = TO_PLAYER(passenger);
+
 			passenger->SetCharmedUnitGUID( owner->GetGUID() );
 			owner->SetCharmedByGUID( passenger->GetGUID() );
 			owner->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED_CREATURE );
@@ -207,17 +210,19 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
 			WorldPacket spells( SMSG_PET_SPELLS, 100 );
 			owner->BuildPetSpellList( spells );
 			passenger->SendPacket( &spells );
-			if(owner->IsCreature() && !TO_PLAYER(passenger)->m_bg)
-				owner->SetFaction(passenger->GetFaction());
 		}
+		passenger->AddExtraUnitMovementFlag(GetMoveFlags2());
 		GetOwner()->AddExtraUnitMovementFlag(GetMoveFlags2());
 		GetOwner()->SetSpeeds(TURN, vehicle_info->turnSpeed);
 		GetOwner()->SetSpeeds(PITCH, vehicle_info->pitchSpeed);
+		GetOwner()->AddExtraUnitMovementFlag(GetMoveFlags2());
+		passenger->SetSpeeds(TURN, vehicle_info->turnSpeed);
+		passenger->SetSpeeds(PITCH, vehicle_info->pitchSpeed);
 	}
 
 	seats[ seatid ]->AddPassenger( passenger->GetGUID() );
 	passenger->SetCurrentVehicle( this );
-	passenger->SendBreakTarget();
+
 	if( seats[ seatid ]->HidesPassenger() )
 		passenger->SetFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NOT_ATTACKABLE_2 );
 
@@ -303,8 +308,6 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 
 			// send null spells if needed
 			static_cast< Player* >( passenger )->SendEmptyPetSpellList();
-			if(owner->IsCreature())
-				owner->SetFaction(TO_CREATURE(owner)->GetProto()->Faction);
 		}
 	}	
 
@@ -340,30 +343,25 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 	if( passenger->IsPlayer() )
 		static_cast< Player* >( passenger )->SpawnActivePet();
 
-	if( passenger->IsCreature() )
-	{
+	if( passenger->IsCreature() ){
 		Creature *c = static_cast< Creature* >( passenger );
-		if(owner->IsPlayer())
-		{
-			c->Despawn(1000, 0);
-			return;
-		}
 
 		if( c->GetScript() != NULL ){
 			c->GetScript()->OnExitVehicle();
 		}
 	}
-	if( owner->IsCreature() )
-	{
+	if( owner->IsCreature() ){
 		Creature *c = static_cast< Creature* >( owner );
 
-		if( c->GetScript() != NULL )
+		if(owner->IsPlayer())
 		{
+			c->Despawn(1000, 0);
+			return;
+		}
+		if( c->GetScript() != NULL ){
 			if( passengercount == 0 )
 				c->GetScript()->OnLastPassengerLeft( passenger );
-		}
-		else
-		{
+		}else{
 			// The passenger summoned the vehicle, and we have no script to remove it, so we remove it here
 			if( ( passengercount == 0 ) && ( c->GetSummonedByGUID() == passenger->GetGUID() ) )
 				c->Despawn( 1 * 1000, 0 );

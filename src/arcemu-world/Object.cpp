@@ -513,7 +513,7 @@ void Object::_BuildValuesUpdate(ByteBuffer* data, UpdateMask* updateMask, Player
 	bool reset = false;
 	uint32 oldflags = 0;
 
-	if(target)	   // We're creating.
+	if(updateMask->GetBit(OBJECT_FIELD_GUID) && target)	   // We're creating.
 	{
 		if(IsCreature())
 		{
@@ -555,6 +555,7 @@ void Object::_BuildValuesUpdate(ByteBuffer* data, UpdateMask* updateMask, Player
 				reset = true;
 			}
 		}
+
 		if(target && IsGameObject())
 		{
 			GameObject* go = TO_GAMEOBJECT(this);
@@ -740,7 +741,6 @@ bool Object::SetPosition(float newX, float newY, float newZ, float newOrientatio
 		if(IsPlayer())
 		{
 			TO< Player* >(this)->AddGroupUpdateFlag(GROUP_UPDATE_FLAG_POSITION);
-			//TO< Player* >(this)->UpdateUnderwaterState(newX, newY, newZ);
 		}
 	}
 
@@ -902,6 +902,14 @@ void Object::RemoveFromWorld(bool free_guid)
 	ARCEMU_ASSERT(m_mapMgr != NULL);
 
 	OnPreRemoveFromWorld();
+
+	MapMgr* m = m_mapMgr;
+	m_mapMgr = NULL;
+
+	m->RemoveObject(this, free_guid);
+
+	OnRemoveFromWorld();
+
 	std::set<Spell*>::iterator itr, itr2;
 	Spell* sp;
 	for(itr = m_pendingSpells.begin(); itr != m_pendingSpells.end();)
@@ -915,13 +923,6 @@ void Object::RemoveFromWorld(bool free_guid)
 		else
 			delete sp;
 	}
-	MapMgr * m = m_mapMgr;
-	m->RemoveObject(this, free_guid);
-	m_mapMgr = NULL;
-
-
-	OnRemoveFromWorld();
-
 	//shouldnt need to clear, spell destructor will erase
 	//m_pendingSpells.clear();
 
@@ -1312,38 +1313,6 @@ float Object::getEasyAngle(float angle)
 	while(angle >= 360)
 		angle = angle - 360;
 	return angle;
-}
-static float NormalizeOrientation(float o)
-{
-	// fmod only supports positive numbers. Thus we have
-	// to emulate negative numbers
-	if (o < 0)
-	{
-		float mod = o *-1;
-		mod = fmod(mod, 2.0f * static_cast<float>(M_PI));
-		mod = -mod + 2.0f * static_cast<float>(M_PI);
-		return mod;
-	}
-	return fmod(o, 2.0f * static_cast<float>(M_PI));
-}
-
-bool Object::HasInArc(float arc, float x, float y)
-{
-
-    // move arc to range 0.. 2*pi
-    arc = NormalizeOrientation(arc);
-
-    float angle = GetAngle(x, y);
-	angle -= GetOrientation();
-
-    // move angle to range -pi ... +pi
-    angle = NormalizeOrientation(angle);
-    if (angle > M_PI)
-        angle -= 2.0f*float(M_PI);
-
-    float lborder = -1 * (arc/2.0f);                        // in range -pi..0
-    float rborder = (arc/2.0f);                             // in range 0..pi
-    return ((angle >= lborder) && (angle <= rborder));
 }
 
 bool Object::inArc(float Position1X, float Position1Y, float FOV, float Orientation, float Position2X, float Position2Y)
@@ -1795,6 +1764,7 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 }
 
 
+
 //*****************************************************************************************
 //* SpellLog packets just to keep the code cleaner and better to read
 //*****************************************************************************************
@@ -2079,38 +2049,13 @@ void Object::RemoveByteFlag(uint16 index, uint8 offset, uint8 oldFlag)
 
 void Object::SetZoneId(uint32 newZone)
 {
-	/*if(IsPlayer() && IsInWorld() && GetMapId() != 13)
-	{
-		AreaTable * at = dbcArea.LookupEntryForced(newZone);
-		if(at == NULL)
-		{
-			at = GetMapMgr()->GetArea(GetPositionX(), GetPositionY(), GetPositionZ());
-			if(at == NULL)
-			{
-				at = GetMapMgr()->GetArea(GetPositionX(), GetPositionY(), GetPositionZ()+50.0f); //should compensate some maps not getting area id's
-				if(at != NULL && newZone != at->ZoneId)
-					m_zoneId = at->ZoneId;
-			}
-			else if(newZone != at->ZoneId)
-				m_zoneId = at->ZoneId;
-		}
-		else if(newZone != at->ZoneId)
-			m_zoneId = at->ZoneId;
-	}
-	else*/
-		m_zoneId = newZone;
+	m_zoneId = newZone;
 
 	if(IsPlayer())
 	{
-		Player * pObj = TO_PLAYER(this);
-		pObj->m_cache->SetUInt32Value(CACHE_PLAYER_ZONEID, newZone);
-		if(IsInWorld())
-		{
-			if(pObj->GetGroup() != NULL)
-				pObj->AddGroupUpdateFlag(GROUP_UPDATE_FLAG_ZONE);
-			if(pObj->getPlayerInfo())
-				pObj->getPlayerInfo()->lastZone = newZone;
-		}
+		TO_PLAYER(this)->m_cache->SetUInt32Value(CACHE_PLAYER_ZONEID, newZone);
+		if(TO_PLAYER(this)->GetGroup() != NULL)
+			TO_PLAYER(this)->AddGroupUpdateFlag(GROUP_UPDATE_FLAG_ZONE);
 	}
 }
 
@@ -2351,34 +2296,6 @@ DynamicObject* Object::GetMapMgrDynamicObject(const uint64 & guid)
 	return GetMapMgr()->GetDynamicObject(GET_LOWGUID_PART(guid));
 }
 
-Creature * Object::CreateCreature(uint32 entry, float x, float y, float z, float o, uint32 faction, uint32 duration, uint32 equip1, uint32 equip2, uint32 equip3, uint32 phase, bool save)
-{
-	if(!entry)
-		return NULL;
-	CreatureProto* p = CreatureProtoStorage.LookupEntry(entry);
-	CreatureInfo* i = CreatureNameStorage.LookupEntry(entry);
-
-	if(p == NULL || i == NULL)
-		return NULL;
-
-	Creature* pCreature = GetMapMgr()->CreateCreature(entry);
-	if(pCreature == NULL)
-		return NULL;
-	pCreature->Load(p, x, y, z, o);
-	pCreature->SetFaction(faction);
-	pCreature->SetEquippedItem(MELEE, equip1);
-	pCreature->SetEquippedItem(OFFHAND, equip2);
-	pCreature->SetEquippedItem(RANGED, equip3);
-	pCreature->Phase(PHASE_SET, phase);
-	pCreature->m_noRespawn = true;
-	pCreature->AddToWorld(GetMapMgr());
-	if(duration)
-		pCreature->Despawn(duration, 0);
-	if(save)
-		pCreature->SaveToDB();
-	return pCreature;
-}
-
 Object* Object::GetPlayerOwner()
 {
 	return NULL;
@@ -2524,23 +2441,4 @@ bool Object::InBox(float centerX, float centerY, float centerZ, float BLength, f
 	if(!((fabs(dx) > BLength/2 + delta) || (fabs(dy) > BWidth/2 + delta) || (fabs(dz) > BHeight/2 + delta)))
 		return true;
 	return false;
-}
-
-float Object::GetAngle(float x, float y)
-{
-    float dx = x - GetPositionX();
-    float dy = y - GetPositionY();
-
-    float ang = atan2(dy, dx);
-    ang = (ang >= 0) ? ang : 2 * M_PI + ang;
-    return ang;
-}
-
-bool Object::HasInLine(Object * target, float width)
-{
-    if (!HasInArc(3.14159265358979323846f, target))
-        return false;
-    width += target->GetObjectSize();
-	float angle = GetAngle(target->GetPositionX(), target->GetPositionY()) - GetOrientation();
-    return fabs(sin(angle)) * GetExactDist2d(target->GetPositionX(), target->GetPositionY()) < width;
 }

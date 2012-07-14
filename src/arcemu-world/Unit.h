@@ -2039,7 +2039,7 @@ class SERVER_DECL Unit : public Object
 		virtual void AddVehicleComponent( uint32 creature_entry, uint32 vehicleid ){}
 		virtual void RemoveVehicleComponent(){}
 
-		void SendHopOnVehicle( Unit *vehicleowner);
+		void SendHopOnVehicle( Unit *vehicleowner, uint32 seat );
 		void SendHopOffVehicle( Unit *vehicleowner, LocationVector &landposition );
 
 		Unit* GetVehicleBase();

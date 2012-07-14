@@ -626,55 +626,9 @@ void Spell::SpellEffectSchoolDMG(uint32 i) // dmg school
 					}
 				}
 				break;
-			/*case SPELL_HASH_ARCANE_SHOT: //hunter - arcane shot
-				{
-					if(u_caster)
-						dmg += float2int32(u_caster->GetRAP() * 0.15f);
-					dmg = float2int32(dmg * (0.9f + RandomFloat(0.2f)));      // randomized damage
-				}
-				break;*/
 			case SPELL_HASH_GORE: // boar/ravager: Gore (50% chance of double damage)
 				{
 					dmg *= Rand(50) ? 2 : 1;
-				}
-				break;
-			case SPELL_HASH_THUNDER_CLAP: // Thunderclap
-				{
-					if(u_caster)
-						dmg = (GetProto()->EffectBasePoints[0] + 1) + float2int32(u_caster->GetAP() * 0.12f);
-				}
-				break;
-			case SPELL_HASH_INTERCEPT: // Warrior - Intercept
-				{
-					if(u_caster)
-						dmg = float2int32(u_caster->GetAP() * 0.12f);
-				}
-				break;
-			case SPELL_HASH_SHOCKWAVE:		// Shockwave
-				{
-					if(u_caster)
-						dmg = u_caster->GetAP() * (GetProto()->EffectBasePoints[2] + 1) / 100;
-				}
-				break;
-			case SPELL_HASH_CONCUSSION_BLOW:
-				{
-					//3.2.2
-					//[Concussion Blow]: The damage done by this ability has been reduced by 50%,
-					//but its threat generation will remain approximately the same.
-					dmg = u_caster->GetAP() * (GetProto()->EffectBasePoints[2] + 1) / 100;
-				}
-				break;
-			case SPELL_HASH_HEROIC_THROW:   // Heroic Throw
-				{
-					if(u_caster)
-						dmg = u_caster->GetAP() / 2 + 12;
-					// hardcoded value are faster I guess
-					// GetProto()->EffectBasePoints[0]+1 == 12 future reference
-				}
-				break;
-			case SPELL_HASH_BLOODTHIRST:	// Bloodthirst
-				{
-					dmg = u_caster->GetAP() * (GetProto()->EffectBasePoints[0] + 1) / 100;
 				}
 				break;
 			case SPELL_HASH_SHIELD_OF_RIGHTEOUSNESS: // Shield of Righteousness - a bit like "shield slam", OK for both ranks
@@ -732,18 +686,6 @@ void Spell::SpellEffectSchoolDMG(uint32 i) // dmg school
 						dmg = dmg >> 1;
 				}
 				break;
-
-			/*case SPELL_HASH_EXORCISM:
-				{
-					if(p_caster != NULL)
-					{
-						uint32 sph = p_caster->GetUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + 1);
-						int32 ap = p_caster->GetAP();
-						dmg += float2int32((0.15f * sph) + (0.15f * ap));
-					}
-				}
-				break;*/
-
 			default:
 				break;
 		}
@@ -768,22 +710,6 @@ void Spell::SpellEffectSchoolDMG(uint32 i) // dmg school
 				break;
 		};
 	}
-
-	/*if(p_caster && !static_damage)   //this is wrong but with current spell coef system it has to be here...
-	{
-		switch(p_caster->getClass())
-		{
-			case WARRIOR:
-			case ROGUE:
-			case HUNTER:
-			case DEATHKNIGHT:
-				static_damage = true; //No spells from these classes benefit from spell damage. Prevents Arc hunters, frost DKs, etc.
-				break;
-			default:
-				break;
-		}
-	}*/
-
 
 	// check for no more damage left (chains)
 	if(!dmg)

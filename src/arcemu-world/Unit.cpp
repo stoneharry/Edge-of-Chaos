@@ -2367,6 +2367,8 @@ void Unit::RegeneratePower(bool isinterrupted)
 
 void Unit::CalculateResistanceReduction(Unit* pVictim, dealdamage* dmg, SpellEntry* ability, float ArmorPctReduce)
 {
+	if(this == NULL || !IsInWorld() || pVictim == NULL || !pVictim->IsInWorld())
+		return;
 	float AverageResistance = 0.0f;
 	float ArmorReduce;
 
@@ -7796,21 +7798,25 @@ void Unit::CastOnMeleeSpell(){
 	SetOnMeleeSpell(0);
 }
 
-void Unit::SendHopOnVehicle( Unit *vehicleowner)
-{
+void Unit::SendHopOnVehicle( Unit *vehicleowner, uint32 seat ){
 	WorldPacket data(SMSG_MONSTER_MOVE_TRANSPORT, 50);
 	data << GetNewGUID();
 	data << vehicleowner->GetNewGUID();
-	data << uint8( transporter_info.seat );
-	data << uint8( 0 );
+	data << uint8( seat );
+
+	if( IsPlayer() )
+		data << uint8( 1 );
+	else
+		data << uint8( 0 );
+
 	data << float( GetPositionX() /* - vehicleowner->GetPositionX() */ );
 	data << float( GetPositionY() /* - vehicleowner->GetPositionY() */ );
 	data << float( GetPositionZ() /* - vehicleowner->GetPositionZ() */ );
 	data << getMSTime();
 	data << uint8( 4 ); // splinetype_facing_angle
-	data << float( transporter_info.o ); // facing angle
+	data << float( 0.0f ); // facing angle
 	data << uint32( 0x00800000 ); // splineflag transport
-	data << uint32( GetMovementInfo()->transTime ); // movetime
+	data << uint32( 0 ); // movetime
 	data << uint32( 1 ); // wp count
 	data << float( 0.0f ); // x
 	data << float( 0.0f ); // y
@@ -7819,12 +7825,18 @@ void Unit::SendHopOnVehicle( Unit *vehicleowner)
 	SendMessageToSet( &data, true );
 }
 
-void Unit::SendHopOffVehicle( Unit *vehicleowner, LocationVector &landposition )
-{
+void Unit::SendHopOffVehicle( Unit *vehicleowner, LocationVector &landposition ){
 	WorldPacket data(SMSG_MONSTER_MOVE, 1+12+4+1+4+4+4+12+8 );
 	data << GetNewGUID();
-	data << uint8(IsPlayer() ? 1 : 0);
-	data << GetPositionX() << GetPositionY() << GetPositionZ();
+
+	if( IsPlayer() )
+		data << uint8( 1 );
+	else
+		data << uint8( 0 );
+
+	data << float( GetPositionX() );
+	data << float( GetPositionY() );
+	data << float( GetPositionZ() );
 	data << uint32( getMSTime() );
 	data << uint8( 4 /* SPLINETYPE_FACING_ANGLE */ );
 	data << float( GetOrientation() );                        // guess
@@ -9199,19 +9211,10 @@ float Unit::GetModPercentDamageDoneBonus(SpellEntry *proto, float DoneTotal)
 float Unit::GetTotalAttackPowerValue(uint8 attType)
 {
     if (attType == 2)
-    {
-        int32 ap = GetUInt32Value(UNIT_FIELD_RANGED_ATTACK_POWER) + GetUInt32Value(UNIT_FIELD_RANGED_ATTACK_POWER_MODS);
-        if (ap < 0)
-            return 0.0f;
-        return ap * (1.0f + GetFloatValue(UNIT_FIELD_RANGED_ATTACK_POWER_MULTIPLIER));
-    }
+		return GetRAP();
     else
-    {
-        int32 ap = GetUInt32Value(UNIT_FIELD_ATTACK_POWER) + GetUInt32Value(UNIT_FIELD_ATTACK_POWER_MODS);
-        if (ap < 0)
-            return 0.0f;
-        return ap * (1.0f + GetFloatValue(UNIT_FIELD_ATTACK_POWER_MULTIPLIER));
-    }
+		return GetAP();
+	return 0.0f;
 }
 
 uint32 Unit::GetSpellCastTime(SpellEntry * sp)

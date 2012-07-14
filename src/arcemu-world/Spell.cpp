@@ -1987,7 +1987,7 @@ void Spell::SendCastResult(uint8 result, uint32 custommessage)
 			//case SPELL_FAILED_TOTEM_CATEGORY: seems to be fully client sided.
 	}
 
-	plr->SendCastResult(GetProto()->Id, result, extra_cast_number, Extra, p_caster == NULL);
+	plr->SendCastResult(GetProto()->Id, result, extra_cast_number, Extra);
 }
 
 void Spell::SendSpellStart()

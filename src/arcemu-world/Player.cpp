@@ -1196,7 +1196,7 @@ void Player::_EventAttack(bool offhand)
 		}
 		setAttackTimer(300, offhand);
 	}
-	else if(!HasInArc(float(2*M_PI/3), pVictim->GetPositionX(), pVictim->GetPositionY()))
+	else if(!isInFront(pVictim))
 	{
 		// We still have to do this one.
 		if(m_AttackMsgTimer != 2)
@@ -2348,7 +2348,17 @@ void Player::SaveToDB(bool bNewCharacter /* =false */)
 
 	std::stringstream ss;
 
-	ss << "REPLACE INTO characters VALUES ("
+	ss << "DELETE FROM characters WHERE guid = " << GetLowGUID() << ";";
+
+	if(bNewCharacter)
+		CharacterDatabase.WaitExecuteNA(ss.str().c_str());
+	else
+		buf->AddQueryNA(ss.str().c_str());
+
+
+	ss.rdbuf()->str("");
+
+	ss << "INSERT INTO characters VALUES ("
 
 	   << GetLowGUID() << ", "
 	   << GetSession()->GetAccountId(true) << ","
@@ -3596,7 +3606,6 @@ void Player::AddToWorld()
 		m_session->SetInstance(m_mapMgr->GetInstanceID());
 
 	SendInstanceDifficulty(m_mapMgr->iInstanceMode);
-	//SetMover(this);
 }
 
 void Player::AddToWorld(MapMgr* pMapMgr)
@@ -4447,7 +4456,7 @@ void Player::RepopRequestedPlayer()
 	if(corpse)
 		CreateCorpse();
 
-	BuildPlayerRepop();
+
 	if(InInstance())
 	{
 		MapInfo* map = WorldMapInfoStorage.LookupEntry(GetMapId());
@@ -4457,6 +4466,9 @@ void Player::RepopRequestedPlayer()
 			return;
 		}
 	}
+
+	BuildPlayerRepop();
+
 
 	// Cebernic: don't do this.
 	if(!m_bg || (m_bg && m_bg->HasStarted()))
@@ -5588,8 +5600,7 @@ bool Player::CanSee(Object* obj) // * Invisibility & Stealth Detection - Partha 
 {
 	if (obj == this)
 	   return true;
-	if(HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM) && HasFlag(PLAYER_FLAGS, PLAYER_FLAG_DEVELOPER))
-		return true;
+
 
 	uint32 object_type = obj->GetTypeId();
 
@@ -7670,10 +7681,12 @@ void Player::ZoneUpdate(uint32 ZoneId)
 			return;
 		}
 	}
-	if(ZoneId == m_zoneId)
+	if(ZoneId == m_zoneId || ZoneId == m_AreaID)
 		return;
+	m_playerInfo->lastZone = ZoneId;
 	sHookInterface.OnZone(this, ZoneId, oldzone);
 	CALL_INSTANCE_SCRIPT_EVENT(m_mapMgr, OnZoneChange)(this, ZoneId, oldzone);
+
 	AreaTable* at = GetMapMgr()->GetArea(GetPositionX(), GetPositionY(), GetPositionZ());
 	if(at && (at->category == AREAC_SANCTUARY || at->AreaFlags & AREA_SANCTUARY))
 	{
@@ -7693,8 +7706,6 @@ void Player::ZoneUpdate(uint32 ZoneId)
 	}
 
 	at = dbcArea.LookupEntryForced(ZoneId);
-	if(at && at->AreaId != GetAreaID())
-		SetAreaID(at->AreaId);
 
 	if(!m_channels.empty() && at)
 	{
@@ -12037,10 +12048,7 @@ void Player::SendPreventSchoolCast(uint32 SpellSchool, uint32 unTimeMs)
 		if(spellInfo->Attributes & SPELL_ATTR0_DISABLED_WHILE_ACTIVE)
 			continue;
 
-        if (spellInfo->PreventionType != 1)
-            continue;
-
-		if(spellInfo->NormalizedSchoolMask() == SpellSchool)
+		if(spellInfo->SchoolMask == SpellSchool)
 		{
 			data << uint32(SpellId);
 			data << uint32(unTimeMs);                       // in m.secs
@@ -13485,8 +13493,6 @@ void Player::ExitInstanceReleaseSpirit(uint32 mapid, const LocationVector & v, b
 	SetPosition(v);
 	SpeedCheatReset();
 	z_axisposition = 0.0f;
-	setDeathState(CORPSE);
-	Unroot();
 	//Repop is giving weird results.
 	//RepopAtGraveyard(GetPositionX(), GetPositionY(), GetPositionZ(), GetMapId());
 }
@@ -13508,7 +13514,7 @@ void Player::SendGuildMOTD()
 	data << uint8(GUILD_EVENT_MOTD);
 	data << uint8(1);
 	std::string motd = "GMOTDS are unavailable for player guilds at this time due to crashes.";
-	if(GetGuild() && (GetGuild()->GetGuildId() == 4 || GetGuild()->GetGuildId() == 2))
+	if(GetGuild() && (GetGuild()->GetGuildId() == 4 || GetGuild()->GetGuildId() == 2 || GetGuild()->GetGuildName() == "ChaoticUnited"))
 		motd = string(GetGuild()->GetMOTD());
 	data << motd;
 	SendPacket(&data);	
@@ -13737,32 +13743,8 @@ bool Player::IsAffectedBySpellmod(SpellEntry * spellInfo, SpellModifier* mod, Sp
     // +duration to infinite duration spells making them limited
 	if (mod->op == SPELLMOD_DURATION && GetDuration(dbcSpellDuration.LookupEntry( spellInfo->DurationIndex)) <= 0)
         return false;
-	if (spellInfo->IsNotAffectedBySpellMods())
-		return false;
-	SpellEntry* affectSpell = dbcSpell.LookupEntry(mod->spellId);
-    if (!affectSpell || affectSpell->SpellFamilyName != spellInfo->SpellFamilyName)
-        return false;
-
-	// true
-	if (mod->mask & spellInfo->SpellFamilyFlags)
-		return true;
-	
 	return false;
-}
-
-void Player::RemoveSpellMod(uint32 op, uint32 spellid)
-{
-    int32 value = 0;
-	uint16 Opcode = 0;
-	flag96 modmask;
-	SpellModType type = SPELLMOD_FLAT;
-	for (SpellModList::iterator itr = m_spellMods[op].begin(); itr != m_spellMods[op].end(); ++itr)
-	{
-		if((*itr) == NULL)
-			continue;
-		if((*itr)->spellId == spellid)
-			AddSpellMod((*itr), false);
-	}
+	//return IsAffectedBySpellMod(spellInfo, dbcSpell.LookupEntry(mod->spellId), mod->mask);
 }
 
 void Player::AddSpellMod(SpellModifier* mod, bool apply)
@@ -14108,10 +14090,8 @@ void Player::SendUpdateToOutOfRangeGroupMembers()
 		group->UpdateOutOfRangePlayer(this, true, NULL);
 
     GroupUpdateFlags = GROUP_UPDATE_FLAG_NONE;
-    //m_auraRaidUpdateMask = 0;
-	//ResetAuraUpdateMaskForRaid();
-    if (Pet* pet = GetSummon())
-        pet->ResetAuraUpdateMaskForRaid();
+	if (Pet* pet = GetSummon())
+		pet->ResetAuraUpdateMaskForRaid();
 }
 
 void Player::SetClientControl(Unit* target, uint8 allowMove)

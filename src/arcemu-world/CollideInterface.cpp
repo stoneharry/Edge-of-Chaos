@@ -70,7 +70,7 @@ void CCollideInterface::ActivateTile(uint32 mapId, uint32 tileX, uint32 tileY)
 	{
 		COLLISION_BEGINTIMER;
 		CollisionMgr->loadMap(sWorld.vMapPath.c_str, mapId, tileY, tileX);
-		LOG_DEBUG("[%u ns] collision_activate_cell %u %u %u", c_GetNanoSeconds(c_GetTimerValue(), v1), mapId, tileX, tileY);
+		//LOG_DEBUG("[%u ns] collision_activate_cell %u %u %u", c_GetNanoSeconds(c_GetTimerValue(), v1), mapId, tileX, tileY);
 	}
 
 	++m_tilesLoaded[mapId][tileX][tileY];
@@ -295,8 +295,9 @@ void CCollideInterface::DeactiveMap(uint32 mapid)
 
 NavMeshData* CCollideInterface::GetNavMesh(uint32 mapId)
 {
-	if(!sWorld.Use_MMAPS)
-		return NULL;
+#ifndef TEST_PATHFINDING
+	return NULL;
+#endif
 	NavMeshData* retval = NULL;
 	m_navmaplock.Acquire();
 	std::map<uint32, NavMeshData*>::iterator itr = m_navdata.find(mapId);

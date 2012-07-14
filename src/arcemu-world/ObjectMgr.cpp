@@ -4031,24 +4031,13 @@ const std::vector<int32>* ObjectMgr::GetSpellLinked(int32 spell_id) const
 
 SpellEntry* ObjectMgr::GetRankOneSpell(uint32 baseId)
 {
-	SpellEntry * sp = dbcSpell.LookupEntry(baseId);
-	if(sp == NULL)
-		return NULL;
-	if(sp->RankNumber == 1 || sp->RankNumber == 0)
-		return sp;
-	uint32 NameHash = sp->NameHash;
-	SpellEntry *sp2 = NULL;
-	for(uint32 x= 0; x < dbcSpell.GetNumRows(); x++)
+	QueryResult * query = WorldDatabase.Query("Select first_spell_id from spell_ranks where spell_id = %u", baseId);
+	if(query)
 	{
-		sp2 = dbcSpell.LookupEntryForced(x);
-		if(sp2 != NULL)
-		{
-			if(sp2->NameHash == NameHash)
-			{
-				if(sp2->RankNumber == 1)
-					return sp2;
-			}
-		}
+		uint32 firstspellid = query->Fetch()[0].GetUInt32();
+		delete query;
+		return dbcSpell.LookupEntryForced(firstspellid);
 	}
-	return sp;
+	else
+		return dbcSpell.LookupEntryForced(baseId);
 }

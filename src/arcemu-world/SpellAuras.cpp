@@ -1817,7 +1817,7 @@ void Aura::EventPeriodicDamage(uint32 amount)
 				//bonus += c->GetSpellDmgBonus(m_target, m_spellProto, amount, true) * amp / GetDuration();
 				//bonus += c->GetSpellDmgAPBonus(m_spellProto, true) * amp / GetDuration();
 				//res = c->SpellDamageBonus(m_target, m_spellProto, amount, 2) * (amp / GetDuration());
-				c->SpellDamageBonus(m_target, m_spellProto, mod->m_amount, 2);
+				res = c->SpellDamageBonus(m_target, m_spellProto, res, 2);
 				// damage taken is reduced after bonus damage is calculated and added
 				//res += c->CalcSpellDamageReduction(m_target, m_spellProto, res);
 			}
@@ -4158,7 +4158,7 @@ void Aura::EventPeriodicLeech(uint32 amount)
 
 	if(GetDuration())
 	{
-		float fbonus = m_caster->SpellDamageBonus(m_target, sp, amount, 2) * 0.5f;
+		float fbonus = m_caster->SpellDamageBonus(m_target, sp, amount, 2);
 		if(fbonus < 0)
 			fbonus = 0.0f;
 		bonus = float2int32(fbonus * amp / GetDuration());
@@ -4910,7 +4910,7 @@ void Aura::SpellAuraModDisarm(bool apply)
 
 void Aura::SpellAuraModStalked(bool apply)
 {
-	if(m_target->HasAuraWithName(SPELL_AURA_MOD_STALKED, GetSpellId()))
+	/*if(m_target->HasAuraWithName(SPELL_AURA_MOD_STALKED, GetSpellId()))
 		return;
 	if(apply)
 	{
@@ -4922,7 +4922,7 @@ void Aura::SpellAuraModStalked(bool apply)
 	{
 		m_target->stalkedby = 0;
 		m_target->RemoveFlag(UNIT_DYNAMIC_FLAGS, U_DYN_FLAG_UNIT_TRACKABLE);
-	}
+	}*/
 }
 
 void Aura::SpellAuraSchoolAbsorb(bool apply)
@@ -5841,7 +5841,7 @@ void Aura::SpellAuraHover(bool apply)
 
 void Aura::SpellAuraApplySpellMod(bool apply)
 {
-	if(!m_target->IsPlayer())
+	/*if(!m_target->IsPlayer())
 		return;
 	Player * p = TO_PLAYER(m_target);
 	if(apply)
@@ -5857,7 +5857,7 @@ void Aura::SpellAuraApplySpellMod(bool apply)
 		p->AddSpellMod(smod);
 	}
 	else
-		p->RemoveSpellMod(SpellModOp(mod->m_miscValue), GetSpellId());
+		p->RemoveSpellMod(SpellModOp(mod->m_miscValue), GetSpellId());*/
 }
 
 /*

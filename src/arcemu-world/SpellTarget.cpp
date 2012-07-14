@@ -29,8 +29,7 @@ void InitImplicitTargetFlags()
 
 	SET_TARGET_TYPE(0, SPELL_TARGET_REQUIRE_ITEM | SPELL_TARGET_REQUIRE_GAMEOBJECT);
 	SET_TARGET_TYPE(1, SPELL_TARGET_OBJECT_SELF);
-	SET_TARGET_TYPE(2, SPELL_TARGET_AREA_SELF | SPELL_TARGET_REQUIRE_ATTACKABLE);
-	SET_TARGET_TYPE(3, SPELL_TARGET_AREA_SELF | SPELL_TARGET_AREA_PARTY);
+	SET_TARGET_TYPE(3, SPELL_TARGET_REQUIRE_FRIENDLY);
 	SET_TARGET_TYPE(4, SPELL_TARGET_AREA_SELF | SPELL_TARGET_REQUIRE_FRIENDLY);
 	SET_TARGET_TYPE(5, SPELL_TARGET_OBJECT_CURPET);
 	SET_TARGET_TYPE(6, SPELL_TARGET_REQUIRE_ATTACKABLE);
@@ -38,9 +37,9 @@ void InitImplicitTargetFlags()
 	SET_TARGET_TYPE(8, SPELL_TARGET_AREA | SPELL_TARGET_REQUIRE_ATTACKABLE);
 	SET_TARGET_TYPE(15, SPELL_TARGET_AREA_SELF | SPELL_TARGET_REQUIRE_ATTACKABLE);
 	SET_TARGET_TYPE(16, SPELL_TARGET_AREA | SPELL_TARGET_REQUIRE_ATTACKABLE);
-	SET_TARGET_TYPE(17, SPELL_TARGET_AREA_SELF);
+	//SET_TARGET_TYPE(17, SPELL_TARGET_AREA);
 	SET_TARGET_TYPE(18, SPELL_TARGET_AREA_SELF | SPELL_TARGET_NO_OBJECT);
-	SET_TARGET_TYPE(20, SPELL_TARGET_AREA_SELF | SPELL_TARGET_AREA_PARTY);
+	SET_TARGET_TYPE(20, SPELL_TARGET_AREA_PARTY);
 	SET_TARGET_TYPE(21, SPELL_TARGET_REQUIRE_FRIENDLY);
 	SET_TARGET_TYPE(22, SPELL_TARGET_AREA_SELF);
 	SET_TARGET_TYPE(23, SPELL_TARGET_REQUIRE_GAMEOBJECT);
@@ -52,79 +51,44 @@ void InitImplicitTargetFlags()
 	SET_TARGET_TYPE(29, SPELL_TARGET_OBJECT_SELF | SPELL_TARGET_AREA_PARTY | SPELL_TARGET_AREA_SELF);
 	SET_TARGET_TYPE(30, SPELL_TARGET_REQUIRE_FRIENDLY);
 	SET_TARGET_TYPE(31, SPELL_TARGET_REQUIRE_FRIENDLY | SPELL_TARGET_AREA);
-	//SET_TARGET_TYPE(32, SPELL_TARGET_OBJECT_SELF | SPELL_TARGET_AREA);
+	//SET_TARGET_TYPE(32, SPELL_TARGET_OBJECT_SELF);
 	SET_TARGET_TYPE(33, SPELL_TARGET_AREA_SELF | SPELL_TARGET_AREA_PARTY);
-	SET_TARGET_TYPE(34, SPELL_TARGET_AREA_SELF | SPELL_TARGET_AREA_PARTY);
 	SET_TARGET_TYPE(35, SPELL_TARGET_AREA_PARTY);
 	SET_TARGET_TYPE(36, SPELL_TARGET_OBJECT_SCRIPTED);
 	SET_TARGET_TYPE(37, SPELL_TARGET_AREA_SELF | SPELL_TARGET_AREA_PARTY | SPELL_TARGET_AREA_RAID);
 	SET_TARGET_TYPE(39, SPELL_TARGET_OBJECT_SELF);
 	SET_TARGET_TYPE(40, SPELL_TARGET_OBJECT_SCRIPTED);
-	SET_TARGET_TYPE(41, SPELL_TARGET_AREA_SELF | SPELL_TARGET_FRONT_RIGHT);
-	SET_TARGET_TYPE(42, SPELL_TARGET_AREA_SELF | SPELL_TARGET_BACK_RIGHT);
-	SET_TARGET_TYPE(43, SPELL_TARGET_AREA_SELF | SPELL_TARGET_BACK_LEFT);
-	SET_TARGET_TYPE(44, SPELL_TARGET_AREA_SELF | SPELL_TARGET_FRONT_LEFT);
+	SET_TARGET_TYPE(41, SPELL_TARGET_OBJECT_SELF);
+	SET_TARGET_TYPE(42, SPELL_TARGET_OBJECT_SELF);
+	SET_TARGET_TYPE(43, SPELL_TARGET_OBJECT_SELF);
+	SET_TARGET_TYPE(44, SPELL_TARGET_OBJECT_SELF);
 	SET_TARGET_TYPE(45, SPELL_TARGET_AREA_CHAIN | SPELL_TARGET_REQUIRE_FRIENDLY);
 	SET_TARGET_TYPE(46, SPELL_TARGET_OBJECT_SELF);
 	SET_TARGET_TYPE(47, SPELL_TARGET_AREA_SELF | SPELL_TARGET_NO_OBJECT); //dont fill target map for this (fucks up some spell visuals)
-	SET_TARGET_TYPE(48, SPELL_TARGET_AREA_SELF | SPELL_TARGET_BACK);
-	SET_TARGET_TYPE(49, SPELL_TARGET_AREA_SELF | SPELL_TARGET_RIGHT);
-	SET_TARGET_TYPE(50, SPELL_TARGET_AREA_SELF | SPELL_TARGET_LEFT);
-	SET_TARGET_TYPE(51, SPELL_TARGET_AREA | SPELL_TARGET_REQUIRE_GAMEOBJECT | SPELL_TARGET_REQUIRE_ATTACKABLE );
+	SET_TARGET_TYPE(48, SPELL_TARGET_OBJECT_SELF);
+	SET_TARGET_TYPE(49, SPELL_TARGET_OBJECT_SELF);
+	SET_TARGET_TYPE(50, SPELL_TARGET_OBJECT_SELF);
 	SET_TARGET_TYPE(52, SPELL_TARGET_AREA | SPELL_TARGET_REQUIRE_GAMEOBJECT | SPELL_TARGET_REQUIRE_ATTACKABLE );
-	SET_TARGET_TYPE(53, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_REQUIRE_ATTACKABLE | SPELL_TARGET_AREA);
+	SET_TARGET_TYPE(34, SPELL_TARGET_NOT_IMPLEMENTED); //seige stuff
+	SET_TARGET_TYPE(53, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_REQUIRE_ATTACKABLE);
 	SET_TARGET_TYPE(54, SPELL_TARGET_AREA_CONE | SPELL_TARGET_REQUIRE_ATTACKABLE);
-	SET_TARGET_TYPE(55, SPELL_TARGET_AREA);
 	SET_TARGET_TYPE(56, SPELL_TARGET_AREA_SELF | SPELL_TARGET_AREA_RAID); //used by commanding shout, targets raid now
-	SET_TARGET_TYPE(57, SPELL_TARGET_REQUIRE_FRIENDLY | SPELL_TARGET_AREA_RAID);
-	SET_TARGET_TYPE(58, SPELL_TARGET_AREA_SELF | SPELL_TARGET_REQUIRE_FRIENDLY | SPELL_TARGET_AREA_RAID);
-	SET_TARGET_TYPE(59, SPELL_TARGET_AREA_CONE | SPELL_TARGET_REQUIRE_FRIENDLY);
+	SET_TARGET_TYPE(57, SPELL_TARGET_REQUIRE_FRIENDLY | SPELL_TARGET_AREA_PARTY);
 	SET_TARGET_TYPE(61, SPELL_TARGET_AREA_SELF | SPELL_TARGET_AREA_RAID | SPELL_TARGET_OBJECT_TARCLASS | SPELL_TARGET_REQUIRE_FRIENDLY);
-	SET_TARGET_TYPE(63, SPELL_TARGET_AREA | SPELL_TARGET_ANY_OBJECT);
-	SET_TARGET_TYPE(64, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_AREA);
-	SET_TARGET_TYPE(65, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_BACK);
-	SET_TARGET_TYPE(66, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_RIGHT);
-	SET_TARGET_TYPE(67, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_LEFT);
-	SET_TARGET_TYPE(68, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_FRONT_RIGHT);
-	SET_TARGET_TYPE(69, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_BACK_RIGHT);
-	SET_TARGET_TYPE(70, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_BACK_LEFT);
-	SET_TARGET_TYPE(71, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_FRONT_LEFT);
-	SET_TARGET_TYPE(72, SPELL_TARGET_AREA_SELF | SPELL_TARGET_AREA_RANDOM);
-	SET_TARGET_TYPE(73, SPELL_TARGET_AREA_RANDOM);
-	SET_TARGET_TYPE(74, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_AREA_RANDOM);
-	SET_TARGET_TYPE(75, SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_AREA_RANDOM);
-	SET_TARGET_TYPE(76, SPELL_TARGET_ANY_OBJECT);
-	SET_TARGET_TYPE(77, SPELL_TARGET_ANY_OBJECT);
-	SET_TARGET_TYPE(78, SPELL_TARGET_AREA);
-	SET_TARGET_TYPE(79, SPELL_TARGET_AREA | SPELL_TARGET_BACK);
-	SET_TARGET_TYPE(80, SPELL_TARGET_AREA | SPELL_TARGET_RIGHT);
-	SET_TARGET_TYPE(81, SPELL_TARGET_AREA | SPELL_TARGET_LEFT);
-	SET_TARGET_TYPE(82, SPELL_TARGET_AREA | SPELL_TARGET_FRONT_RIGHT);
-	SET_TARGET_TYPE(83, SPELL_TARGET_AREA | SPELL_TARGET_BACK_RIGHT);
-	SET_TARGET_TYPE(84, SPELL_TARGET_AREA | SPELL_TARGET_BACK_LEFT);
-	SET_TARGET_TYPE(85, SPELL_TARGET_AREA | SPELL_TARGET_FRONT_LEFT);
+	SET_TARGET_TYPE(63, SPELL_TARGET_OBJECT_SELF);
+	SET_TARGET_TYPE(64, SPELL_TARGET_OBJECT_SELF);
+	SET_TARGET_TYPE(65, SPELL_TARGET_OBJECT_SELF);
+	SET_TARGET_TYPE(66, SPELL_TARGET_OBJECT_SELF);
+	SET_TARGET_TYPE(67, SPELL_TARGET_OBJECT_SELF);
+	SET_TARGET_TYPE(69, SPELL_TARGET_OBJECT_SELF);
+	SET_TARGET_TYPE(72, SPELL_TARGET_AREA_RANDOM);
+	SET_TARGET_TYPE(73, SPELL_TARGET_OBJECT_SELF);
+	SET_TARGET_TYPE(76, SPELL_TARGET_REQUIRE_ATTACKABLE);
+	SET_TARGET_TYPE(77, SPELL_TARGET_REQUIRE_ATTACKABLE);
 	SET_TARGET_TYPE(86, SPELL_TARGET_AREA_RANDOM);
 	SET_TARGET_TYPE(87, SPELL_TARGET_AREA);
-	SET_TARGET_TYPE(88, SPELL_TARGET_AREA);
-	SET_TARGET_TYPE(89, SPELL_TARGET_AREA);
 	SET_TARGET_TYPE(90, SPELL_TARGET_OBJECT_CURCRITTER);
-	SET_TARGET_TYPE(91, SPELL_TARGET_AREA);
-	SET_TARGET_TYPE(92, SPELL_TARGET_OBJECT_PETOWNER);
-	SET_TARGET_TYPE(93, SPELL_TARGET_AREA_CURTARGET);
-	SET_TARGET_TYPE(94, SPELL_TARGET_OBJECT_SELF);
-	SET_TARGET_TYPE(95, SPELL_TARGET_OBJECT_SELF);
-	SET_TARGET_TYPE(96, SPELL_TARGET_OBJECT_SELF);
-	SET_TARGET_TYPE(97, SPELL_TARGET_OBJECT_SELF);
-	SET_TARGET_TYPE(98, SPELL_TARGET_OBJECT_SELF);
-	SET_TARGET_TYPE(99, SPELL_TARGET_OBJECT_SELF);
-	SET_TARGET_TYPE(100, SPELL_TARGET_OBJECT_SELF);
-	SET_TARGET_TYPE(101, SPELL_TARGET_OBJECT_SELF);
-	SET_TARGET_TYPE(102, SPELL_TARGET_OBJECT_SELF);
-	SET_TARGET_TYPE(103, SPELL_TARGET_OBJECT_SELF);
 	SET_TARGET_TYPE(104, SPELL_TARGET_REQUIRE_ATTACKABLE | SPELL_TARGET_AREA_CONE);
-	SET_TARGET_TYPE(106, SPELL_TARGET_AREA_SELF);
-	SET_TARGET_TYPE(108, SPELL_TARGET_REQUIRE_GAMEOBJECT | SPELL_TARGET_AREA_CONE);
-	SET_TARGET_TYPE(110, SPELL_TARGET_AREA);
 
 #undef SET_TARGET_TYPE
 }
@@ -148,8 +112,7 @@ void Spell::FillTargetMap(uint32 i)
 		HandleTargetNoObject();
 		return;
 	}
-	if(m_targets.HasTraj())
-		SelectTrajectoryTargets();
+
 
 	//always add this guy :P
 	if(!(TargetType & (SPELL_TARGET_AREA | SPELL_TARGET_AREA_SELF | SPELL_TARGET_AREA_CURTARGET | SPELL_TARGET_AREA_CONE | SPELL_TARGET_OBJECT_SELF | SPELL_TARGET_OBJECT_PETOWNER)))
@@ -177,12 +140,6 @@ void Spell::FillTargetMap(uint32 i)
 
 			if(p != NULL)
 				AddTarget(i, TargetType, p->GetPetOwner());
-		}
-		else
-		{
-			Object * tarp = m_caster->GetMapMgrObject(guid);
-			if(Object * owner = tarp->GetPlayerOwner())
-				AddTarget(i, TargetType, owner);
 		}
 	}
 	//targets party, not raid
@@ -665,12 +622,7 @@ bool Spell::GenerateTargets(SpellCastTargets* t)
 				}
 			}
 		}
-		float dist = GetRadius(i);
-		float angle = GetDirectionAngle(TargetType);
-		float objSize = m_caster->GetObjectSize();
 
-		if (dist < objSize)
-			dist = objSize;
 		if(TargetType & SPELL_TARGET_AREA_RANDOM)
 		{
 			//we always use radius(0) for some reason
@@ -681,20 +633,13 @@ bool Spell::GenerateTargets(SpellCastTargets* t)
 				++attempts;
 				if(attempts > 10)
 					return false;
-				if(t->m_targetMask & TARGET_FLAG_DEST_LOCATION)
-				{
-					t->m_destX = t->m_destX + (cosf(angle) * dist);
-					t->m_destY = t->m_destY + (sinf(angle) * dist);
-					t->m_destZ = m_caster->GetMapMgr()->GetLandHeight(t->m_destX, t->m_destY, t->m_destX + 2.0f);
-					t->m_targetMask = TARGET_FLAG_DEST_LOCATION;
-				}
-				else
-				{
-					t->m_destX = m_caster->GetPositionX() + (cosf(angle) * dist);
-					t->m_destY = m_caster->GetPositionY() + (sinf(angle) * dist);
-					t->m_destZ = m_caster->GetMapMgr()->GetLandHeight(t->m_destX, t->m_destY, m_caster->GetPositionZ() + 2.0f);
-					t->m_targetMask = TARGET_FLAG_DEST_LOCATION;
-				}
+
+				float r = RandomFloat(GetRadius(0));
+				float ang = RandomFloat(M_PI_FLOAT * 2);
+				t->m_destX = m_caster->GetPositionX() + (cosf(ang) * r);
+				t->m_destY = m_caster->GetPositionY() + (sinf(ang) * r);
+				t->m_destZ = m_caster->GetMapMgr()->GetLandHeight(t->m_destX, t->m_destY, m_caster->GetPositionZ() + 2.0f);
+				t->m_targetMask = TARGET_FLAG_DEST_LOCATION;
 			}
 			while(sWorld.Collision && !(GetProto()->AttributesEx2 & SPELL_ATTR2_CAN_TARGET_NOT_IN_LOS) && !CollideInterface.CheckLOS(m_caster->GetMapId(), m_caster->GetPositionX(), m_caster->GetPositionY(), m_caster->GetPositionZ(), t->m_destX, t->m_destY, t->m_destZ));
 			result = true;
@@ -708,8 +653,8 @@ bool Spell::GenerateTargets(SpellCastTargets* t)
 				if(target != NULL)
 				{
 					t->m_targetMask |= TARGET_FLAG_DEST_LOCATION | TARGET_FLAG_UNIT;
-					t->m_destX = target->GetPositionX() + (cosf(angle) * dist);
-					t->m_destY = target->GetPositionY() + (sinf(angle) * dist);
+					t->m_destX = target->GetPositionX();
+					t->m_destY = target->GetPositionY();
 					t->m_destZ = target->GetPositionZ();
 				}
 				result = true;
@@ -719,23 +664,17 @@ bool Spell::GenerateTargets(SpellCastTargets* t)
 				if(u_caster->GetAIInterface()->getNextTarget() != NULL && TargetType & SPELL_TARGET_REQUIRE_ATTACKABLE)
 				{
 					t->m_targetMask |= TARGET_FLAG_DEST_LOCATION | TARGET_FLAG_UNIT;
-					t->m_destX = u_caster->GetAIInterface()->getNextTarget()->GetPositionX() + (cosf(angle) * dist);
-					t->m_destY = u_caster->GetAIInterface()->getNextTarget()->GetPositionY() + (sinf(angle) * dist);
+					t->m_destX = u_caster->GetAIInterface()->getNextTarget()->GetPositionX();
+					t->m_destY = u_caster->GetAIInterface()->getNextTarget()->GetPositionY();
 					t->m_destZ = u_caster->GetAIInterface()->getNextTarget()->GetPositionZ();
 					result = true;
 				}
 				else if(TargetType & SPELL_TARGET_REQUIRE_FRIENDLY)
 				{
 					t->m_targetMask |= TARGET_FLAG_DEST_LOCATION | TARGET_FLAG_UNIT;
-					t->m_destX = u_caster->GetPositionX() + (cosf(angle) * dist);
-					t->m_destY = u_caster->GetPositionY() + (sinf(angle) * dist);
+					t->m_destX = u_caster->GetPositionX();
+					t->m_destY = u_caster->GetPositionY();
 					t->m_destZ = u_caster->GetPositionZ();
-					result = true;
-				}
-				else
-				{
-					t->m_destX = t->m_destX + (cosf(angle) * dist);
-					t->m_destY = t->m_destY + (sinf(angle) * dist);
 					result = true;
 				}
 			}
@@ -747,8 +686,8 @@ bool Spell::GenerateTargets(SpellCastTargets* t)
 			t->m_srcX = u_caster->GetPositionX();
 			t->m_srcY = u_caster->GetPositionY();
 			t->m_srcZ = u_caster->GetPositionZ();
-			t->m_destX = u_caster->GetPositionX() + (cosf(angle) * dist);
-			t->m_destY = u_caster->GetPositionY() + (sinf(angle) * dist);
+			t->m_destX = u_caster->GetPositionX();
+			t->m_destY = u_caster->GetPositionY();
 			t->m_destZ = u_caster->GetPositionZ();
 			result = true;
 		}
@@ -785,156 +724,4 @@ bool Spell::GenerateTargets(SpellCastTargets* t)
 		}
 	}
 	return result;
-}
-
-float Spell::GetDirectionAngle(uint32 TargetType)
-{
-	if(TargetType & SPELL_TARGET_BACK)
-		return static_cast<float>(M_PI);
-	if(TargetType & SPELL_TARGET_RIGHT)
-		return static_cast<float>(-M_PI/2);
-	if(TargetType & SPELL_TARGET_LEFT)
-		return static_cast<float>(M_PI/2);
-	if(TargetType & SPELL_TARGET_FRONT_RIGHT)
-		return static_cast<float>(-M_PI/4);
-	if(TargetType & SPELL_TARGET_BACK_RIGHT)
-		return static_cast<float>(-3*M_PI/4);
-	if(TargetType & SPELL_TARGET_BACK_LEFT)
-		return static_cast<float>(3*M_PI/4);
-	if(TargetType & SPELL_TARGET_FRONT_LEFT)
-		return static_cast<float>(M_PI/4);
-	if(TargetType & SPELL_TARGET_AREA_RANDOM)
-		return RandomFloat()*static_cast<float>(2*M_PI);
-	return 0.0f;
-}
-
-float tangent(float x)
-{
-    x = tan(x);
-    //if (x < std::numeric_limits<float>::max() && x > -std::numeric_limits<float>::max()) return x;
-    //if (x >= std::numeric_limits<float>::max()) return std::numeric_limits<float>::max();
-    //if (x <= -std::numeric_limits<float>::max()) return -std::numeric_limits<float>::max();
-    if (x < 100000.0f && x > -100000.0f) return x;
-    if (x >= 100000.0f) return 100000.0f;
-    if (x <= 100000.0f) return -100000.0f;
-    return 0.0f;
-}
-
-void Spell::SelectTrajectoryTargets()
-{
-    if (!m_targets.HasTraj())
-        return;
-
-    float dist2d = m_targets.GetDist2d();
-    if (!dist2d)
-        return;
-
-	float srcToDestDelta = m_targets.m_destZ - m_targets.m_srcZ;
-    float b = tangent(m_targets.GetElevation());
-    float a = (srcToDestDelta - dist2d * b) / (dist2d * dist2d);
-    if (a > -0.0001f)
-        a = 0;
-
-    float bestDist = GetMaxRange(dbcSpellRange.LookupEntry(m_spellInfo->rangeIndex));
-	LocationVector src(m_targets.m_srcX, m_targets.m_srcY, m_targets.m_srcZ, m_caster->GetOrientation());
-	ObjectSet::iterator itr = m_caster->GetInRangeSetBegin();
-	for(; itr != m_caster->GetInRangeSetEnd(); ++itr)
-	{
-		Object * target = (*itr);
-		if(!m_caster->HasInLine(target, 0))
-			continue;
-		if(m_caster->GetGUID() == target->GetGUID())
-			continue;
-		if(target->IsUnit())
-			if(TO_UNIT(target)->GetCurrentVehicle())
-				continue;
-        const float size = std::max((*itr)->GetObjectSize() * 0.7f, 1.0f); // 1/sqrt(3)
-		
-        // TODO: all calculation should be based on src instead of m_caster
-		float objDist2d = src.GetExactDist2d(target->GetPositionX(), target->GetPositionY()) * cos(src.GetRelativeAngle(target->GetPositionX(), target->GetPositionY()));
-		float dz = (*itr)->GetPositionZ() - m_targets.m_srcZ;
-        float dist = objDist2d - size;
-        float height = dist * (a * dist + b);
-        if (dist < bestDist && height < dz + size && height > dz - size)
-        {
-            bestDist = dist > 0 ? dist : 0;
-            break;
-        }
-#define CHECK_DIST {\
-            sLog.outDebug("Spell::SelectTrajTargets: dist %f, height %f.", dist, height);\
-            if (dist > bestDist)\
-                continue;\
-            if (dist < objDist2d + size && dist > objDist2d - size)\
-            {\
-                bestDist = dist;\
-                break;\
-            }\
-        }
-        if (!a)
-        {
-            height = dz - size;
-            dist = height / b;
-            CHECK_DIST;
-
-            height = dz + size;
-            dist = height / b;
-            CHECK_DIST;
-
-            continue;
-        }
-
-        height = dz - size;
-        float sqrt1 = b * b + 4 * a * height;
-        if (sqrt1 > 0)
-        {
-            sqrt1 = sqrt(sqrt1);
-            dist = (sqrt1 - b) / (2 * a);
-            CHECK_DIST;
-        }
-
-        height = dz + size;
-        float sqrt2 = b * b + 4 * a * height;
-        if (sqrt2 > 0)
-        {
-            sqrt2 = sqrt(sqrt2);
-            dist = (sqrt2 - b) / (2 * a);
-            CHECK_DIST;
-
-            dist = (-sqrt2 - b) / (2 * a);
-            CHECK_DIST;
-        }
-
-        if (sqrt1 > 0)
-        {
-            dist = (-sqrt1 - b) / (2 * a);
-            CHECK_DIST;
-        }
-	}
-
-
-	if (src.GetExactDist2d(m_targets.m_destX, m_targets.m_destY) > bestDist)
-    {
-		float x = src.x + cos(m_caster->GetOrientation()) * bestDist;
-        float y = src.y + sin(m_caster->GetOrientation()) * bestDist;
-        float z = src.z + bestDist * (a * bestDist + b);
-
-        if (itr != m_caster->GetInRangeSetEnd())
-        {
-            float distSq = (*itr)->GetExactDistSq(x, y, z);
-            float sizeSq = (*itr)->GetObjectSize();
-            sizeSq *= sizeSq;
-            if (distSq > sizeSq)
-            {
-                float factor = 1 - sqrt(sizeSq / distSq);
-                x += factor * ((*itr)->GetPositionX() - x);
-                y += factor * ((*itr)->GetPositionY() - y);
-                z += factor * ((*itr)->GetPositionZ() - z);
-
-                distSq = (*itr)->GetExactDistSq(x, y, z);
-            }
-        }
-		m_targets.m_destX = x;
-		m_targets.m_destY = y;
-		m_targets.m_destZ = z;
-    }
 }

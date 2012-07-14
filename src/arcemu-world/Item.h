@@ -324,7 +324,7 @@ class SERVER_DECL Item : public Object
 		//! Adds an enchantment to the item.
 		int32 AddEnchantment(EnchantEntry* Enchantment, uint32 Duration, bool Perm = false, bool apply = true, bool RemoveAtLogout = false, uint32 Slot_ = 0, uint32 RandomSuffix = 0);
 		uint32 GetSocketsCount();
-
+		void SetDirty(){ m_isDirty = true; }
 		//! Removes an enchantment from the item.
 		void RemoveEnchantment(uint32 EnchantmentSlot);
 

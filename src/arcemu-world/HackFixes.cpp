@@ -203,9 +203,6 @@ void ApplyNormalFixes()
 		else if( namehash == SPELL_HASH_JUDGEMENT_OF_COMMAND )
 			sp->DmgClass = DmgClass_MAGIC;
 
-		else if( namehash == SPELL_HASH_ARCANE_SHOT )
-			sp->c_is_flags |= SPELL_FLAG_IS_NOT_USING_DMG_BONUS;
-
 		else if( namehash == SPELL_HASH_SERPENT_STING )
 			sp->c_is_flags |= SPELL_FLAG_IS_NOT_USING_DMG_BONUS;
 
@@ -7048,4 +7045,12 @@ void ApplyNormalFixes()
 		sp->EffectItemType[0] = 19005;
 		sp->EffectDieSides[0] = 1;
 	}
+
+	sp = CheckAndReturnSpellEntry(29636);
+	if(sp)
+		sp->procChance = 15;
+
+	sp = CheckAndReturnSpellEntry(29653);
+	if(sp)
+		sp->procChance = 15;
 }

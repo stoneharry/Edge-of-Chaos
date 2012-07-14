@@ -238,7 +238,7 @@ const char* wmoareaformat = "uiiixxxxxuuxxxxxxxxxxxxxxxxx";
 const char* summonpropertiesformat = "uuuuuu";
 const char* namegenentryformat = "usuu";
 const char* DestructibleModelDataFormat = "uxxuxxxuxxxuxxxuxxx";
-const char* CreatureDisplayInfoFormat = "nixxfxxxxxxxxxxx";
+const char* CreatureDisplayInfoFormat = "uixxfxxxxxxxxxxx";
 const char* CreatureModelDataFormat ="uxxxfxxxxxxxxxxffxxxxxxxxxxx";
 const char LFGDungeonEntryFormat[]="uxxxxxxxxxxxxxxxxxiiiiiiixixxixixxxxxxxxxxxxxxxxx";
 

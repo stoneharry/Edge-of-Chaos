@@ -2326,7 +2326,7 @@ class SERVER_DECL Player : public Unit
 		void SendLevelupInfo(uint32 level, uint32 Hp, uint32 Mana, uint32 Stat0, uint32 Stat1, uint32 Stat2, uint32 Stat3, uint32 Stat4);
 		void SendLogXPGain(uint64 guid, uint32 NormalXP, uint32 RestedXP, bool type);
 		void SendWorldStateUpdate(uint32 WorldState, uint32 Value);
-		void SendCastResult(uint32 SpellId, uint8 ErrorMessage, uint8 MultiCast, uint32 Extra, bool pet = false);
+		void SendCastResult(uint32 SpellId, uint8 ErrorMessage, uint8 MultiCast, uint32 Extra);
 		void Gossip_SendPOI(float X, float Y, uint32 Icon, uint32 Flags, uint32 Data, const char* Name);
 		void SendSpellCooldownEvent(uint32 SpellId);
 		void SendItemPushResult(bool created, bool recieved, bool sendtoset, bool newitem,  uint8 destbagslot, uint32 destslot, uint32 count, uint32 entry, uint32 suffix, uint32 randomprop, uint32 stack);
@@ -2611,7 +2611,6 @@ class SERVER_DECL Player : public Unit
 
 		Object* GetPlayerOwner() { return this; };
 		//Spell Mods
-        void RemoveSpellMod(uint32 op, uint32 spellid);
         void AddSpellMod(SpellModifier* mod, bool apply);
         bool IsAffectedBySpellmod(SpellEntry * spellInfo, SpellModifier* mod, Spell* spell = NULL);
         template <class T> T ApplySpellMod(uint32 spellId, SpellModOp op, T &basevalue, Spell* spell = NULL);
@@ -2638,7 +2637,6 @@ class SERVER_DECL Player : public Unit
 		void SendUpdateToOutOfRangeGroupMembers();
 		uint32 numberofchats;
 		uint32 lastchattime;
-
 		void SetClientControl(Unit* target, uint8 allowMove);
 		void SetMover(Unit* target)
 		{
@@ -2687,7 +2685,8 @@ template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &bas
 				
             totalmul += (1.0f * float(mod->value) / 100.0f);
         }
-		DropModCharge(mod, spell);
+
+        DropModCharge(mod, spell);
     }
     float diff = (float)basevalue * (totalmul - 1.0f) + (float)totalflat;
     basevalue = T((float)basevalue + diff);
