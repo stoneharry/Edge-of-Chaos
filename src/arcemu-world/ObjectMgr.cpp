@@ -2164,7 +2164,7 @@ void ObjectMgr::GenerateLevelUpInfo()
 			continue;
 
 		// Search for a playercreateinfo.
-		for(uint32 Race = RACE_HUMAN; Race <= RACE_DRAENEI; ++Race)
+		for(uint32 Race = RACE_HUMAN; Race <= RACE_TUSKARR; ++Race)
 		{
 			PCI = GetPlayerCreateInfo(static_cast<uint8>(Race), static_cast<uint8>(Class), false);
 
