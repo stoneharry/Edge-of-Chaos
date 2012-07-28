@@ -102,6 +102,7 @@ enum Races
     RACE_TROLL = 8,
     RACE_BLOODELF = 10,
     RACE_DRAENEI = 11,
+	RACE_TUSKARR = 17,
 };
 
 enum PlayerStatus
