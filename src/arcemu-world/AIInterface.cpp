@@ -234,6 +234,36 @@ void AIInterface::Update(uint32 p_time)
 	UpdateMovementSpline();
 	_UpdateMovement(p_time);
 
+	#ifdef TEST_PATHFINDING
+	if (m_falsepath)
+	{
+		if (m_falsepathtimer == 0)
+		{
+			if (m_falsepathchecker == 5)
+			{
+				m_falsepathchecker = 0;
+				m_falsepathtimer = 0;
+				m_falsepath = false;
+				EventLeaveCombat(m_Unit, 0);
+				return;
+			}
+				++m_falsepathchecker;
+				m_falsepathtimer = 1000; // we will check every second if we are able to find a path
+		}
+		else
+		{
+			if (p_time > m_falsepathtimer)
+				m_falsepathtimer = 0;
+			else
+				m_falsepathtimer -= p_time;
+		}
+	}
+	else // we found a path!
+	{
+		m_falsepathtimer = 0;
+		m_falsepathchecker = 0;
+	}
+	#endif
 	if(m_AIState == STATE_EVADE)
 	{
 		tdist = m_Unit->GetDistanceSq(m_returnX, m_returnY, m_returnZ);
@@ -472,6 +502,9 @@ void AIInterface::_UpdateTargets()
 		}
 
 		LockAITargets(false);
+
+		if( disable_combat )
+			return;
 
 		if(m_aiTargets.size() == 0
 		        && m_AIState != STATE_IDLE && m_AIState != STATE_FOLLOWING
@@ -1021,7 +1054,7 @@ void AIInterface::DismissPet()
 
 void AIInterface::AttackReaction(Unit* pUnit, uint32 damage_dealt, uint32 spellId)
 {
-	if(m_AIState == STATE_EVADE /*|| m_AIState == STATE_EVADE_TIMING_OUT*/ || !pUnit || !pUnit->isAlive() || m_Unit->IsDead() || ( m_Unit == pUnit ) || ( m_AIType == AITYPE_PASSIVE ) )
+	if(m_AIState == STATE_EVADE /*|| m_AIState == STATE_EVADE_TIMING_OUT*/ || !pUnit || !pUnit->isAlive() || m_Unit->IsDead() || ( m_Unit == pUnit ) || ( m_AIType == AITYPE_PASSIVE ) || disable_combat)
 		return;
 
 	if(sWorld.Collision && pUnit->IsPlayer())
@@ -3722,12 +3755,17 @@ bool AIInterface::Move(float & x, float & y, float & z, float o /*= 0*/)
 		{
 			if(!CreatePath(x, y, z))
 			{
+				if(m_Unit->IsCreature() || m_Unit->IsPet())
+					m_falsepath = true;
 				StopMovement(0); //old spline is probly still active on client, need to keep in sync
 				return false;
 			}
+			else
+				m_falsepath = false;
 		}
 		else
 		{
+				
 			AddSpline(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ());
 			AddSpline(x, y, z);
 		}
@@ -4677,9 +4715,13 @@ bool AIInterface::MoveCharge(float x, float y, float z)
 		{
 			if(!CreatePath(x, y, z))
 			{
+				if(m_Unit->IsCreature() || m_Unit->IsPet())
+					m_falsepath = true;
 				StopMovement(0); //old spline is probly still active on client, need to keep in sync
 				return false;
 			}
+			else
+				m_falsepath = false;
 		}
 		else
 		{

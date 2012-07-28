@@ -10891,7 +10891,6 @@ void Player::_FlyhackCheck()
 	*/
 
 }
-
 /************************************************************************/
 /* SOCIAL                                                               */
 /************************************************************************/
@@ -10905,7 +10904,7 @@ void Player::Social_AddFriend(const char* name, const char* note)
 	PlayerInfo* info = objmgr.GetPlayerInfoByName(name);
 	PlayerCache* cache = objmgr.GetPlayerCache(name, false);
 
-	if(info == NULL || (cache != NULL && cache->HasFlag(CACHE_PLAYER_FLAGS, PLAYER_FLAG_GM)))
+	if(info == NULL || info && info->m_loggedInPlayer && info->m_loggedInPlayer->m_isGmInvisible || (cache != NULL && cache->HasFlag(CACHE_PLAYER_FLAGS, PLAYER_FLAG_GM)))
 	{
 		data << uint8(FRIEND_NOT_FOUND);
 		m_session->SendPacket(&data);
@@ -11187,7 +11186,7 @@ void Player::Social_SendFriendList(uint32 flag)
 		// online/offline flag
 		plr = objmgr.GetPlayer((uint32)itr->first);
 		cache = objmgr.GetPlayerCache((uint32)itr->first);
-		if(plr != NULL)
+		if(plr != NULL && !plr->m_isGmInvisible)
 		{
 			data << uint8(1);
 			data << plr->GetZoneId();

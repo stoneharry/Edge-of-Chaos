@@ -290,6 +290,10 @@ class SERVER_DECL AIInterface
 		// Misc
 		void Init(Unit* un, AIType at, MovementType mt);
 		void Init(Unit* un, AIType at, MovementType mt, Unit* owner); // used for pets
+
+		uint32 m_falsepathchecker; // used for pathfinding
+		uint32 m_falsepathtimer; // used for pathfinding
+		bool m_falsepath; // used for pathfinding
 		Unit* GetUnit() { return m_Unit; }
 		Unit* GetPetOwner() { return m_PetOwner; }
 		void DismissPet();

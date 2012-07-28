@@ -131,17 +131,17 @@ bool Strangulate( uint32 i, Aura * pAura, bool apply ){
 }
 
 bool RaiseDead( uint32 i, Spell *s ){
-	if( s->u_caster == NULL )
+	if( s->p_caster == NULL )
 		return false;
 
-	float x = s->u_caster->GetPositionX()+rand()%25;
-	float y = s->u_caster->GetPositionY()+rand()%25;
-	float z = s->u_caster->GetPositionZ();
+	float x = s->p_caster->GetPositionX()+rand()%25;
+	float y = s->p_caster->GetPositionY()+rand()%25;
+	float z = s->p_caster->GetPositionZ();
 
 	SpellEntry *sp = NULL;
 
 	// Master of Ghouls
-	if( !s->u_caster->HasAura( 52143 ) ){
+	if( !s->p_caster->HasAura( 52143 ) ){
 		Corpse *corpseTarget = s->GetCorpseTarget();
 
 		// We need a corpse for this spell
@@ -163,7 +163,7 @@ bool RaiseDead( uint32 i, Spell *s ){
 		sp = dbcSpell.LookupEntry( 52150 );
 	}
 	
-	s->u_caster->CastSpellAoF( x, y, z, sp, true );
+	s->p_caster->CastSpellAoF( x, y, z, sp, true );
 
 	return true;
 }
@@ -172,15 +172,14 @@ bool DeathGrip( uint32 i, Spell *s )
 {
 	Unit *unitTarget = s->GetUnitTarget();
 	Unit * u_caster = s->u_caster;
-	if(!u_caster || !u_caster->isAlive() || !unitTarget || !unitTarget->isAlive())
+	if(!u_caster || !u_caster->isAlive() || !unitTarget || !unitTarget->isAlive() || unitTarget->isTrainingDummy())
 		return false;
 	
 	// rooted units can't be death gripped
 	if( unitTarget->isRooted() )
 		return false;
 
-	//unitTarget->CastSpellAoF( u_caster->GetPositionX(), u_caster->GetPositionY(), u_caster->GetPositionZ(), dbcSpell.LookupEntryForced(49575), true);
-	unitTarget->CastSpell(u_caster, dbcSpell.LookupEntryForced(49575), true);
+	unitTarget->CastSpellAoF( u_caster->GetPositionX(), u_caster->GetPositionY(), u_caster->GetPositionZ(), dbcSpell.LookupEntryForced(49575), true);
 	u_caster->CastSpell( unitTarget, 51399, true ); // Taunt Effect
 	return true;
 }
