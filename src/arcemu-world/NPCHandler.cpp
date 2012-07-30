@@ -38,6 +38,7 @@ trainertype trainer_types[TRAINER_TYPE_MAX] =
 	{	"Physician",			 2 },
 	{	"Engineer",			  2 },
 	{	"Weapon Master",		 0 },
+	{   "Demon Hunter",         0},
 };
 
 

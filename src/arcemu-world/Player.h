@@ -87,6 +87,7 @@ enum Classes
     MAGE = 8,
     WARLOCK = 9,
     DRUID = 11,
+	DEMON_HUNTER = 12,
 	MAX_PLAYER_CLASSES
 };
 
@@ -506,7 +507,7 @@ struct SpellModifier
 	druid - restoration - 282
 */
 
-static const uint32 TalentTreesPerClass[DRUID + 1][3] =
+static const uint32 TalentTreesPerClass[DEMON_HUNTER + 1][3] =
 {
 	{ 0, 0, 0 },        // NONE
 	{ 161, 163, 164 },  // WARRIOR
@@ -520,6 +521,7 @@ static const uint32 TalentTreesPerClass[DRUID + 1][3] =
 	{ 302, 303, 301 },  // WARLOCK
 	{ 0, 0, 0 },        // NONE
 	{ 283, 281, 282 },  // DRUID
+	{ 450, 451, 452 }, // DEMON HUNTER
 };
 
 #pragma pack(push,1)
@@ -905,6 +907,7 @@ class SERVER_DECL Player : public Unit
 		virtual bool IsWarrior() { return false; }
 		virtual bool IsPaladin() { return false; }
 		virtual bool IsDruid() { return false; }
+		virtual bool IsDemonHunter() { return false; }
 
 		void HandleUpdateFieldChanged(uint32 index)
 		{
@@ -1306,7 +1309,7 @@ class SERVER_DECL Player : public Unit
 		uint32 GetInitialFactionId();
 		// factions variables
 		int32 pctReputationMod;
-
+		
 		/************************************************************************/
 		/* PVP                                                                  */
 		/************************************************************************/

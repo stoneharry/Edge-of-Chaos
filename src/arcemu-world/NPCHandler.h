@@ -114,7 +114,7 @@ struct trainertype
 	uint32 type;
 };
 
-#define TRAINER_TYPE_MAX 16
+#define TRAINER_TYPE_MAX 17
 extern trainertype trainer_types[TRAINER_TYPE_MAX];
 
 #define TRAINER_STATUS_LEARNABLE		0

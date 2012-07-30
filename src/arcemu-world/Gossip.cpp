@@ -693,6 +693,9 @@ void Arcemu::Gossip::ClassTrainer::OnHello(Object* pObject, Player* Plr)
 				case ::DEATHKNIGHT:
 					itemname += string(Plr->GetSession()->LocalizedWorldSrv(Gossip::DEATHKNIGHT));
 					break;
+				case ::DEMON_HUNTER:
+					itemname += string(Plr->GetSession()->LocalizedWorldSrv(Gossip::DEMONHUNTER));
+					break;
 				default:
 					break;
 			}

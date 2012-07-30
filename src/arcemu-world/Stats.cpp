@@ -516,6 +516,28 @@ uint32 GainStat(uint16 level, uint8 playerclass, uint8 Stat)
 						{ gain = CalculateStat(level, 0.000006, 0.002031, 0.278360, -0.340077); }
 						break;
 				}
+		case DEMON_HUNTER:
+			{
+				switch(Stat)
+				{
+					case STAT_STRENGTH:
+						{ gain = CalculateStat(level, 0.000022, 0.001800, 0.407867, -0.550889); }
+						break;
+					case STAT_AGILITY:
+						{ gain = CalculateStat(level, 0.000040, 0.007416, 1.125108, -1.003045); }
+						break;
+					case STAT_STAMINA:
+						{ gain = CalculateStat(level, 0.000032, 0.003025, 0.615890, -0.640307); }
+						break;
+					case STAT_INTELLECT:
+						{ gain = CalculateStat(level, 0.000008, 0.001001, 0.163190, -0.064280); }
+						break;
+					case STAT_SPIRIT:
+						{ gain = CalculateStat(level, 0.000024, 0.000981, 0.364935, -0.570900); }
+						break;
+				}
+			}
+			break;
 
 			}
 			break;

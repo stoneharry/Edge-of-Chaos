@@ -237,7 +237,7 @@ template< class T, class U > T TO(U u) { return static_cast< T >(u); }
 #include "Hunter.h"
 #include "Shaman.h"
 #include "ServerPlayedCharacter.h"
-
+#include "DemonHunter.h"
 #endif
 
 #define RECRUITING "Info: |cff00FF7FArcEmu is recruiting developers: Join us on irc.freenode.net #arcemu"

@@ -54,7 +54,8 @@ static const float crit_to_dodge[ MAX_PLAYER_CLASSES ] = {
 	1.0f,      // Mage
 	1.0f,      // Warlock
 	0.0f,      // empty
-	1.7f       // Druid
+	1.7f,       // Druid
+	1.0f
 };
 
 Player::Player(uint32 guid)
@@ -853,8 +854,16 @@ bool Player::Create(WorldPacket & data)
 	}
 	else
 	{
-		SetDisplayId(info->displayId - gender);
-		SetNativeDisplayId(info->displayId - gender);
+		if(race == RACE_TUSKARR)
+		{	
+			SetNativeDisplayId(info->displayId);
+			SetDisplayId(info->displayId);
+		}
+		else
+		{
+			SetDisplayId(info->displayId - gender);
+			SetNativeDisplayId(info->displayId - gender);
+		}
 	}
 	EventModelChange();
 	//SetMinDamage(info->mindmg );
@@ -5306,6 +5315,14 @@ void Player::UpdateStats()
 
 			break;
 
+		case DEMON_HUNTER:
+			//Strength + Agility + (Character Level x 2) - 20
+			AP = str + agi + (lev * 2) - 20;
+			//(Character Level x 2) + Agility - 10
+			RAP = (lev * 2) + agi - 10;
+
+			break;
+
 		case SHAMAN:
 			//(Strength) + (Agility) + (Character Level x 2) - 20
 			AP = str + agi + (lev * 2) - 20;
@@ -5409,7 +5426,7 @@ void Player::UpdateStats()
 		SetHealth(res);
 	}
 
-	if(cl != WARRIOR && cl != ROGUE && cl != DEATHKNIGHT)
+	if(cl != WARRIOR && cl != ROGUE && cl != DEATHKNIGHT && cl != DEMON_HUNTER)
 	{
 		// MP
 		uint32 mana = GetBaseMana();
@@ -9723,6 +9740,9 @@ void Player::SetNoseLevel()
 			if(getGender()) m_noseLevel = 2.09f;
 			else m_noseLevel = 2.36f;
 			break;
+		case RACE_TUSKARR:
+			m_noseLevel = 2.0f;
+		break;
 	}
 }
 
@@ -13906,7 +13926,7 @@ void Player::SetSpellModTakingSpell(Spell* spell, bool apply)
 
 void Player::SendCombatEquipCooldown()
 {
-/*	if(!IsInWorld())
+	if(!IsInWorld())
 		return;
 	uint32 cooldownSpell = getClass() == CLASS_ROGUE ? 6123 : 6119;
 	SpellEntry * spellProto = dbcSpell.LookupEntry(cooldownSpell);
@@ -13915,7 +13935,7 @@ void Player::SendCombatEquipCooldown()
 	data << uint8(1);
 	data << uint32(cooldownSpell);
 	data << uint32(0);
-	GetSession()->SendPacket(&data);*/
+	GetSession()->SendPacket(&data);
 }
 
 void Player::ApplyEquipCooldown(Item* pItem)

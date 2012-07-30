@@ -66,7 +66,8 @@ namespace Arcemu
 		    DEATHKNIGHT = 82,
 		    TXTID_TALENTRESET = 5674,
 		    TXTID_PETUNTRAIN = 7722,
-		    TXTID_DUALSPECPURCHASE = 14136	//this is not correct.
+		    TXTID_DUALSPECPURCHASE = 14136,	//this is not correct.
+			DEMONHUNTER
 		};
 
 		class Menu;

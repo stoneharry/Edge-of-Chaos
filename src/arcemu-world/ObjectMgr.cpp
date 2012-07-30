@@ -2157,7 +2157,7 @@ void ObjectMgr::GenerateLevelUpInfo()
 {
 	// Generate levelup information for each class.
 	PlayerCreateInfo* PCI;
-	for(uint32 Class = WARRIOR; Class <= DRUID; ++Class)
+	for(uint32 Class = WARRIOR; Class <= DEMON_HUNTER; ++Class)
 	{
 		// These are empty.
 		if(Class == 10)
@@ -2306,6 +2306,9 @@ void ObjectMgr::GenerateLevelUpInfo()
 						/*else if(Level <60) TotalHealthGain+=??;
 						else if(Level <70) TotalHealthGain+=??;*/
 						else TotalHealthGain += 92;
+						break;
+					case DEMON_HUNTER:
+						TotalHealthGain += 92;
 						break;
 				}
 

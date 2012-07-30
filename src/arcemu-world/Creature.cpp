@@ -2294,8 +2294,10 @@ void Creature::HandleMonsterSayEvent(MONSTER_SAY_EVENTS Event)
 		// check for special variables $N=name $C=class $R=race $G=gender
 		// $G is followed by male_string:female_string;
 		string newText = text;
-		static const char* races[12] = {"None", "Human", "Orc", "Dwarf", "Night Elf", "Undead", "Tauren", "Gnome", "Troll", "None", "Blood Elf", "Draenei"};
-		static const char* classes[12] = {"None", "Warrior", "Paladin", "Hunter", "Rogue", "Priest", "Death Knight", "Shaman", "Mage", "Warlock", "None", "Druid"};
+		static const char* classes[13] =
+		{"None", "Warrior", "Paladin", "Hunter", "Rogue", "Priest", "Death Knight", "Shaman", "Mage", "Warlock", "None", "Druid", "Demon Hunter"};
+		static const char* races[17] =
+		{"None", "Human", "Orc", "Dwarf", "Night Elf", "Undead", "Tauren", "Gnome", "Troll", "None", "Blood Elf", "Draenei", "None", "None", "None", "None", "Tuskarr"};
 		char* test = strstr((char*)text, "$R");
 		if(test == NULL)
 			test = strstr((char*)text, "$r");
