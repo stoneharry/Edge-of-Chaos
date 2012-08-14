@@ -3940,7 +3940,7 @@ dtStatus AIInterface::findSmoothPath(const float* startPos, const float* endPos,
 		query->moveAlongSurface(polys[0], iterPos, moveTgt, &filter, result, visited, (int*)&nvisited, MAX_VISIT_POLY);
 		npolys = fixupCorridor(polys, npolys, MAX_PATH_LENGTH, visited, nvisited);
 
-		query->getPolyHeight(visited[nvisited - 1], result, &result[1]);
+		query->getPolyHeight(polys[0], result, &result[1]);
 		dtVcopy(iterPos, result);
 
 		// Handle end of path and off-mesh links when close enough.

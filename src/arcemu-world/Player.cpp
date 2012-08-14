@@ -6837,7 +6837,11 @@ void Player::CalcStat(uint32 type)
 		res = 1;
 
 	SetUInt32Value(UNIT_FIELD_POSSTAT0 + type, pos);
-	SetUInt32Value(UNIT_FIELD_NEGSTAT0 + type, -neg);
+	if( neg < 0 )
+		SetUInt32Value(UNIT_FIELD_NEGSTAT0 + type, -neg);
+	else
+		SetUInt32Value(UNIT_FIELD_NEGSTAT0 + type, neg);
+
 	SetStat(type, res > 0 ? res : 0);
 	if(type == STAT_AGILITY)
 		CalcResistance(0);

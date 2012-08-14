@@ -2698,6 +2698,9 @@ Player* ObjectMgr::CreatePlayer(uint8 _class)
 		case DRUID:
 			result = new Druid(guid);
 			break;
+		case DEMON_HUNTER:
+			result = new DemonHunter(guid);
+			break;
 	}
 
 	return result;

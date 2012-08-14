@@ -1811,29 +1811,19 @@ void Aura::EventPeriodicDamage(uint32 amount)
 			int amp = m_spellProto->EffectAmplitude[mod->i];
 			if(!amp)
 				amp = event_GetEventPeriod(EVENT_AURA_PERIODIC_DAMAGE);
-
+			if(res <= 0.0f)
+				res = 1.0f;
 			if(GetDuration() && GetSpellProto()->NameHash != SPELL_HASH_IGNITE)    //static damage for Ignite. Need to be reworked when "static DoTs" will be implemented
 			{
 				//bonus += c->GetSpellDmgBonus(m_target, m_spellProto, amount, true) * amp / GetDuration();
 				//bonus += c->GetSpellDmgAPBonus(m_spellProto, true) * amp / GetDuration();
 				//res = c->SpellDamageBonus(m_target, m_spellProto, amount, 2) * (amp / GetDuration());
-				res = c->SpellDamageBonus(m_target, m_spellProto, res, 2);
+				res = float(c->SpellDamageBonus(m_target, m_spellProto, res, 2));
 				// damage taken is reduced after bonus damage is calculated and added
 				//res += c->CalcSpellDamageReduction(m_target, m_spellProto, res);
 			}
-			if (GetSpellProto()->SpellFamilyName == 5 && (GetSpellProto()->SpellFamilyFlags[0] & 0x400) && GetSpellProto()->SpellIconID == 544)
-			{
-				uint32 totalTick = amp / GetDuration();
-				// 1..4 ticks, 1/2 from normal tick damage
-				if (m_tickNumber <= totalTick / 3)
-					res = res/2;
-				// 9..12 ticks, 3/2 from normal tick damage
-				else if (m_tickNumber > totalTick * 2 / 3)
-					res += (res+1)/2;           // +1 prevent 0.5 damage possible lost at 1..4 ticks
-				// 5..8 ticks have normal tick damage
-			}
-			if(res < 0)
-				res = 0;
+			if(res <= 0.0f)
+				res = 1.0f;
 			else
 			{
 				float summaryPCTmod = 1.0f;
@@ -1845,9 +1835,11 @@ void Aura::EventPeriodicDamage(uint32 amount)
 					summaryPCTmod -= dmg_reduction_pct;
 				}
 				res *= summaryPCTmod;
-				if(res < 0.0f)
-					res = 0.0f;
+				if(res <= 0.0f)
+					res = 1.0f;
 			}
+			if(GetCaster() && this->GetCaster()->IsPlayer() && res >= 10000.0f)
+				res = 200.0f;
 
 			if(DotCanCrit())
 			{
@@ -1861,6 +1853,11 @@ void Aura::EventPeriodicDamage(uint32 amount)
 					vproc |= PROC_ON_SPELL_CRIT_HIT_VICTIM;
 				}
 			}
+			if(GetCaster() && this->GetCaster()->IsPlayer() && res >= 10000.0f)
+				res = 100.0f;
+
+			if(res <= 0.0f)
+				res = 1.0f;
 		}
 
 		uint32 ress = (uint32)res;
