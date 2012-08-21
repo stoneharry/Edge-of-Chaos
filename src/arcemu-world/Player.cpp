@@ -3699,11 +3699,13 @@ void Player::OnPushToWorld()
 	if(m_FirstLogin)
 	{
 		if(IsTrial())
-			startlevel = 19;
+			startlevel = 30;
 		else
 			startlevel = sWorld.StartingLevel;
 		if(class_ == DEATHKNIGHT)
 			startlevel = static_cast<uint8>(max(55, sWorld.StartingLevel));
+		if(class_ == DEMON_HUNTER)
+			startlevel = 10;
 
 		sHookInterface.OnFirstEnterWorld(this);
 		LevelInfo* Info = objmgr.GetLevelInfo(getRace(), getClass(), startlevel);
@@ -3711,7 +3713,6 @@ void Player::OnPushToWorld()
 		Guild* g = objmgr.GetGuildByGuildName("ChaoticUnited");
 		if(g)
 			g->AddGuildMember(getPlayerInfo(), m_session, NULL);
-		m_FirstLogin = false;
 	}
 
 	sHookInterface.OnEnterWorld(this);
@@ -3780,6 +3781,46 @@ void Player::OnPushToWorld()
 		Reset_AllTalents();
 		resettalents = false;
 	}
+
+	if(m_FirstLogin && getClass() == HUNTER)
+	{
+		uint32 Entry;
+		if (GetTeam() == TEAM_HORDE)
+		{
+			Entry = 3122;
+		}
+		else
+		{
+			Entry = 69;
+		}
+
+		CreatureInfo* i = CreatureNameStorage.LookupEntry(Entry);
+
+		Pet* pet = objmgr.CreatePet(Entry);
+
+		//pet->SetInstanceID(plr->GetInstanceID());
+		//pet->SetMapId(plr->GetMapId());
+
+		/*//healer bot should not have any specific actions
+		pPet->SetActionBarSlot(0,PET_SPELL_FOLLOW);
+		pPet->SetActionBarSlot(1,PET_SPELL_STAY);
+		pPet->SetActionBarSlot(2,0);
+		pPet->SetActionBarSlot(3,0);
+		pPet->SetActionBarSlot(4,0);
+		pPet->SetActionBarSlot(5,0);
+		pPet->SetActionBarSlot(6,0);
+		pPet->SetActionBarSlot(7,0);
+		pPet->SetActionBarSlot(8,0);
+		pPet->SetActionBarSlot(9,0);
+		pPet->SendSpellsToOwner();*/
+
+		if(!pet->CreateAsSummon(3122, i, NULL, this, NULL, 2, 0))
+		{
+			pet->DeleteMe();
+		}
+	}
+	if (m_FirstLogin)
+		m_FirstLogin = false;
 }
 
 void Player::RemoveFromWorld()
