@@ -932,18 +932,42 @@ void WorldSession::FullLogin(Player* plr)
 
 	sWorld.incrementPlayerCount(plr->GetTeam());
 
-	if(plr->m_FirstLogin)
+	if(plr->m_FirstLogin && plr->getClass() == HUNTER)
 	{
-		uint32 introid = plr->info->introid;
-
-		OutPacket(SMSG_TRIGGER_CINEMATIC, 4, &introid);
-
-		if(sWorld.m_AdditionalFun)    //cebernic: tells people who 's newbie :D
+		uint32 Entry;
+		if (plr->GetTeam() == TEAM_HORDE)
 		{
-			const int classtext[] = {0, 5, 6, 8, 9, 11, 0, 4, 3, 7, 0, 10};
-			sWorld.SendLocalizedWorldText(true, "{65}", classtext[(uint32)plr->getClass() ] , plr->GetName() , (plr->IsTeamHorde() ? "{63}" : "{64}"));
+			Entry = 3122;
+		}
+		else
+		{
+			Entry = 69;
 		}
 
+		CreatureInfo* i = CreatureNameStorage.LookupEntry(Entry);
+
+		Pet* pet = objmgr.CreatePet(Entry);
+
+		//pet->SetInstanceID(plr->GetInstanceID());
+		//pet->SetMapId(plr->GetMapId());
+
+		/*//healer bot should not have any specific actions
+		pPet->SetActionBarSlot(0,PET_SPELL_FOLLOW);
+		pPet->SetActionBarSlot(1,PET_SPELL_STAY);
+		pPet->SetActionBarSlot(2,0);
+		pPet->SetActionBarSlot(3,0);
+		pPet->SetActionBarSlot(4,0);
+		pPet->SetActionBarSlot(5,0);
+		pPet->SetActionBarSlot(6,0);
+		pPet->SetActionBarSlot(7,0);
+		pPet->SetActionBarSlot(8,0);
+		pPet->SetActionBarSlot(9,0);
+		pPet->SendSpellsToOwner();*/
+
+		if(!pet->CreateAsSummon(3122, i, NULL, plr, NULL, 2, 0))
+		{
+			pet->DeleteMe();
+		}
 	}
 
 
