@@ -932,45 +932,6 @@ void WorldSession::FullLogin(Player* plr)
 
 	sWorld.incrementPlayerCount(plr->GetTeam());
 
-	if(plr->m_FirstLogin && plr->getClass() == HUNTER)
-	{
-		uint32 Entry;
-		if (plr->GetTeam() == TEAM_HORDE)
-		{
-			Entry = 3122;
-		}
-		else
-		{
-			Entry = 69;
-		}
-
-		CreatureInfo* i = CreatureNameStorage.LookupEntry(Entry);
-
-		Pet* pet = objmgr.CreatePet(Entry);
-
-		//pet->SetInstanceID(plr->GetInstanceID());
-		//pet->SetMapId(plr->GetMapId());
-
-		/*//healer bot should not have any specific actions
-		pPet->SetActionBarSlot(0,PET_SPELL_FOLLOW);
-		pPet->SetActionBarSlot(1,PET_SPELL_STAY);
-		pPet->SetActionBarSlot(2,0);
-		pPet->SetActionBarSlot(3,0);
-		pPet->SetActionBarSlot(4,0);
-		pPet->SetActionBarSlot(5,0);
-		pPet->SetActionBarSlot(6,0);
-		pPet->SetActionBarSlot(7,0);
-		pPet->SetActionBarSlot(8,0);
-		pPet->SetActionBarSlot(9,0);
-		pPet->SendSpellsToOwner();*/
-
-		if(!pet->CreateAsSummon(3122, i, NULL, plr, NULL, 2, 0))
-		{
-			pet->DeleteMe();
-		}
-	}
-
-
 	LOG_DETAIL("WORLD: Created new player for existing players (%s)", plr->GetName());
 
 	// Login time, will be used for played time calc
@@ -1047,6 +1008,44 @@ void WorldSession::FullLogin(Player* plr)
 	objmgr.AddPlayer(_player);
 	if (IsTrial())
 		_player->BroadcastMessage("%sDue to your account being a trial, your access to content is limited.", MSG_COLOR_RED);
+
+	if(plr->m_FirstLogin && plr->getClass() == HUNTER)
+	{
+		uint32 Entry;
+		if (plr->GetTeam() == TEAM_HORDE)
+		{
+			Entry = 3122;
+		}
+		else
+		{
+			Entry = 69;
+		}
+
+		CreatureInfo* i = CreatureNameStorage.LookupEntry(Entry);
+
+		Pet* pet = objmgr.CreatePet(Entry);
+
+		//pet->SetInstanceID(plr->GetInstanceID());
+		//pet->SetMapId(plr->GetMapId());
+
+		/*//healer bot should not have any specific actions
+		pPet->SetActionBarSlot(0,PET_SPELL_FOLLOW);
+		pPet->SetActionBarSlot(1,PET_SPELL_STAY);
+		pPet->SetActionBarSlot(2,0);
+		pPet->SetActionBarSlot(3,0);
+		pPet->SetActionBarSlot(4,0);
+		pPet->SetActionBarSlot(5,0);
+		pPet->SetActionBarSlot(6,0);
+		pPet->SetActionBarSlot(7,0);
+		pPet->SetActionBarSlot(8,0);
+		pPet->SetActionBarSlot(9,0);
+		pPet->SendSpellsToOwner();*/
+
+		if(!pet->CreateAsSummon(3122, i, NULL, plr, NULL, 2, 0))
+		{
+			pet->DeleteMe();
+		}
+	}
 
 }
 
