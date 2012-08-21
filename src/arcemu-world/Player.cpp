@@ -3818,6 +3818,10 @@ void Player::OnPushToWorld()
 		{
 			pet->DeleteMe();
 		}
+		else
+		{
+			pet->SetPower(POWER_TYPE_HAPPINESS, sizeof(uint32)-1);
+		}
 	}
 	if (m_FirstLogin)
 		m_FirstLogin = false;
