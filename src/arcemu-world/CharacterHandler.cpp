@@ -890,7 +890,14 @@ void WorldSession::FullLogin(Player* plr)
 			{
 				plr->ResurrectPlayer();
 				plr->SetHealth(plr->GetMaxHealth());
-				plr->SetPower(POWER_TYPE_MANA, plr->GetMaxPower(POWER_TYPE_MANA));
+				if (plr->getClass() == HUNTER)
+				{
+					plr->SetPower(POWER_TYPE_FOCUS, plr->GetMaxPower(POWER_TYPE_FOCUS));
+				}
+				else
+				{
+					plr->SetPower(POWER_TYPE_MANA, plr->GetMaxPower(POWER_TYPE_MANA));
+				}
 			}
 
 			float c_tposx = pTrans->GetPositionX() + plr->transporter_info.x;

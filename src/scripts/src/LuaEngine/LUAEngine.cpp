@@ -85,11 +85,11 @@ template<> RegType<Aura>* GetMethodTable<Aura>();
 void report(lua_State* L)
 {
 	int count = lua_gettop(L);
-	if(count == 0)
+	/*if(count == 0)
 	{
 		((void(*)())0)();
 		return;
-	}
+	}*/
 	while(count > 0)
 	{
 		const char* msg = lua_tostring(L, -1);

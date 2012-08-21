@@ -832,7 +832,14 @@ bool Player::Create(WorldPacket & data)
 	setRace(race);
 	setClass(class_);
 	setGender(gender);
-	SetPowerType(powertype);
+	if (class_ == HUNTER)
+	{
+		SetPowerType(POWER_TYPE_FOCUS);
+	}
+	else
+	{
+		SetPowerType(powertype);
+	}
 
 	SetUInt32Value(UNIT_FIELD_BYTES_2, (U_FIELD_BYTES_FLAG_PVP << 8));
 
