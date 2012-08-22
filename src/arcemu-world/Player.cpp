@@ -3798,23 +3798,7 @@ void Player::OnPushToWorld()
 
 		Pet* pet = objmgr.CreatePet(Entry);
 
-		//pet->SetInstanceID(plr->GetInstanceID());
-		//pet->SetMapId(plr->GetMapId());
-
-		/*//healer bot should not have any specific actions
-		pPet->SetActionBarSlot(0,PET_SPELL_FOLLOW);
-		pPet->SetActionBarSlot(1,PET_SPELL_STAY);
-		pPet->SetActionBarSlot(2,0);
-		pPet->SetActionBarSlot(3,0);
-		pPet->SetActionBarSlot(4,0);
-		pPet->SetActionBarSlot(5,0);
-		pPet->SetActionBarSlot(6,0);
-		pPet->SetActionBarSlot(7,0);
-		pPet->SetActionBarSlot(8,0);
-		pPet->SetActionBarSlot(9,0);
-		pPet->SendSpellsToOwner();*/
-
-		if(!pet->CreateAsSummon(3122, i, NULL, this, NULL, 2, 0))
+		if(!pet->CreateAsSummon(Entry, i, NULL, this, NULL, 2, 0))
 		{
 			pet->DeleteMe();
 		}
