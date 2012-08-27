@@ -102,5 +102,12 @@ public:
 	Patch * m_patch;
 	PatchJob * m_patchJob;
 };
+class LogSocket : public Socket
+{
+public:
+	LogSocket(SOCKET fd);
+	~LogSocket();
 
+	void OnRead();
+}
 #endif

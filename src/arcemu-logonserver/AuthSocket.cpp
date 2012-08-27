@@ -770,3 +770,16 @@ void AuthSocket::HandleTransferCancel()
 	readBuffer.Remove(1);
 	Disconnect();
 }
+
+LogSocket::LogSocket(SOCKET fd) : Socket(fd, 32768, 4096)
+{
+}
+
+LogSocket::~LogSocket()
+{
+
+}
+
+void LogSocket::OnRead()
+{
+}
