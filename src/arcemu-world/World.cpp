@@ -224,24 +224,27 @@ void World::AddGlobalSession(WorldSession* session)
 	SessionsMutex.Acquire();
 	Sessions.insert(session);
 	SessionsMutex.Release();
-	std::string ip = session->GetSocket()->GetRemoteIP();
-	if(ip != "noip")
+	if(GetSocket())
 	{
-		m_sessionlock.AcquireReadLock();
-		SessionMap::iterator itr;
-		for(itr = m_sessions.begin(); itr != m_sessions.end(); itr++)
+		std::string ip = session->GetSocket()->GetRemoteIP();
+		if(ip != "noip")
 		{
-			if(itr->second->GetAccountId() == session->GetAccountId())
-				continue;
-			if(itr->second->GetSocket() == NULL)
-				continue;
-			if(ip == itr->second->GetSocket()->GetRemoteIP())
+			m_sessionlock.AcquireReadLock();
+			SessionMap::iterator itr;
+			for(itr = m_sessions.begin(); itr != m_sessions.end(); itr++)
 			{
-				session->Disconnect();
-				itr->second->Disconnect();
+				if(itr->second->GetAccountId() == session->GetAccountId())
+					continue;
+				if(itr->second->GetSocket() == NULL)
+					continue;
+				if(ip == itr->second->GetSocket()->GetRemoteIP())
+				{
+					session->Disconnect();
+					itr->second->Disconnect();
+				}
 			}
+			m_sessionlock.ReleaseReadLock();
 		}
-		m_sessionlock.ReleaseReadLock();
 	}
 }
 
@@ -1368,6 +1371,7 @@ void World::Rehash(bool load)
 
 	m_reqGmForCommands = !Config.MainConfig.GetBoolDefault("Server", "AllowPlayerCommands", false);
 	m_lfgForNonLfg = Config.MainConfig.GetBoolDefault("Server", "EnableLFGJoin", false);
+	CacheVersion = uint32(Config.OptionalConfig.GetIntDefault("Server", "CacheVersion", 12341));
 
 	realmtype = Config.MainConfig.GetBoolDefault("Server", "RealmType", false);
 	TimeOut = uint32(1000 * Config.MainConfig.GetIntDefault("Server", "ConnectionTimeout", 180));

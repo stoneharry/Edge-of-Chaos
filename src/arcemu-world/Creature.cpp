@@ -271,13 +271,26 @@ void Creature::Update(uint32 p_time)
 
 	if(m_corpseEvent)
 	{
+		uint32 CorpseDecayTime = GetProto()->CorpseDecayTime;
+		if(CorpseDecayTime == 0)
+		{
+			switch(creature_info->Rank)
+			{
+				case ELITE_WORLDBOSS:
+				{
+					CorpseDecayTime = TIME_CREATURE_REMOVE_BOSSCORPSE;
+				}break;
+				case ELITE_RAREELITE:
+				case ELITE_RARE:
+				{
+					CorpseDecayTime = TIME_CREATURE_REMOVE_BOSSCORPSE;
+				}break;
+				default:
+					CorpseDecayTime = TIME_CREATURE_REMOVE_CORPSE;
+			}
+		}
 		sEventMgr.RemoveEvents(this);
-		if(this->creature_info->Rank == ELITE_WORLDBOSS)
-			sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, TIME_CREATURE_REMOVE_BOSSCORPSE, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
-		else if(this->creature_info->Rank == ELITE_RAREELITE || this->creature_info->Rank == ELITE_RARE)
-			sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, TIME_CREATURE_REMOVE_RARECORPSE, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
-		else
-			sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, TIME_CREATURE_REMOVE_CORPSE, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
+		sEventMgr.AddEvent(this, &Creature::OnRemoveCorpse, EVENT_CREATURE_REMOVE_CORPSE, CorpseDecayTime, 1, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 
 		m_corpseEvent = false;
 	}
@@ -2297,7 +2310,7 @@ void Creature::HandleMonsterSayEvent(MONSTER_SAY_EVENTS Event)
 		static const char* classes[13] =
 		{"None", "Warrior", "Paladin", "Hunter", "Rogue", "Priest", "Death Knight", "Shaman", "Mage", "Warlock", "None", "Druid", "Demon Hunter"};
 		static const char* races[17] =
-		{"None", "Human", "Orc", "Dwarf", "Night Elf", "Undead", "Tauren", "Gnome", "Troll", "None", "Blood Elf", "Draenei", "None", "None", "None", "None", "Tuskarr"};
+		{"None", "Human", "Orc", "Dwarf", "Night Elf", "Undead", "Tauren", "Gnome", "Troll", "None", "Blood Elf", "Draenei", "Tuskarr", "Tuskarr", "Tuskarr", "Tuskarr", "Tuskarr"};
 		char* test = strstr((char*)text, "$R");
 		if(test == NULL)
 			test = strstr((char*)text, "$r");
@@ -2416,8 +2429,10 @@ Object* Creature::GetPlayerOwner()
 	return NULL;
 }
 
-void Creature::AddVehicleComponent( uint32 creature_entry, uint32 vehicleid ){
-	if( vehicle != NULL ){
+void Creature::AddVehicleComponent( uint32 creature_entry, uint32 vehicleid )
+{
+	if( vehicle != NULL )
+	{
 		LOG_ERROR( "Creature %u ( %s ) with GUID %u already has a vehicle component.", proto->Id, creature_info->Name, GetUIdFromGUID() );
 		return;
 	}

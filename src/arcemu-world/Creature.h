@@ -175,6 +175,7 @@ struct CreatureProto
 	uint32 vehicleid;
 	uint32 rooted;
 	uint32 CustomFlags;
+	uint32 CorpseDecayTime;
 	/* AI Stuff */
 	bool m_canRangedAttack;
 	bool m_canFlee;

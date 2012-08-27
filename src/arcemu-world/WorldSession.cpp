@@ -40,7 +40,7 @@ WorldSession::WorldSession(uint32 id, string Name, WorldSocket* sock):
 	_accountId(id),
 	_forcedaccountid(id),
 	_accountName(Name),
-	has_level_55_char(false),
+	has_level_30_char(false),
 	_side(-1),
 	_logoutTime(0),
 	permissions(NULL),
@@ -2074,4 +2074,11 @@ bool WorldSession::SendAllItemsIfCan()
 	delete result;
 	item_info_sent = true;
 	return true;
+}
+
+void WorldSession::SendClientCacheVersion(uint32 version)
+{
+    WorldPacket data(SMSG_CLIENTCACHE_VERSION, 4);
+    data << uint32(version);
+    SendPacket(&data);
 }

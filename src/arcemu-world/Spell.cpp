@@ -4699,12 +4699,6 @@ int32 Spell::DoCalculateEffect(uint32 i, Unit* target, int32 value)
 					return GetProto()->EffectBasePoints[i] + 1;
 				break;
 			}
-		case SPELL_HASH_GOUGE:
-			{
-				if(u_caster != NULL && i == 0)
-					value += (uint32)ceilf(u_caster->GetAP() * 0.21f);
-				break;
-			}
 		case SPELL_HASH_FAN_OF_KNIVES:  // rogue - fan of knives
 			{
 				if(p_caster != NULL)
@@ -4731,7 +4725,7 @@ int32 Spell::DoCalculateEffect(uint32 i, Unit* target, int32 value)
 				{
 					Item* mit = p_caster->GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND);
 					if(mit != NULL)
-						value = (p_caster->GetAP() * 22 + p_caster->GetPosDamageDoneMod(SCHOOL_HOLY) * 44) * mit->GetProto()->Delay / 1000000;
+						value += (p_caster->GetAP() * 22 + p_caster->GetPosDamageDoneMod(SCHOOL_HOLY) * 44) * mit->GetProto()->Delay / 1000000;
 				}
 				break;
 			}

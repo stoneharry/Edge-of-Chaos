@@ -4693,11 +4693,12 @@ class LuaUnit
 
 		static int ChannelSpell(lua_State* L, Unit* ptr)
 		{
+			TEST_UNIT()
 			uint32 Csp = luaL_checkint(L, 1);
 			Object* target = CHECK_OBJECT(L, 2);
 			if(Csp && target != NULL)
 			{
-				ptr->CastSpell(target->GetGUID(), dbcSpell.LookupEntry(Csp), false);
+				ptr->CastSpell(target->GetGUID(), dbcSpell.LookupEntryForced(Csp), false);
 				ptr->SetChannelSpellTargetGUID(target->GetGUID());
 				ptr->SetChannelSpellId(Csp);
 			}
@@ -4706,6 +4707,7 @@ class LuaUnit
 
 		static int StopChannel(lua_State* L, Unit* ptr)
 		{
+			TEST_UNIT()
 			if(ptr == NULL)
 				return 0;
 			ptr->SetChannelSpellTargetGUID(0);
@@ -4734,24 +4736,12 @@ class LuaUnit
 
 		static int EnableFlight(lua_State* L, Unit* ptr)
 		{
-			TEST_PLAYER()
+			TEST_UNIT()
 			bool Switch = CHECK_BOOL(L, 1);
 			if(Switch)
-			{
-				WorldPacket fly(835, 13);
 				ptr->EnableFlight();
-				fly << ptr->GetNewGUID();
-				fly << uint32(2);
-				ptr->SendMessageToSet(&fly, true);
-			}
 			else
-			{
-				WorldPacket fly(836, 13);
 				ptr->DisableFlight();
-				fly << ptr->GetNewGUID();
-				fly << uint32(5);
-				ptr->SendMessageToSet(&fly, true);
-			}
 			return 0;
 		}
 

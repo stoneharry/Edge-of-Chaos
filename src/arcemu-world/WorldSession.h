@@ -830,7 +830,7 @@ class SERVER_DECL WorldSession
 		uint32 _forcedaccountid;
 		uint32 _accountFlags;
 		string _accountName;
-		bool has_level_55_char; // death knights
+		bool has_level_30_char; // death knights
 		bool has_dk;
 		//uint16 _TEMP_ERR_CREATE_CODE; // increments
 		int8 _side;
@@ -864,6 +864,8 @@ class SERVER_DECL WorldSession
 		bool SendAllItemsIfCan();
 		void SendItemQueryAndNameInfo(uint32 itemid);
 		bool IsTrial() { return TrialAccount; }
+
+		void SendClientCacheVersion(uint32 version);
 };
 
 typedef std::set<WorldSession*> SessionSet;

@@ -490,6 +490,26 @@ void Player::OnLogin()
 		if(g)
 			g->AddGuildMember(getPlayerInfo(), m_session, NULL);
 	}
+
+	if(m_FirstLogin && getClass() == HUNTER)
+	{
+		uint32 Entry;
+		if (GetTeam() == TEAM_HORDE)
+			Entry = 3122;
+		else
+			Entry = 69;
+
+		CreatureInfo* i = CreatureNameStorage.LookupEntry(Entry);
+
+		Pet* pet = objmgr.CreatePet(Entry);
+
+		if(!pet->CreateAsSummon(Entry, i, NULL, this, NULL, 2, 0))
+			pet->DeleteMe();
+		else
+			pet->SetPower(POWER_TYPE_HAPPINESS, sizeof(uint32)-1);
+	}
+	if (m_FirstLogin)
+		m_FirstLogin = false;
 }
 
 
@@ -813,18 +833,14 @@ bool Player::Create(WorldPacket & data)
 		SetTalentPointsForAllSpec(sWorld.DKStartTalentPoints); // Default is 0 in case you do not want to modify it
 	else
 		SetTalentPointsForAllSpec(0);
-	uint32 start_level = (IsTrial() ? 19 : sWorld.StartingLevel);
-	if(class_ != DEATHKNIGHT || sWorld.StartingLevel > 55)
+	uint32 start_level = (IsTrial() ? 30 : sWorld.StartingLevel);
+	setLevel(start_level);
+	if(class_ == DEMON_HUNTER)
 	{
-		setLevel(start_level);
-		if(sWorld.StartingLevel >= 10 && class_ != DEATHKNIGHT)
-			SetTalentPointsForAllSpec(start_level - 9);
+		setLevel(10);
+		SetTalentPointsForAllSpec(1);
 	}
-	else
-	{
-		setLevel(55);
-		SetNextLevelXp(148200);
-	}
+	
 	UpdateGlyphs();
 
 	SetPrimaryProfessionPoints(sWorld.MaxProfs);
@@ -1590,9 +1606,17 @@ void Player::GiveXP(uint32 xp, const uint64 & guid, bool allowbonus)
 		newxp -= nextlevelxp;
 		nextlevelxp = li->XPToNextLevel;
 		levelup = true;
-
-		if(level > 9)
-			AddTalentPointsToAllSpec( 1 );
+		switch(level) // I don't like checking if a number is purely dividable by 5
+		{
+			case 10:
+			case 15:
+			case 20:
+			case 25:
+			case 30:
+			{
+				AddTalentPointsToAllSpec( 1 );
+			}break;
+		}
 
 		if(level >= GetMaxLevel())
 			break;
@@ -3447,13 +3471,14 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 			}
 		}
 	}
+
 	if(GetSession()->CanUseCommand('a'))
 		ModUnsigned32Value(UNIT_FIELD_FLAGS_2, 0x40000);
-	if(!HasSpell(52644))
-		addSpell(52644);
+
 	accountid = GetSession()->GetAccountId();
 	OnLogin();
  }
+
 void Player::SetPersistentInstanceId(Instance* pInstance)
 {
 	if(pInstance == NULL)
@@ -3781,34 +3806,6 @@ void Player::OnPushToWorld()
 		Reset_AllTalents();
 		resettalents = false;
 	}
-
-	if(m_FirstLogin && getClass() == HUNTER)
-	{
-		uint32 Entry;
-		if (GetTeam() == TEAM_HORDE)
-		{
-			Entry = 3122;
-		}
-		else
-		{
-			Entry = 69;
-		}
-
-		CreatureInfo* i = CreatureNameStorage.LookupEntry(Entry);
-
-		Pet* pet = objmgr.CreatePet(Entry);
-
-		if(!pet->CreateAsSummon(Entry, i, NULL, this, NULL, 2, 0))
-		{
-			pet->DeleteMe();
-		}
-		else
-		{
-			pet->SetPower(POWER_TYPE_HAPPINESS, sizeof(uint32)-1);
-		}
-	}
-	if (m_FirstLogin)
-		m_FirstLogin = false;
 }
 
 void Player::RemoveFromWorld()
@@ -6443,13 +6440,9 @@ void Player::Reset_Talents()
 	}
 	uint32 l = getLevel();
 	if(l > 9)
-	{
-		SetCurrentTalentPoints(l - 9);
-	}
+		SetCurrentTalentPoints(float2int32(l/5) - 1);
 	else
-	{
 		SetCurrentTalentPoints(0);
-	}
 
 	if(DualWield2H)
 	{
@@ -8263,10 +8256,25 @@ void Player::ApplyLevelInfo(LevelInfo* Info, uint32 Level)
 	SetPower(POWER_TYPE_MANA, Info->Mana);
 
 
-	if( Level > PreviousLevel ){
+	if( Level > PreviousLevel )
+	{
 		if( Level > 9 )
-			SetTalentPointsForAllSpec( Level - 9 );
-	}else{
+		{
+			switch(Level) // I don't like checking if a number is purely dividable by 5
+			{
+				case 10:
+				case 15:
+				case 20:
+				case 25:
+				case 30:
+				{
+					SetTalentPointsForAllSpec( float2int32(Level/5) -1 );
+				}break;
+			}
+		}
+	}
+	else
+	{
 		if( Level != PreviousLevel )
 			Reset_AllTalents();
 	}
@@ -13045,12 +13053,15 @@ void Player::AcceptQuest(uint64 guid, uint32 quest_id)
 
 	if(qst->srcitem && qst->srcitem != qst->receive_items[0])
 	{
-		Item* item = objmgr.CreateItem(qst->srcitem, this);
-		if(item)
+		if( !qst_giver->IsItem() || ( qst_giver->GetEntry() != qst->srcitem ) )
 		{
-			item->SetStackCount(qst->srcitemcount ? qst->srcitemcount : 1);
-			if(!m_ItemInterface->AddItemToFreeSlot(item))
-				item->DeleteMe();
+			Item *item = objmgr.CreateItem(qst->srcitem, this);
+			if( item != NULL )
+			{
+				item->SetStackCount(qst->srcitemcount ? qst->srcitemcount : 1);
+				if(!m_ItemInterface->AddItemToFreeSlot(item))
+					item->DeleteMe();
+			}
 		}
 	}
 
@@ -13467,8 +13478,6 @@ void Player::SendAurasForTarget(Unit* target)
 		
 		if( aur != NULL )
 		{
-			if(aur->GetSpellProto()->Attributes & SPELL_ATTR0_HIDDEN_CLIENTSIDE)
-				continue;
 			uint8 Flags = uint8( aur->GetAuraFlags() );
 
 			Flags = ( AFLAG_EFFECT_1 | AFLAG_EFFECT_2 | AFLAG_EFFECT_3 );
@@ -13485,9 +13494,9 @@ void Player::SendAurasForTarget(Unit* target)
 			data << uint32( aur->GetSpellId() );
 			data << uint8( Flags );
 			data << uint8( getLevel() );
-			uint8 count;
-			std::map< uint32, struct SpellCharge >::iterator iter;
-			iter = target->m_chargeSpells.find(aur->GetSpellId());
+			uint8 count = 1;
+			
+			std::map< uint32, struct SpellCharge >::iterator iter = target->m_chargeSpells.find(aur->GetSpellId());
 			if(iter != target->m_chargeSpells.end())
 				count = iter->second.count;
 			else
@@ -13497,7 +13506,8 @@ void Player::SendAurasForTarget(Unit* target)
 			if( ( Flags & AFLAG_NOT_CASTER ) == 0 )
 				data << WoWGuid(aur->GetCasterGUID());
 
- 		if( Flags & AFLAG_DURATION ){
+ 			if( Flags & AFLAG_DURATION )
+			{
 				data << uint32( aur->GetDuration() );
 				data << uint32( aur->GetTimeLeft() );
 			}
@@ -13568,14 +13578,12 @@ void Player::AddHonor(uint32 amount)
 
 void Player::SendGuildMOTD()
 {
+	if(!GetGuild())
+		return;
 	WorldPacket data(SMSG_GUILD_EVENT, 50);
-
 	data << uint8(GUILD_EVENT_MOTD);
 	data << uint8(1);
-	std::string motd = "GMOTDS are unavailable for player guilds at this time due to crashes.";
-	if(GetGuild() && (GetGuild()->GetGuildId() == 4 || GetGuild()->GetGuildId() == 2 || GetGuild()->GetGuildName() == "ChaoticUnited"))
-		motd = string(GetGuild()->GetMOTD());
-	data << motd;
+	data << GetGuild()->GetMOTD();
 	SendPacket(&data);	
 }
 
@@ -14107,6 +14115,7 @@ void Player::EventLoginAuras()
 	// useless logon spell
 	Spell* logonspell = sSpellFactoryMgr.NewSpell(this, dbcSpell.LookupEntry(836), false, NULL);
 	logonspell->prepare(&targets);
+	BroadcastAuras();
 }
 
 void Player::SetGroupUpdateFlags(uint32 flags)

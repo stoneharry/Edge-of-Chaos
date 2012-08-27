@@ -467,7 +467,7 @@ bool Guild::LoadFromDB(Field* f)
 	m_borderColor = f[6].GetUInt32();
 	m_backgroundColor = f[7].GetUInt32();
 	m_guildInfo = strlen(f[8].GetString()) ? strdup(f[8].GetString()) : NULL;
-	m_motd = strlen(f[9].GetString()) ? strdup(f[9].GetString()) : NULL;
+	m_motd = strlen(f[9].GetString()) ? strdup(f[9].GetString()) : "Click here to set a message of the day.";
 	m_creationTimeStamp = f[10].GetUInt32();
 	m_bankBalance = f[11].GetUInt64();
 
@@ -699,6 +699,9 @@ void Guild::SetMOTD(const char* szNewMotd, WorldSession* pClient)
 	if(pClient->GetPlayer()->getPlayerInfo()->guild != this)
 		return;
 
+	if(szNewMotd == NULL || szNewMotd == "")
+		szNewMotd = "Click here to set a message of the day.";
+
 	if(!pClient->GetPlayer()->getPlayerInfo()->guildRank->CanPerformCommand(GR_RIGHT_SETMOTD))
 	{
 		Guild::SendGuildCommandResult(pClient, GUILD_INVITE_S, "", GUILD_PERMISSIONS);
@@ -715,7 +718,7 @@ void Guild::SetMOTD(const char* szNewMotd, WorldSession* pClient)
 	}
 	else
 	{
-		m_motd = NULL;
+		m_motd = "Click here to set a message of the day.";
 		CharacterDatabase.Execute("UPDATE guilds SET motd = \'\' WHERE guildId = %u", m_guildId);
 	}
 

@@ -234,6 +234,7 @@ enum MOD_TYPES
     SPELL_AURA_INCREASE_DAMAGE = 168,                   // Increase Damage Type
     SPELL_AURA_INCREASE_CRITICAL = 169,                 // Increase Critical Type
     SPELL_AURA_DETECT_AMORE = 170,                      // Detect Amore
+	SPELL_AURA_MOD_SPEED_NOT_STACK = 171,
     SPELL_AURA_INCREASE_MOVEMENT_AND_MOUNTED_SPEED = 172,// Increase Movement and Mounted Speed (Non-Stacking)
     SPELL_AURA_INCREASE_SPELL_DAMAGE_PCT = 174,         // Increase Spell Damage by % status
     SPELL_AURA_INCREASE_SPELL_HEALING_PCT = 175,        // Increase Spell Healing by % status

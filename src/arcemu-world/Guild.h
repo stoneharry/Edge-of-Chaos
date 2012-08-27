@@ -356,10 +356,7 @@ class SERVER_DECL Guild
 		 */
 		ARCEMU_INLINE const char* GetMOTD() const 
 		{ 
-			std::string motd = "GMOTDS are not unavailable for player guilds at this time due to crashes.";
-			if(GetGuildId() == 4 || GetGuildId() == 2)
-				return m_motd; 
-			return motd.c_str();
+			return m_motd;
 		}
 
 		/** Sets guild information, updates in database

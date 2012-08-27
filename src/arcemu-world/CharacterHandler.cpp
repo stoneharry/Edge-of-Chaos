@@ -175,7 +175,7 @@ void WorldSession::CharacterEnumProc(QueryResult* result)
 			// Death Knight starting information
 			// Note: To change what level is required to make a dk change the >= 55 to something.
 			// For example >=80 would require a level 80 to create a DK
-			has_level_55_char = has_level_55_char || (fields[1].GetUInt8() >= 55);
+			has_level_30_char = has_level_30_char || (fields[1].GetUInt8() >= 30);
 			has_dk = has_dk || (Class == 6);
 
 			/* build character enum, w0000t :p */
@@ -431,8 +431,7 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket & recv_data)
 
 	//Check if player has a level 55 or higher character on this realm and allow him to create DK.
 	//This check can be turned off in optional.conf
-	if(Config.OptionalConfig.GetBoolDefault("ClassOptions" , "DeathKnightPreReq" , false) && !has_level_55_char
-	        && (class_ == DEATHKNIGHT))
+	if(!has_level_30_char && (class_ == DEMON_HUNTER))
 	{
 		pNewChar->ok_to_remove = true;
 		delete pNewChar;

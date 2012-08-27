@@ -474,6 +474,8 @@ void WorldSocket::Authenticate()
 	sWorld.AddSession(mSession);
 	sWorld.AddGlobalSession(mSession);
 
+	mSession->SendClientCacheVersion(sWorld.CacheVersion);
+
 	if(mSession && mSession->HasGMPermissions())
 		sWorld.gmList.insert(mSession);
 

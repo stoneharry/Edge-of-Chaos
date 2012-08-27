@@ -4848,8 +4848,9 @@ int32 Unit::GetSpellDamage(Spell* s, Unit * target, uint32 i, int32 base_dmg)
     if (!basePointsPerLevel && (spellInfo->Attributes & SPELL_ATTR0_LEVEL_DAMAGE_CALCULATION && spellInfo->spellLevel) &&
             spellInfo->Effect[i] != SPELL_EFFECT_WEAPON_PERCENT_DAMAGE &&
             spellInfo->Effect[i] != SPELL_EFFECT_KNOCK_BACK &&
-			spellInfo->EffectApplyAuraName[i] != 129 &&
-            spellInfo->EffectApplyAuraName[i] != 171 &&
+			spellInfo->Effect[i] != SPELL_EFFECT_ADD_EXTRA_ATTACKS &&
+			spellInfo->EffectApplyAuraName[i] != SPELL_AURA_MOD_INCREASE_SPEED_ALWAYS &&
+            spellInfo->EffectApplyAuraName[i] != SPELL_AURA_MOD_SPEED_NOT_STACK &&
             spellInfo->EffectApplyAuraName[i] != SPELL_AURA_MOD_INCREASE_SPEED &&
             spellInfo->EffectApplyAuraName[i] != SPELL_AURA_MOD_DECREASE_SPEED)
                 //there are many more: slow speed, -healing pct
@@ -8306,9 +8307,9 @@ void Unit::BroadcastAuras()
 			data << uint32( aur->GetSpellId() );
 			data << uint8( Flags );
 			data << uint8( getLevel() );
-			uint8 count;
-			std::map< uint32, struct SpellCharge >::iterator iter;
-			iter = m_chargeSpells.find(aur->GetSpellId());
+			uint8 count = 1;
+			
+			std::map< uint32, struct SpellCharge >::iterator iter = m_chargeSpells.find(aur->GetSpellId());
 			if(iter != m_chargeSpells.end())
 				count = iter->second.count;
 			else
@@ -8318,7 +8319,8 @@ void Unit::BroadcastAuras()
 			if( ( Flags & AFLAG_NOT_CASTER ) == 0 )
 				data << WoWGuid(aur->GetCasterGUID());
 
- 		if( Flags & AFLAG_DURATION ){
+ 			if( Flags & AFLAG_DURATION )
+			{
 				data << uint32( aur->GetDuration() );
 				data << uint32( aur->GetTimeLeft() );
 			}
