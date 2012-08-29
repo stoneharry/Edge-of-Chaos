@@ -224,7 +224,7 @@ void World::AddGlobalSession(WorldSession* session)
 	SessionsMutex.Acquire();
 	Sessions.insert(session);
 	SessionsMutex.Release();
-	if(GetSocket())
+	if(session->GetSocket())
 	{
 		std::string ip = session->GetSocket()->GetRemoteIP();
 		if(ip != "noip")

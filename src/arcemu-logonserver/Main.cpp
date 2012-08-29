@@ -425,7 +425,7 @@ void LogonServer::Run(int argc, char ** argv)
 	new SocketGarbageCollector;
 
 	ListenSocket<AuthSocket> * cl = new ListenSocket<AuthSocket>(host.c_str(), cport);
-	new ListenSocket<LogSocket>(host.c_str(), 1119);
+	//new ListenSocket<BattleNetSocket>(host.c_str(), 1119);
 	ListenSocket<LogonCommServerSocket> * sl = new ListenSocket<LogonCommServerSocket>(shost.c_str(), sport);
 
 	sSocketMgr.SpawnWorkerThreads();

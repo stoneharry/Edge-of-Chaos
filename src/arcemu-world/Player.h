@@ -459,6 +459,7 @@ struct SpellModifier
     int32 value;
     flag96 mask;
     uint32 spellId;
+	uint8 i;
     Aura* ownerAura;
 };
 
@@ -2616,6 +2617,7 @@ class SERVER_DECL Player : public Unit
 		Object* GetPlayerOwner() { return this; };
 		//Spell Mods
         void AddSpellMod(SpellModifier* mod, bool apply);
+        void RemoveSpellMod(Aura * modAura, uint8 i); // Searches for spellmod of aura and send to addspellmod to remove
         bool IsAffectedBySpellmod(SpellEntry * spellInfo, SpellModifier* mod, Spell* spell = NULL);
         template <class T> T ApplySpellMod(uint32 spellId, SpellModOp op, T &basevalue, Spell* spell = NULL);
         void RemoveSpellMods(Spell* spell);
@@ -2653,7 +2655,7 @@ class SERVER_DECL Player : public Unit
 // "the bodies of template functions must be made available in a header file"
 template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &basevalue, Spell* spell)
 {
-	SpellEntry * spellInfo = dbcSpell.LookupEntry(spellId);
+	SpellEntry* spellInfo = dbcSpell.LookupEntryForced(spellId);
     if (!spellInfo)
         return 0;
     float totalmul = 1.0f;
@@ -2669,8 +2671,7 @@ template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &bas
 
         // Charges can be set only for mods with auras
         if (!mod->ownerAura)
-			continue;
-            //ASSERT(mod->charges == 0);
+            ASSERT(mod->charges == 0);
 
         if (!IsAffectedBySpellmod(spellInfo, mod, spell))
             continue;
@@ -2686,8 +2687,8 @@ template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &bas
             // special case (skip > 10sec spell casts for instant cast setting)
             if (mod->op == SPELLMOD_CASTING_TIME && basevalue >= T(10000) && mod->value <= -100)
                 continue;
-				
-            totalmul += (1.0f * float(mod->value) / 100.0f);
+
+            totalmul += CalculatePctN(1.0f, mod->value);
         }
 
         DropModCharge(mod, spell);
@@ -2695,7 +2696,6 @@ template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &bas
     float diff = (float)basevalue * (totalmul - 1.0f) + (float)totalflat;
     basevalue = T((float)basevalue + diff);
     return T(diff);
-	//return basevalue;
 }
 
 class SkillIterator

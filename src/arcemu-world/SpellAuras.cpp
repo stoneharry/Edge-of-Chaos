@@ -5838,7 +5838,7 @@ void Aura::SpellAuraHover(bool apply)
 
 void Aura::SpellAuraApplySpellMod(bool apply)
 {
-	/*if(!m_target->IsPlayer())
+	if(!m_target->IsPlayer())
 		return;
 	Player * p = TO_PLAYER(m_target);
 	if(apply)
@@ -5847,40 +5847,15 @@ void Aura::SpellAuraApplySpellMod(bool apply)
 		smod->op = SpellModOp(mod->m_miscValue);
 		smod->value = mod->m_amount;
 		smod->type = SpellModType(mod->m_type);    // SpellModType value == spell aura types
-		smod->spellId = GetSpellProto()->Id;
 		smod->charges = p->GetAuraStackCount(GetSpellProto()->Id);
-		smod->ownerAura = this;
 		smod->mask = GetSpellProto()->EffectSpellClassMask[mod->i];
-		p->AddSpellMod(smod);
+		smod->i = mod->i;
+		p->AddSpellMod(smod, true);
 	}
 	else
-		p->RemoveSpellMod(SpellModOp(mod->m_miscValue), GetSpellId());*/
+		p->RemoveSpellMod(this, mod->i);
 }
 
-/*
-void Aura::ApplySpellMod(bool apply)
-{
-	if(!m_target->IsPlayer())
-		return;
-	Player * p = TO_PLAYER(m_target);
-	uint32 i = mod->i;
-	if(apply)
-	{
-		m_spellmods[i] = new SpellModifier(this);
-		m_spellmods[i]->op = SpellModOp(mod->m_miscValue);
-		m_spellmods[i]->type = SpellModType(mod->m_type);    // SpellModType value == spell aura types
-		m_spellmods[i]->spellId = GetSpellProto()->Id;
-		m_spellmods[i]->mask = GetSpellProto()->EffectSpellClassMask[mod->i];
-		m_spellmods[i]->charges = 255;
-		m_spellmods[i]->value = mod->m_amount;
-		p->AddSpellMod(m_spellmods[i], apply);
-	}
-	else
-		p->AddSpellMod(m_spellmods[i], apply);
-	//else
-		//p->RemoveSpellMod(mod->m_miscValue, GetSpellId());
-}
-*/
 void Aura::SpellAuraAddClassTargetTrigger(bool apply)
 {
 	if(apply)

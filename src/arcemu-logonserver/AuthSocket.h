@@ -102,12 +102,14 @@ public:
 	Patch * m_patch;
 	PatchJob * m_patchJob;
 };
-class LogSocket : public Socket
+
+class BattleNetSocket : public Socket
 {
 public:
-	LogSocket(SOCKET fd);
-	~LogSocket();
+	BattleNetSocket(SOCKET fd);
+	~BattleNetSocket();
 
 	void OnRead();
-}
+};
+
 #endif

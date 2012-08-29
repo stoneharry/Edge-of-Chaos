@@ -771,15 +771,15 @@ void AuthSocket::HandleTransferCancel()
 	Disconnect();
 }
 
-LogSocket::LogSocket(SOCKET fd) : Socket(fd, 32768, 4096)
+BattleNetSocket::BattleNetSocket(SOCKET fd) : Socket(fd, 32768, 4096)
 {
 }
 
-LogSocket::~LogSocket()
+BattleNetSocket::~BattleNetSocket()
 {
 
 }
 
-void LogSocket::OnRead()
+void BattleNetSocket::OnRead()
 {
 }

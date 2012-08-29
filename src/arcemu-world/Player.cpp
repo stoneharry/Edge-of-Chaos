@@ -13804,19 +13804,42 @@ bool Player::IsAffectedBySpellmod(SpellEntry * spellInfo, SpellModifier* mod, Sp
         return false;
 
     // Mod out of charges
-    //if (spell && mod->charges == -1 && spell->m_appliedMods.find(mod->ownerAura) == spell->m_appliedMods.end())
-        //return false;
+    if (spell && mod->charges == -1 && spell->m_appliedMods.find(mod->ownerAura) == spell->m_appliedMods.end())
+        return false;
 
     // +duration to infinite duration spells making them limited
 	if (mod->op == SPELLMOD_DURATION && GetDuration(dbcSpellDuration.LookupEntry( spellInfo->DurationIndex)) <= 0)
         return false;
+   if (spellInfo->IsNotAffectedBySpellMods())
+        return false;
+
+   SpellEntry* affectSpell = dbcSpell.LookupEntryForced(mod->spellId);
+    // False if affect_spell == NULL or spellFamily not equal
+    if (!affectSpell || affectSpell->SpellFamilyName != spellInfo->SpellFamilyName)
+        return false;
+
+    // true
+    if (mod->mask & spellInfo->SpellFamilyFlags)
+        return true;
 	return false;
-	//return IsAffectedBySpellMod(spellInfo, dbcSpell.LookupEntry(mod->spellId), mod->mask);
 }
+
+void Player::RemoveSpellMod(Aura * modAura, uint8 i)
+{
+	if(modAura == NULL) //we have no aura so we won't be able to find the spellmod.
+		return;
+	SpellModOp op = SpellModOp(modAura->GetMod(i).m_miscValue);
+	for (SpellModList::iterator itr = m_spellMods[op].begin(); itr != m_spellMods[op].end(); ++itr)
+	{
+		SpellModifier* mod = *itr;
+		if (mod->ownerAura == modAura && mod->i == i )
+			AddSpellMod(mod, false);
+	}
+ }
 
 void Player::AddSpellMod(SpellModifier* mod, bool apply)
 {
-   uint16 Opcode = (mod->type == SPELLMOD_FLAT) ? SMSG_SET_FLAT_SPELL_MODIFIER : SMSG_SET_PCT_SPELL_MODIFIER;
+    uint16 Opcode = (mod->type == SPELLMOD_FLAT) ? SMSG_SET_FLAT_SPELL_MODIFIER : SMSG_SET_PCT_SPELL_MODIFIER;
 
     int i = 0;
     flag96 _mask = 0;
@@ -13848,9 +13871,7 @@ void Player::AddSpellMod(SpellModifier* mod, bool apply)
     else
     {
         m_spellMods[mod->op].remove(mod);
-        // mods bound to aura will be removed in AuraEffect::~AuraEffect
-        if (!mod->ownerAura)
-            delete mod;
+		delete mod;
     }
 }
 
