@@ -54,7 +54,7 @@ class SpeedCheatDetector;
 #define MAX_SPEC_COUNT 2
 #define GLYPHS_COUNT 6
 
-#define PLAYER_LEVEL_CAP                80
+#define PLAYER_LEVEL_CAP                30
 #define PLAYER_ARENA_MIN_LEVEL  19
 
 #define PLAYER_EXPLORED_ZONES_LENGTH 128
@@ -2494,7 +2494,6 @@ class SERVER_DECL Player : public Unit
 		int			hearth_of_wild_pct;		//druid hearth of wild talent used on shapeshifting. We either know what is last talent level or memo on learn
 
 		uint32 m_team;
-		uint32 accountid;
 		float       m_lastRunSpeed;
 		float       m_lastRunBackSpeed;
 		float       m_lastSwimSpeed;
@@ -2649,6 +2648,9 @@ class SERVER_DECL Player : public Unit
 			GetSession()->m_MoverWoWGuid.Init(target->GetGUID());
         }
 		uint32 m_flycheckdelay;
+
+		bool icanhascameraplz;
+		void SendDatCameraShit(uint32 id);
 };
 
 

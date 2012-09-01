@@ -704,6 +704,8 @@ void MapMgr::ChangeObjectLocation(Object* obj)
 				fRange = 0.0f;
 			else if(curObj->IsPlayer() && TO< Player* >(curObj)->GetFarsightTarget() == obj->GetGUID())
 				fRange = 0.0f;//Mind Vision, Eye of Kilrogg
+			else if(plObj != NULL && plObj->icanhascameraplz)
+				fRange = 0.0f;
 			else
 				fRange = m_UpdateDistance; // normal distance
 
@@ -881,6 +883,8 @@ void MapMgr::UpdateInRangeSet(Object* obj, Player* plObj, MapCell* cell, ByteBuf
 			fRange = 0.0f;
 		//If the object we're checking for possible removal is a transport or other special object, and we are players on the same map, don't remove it, and add it whenever possible...
 		else if(plObj && curObj->IsGameObject() && (TO< GameObject* >(curObj)->GetOverrides() & GAMEOBJECT_INFVIS) && obj->GetMapId() == curObj->GetMapId())
+			fRange = 0.0f;
+		else if(plObj != NULL && plObj->icanhascameraplz)
 			fRange = 0.0f;
 		else
 			fRange = m_UpdateDistance; // normal distance

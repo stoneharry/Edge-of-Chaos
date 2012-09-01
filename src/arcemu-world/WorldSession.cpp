@@ -1278,6 +1278,8 @@ void WorldSession::InitPacketHandlerTable()
 	    &WorldSession::HandleOpenItemOpcode;
 	WorldPacketHandlers[CMSG_COMPLETE_CINEMATIC].handler =
 	    &WorldSession::HandleCompleteCinematic;
+	WorldPacketHandlers[CMSG_NEXT_CINEMATIC_CAMERA].handler =
+	    &WorldSession::HandleNextCinematic;
 	WorldPacketHandlers[CMSG_MOUNTSPECIAL_ANIM].handler =
 	    &WorldSession::HandleMountSpecialAnimOpcode;
 	WorldPacketHandlers[CMSG_TOGGLE_CLOAK].handler =

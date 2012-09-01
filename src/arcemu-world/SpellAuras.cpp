@@ -781,6 +781,9 @@ Aura::Aura(SpellEntry* proto, int32 duration, Object* caster, Unit* target, bool
 	m_flags = 0;
 	//fixed_amount = 0;//used only por percent values to be able to recover value correctly.No need to init this if we are not using it
 	m_tickNumber = 0;
+	m_SpellMods[0] = NULL;
+	m_SpellMods[1] = NULL;
+	m_SpellMods[2] = NULL;
 }
 
 Aura::~Aura()
@@ -5840,20 +5843,29 @@ void Aura::SpellAuraApplySpellMod(bool apply)
 {
 	if(!m_target->IsPlayer())
 		return;
+	/*
+	Disabled till spell mods actually remove.
 	Player * p = TO_PLAYER(m_target);
+	SpellModifier *smod = GetSpellMod(mod->i);
 	if(apply)
 	{
-		SpellModifier *smod = new SpellModifier(this);
-		smod->op = SpellModOp(mod->m_miscValue);
-		smod->value = mod->m_amount;
-		smod->type = SpellModType(mod->m_type);    // SpellModType value == spell aura types
-		smod->charges = p->GetAuraStackCount(GetSpellProto()->Id);
-		smod->mask = GetSpellProto()->EffectSpellClassMask[mod->i];
-		smod->i = mod->i;
+		if(smod == NULL)
+		{
+			smod = new SpellModifier(this);
+			smod->op = SpellModOp(mod->m_miscValue);
+			smod->value = mod->m_amount;
+			smod->type = SpellModType(mod->m_type);    // SpellModType value == spell aura types
+			smod->charges = p->GetAuraStackCount(GetSpellProto()->Id);
+			smod->mask = GetSpellProto()->EffectSpellClassMask[mod->i];
+			smod->i = mod->i;
+		}
 		p->AddSpellMod(smod, true);
 	}
 	else
-		p->RemoveSpellMod(this, mod->i);
+	{
+		if(smod != NULL)
+			p->AddSpellMod(smod, false);
+	}*/
 }
 
 void Aura::SpellAuraAddClassTargetTrigger(bool apply)

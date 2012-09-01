@@ -480,6 +480,7 @@ Player::Player(uint32 guid)
 	numberofchats = 0;
 	lastchattime = 0;
 	m_flycheckdelay = 0;
+	icanhascameraplz = false;
 }
 
 void Player::OnLogin()
@@ -3473,9 +3474,8 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 	}
 
 	if(GetSession()->CanUseCommand('a'))
-		ModUnsigned32Value(UNIT_FIELD_FLAGS_2, 0x40000);
+		ModUnsigned32Value(UNIT_FIELD_FLAGS_2, 0x40000); // Allows use of death touch and other spells.
 
-	accountid = GetSession()->GetAccountId();
 	OnLogin();
  }
 
@@ -14190,4 +14190,11 @@ void Player::SetClientControl(Unit* target, uint8 allowMove)
 	SendPacket(&ack);
 	if (target == this)
 		SetMover(this);
+}
+
+void Player::SendDatCameraShit(uint32 id)
+{
+	icanhascameraplz = true;
+	SetPosition(GetPositionX()+0.01,GetPositionY()+0.01, GetPositionZ()+0.01, GetOrientation());
+	GetSession()->OutPacket(SMSG_TRIGGER_CINEMATIC, 4, &id);
 }

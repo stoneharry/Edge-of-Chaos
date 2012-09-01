@@ -6312,5 +6312,12 @@ class LuaUnit
 			ptr->SendMovementFlagUpdate();
 			return 0;
 		}
+		static int SendCinematic(lua_State* L, Unit* ptr)
+		{
+			TEST_PLAYER();
+			uint32 id = luaL_checkint(L, 1);
+			TO_PLAYER(ptr)->SendDatCameraShit(id);
+			return 0;
+		}
 };
 #endif

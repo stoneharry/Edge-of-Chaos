@@ -807,6 +807,7 @@ class SERVER_DECL Aura : public EventableObject
 		int32 GetModAmount(uint32 i) { if(i < 3) return m_modList[i].m_amount; return 0; }
 		int32 GetModAmountByMod() { return mod->m_amount; };
 		Modifier GetMod(uint32 i) { return m_modList[i]; }
+		SpellModifier * GetSpellMod(uint32 i) { if( m_SpellMods[i] != NULL) return  m_SpellMods[i]; return NULL; }
 		uint32 GetAuraFlags() { return m_flags; }
 		void AssignModifiers(Aura* aura);
 
@@ -850,6 +851,7 @@ class SERVER_DECL Aura : public EventableObject
 		uint32	m_flags;
 		uint32 m_modcount;
 		Modifier m_modList[3];
+		SpellModifier * m_SpellMods[3];
 		Modifier* mod;
 		uint32 m_tickNumber;
 		void SendInterrupted(uint8 result, Object* m_caster);

@@ -2128,6 +2128,7 @@ void Creature::Die(Unit* pAttacker, uint32 damage, uint32 spellid)
 		if(Fz != GetPositionZ())
 		{
 			SetPosition(GetPositionX(), GetPositionY(), Fz, GetOrientation());
+			AddUnitMovementFlag(MOVEFLAG_FALLING);
 			SendMovementFlagUpdate();
 		}
 	}
