@@ -524,8 +524,6 @@ void Creature::generateLoot()
 
 void Creature::SaveToDB()
 {
-	if(IS_INSTANCE(GetMapId()))
-		return;
 	if(m_spawn == NULL)
 	{
 		m_spawn = new CreatureSpawn;
@@ -567,6 +565,25 @@ void Creature::SaveToDB()
 		// Add spawn to map
 		GetMapMgr()->GetBaseMap()->GetSpawnsListAndCreate(x, y)->CreatureSpawns.push_back(m_spawn);
 	}
+	//if(IS_INSTANCE(GetMapId())) This doesn't actually check map type just assumes maps that don't match certain ids = instance
+
+	if(GetMapMgr()->pInstance)
+		return;
+	/*
+	Better then the above check as you could change a map to non instance reload the table and spawn things but on a live realm this could lead to problems.
+	MapInfo* map = WorldMapInfoStorage.LookupEntry(GetMapId());
+	if(map)
+	{
+		switch(map->type)
+		{
+			case INSTANCE_RAID:
+			case INSTANCE_NONRAID:
+			case INSTANCE_MULTIMODE:
+			{
+				return;
+			}break;
+		}
+	}*/
 	std::stringstream ss;
 	ss << "REPLACE INTO creature_spawns VALUES("
 	   << spawnid << ","
