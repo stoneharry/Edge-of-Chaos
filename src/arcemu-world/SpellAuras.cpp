@@ -5843,8 +5843,7 @@ void Aura::SpellAuraApplySpellMod(bool apply)
 {
 	if(!m_target->IsPlayer())
 		return;
-	/*
-	Disabled till spell mods actually remove.
+	
 	Player * p = TO_PLAYER(m_target);
 	SpellModifier *smod = GetSpellMod(mod->i);
 	if(apply)
@@ -5858,6 +5857,7 @@ void Aura::SpellAuraApplySpellMod(bool apply)
 			smod->charges = p->GetAuraStackCount(GetSpellProto()->Id);
 			smod->mask = GetSpellProto()->EffectSpellClassMask[mod->i];
 			smod->i = mod->i;
+			m_SpellMods[mod->i] = smod;
 		}
 		p->AddSpellMod(smod, true);
 	}
@@ -5865,7 +5865,7 @@ void Aura::SpellAuraApplySpellMod(bool apply)
 	{
 		if(smod != NULL)
 			p->AddSpellMod(smod, false);
-	}*/
+	}
 }
 
 void Aura::SpellAuraAddClassTargetTrigger(bool apply)

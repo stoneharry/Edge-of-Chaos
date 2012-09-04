@@ -524,6 +524,8 @@ void Creature::generateLoot()
 
 void Creature::SaveToDB()
 {
+	if(IS_INSTANCE(GetMapId()))
+		return;
 	if(m_spawn == NULL)
 	{
 		m_spawn = new CreatureSpawn;
@@ -565,9 +567,6 @@ void Creature::SaveToDB()
 		// Add spawn to map
 		GetMapMgr()->GetBaseMap()->GetSpawnsListAndCreate(x, y)->CreatureSpawns.push_back(m_spawn);
 	}
-	uint32 map = GetMapId();
-	if(map <= 800)
-		map = GetMapMgr()->GetMapId();
 	std::stringstream ss;
 	ss << "REPLACE INTO creature_spawns VALUES("
 	   << spawnid << ","

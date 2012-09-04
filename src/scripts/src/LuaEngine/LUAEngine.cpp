@@ -231,14 +231,8 @@ void LuaEngine::LoadScripts()
 			{
 				if(lua_gettop(lu) == 0)
 				{
-					Log.Error("LuaEngine", "%s failed failed for no reason, retrying.", itr->c_str());
-					if(lua_pcall(lu, 0, 0, 0) != 0)
-					{
-						Log.Error("LuaEngine", "%s failed failed for no reason twice... aborting its load.", itr->c_str());
-						report(lu);
-					}
-					else
-						Log.Debug("LuaEngine", "loaded %s.", itr->c_str());
+					Log.Error("LuaEngine", "%s failed failed for no reason.", itr->c_str());
+					report(lu);
 				}
 				else
 				{

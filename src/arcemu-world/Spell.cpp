@@ -6141,7 +6141,9 @@ void Spell::WriteAmmoToPacket(WorldPacket* data)
     }
     else
     {
-        for (uint8 i = 0; i < 3; ++i)
+		ammoDisplayID = 5996;//This needs fixed.
+		ammoInventoryType = INVTYPE_AMMO;
+        /*for (uint8 i = 0; i < 3; ++i)
         {
             if (uint32 item_id = m_caster->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + i))
             {
@@ -6171,7 +6173,7 @@ void Spell::WriteAmmoToPacket(WorldPacket* data)
                     }
                 }
             }
-        }
+        }*/
     }
 
     *data << uint32(ammoDisplayID);
