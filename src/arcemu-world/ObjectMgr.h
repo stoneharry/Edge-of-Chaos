@@ -314,6 +314,17 @@ class Charter
 		Charter(Field* fields);
 		Charter(uint32 id, uint32 leader, uint32 type) : CharterType(type), LeaderGuid(leader), CharterId(id)
 		{
+			//Too lazy to loop
+			Data[1] = 0;
+			Data[2] = 0;
+			Data[3] = 0;
+			Data[4] = 0;
+			Data[5] = 0;
+			Data[6] = 0;
+			PetitionSignerCount = 0;
+			Unk1 = 0;
+			Unk2 = 0;
+			Unk3 = 0;
 			SignatureCount = 0;
 			ItemGuid = 0;
 			Slots = GetNumberOfSlotsByType();

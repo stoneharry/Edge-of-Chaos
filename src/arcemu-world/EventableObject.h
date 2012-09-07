@@ -58,7 +58,7 @@ class SERVER_DECL EventableObject
 		EventableObject();
 		virtual ~EventableObject();
 
-		bool event_HasEvents() { return m_events.size() > 0 ? true : false; }
+		bool event_HasEvents() { return !m_events.empty(); }
 		void event_AddEvent(TimedEvent* ptr);
 		void event_Relocate();
 

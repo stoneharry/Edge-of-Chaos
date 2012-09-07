@@ -84,10 +84,10 @@ uint32 CheckTriggerPrerequsites(AreaTrigger* pAreaTrigger, WorldSession* pSessio
 	if((pMapInfo->type == INSTANCE_MULTIMODE && pPlayer->iInstanceType >= MODE_HEROIC) && !pPlayer->GetGroup())
 		return AREA_TRIGGER_FAILURE_NO_GROUP;
 
-	if(pMapInfo && pMapInfo->required_quest && !pPlayer->HasFinishedQuest(pMapInfo->required_quest))
+	if(pMapInfo->required_quest && !pPlayer->HasFinishedQuest(pMapInfo->required_quest))
 		return AREA_TRIGGER_FAILURE_NO_ATTUNE_Q;
 
-	if(pMapInfo && pMapInfo->required_item && !pPlayer->GetItemInterface()->GetItemCount(pMapInfo->required_item, true))
+	if(pMapInfo->required_item && !pPlayer->GetItemInterface()->GetItemCount(pMapInfo->required_item, true))
 		return AREA_TRIGGER_FAILURE_NO_ATTUNE_I;
 
 	if(pPlayer->iInstanceType >= MODE_HEROIC &&

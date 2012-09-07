@@ -523,13 +523,13 @@ void CBattlegroundManager::EventQueueUpdate(bool forceStart)
 {
 	deque<uint32> tempPlayerVec[2];
 	uint32 i, j, k;
-	Player* plr;
+	Player* plr = NULL;
 	CBattleground* bg;
 	list<uint32>::iterator it3, it4;
 	map<uint32, CBattleground*>::iterator iitr;
-	Arena* arena;
-	int32 team;
-	uint32 plrguid;
+	Arena* arena = NULL;
+	int32 team = 0;
+	uint32 plrguid = 0;
 	m_queueLock.Acquire();
 	m_instanceLock.Acquire();
 

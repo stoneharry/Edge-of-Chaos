@@ -1024,10 +1024,14 @@ struct SpellEntry
 		NameHash= 0;                        //!!! CUSTOM, related to custom spells, summon spell quest related spells
 		talent_tree= 0;                     //!!! CUSTOM,
 		in_front_status= 0;                 //!!! CUSTOM,
-		EffectSpellGroupRelation_high[ MAX_SPELL_EFFECTS ]= 0;     //!!! this is not contained in client dbc but server must have it
+		EffectSpellGroupRelation_high[0]= 0;     //!!! this is not contained in client dbc but server must have it
+		EffectSpellGroupRelation_high[1]= 0;     //!!! this is not contained in client dbc but server must have it
+		EffectSpellGroupRelation_high[2]= 0;     //!!! this is not contained in client dbc but server must have it
 		ThreatForSpell= 0;
 		ThreatForSpellCoef= 0;
-		ProcOnNameHash[ MAX_SPELL_EFFECTS ]= 0;
+		ProcOnNameHash[0]= 0;
+		ProcOnNameHash[1]= 0;
+		ProcOnNameHash[2]= 0;
 		spell_coef_flags= 0;                //!!! CUSTOM, store flags for spell coefficient calculations
 
 		base_range_or_radius_sqr= 0;        //!!! CUSTOM, needed for aoe spells most of the time
@@ -1049,6 +1053,8 @@ struct SpellEntry
 		is_melee_spell= false;                  //!!! CUSTOM,
 		is_ranged_spell= false;                 //!!! CUSTOM,
 		noproc= false;
+		speed = 0;
+		
 	}
 };
 

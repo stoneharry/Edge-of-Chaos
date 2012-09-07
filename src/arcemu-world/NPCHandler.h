@@ -100,7 +100,14 @@ struct GossipOptions
 
 struct GossipNpc
 {
-	GossipNpc() { pOptions = NULL;  }
+	GossipNpc() 
+	{ 
+		pOptions = NULL;
+		ID = 0;
+		EntryId = 0;
+		TextID = 0;
+		OptionCount = 0;
+	}
 	uint32 ID;
 	uint32 EntryId;
 	uint32 TextID;

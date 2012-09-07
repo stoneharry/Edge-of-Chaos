@@ -133,7 +133,7 @@ void WorldSession::HandleChannelOwner(WorldPacket & recvPacket)
 	CHECK_INWORLD_RETURN
 
 	CHECK_PACKET_SIZE(recvPacket, 1);
-	string channelname, pass;
+	string channelname;
 	Channel* chn;
 
 	recvPacket >> channelname;

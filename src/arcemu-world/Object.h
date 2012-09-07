@@ -495,7 +495,7 @@ class SERVER_DECL Object : public EventableObject
 
 		bool HasInRangeObjects()
 		{
-			return (m_objectsInRange.size() > 0);
+			return (!m_objectsInRange.empty());
 		}
 
 		virtual void OnRemoveInRangeObject(Object* pObj);

@@ -244,7 +244,7 @@ class SERVER_DECL MapMgr : public CellHandler <MapCell>, public EventableObject,
 		void PushToProcessed(Player* plr);
 
 		bool HasPlayers() { return (m_PlayerStorage.size() > 0); }
-		bool IsCombatInProgress() { return (_combatProgress.size() > 0); }
+		bool IsCombatInProgress() { return (!_combatProgress.empty()); }
 		void TeleportPlayers();
 
 		uint32 GetInstanceID() { return m_instanceID; }

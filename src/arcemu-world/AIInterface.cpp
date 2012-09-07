@@ -111,7 +111,20 @@ AIInterface::AIInterface()
 	m_waypointsLoadedFromDB(false),
 	m_waypoints(NULL),
 	m_is_in_instance(false),
-	skip_reset_hp(false)
+	skip_reset_hp(false),
+	m_falsepath(false),
+	m_falsepathchecker(0),
+	m_falsepathtimer(0),
+	FollowDistance_backup(false),
+	m_AIType(0),
+	m_walkSpeed(0),
+	m_splinetrajectoryVertical(0),
+	m_MovementType(0),
+	m_walkMode(0),
+	m_splinetrajectoryTime(0),
+	m_currentSplineTotalMoveTime(0),
+	m_guardTimer(0),
+	evaderesettimeout(0)
 {
 	m_aiTargets.clear();
 	m_assistTargets.clear();
@@ -506,7 +519,7 @@ void AIInterface::_UpdateTargets()
 		if( disable_combat )
 			return;
 
-		if(m_aiTargets.size() == 0
+		if(m_aiTargets.empty()
 		        && m_AIState != STATE_IDLE && m_AIState != STATE_FOLLOWING
 		        && m_AIState != STATE_EVADE && m_AIState != STATE_FEAR
 		        && m_AIState != STATE_WANDER && m_AIState != STATE_SCRIPTIDLE)
@@ -851,14 +864,7 @@ void AIInterface::_UpdateCombat(uint32 p_time)
 								m_Unit->setAttackTimer(0, false);
 								SpellEntry* info = dbcSpell.LookupEntryForced(SPELL_RANGED_GENERAL);
 								if(info)
-								{
-									Spell* sp = sSpellFactoryMgr.NewSpell(m_Unit, info, false, NULL);
-									SpellCastTargets targets;
-									targets.m_unitTarget = getNextTarget()->GetGUID();
-									sp->prepare(&targets);
-									//Lets make spell handle this
-									//m_Unit->Strike( GetNextTarget(), ( agent == AGENT_MELEE ? MELEE : RANGED ), NULL, 0, 0, 0 );
-								}
+									m_Unit->CastSpell(getNextTarget(), info, false);
 							}
 						}
 					}
@@ -1845,7 +1851,7 @@ void AIInterface::SendMoveToPacket()
 	data << m_Unit->GetNewGUID();
 	data << uint8(0); //vehicle seat index
 
-	if(m_currentMoveSpline.size() == 0)
+	if(m_currentMoveSpline.empty())
 	{
 		//We're not moving, if here we've recently stopped, tell clients so
 		data << float(m_Unit->GetPositionX());
@@ -2319,8 +2325,6 @@ void AIInterface::_UpdateMovement(uint32 p_time)
 	//move after finishing our current spell
 	if(m_Unit->GetCurrentSpell() != NULL)
 		return;
-
-	uint32 timediff = 0;
 
 	if(m_moveTimer > 0)
 	{
@@ -3626,7 +3630,7 @@ Creature* AIInterface::getFormationLinkTarget()
 void AIInterface::LoadWaypointMapFromDB(uint32 spawnid)
 {
 	m_waypoints = objmgr.GetWayPointMap(spawnid);
-	if(m_waypoints != NULL && m_waypoints->size() != 0)
+	if(m_waypoints != NULL && !m_waypoints->empty())
 		m_waypointsLoadedFromDB = true;
 }
 
@@ -3693,7 +3697,7 @@ void AIInterface::_UpdateTotem(uint32 p_time)
 
 void AIInterface::UpdateMovementSpline()
 {
-	if(m_currentMoveSpline.size() == 0 || m_Unit->GetMapMgr()->mLoopCounter == m_currentSplineUpdateCounter)
+	if(m_currentMoveSpline.empty() || m_Unit->GetMapMgr()->mLoopCounter == m_currentSplineUpdateCounter)
 		return;
 
 	if(m_currentMoveSplineIndex >= m_currentMoveSpline.size())
@@ -3785,7 +3789,7 @@ void AIInterface::AddSpline(float x, float y, float z)
 	SplinePoint p;
 	p.pos = G3D::Vector3(x, y, z);
 
-	if(m_currentMoveSpline.size() == 0)
+	if(m_currentMoveSpline.empty())
 	{
 		//this is first point just insert it, it's always our position for future points
 		p.setoff = getMSTime();
@@ -4592,8 +4596,6 @@ void AIInterface::MoveKnockback(float x, float y, float z, float horizontal, flo
 
 void AIInterface::OnMoveCompleted()
 {
-	uint32 splineflags = m_splineFlags;
-
 	//remove flags that are temporary
 	RemoveSplineFlag(SPLINEFLAG_DONE | SPLINEFLAG_TRAJECTORY | SPLINEFLAG_KNOCKBACK);
 

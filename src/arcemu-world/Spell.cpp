@@ -6102,8 +6102,8 @@ void Spell::CleanupEffectExecuteData()
 
 void Spell::WriteAmmoToPacket(WorldPacket* data)
 {
-    uint32 ammoInventoryType = 0;
-    uint32 ammoDisplayID = 0;
+    uint32 ammoInventoryType = 5996;
+    uint32 ammoDisplayID = INVTYPE_AMMO;
 
     if (p_caster)
     {
@@ -6139,11 +6139,9 @@ void Spell::WriteAmmoToPacket(WorldPacket* data)
             }
         }
     }
-    else
+    /*else
     {
-		ammoDisplayID = 5996;//This needs fixed.
-		ammoInventoryType = INVTYPE_AMMO;
-        /*for (uint8 i = 0; i < 3; ++i)
+        for (uint8 i = 0; i < 3; ++i)
         {
             if (uint32 item_id = m_caster->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + i))
             {
@@ -6173,8 +6171,8 @@ void Spell::WriteAmmoToPacket(WorldPacket* data)
                     }
                 }
             }
-        }*/
-    }
+        }
+    }*/
 
     *data << uint32(ammoDisplayID);
     *data << uint32(ammoInventoryType);

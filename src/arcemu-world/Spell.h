@@ -557,13 +557,7 @@ enum SpellCustomFlags
 {
     CUSTOM_FLAG_SPELL_REQUIRES_COMBAT		= 0x1
 };
-/*
-enum SpellCastFlags
-{
-    CAST_FLAG_UNKNOWN1           = 0x2,
-    CAST_FLAG_UNKNOWN2           = 0x10, // no idea yet, i saw it in blizzard spell
-    CAST_FLAG_AMMO               = 0x20 // load ammo display id (uint32) and ammo inventory type (uint32)
-};*/
+
 
 /************************************************************************/
 /* General Spell Go Flags, for documentation reasons                    */
@@ -1192,6 +1186,7 @@ class SpellCastTargets
 			m_destTransportGuid = target.m_destTransportGuid;
 			m_elevation = target.m_elevation;
 			m_speed = target.m_speed;
+			_transportOffset = target._transportOffset;
 			return *this;
 		}
 

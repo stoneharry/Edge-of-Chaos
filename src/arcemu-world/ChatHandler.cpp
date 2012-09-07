@@ -112,7 +112,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 		recv_data.rfinish();
 		return;
 	}
-	std::string msg, to = "", channel = "", tmp;
+	std::string msg, to = "", channel = "";
 	msg.reserve(256);
 
 	// Process packet

@@ -967,7 +967,7 @@ class SERVER_DECL CombatStatusHandler
 		uint64 m_primaryAttackTarget;
 
 	public:
-		CombatStatusHandler() : m_lastStatus(false), m_primaryAttackTarget(0) {}
+		CombatStatusHandler() : m_lastStatus(false), m_primaryAttackTarget(0) { m_Unit = NULL;}
 		AttackerMap m_attackers;
 		void AddAttackTarget(const uint64 & guid);						// this means we clicked attack, not actually striked yet, so they shouldn't be in combat.
 		void ClearPrimaryAttackTarget();								// means we deselected the unit, stopped attacking it.
@@ -1035,40 +1035,28 @@ struct MovementInfo
 		time= 0;
 		pitch= 0;// -1.55=looking down, 0=looking forward, +1.55=looking up
 		redirectSin= 0;//on slip 8 is zero, on jump some other number
-		redirectCos, redirect2DSpeed= 0;//9,10 changes if you are not on foot
+		redirectCos = 0;
+		redirect2DSpeed= 0;//9,10 changes if you are not on foot
 		fallTime= 0;
 		splineElevation= 0;
 		flags2= 0;
 
-		x, y, z, orientation= 0;
+		x = 0;
+		y = 0; 
+		z = 0; 
+		orientation= 0;
 		flags= 0;
 		redirectVelocity= 0;
-		transGuid= 0;
-		transX, transY, transZ, transO= 0;
+		transGuid(0);
+		transX = 0;
+		transY = 0; 
+		transZ = 0;
+		transO= 0;
 		transTime= 0;
 		transTime2= 0;
 		transSeat= 0;
 	}
-	void Init()
-	{
-		guid= 0;
-		time= 0;
-		pitch= 0;// -1.55=looking down, 0=looking forward, +1.55=looking up
-		redirectSin= 0;//on slip 8 is zero, on jump some other number
-		redirectCos, redirect2DSpeed= 0;//9,10 changes if you are not on foot
-		fallTime= 0;
-		splineElevation= 0;
-		flags2= 0;
 
-		x, y, z, orientation= 0;
-		flags= 0;
-		redirectVelocity= 0;
-		transGuid= 0;
-		transX, transY, transZ, transO= 0;
-		transTime= 0;
-		transTime2= 0;
-		transSeat= 0;
-	}
 	bool HasMovementFlag(uint32 flag) 
 	{
 		if(flags & flag)

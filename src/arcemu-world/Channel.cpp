@@ -192,7 +192,7 @@ void Channel::Part(Player* plr, bool send_packet)
 				SendToAll(&data);*/
 	}
 
-	if(m_members.size() == 0)
+	if(m_members.empty())
 	{
 		m_lock.Release();
 		channelmgr.RemoveChannel(this);
@@ -932,5 +932,5 @@ void ChannelMgr::RemoveChannel(Channel* chn)
 
 ChannelMgr::ChannelMgr()
 {
-
+	seperatechannels = false;
 }

@@ -47,13 +47,19 @@ class TaxiPath
 	public:
 		TaxiPath()
 		{
+			m_length1 = 0;
+			m_length2 = 0;
+			m_map1 = 0;
+			m_map2 = 0;
+			to = 0;
+			from = 0;
 			price = 0;
 			id = 0;
 		}
 
 		~TaxiPath()
 		{
-			while(m_pathNodes.size())
+			while(!m_pathNodes.empty())
 			{
 				TaxiPathNode* pn = m_pathNodes.begin()->second;
 				m_pathNodes.erase(m_pathNodes.begin());

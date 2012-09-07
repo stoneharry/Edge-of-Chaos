@@ -515,7 +515,19 @@ struct WayPoint
 {
 	WayPoint()
 	{
+		id = 0;
+		x = 0.0f;
+		y = 0.0f;
+		z = 0.0f;
 		o = 0.0f;
+		waittime = 0;
+		flags = 0;
+		forwardemoteoneshot = false;
+		forwardemoteid = 0;
+		backwardemoteoneshot = false;
+		backwardemoteid = 0;
+		forwardskinid = 0;
+		backwardskinid = 0;
 	}
 	uint32 id;
 	float x;

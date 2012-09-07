@@ -1417,7 +1417,7 @@ bool ChatHandler::HandleCastAOECommand(const char *args, WorldSession *m_session
 		return false;
 	if(x == y)
 	{
-		if(Unit * u = getSelectedUnit(m_session, false))
+		if(u = getSelectedUnit(m_session, false))
 		{
 			x = u->GetPositionX();
 			y = u->GetPositionY();
@@ -3766,7 +3766,7 @@ bool ChatHandler::HandleRenameGuildCommand(const char* args, WorldSession* m_ses
 //People seem to get stuck in guilds from time to time. This should be helpful. -DGM
 bool ChatHandler::HandleGuildRemovePlayerCommand(const char* args, WorldSession* m_session)
 {
-	PlayerInfo * plr;
+	PlayerInfo * plr = NULL;
 	if(strlen(args) >= 2) // char name can be 2 letters
 	{
 		plr = objmgr.GetPlayerInfoByName(args);
