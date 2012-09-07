@@ -116,10 +116,8 @@ AIInterface::AIInterface()
 	m_falsepathchecker(0),
 	m_falsepathtimer(0),
 	FollowDistance_backup(false),
-	m_AIType(0),
 	m_walkSpeed(0),
 	m_splinetrajectoryVertical(0),
-	m_MovementType(0),
 	m_walkMode(0),
 	m_splinetrajectoryTime(0),
 	m_currentSplineTotalMoveTime(0),
@@ -2325,6 +2323,8 @@ void AIInterface::_UpdateMovement(uint32 p_time)
 	//move after finishing our current spell
 	if(m_Unit->GetCurrentSpell() != NULL)
 		return;
+
+	uint32 timediff = 0;
 
 	if(m_moveTimer > 0)
 	{

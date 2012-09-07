@@ -264,7 +264,7 @@ Unit::Unit()
 	z_axisposition = 0.0f;
 	m_safeFall     = 0;
 	m_auraRaidUpdateMask = 0;
-	movement_info.Init();
+	movement_info = MovementInfo();
 }
 
 Unit::~Unit()

@@ -1047,7 +1047,7 @@ struct MovementInfo
 		orientation= 0;
 		flags= 0;
 		redirectVelocity= 0;
-		transGuid(0);
+		transGuid = WoWGuid();
 		transX = 0;
 		transY = 0; 
 		transZ = 0;
