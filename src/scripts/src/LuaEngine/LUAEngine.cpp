@@ -857,6 +857,8 @@ static int SuspendLuaThread(lua_State* L)
 static int RegisterTimedEvent(lua_State* L)  //in this case, L == lu
 {
 	const char* funcName = strdup(luaL_checkstring(L, 1));
+	Log.Error("LuaEngine", "Registered timed event, function name %s.", funcName);
+	printf("Registered timed event function name %s.\n", funcName);
 	int delay = luaL_checkint(L, 2);
 	int repeats = luaL_checkint(L, 3);
 	if(!delay || repeats < 0 || !funcName)

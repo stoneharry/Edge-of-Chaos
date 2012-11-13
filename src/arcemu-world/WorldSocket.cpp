@@ -426,7 +426,7 @@ void WorldSocket::InformationRetreiveCallback(WorldPacket & recvData, uint32 req
 	pSession->TrialAccount = sWorld.IsTrialAccount(AccountID);
 	// Check for queue.
 	uint32 playerLimit = sWorld.GetPlayerLimit();
-	if((sWorld.GetSessionCount() < playerLimit) || pSession->HasGMPermissions())
+	if((sWorld.GetSessionCount() < playerLimit) || pSession->HasGMPermissions() || sWorld.HasBetaAccess(AccountID))
 	{
 		Authenticate();
 	}

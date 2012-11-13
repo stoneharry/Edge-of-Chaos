@@ -32,6 +32,7 @@ SET(sources
 	Container.cpp 
 	Corpse.cpp 
 	Creature.cpp 
+	DemonHunter.cpp 
 	Entities/Summons/Summon.cpp
 	Entities/Summons/CompanionSummon.cpp
 	Entities/Summons/GuardianSummon.cpp
@@ -186,6 +187,7 @@ SET( headers
 	Chat.h
 	CollideInterface.h
 	CommonScheduleThread.h
+	DemonHunter.h 
 	Entities/Summons/CompanionSummon.h
 	ConsoleCommands.h
 	Container.h

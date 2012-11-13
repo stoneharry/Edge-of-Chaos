@@ -723,9 +723,6 @@ bool Object::SetPosition(float newX, float newY, float newZ, float newOrientatio
 	if(m_lastMapUpdatePosition.Distance2DSq(newX, newY) > 4.0f)		/* 2.0f */
 		updateMap = true;
 
-	if(IsPlayer() && IsInWorld() && TO_PLAYER(this)->icanhascameraplz)
-		updateMap = true;
-
 	m_position.ChangeCoords(newX, newY, newZ, newOrientation);
 
 	if(!allowPorting && newZ < -500)

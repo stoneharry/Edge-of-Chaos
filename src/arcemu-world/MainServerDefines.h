@@ -22,10 +22,12 @@
 
 class Database;
 
+SERVER_DECL extern Database* Database_Logon;
 SERVER_DECL extern Database* Database_Character;
 SERVER_DECL extern Database* Database_World;
 
 #define WorldDatabase (*Database_World)
+#define LogonDatabase (*Database_Logon)
 #define CharacterDatabase (*Database_Character)
 
 #endif

@@ -4038,12 +4038,24 @@ const std::vector<int32>* ObjectMgr::GetSpellLinked(int32 spell_id) const
 SpellEntry* ObjectMgr::GetRankOneSpell(uint32 baseId)
 {
 	QueryResult * query = WorldDatabase.Query("Select first_spell_id from spell_ranks where spell_id = %u", baseId);
+	SpellEntry * rankone = NULL;
 	if(query)
 	{
 		uint32 firstspellid = query->Fetch()[0].GetUInt32();
-		delete query;
-		return dbcSpell.LookupEntryForced(firstspellid);
+		rankone = dbcSpell.LookupEntryForced(firstspellid);
 	}
 	else
-		return dbcSpell.LookupEntryForced(baseId);
+		rankone = dbcSpell.LookupEntryForced(baseId);
+	delete query;
+	return rankone;
+}
+
+bool ObjectMgr::IsAccountWideSpell(uint32 spellId)
+{
+	bool result = false;
+	QueryResult* query = WorldDatabase.Query("select spellid from spell_accountwide where spellid = %u", spellId);
+	if(query)
+		result = true;
+	delete query;
+	return result;
 }

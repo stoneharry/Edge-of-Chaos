@@ -54,6 +54,8 @@ void WorldSession::HandleTabardVendorActivateOpcode(WorldPacket & recv_data)
 	recv_data >> guid;
 	Creature* pCreature = _player->GetMapMgr()->GetCreature(GET_LOWGUID_PART(guid));
 	if(!pCreature) return;
+	if(_player->GetDistanceSq(pCreature) > 1600 || !pCreature->HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_TABARDCHANGER)) //Temp exploit fix
+		return;
 
 	SendTabardHelp(pCreature);
 }
@@ -79,6 +81,8 @@ void WorldSession::HandleBankerActivateOpcode(WorldPacket & recv_data)
 
 	Creature* pCreature = _player->GetMapMgr()->GetCreature(GET_LOWGUID_PART(guid));
 	if(!pCreature) return;
+	if(_player->GetDistanceSq(pCreature) > 1600 || !pCreature->HasFlag(UNIT_NPC_FLAGS, UNIT_NPC_FLAG_BANKER)) //Temp exploit fix
+		return;
 
 	SendBankerList(pCreature);
 }
@@ -107,6 +111,8 @@ void WorldSession::HandleTrainerListOpcode(WorldPacket & recv_data)
 	recv_data >> guid;
 	Creature* train = GetPlayer()->GetMapMgr()->GetCreature(GET_LOWGUID_PART(guid));
 	if(!train) return;
+	if(_player->GetDistanceSq(train) > 1600) //Temp exploit fix
+		return;
 
 	_player->Reputation_OnTalk(train->m_factionDBC);
 	SendTrainerList(train);
@@ -309,6 +315,8 @@ void WorldSession::HandleCharterShowListOpcode(WorldPacket & recv_data)
 
 	Creature* pCreature = _player->GetMapMgr()->GetCreature(GET_LOWGUID_PART(guid));
 	if(!pCreature) return;
+	if(_player->GetDistanceSq(pCreature) > 1600) //Temp exploit fix
+		return;
 
 	SendCharterRequest(pCreature);
 }
@@ -383,6 +391,8 @@ void WorldSession::HandleAuctionHelloOpcode(WorldPacket & recv_data)
 	Creature* auctioneer = _player->GetMapMgr()->GetCreature(GET_LOWGUID_PART(guid));
 	if(!auctioneer)
 		return;
+	if(_player->GetDistanceSq(auctioneer) > 1600) //Temp exploit fix
+		return;
 
 	SendAuctionList(auctioneer);
 }
@@ -414,6 +424,8 @@ void WorldSession::HandleGossipHelloOpcode(WorldPacket & recv_data)
 
 	recv_data >> guid;
 	Creature* qst_giver = _player->GetMapMgr()->GetCreature(GET_LOWGUID_PART(guid));
+	if(_player->GetDistanceSq(qst_giver) > 1600 ) //Temp exploit fix
+		return;
 
 	if(qst_giver != NULL)
 	{
@@ -599,6 +611,8 @@ void WorldSession::HandleBinderActivateOpcode(WorldPacket & recv_data)
 
 void WorldSession::SendInnkeeperBind(Creature* pCreature)
 {
+	if(_player->GetDistanceSq(pCreature) > 1600 ) //Temp exploit fix
+		return;
 	WorldPacket data(45);
 
 	if(!_player->bHasBindDialogOpen)
@@ -621,6 +635,8 @@ void WorldSession::SendInnkeeperBind(Creature* pCreature)
 
 void WorldSession::SendSpiritHealerRequest(Creature* pCreature)
 {
+	if(_player->GetDistanceSq(pCreature) > 1600 ) //Temp exploit fix
+		return;
 	WorldPacket data(SMSG_SPIRIT_HEALER_CONFIRM, 8);
 	data << pCreature->GetGUID();
 	SendPacket(&data);

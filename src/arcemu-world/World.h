@@ -407,6 +407,7 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 
 		void SendZoneUnderAttackMsg(uint32 areaid, uint8 team);
 		bool IsTrialAccount(uint32 accountid);
+		bool HasBetaAccess(uint32 accountid);
 		ARCEMU_INLINE void SetStartTime(uint32 val) { m_StartTime = val; }
 		ARCEMU_INLINE uint32 GetUptime(void) { return (uint32)UNIXTIME - m_StartTime; }
 		ARCEMU_INLINE uint32 GetStartTime(void) { return m_StartTime; }

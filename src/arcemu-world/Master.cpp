@@ -38,6 +38,7 @@ volatile bool Master::m_stopEvent = false;
 
 // Database defines.
 SERVER_DECL Database* Database_Character;
+SERVER_DECL Database* Database_Logon;
 SERVER_DECL Database* Database_World;
 
 // mainserv defines
@@ -470,6 +471,7 @@ bool Master::Run(int argc, char** argv)
 
 		}
 	}
+	bServerShutdown = true;
 	_UnhookSignals();
 
 	wr->SetThreadState(THREADSTATE_TERMINATE);
@@ -507,6 +509,7 @@ bool Master::Run(int argc, char** argv)
 
 	CloseConsoleListener();
 	sWorld.SaveAllPlayers();
+	sWorld.LogoutPlayers();
 
 	Log.Notice("Network", "Shutting down network subsystem.");
 #ifdef WIN32
@@ -514,12 +517,10 @@ bool Master::Run(int argc, char** argv)
 #endif
 	sSocketMgr.CloseAll();
 
-	bServerShutdown = true;
 	ThreadPool.Shutdown();
 
 	delete ls;
 
-	sWorld.LogoutPlayers();
 
 	delete LogonCommHandler::getSingletonPtr();
 
@@ -579,6 +580,8 @@ bool Master::_StartDB()
 {
 	Database_World = NULL;
 	Database_Character = NULL;
+	Database_Logon = NULL;
+	
 	string hostname, username, password, database;
 	int port = 0;
 
@@ -625,7 +628,23 @@ bool Master::_StartDB()
 		Log.Error("sql", "Main database initialization failed. Exiting.");
 		return false;
 	}
-
+	result = Config.MainConfig.GetString("LogonDatabase", "Username", &username);
+	Config.MainConfig.GetString("LogonDatabase", "Password", &password);
+	result = !result ? result : Config.MainConfig.GetString("LogonDatabase", "Hostname", &hostname);
+	result = !result ? result : Config.MainConfig.GetString("LogonDatabase", "Name", &database);
+	result = !result ? result : Config.MainConfig.GetInt("LogonDatabase", "Port", &port);
+	Database_Logon = Database::CreateDatabaseInterface();
+	if(result == false)
+	{
+		Log.Error("sql", "One or more parameters were missing from Database directive.");
+		return false;
+	}
+	if(!LogonDatabase.Initialize(hostname.c_str(), (unsigned int)port, username.c_str(),
+	                                 password.c_str(), database.c_str(), Config.MainConfig.GetIntDefault("LogonDatabase", "ConnectionCount", 5), 16384))
+	{
+		Log.Error("sql", "Main database initialization failed. Exiting.");
+		return false;
+	}
 	return true;
 }
 
@@ -635,6 +654,8 @@ void Master::_StopDB()
 		delete Database_World;
 	if(Database_Character != NULL)
 		delete Database_Character;
+	if(Database_Logon != NULL)
+		delete Database_Logon;
 	Database::CleanupLibs();
 }
 
@@ -683,6 +704,7 @@ void OnCrash(bool Terminate)
 			Log.Notice("sql", "Waiting for all database queries to finish...");
 			WorldDatabase.EndThreads();
 			CharacterDatabase.EndThreads();
+			LogonDatabase.EndThreads();
 			Log.Notice("sql", "All pending database operations cleared.");
 			sWorld.SaveAllPlayers();
 			Log.Notice("sql", "Data saved.");

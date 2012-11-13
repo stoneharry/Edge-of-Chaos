@@ -829,7 +829,7 @@ void MapMgr::ChangeObjectLocation(Object* obj)
 	MapCell* cell;
 
 	//If the object announcing it's position is a special one, then it should do so in a much wider area - like the distance between the two transport towers in Orgrimmar, or more. - By: VLack
-	if(obj->IsGameObject() && (TO< GameObject* >(obj)->GetOverrides() & GAMEOBJECT_ONMOVEWIDE))
+	if(obj->IsGameObject() && (TO< GameObject* >(obj)->GetOverrides() & GAMEOBJECT_ONMOVEWIDE) || plObj && plObj->icanhascameraplz)
 	{
 		endX = cellX + 5 <= _sizeX ? cellX + 6 : (_sizeX - 1);
 		endY = cellY + 5 <= _sizeY ? cellY + 6 : (_sizeY - 1);
@@ -1062,6 +1062,7 @@ void MapMgr::_UpdateObjects()
 			plyr->ProcessPendingUpdates();
 	}
 }
+
 void MapMgr::LoadAllCells()
 {
 	// eek

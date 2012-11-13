@@ -2152,6 +2152,8 @@ void Player::addSpell(uint32 spell_id)
 		return;
 
 	mSpells.insert(spell_id);
+	if(objmgr.IsAccountWideSpell(spell_id))
+		CharacterDatabase.Execute("insert character_spell_accountwide VALUES (%u, %u)", GetSession()->GetAccountId(), spell_id);
 	if(IsInWorld())
 	{
 		WorldPacket data(SMSG_LEARNED_SPELL, 6);
@@ -13174,9 +13176,23 @@ bool Player::LoadSpells(QueryResult* result)
 		if(sp != NULL)
 			mSpells.insert(spellid);
 
-	}
-	while(result->NextRow());
+	}while(result->NextRow());
+	QueryResult * accountwide = CharacterDatabase.Query("select spellid from character_spell_accountwide where accountid = %u", GetSession()->GetAccountId());
+	if(accountwide)
+	{
+		do
+		{
+			fields = accountwide->Fetch();
 
+			uint32 spellid = fields[ 0 ].GetUInt32();
+
+			SpellEntry* sp = dbcSpell.LookupEntryForced(spellid);
+			if(sp != NULL)
+				mSpells.insert(spellid);
+
+		}while(accountwide->NextRow());
+	}
+	delete accountwide;
 	return true;
 }
 
@@ -14195,6 +14211,7 @@ void Player::SetClientControl(Unit* target, uint8 allowMove)
 void Player::SendDatCameraShit(uint32 id)
 {
 	icanhascameraplz = true;
+	GetMapMgr()->ChangeObjectLocation(this);
 	SetPosition(GetPositionX()+0.01,GetPositionY()+0.01, GetPositionZ()+0.01, GetOrientation());
 	GetSession()->OutPacket(SMSG_TRIGGER_CINEMATIC, 4, &id);
 }

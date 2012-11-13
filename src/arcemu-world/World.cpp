@@ -1371,7 +1371,7 @@ void World::Rehash(bool load)
 
 	m_reqGmForCommands = !Config.MainConfig.GetBoolDefault("Server", "AllowPlayerCommands", false);
 	m_lfgForNonLfg = Config.MainConfig.GetBoolDefault("Server", "EnableLFGJoin", false);
-	CacheVersion = uint32(Config.OptionalConfig.GetIntDefault("Server", "CacheVersion", 12341));
+	CacheVersion = uint32(Config.MainConfig.GetIntDefault("Server", "CacheVersion", 12341));
 
 	realmtype = Config.MainConfig.GetBoolDefault("Server", "RealmType", false);
 	TimeOut = uint32(1000 * Config.MainConfig.GetIntDefault("Server", "ConnectionTimeout", 180));
@@ -2289,11 +2289,33 @@ void World::SendZoneUnderAttackMsg(uint32 areaid, uint8 team)
 
 bool World::IsTrialAccount(uint32 accountid)
 {
-	QueryResult * r = WorldDatabase.Query("select trial from `%s`.`accounts` where acct = %u", Config.MainConfig.GetStringDefault("Server", "LogonDatabaseName", "zlogon").c_str(), accountid);
+	QueryResult * r = LogonDatabase.Query("select trial from `accounts` where acct = %u", accountid);
 	if(!r)
 		return false;
 
 	return r->Fetch()[0].GetBool();
+}
+
+bool World::HasBetaAccess(uint32 accountid)
+{
+	const char* betakey = "";
+	bool beta_access = false;
+	QueryResult * r = LogonDatabase.Query("select `BetaKey` from `accounts` where `acct` = %u", accountid);
+	if(!r)
+	{
+		delete r;
+		return false;
+	}
+
+	betakey = r->Fetch()[0].GetString();
+	if(betakey && betakey != "")
+	{
+		QueryResult * betavalid = LogonDatabase.Query("Select `used` from `account_beta_keys` where `key` = '%s'", betakey);
+		if(betavalid)
+			beta_access = betavalid->Fetch()[0].GetBool();
+		delete betavalid;
+	}
+	return beta_access;
 }
 
 const char*  World::GetEmulatorRevision()

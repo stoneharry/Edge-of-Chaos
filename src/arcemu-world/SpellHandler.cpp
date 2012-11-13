@@ -360,6 +360,12 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket & recvPacket)
 		return;
 	}
 
+	if(!_player->Cooldown_CanCast(spellInfo))
+	{
+		_player->SendCastResult(spellInfo->Id, SPELL_FAILED_NOT_READY, cn, 0);
+		return;
+	}
+
 	if(GetPlayer()->GetOnMeleeSpell() != spellId)
 	{
 		//autoshot 75
