@@ -9,12 +9,16 @@ IF( CMAKE_GENERATOR MATCHES Visual*)
 	SET( GLOBAL_DEFINES ${GLOBAL_DEFINES} "/MP")
 ENDIF()
 
+IF(CMAKE_GENERATOR MATCHES Visual*)
+	SET(GLOBAL_DEFINES ${GLOBAL_DEFINES} "/bigobj")
+ENDIF()
+
 #check platform version.
 IF( CMAKE_SYSTEM_PROCESSOR MATCHES "[xX]64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "[xX]86_64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "[aA][mM][dD]64" OR CMAKE_GENERATOR MATCHES Win64*)
 	#define for 64bit
 	SET( GLOBAL_DEFINES ${GLOBAL_DEFINES} -"DX64")
 	SET( IS_64BIT TRUE)
-	IF( CMAKE_GENERATOR MATCHES Visual* OR CMAKE_GENERATOR MATCHES NMake*)
+	IF(CMAKE_GENERATOR MATCHES NMake*)
 		SET( GLOBAL_DEFINES ${GLOBAL_DEFINES} "-bigobj")
 	ENDIF()
 ENDIF()
@@ -58,27 +62,32 @@ IF( WIN32)
 ENDIF(WIN32)
 
 #Our configurable variables.
-SET(ARCEMU_CONFIGSFILE_PATH etc CACHE PATH "Path where the arcemu config files are.")
+IF( WIN32 )
+	SET(ARCEMU_CONFIGSFILE_PATH configs CACHE PATH "Path where the arcemu config files are.")
+ELSE( WIN32 )
+	SET(ARCEMU_CONFIGSFILE_PATH etc CACHE PATH "Path where the arcemu config files are.")
+ENDIF( WIN32 )
+
 SET(ARCEMU_SCRIPTLIB_PATH "modules" CACHE PATH "The directory which contains the 'lib' directory that has the script libraries." )
 SET(BUILD_ARCEMUSCRIPTS TRUE CACHE BOOL "Set to false to NOT build script libraries." )
 SET(BUILD_TOOLS TRUE CACHE BOOL "Build Arcemu tools" )
-SET(VISUALSTUDIO_COMPILERHEAPLIMIT 200 CACHE STRING "Visual Studio compiler heap limit. Ignore on darwin and unix platforms." )
+SET(VISUALSTUDIO_COMPILERHEAPLIMIT 400 CACHE STRING "Visual Studio compiler heap limit. Ignore on darwin and unix platforms.")
 
 include(CompilerVersion)
 if( CMAKE_GENERATOR MATCHES Unix* )
 	add_definitions(-Wno-deprecated)
 	#Extract Revision
-	execute_process(WORKING_DIRECTORY ${ROOT_PATH} COMMAND sh extract_svn_revision.sh )
+	execute_process(WORKING_DIRECTORY ${ROOT_PATH} COMMAND sh git_version.sh )
 	
 	#Check support for unordered_map/set
 	GetCompilerVersion( gcc_version)
-	IF( DEFINED gcc_version AND ( ${gcc_version} VERSION_EQUAL "4" OR ${gcc_version} VERSION_GREATER "4" ) AND NOT APPLE )
+	IF( DEFINED gcc_version AND ( ${gcc_version} VERSION_EQUAL "4.3" OR ${gcc_version} VERSION_GREATER "4.3" ) AND NOT APPLE )
 		add_definitions(-DHAS_CXX0X -std=gnu++0x)
 	ENDIF()
 	
 ELSEIF( CMAKE_GENERATOR MATCHES Visual* )
 	#Extract revision
-	execute_process(WORKING_DIRECTORY ${ROOT_PATH}/src/arcemu-shared COMMAND RevisionExtractor)
+	execute_process(WORKING_DIRECTORY ${ROOT_PATH} COMMAND git_version.bat )
 	add_definitions(-D_CRT_SECURE_NO_WARNINGS /EHa )
 	
 	#Check support for unordered_map/set
@@ -162,6 +171,9 @@ if(WIN32)
 	SET(EXTRA_LIBS ${EXTRA_LIBS} ws2_32.lib dbghelp.lib )
 elseif(APPLE)
 	SET( EXTRA_LIBS ${EXTRA_LIBS} "-framework Carbon" )
+elseif(IS_LINUX)
+	SET( EXTRA_LIBS ${EXTRA_LIBS} dl )
+else()
 endif()
 
 IF( APPLE )
@@ -192,6 +204,8 @@ add_subdirectory(shared)
 add_subdirectory(logon)
 add_subdirectory(world)
 add_subdirectory(spellhandlers)
+add_subdirectory(battlegrounds)
+
 IF(NOT WIN32)
 	add_subdirectory(crashreport)
 ENDIF()
