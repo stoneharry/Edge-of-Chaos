@@ -204,7 +204,6 @@ add_subdirectory(shared)
 add_subdirectory(logon)
 add_subdirectory(world)
 add_subdirectory(spellhandlers)
-add_subdirectory(battlegrounds)
 
 IF(NOT WIN32)
 	add_subdirectory(crashreport)
