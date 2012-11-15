@@ -17,8 +17,6 @@
  *
  */
 
-#include "svn_revision.h"
-
 #include "CrashHandler.h"
 #include "Log.h"
 
@@ -202,9 +200,6 @@ void PrintCrashInformation(PEXCEPTION_POINTERS except)
 	echo("Server has crashed. Reason was:\n");
 	echo("   %s at 0x%08X\n", GetExceptionDescription(except->ExceptionRecord->ExceptionCode),
 	     (unsigned long)except->ExceptionRecord->ExceptionAddress);
-#ifdef REPACK
-	echo("%s repack by %s has crashed. Visit %s for support.", REPACK, REPACK_AUTHOR, REPACK_WEBSITE);
-#endif
 	echo("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n");
 }
 
@@ -311,8 +306,8 @@ int __cdecl HandleCrash(PEXCEPTION_POINTERS pExceptPtrs)
 	char* mname = strrchr(modname, '\\');
 	(void*)mname++;	 // Remove the last
 
-	sprintf(filename, "CrashDumps\\dump-%s-%u-%u-%u-%u-%u-%u-%u-%u.dmp",
-	        mname, BUILD_REVISION, pTime->tm_year + 1900, pTime->tm_mon + 1, pTime->tm_mday,
+	sprintf(filename, "CrashDumps\\dump-%s-%u-%u-%u-%u-%u-%u-%u.dmp",
+	        mname, pTime->tm_year + 1900, pTime->tm_mon + 1, pTime->tm_mday,
 	        pTime->tm_hour, pTime->tm_min, pTime->tm_sec, GetCurrentThreadId());
 
 

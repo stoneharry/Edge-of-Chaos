@@ -708,6 +708,8 @@ void OnCrash(bool Terminate)
 			Log.Notice("sql", "All pending database operations cleared.");
 			sWorld.SaveAllPlayers();
 			Log.Notice("sql", "Data saved.");
+			sWorld.SendWorldText("Server has crashed, server restart imminent.");
+			Arcemu::Sleep(1000);
 		}
 	}
 	catch(...)
