@@ -19,7 +19,6 @@
 
 #include "LogonStdAfx.h"
 #include <signal.h>
-#include "svn_revision.h"
 #ifndef WIN32
 #include <sys/resource.h>
 #endif
@@ -326,9 +325,6 @@ void LogonServer::Run(int argc, char ** argv)
 	}
 
 	sLog.Init(0, LOGON_LOG);
-	
-	//sLog.outBasic(BANNER, BUILD_TAG, BUILD_REVISION, CONFIG, PLATFORM_TEXT, ARCH);
-	//sLog.outError(BANNER, BUILD_TAG, BUILD_REVISION, CONFIG, PLATFORM_TEXT, ARCH);
 	
 	if(do_version)
 	{
