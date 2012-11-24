@@ -12000,7 +12000,7 @@ void Player::LearnTalent(uint32 talentid, uint32 rank, bool isPreviewed)
 	}
 	else
 	{
-		if(spentPoints < (talentInfo->Row * 5))			 // Min points spent
+		if(spentPoints < (talentInfo->Row))			 // Min points spent
 		{
 			return;
 		}

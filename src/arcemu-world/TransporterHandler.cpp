@@ -62,7 +62,7 @@ bool Transporter::CreateAsTransporter(uint32 EntryID, const char* Name, int32 Ti
 bool FillPathVector(uint32 PathID, TransportPath & Path)
 {
 	// Store dbc values into current Path array
-	Path.Resize(dbcTaxiPathNode.GetNumRows());
+	/*Path.Resize(dbcTaxiPathNode.GetNumRows());
 
 	uint32 i = 0;
 	for(uint32 j = 0; j < dbcTaxiPathNode.GetNumRows(); j++)
@@ -81,7 +81,29 @@ bool FillPathVector(uint32 PathID, TransportPath & Path)
 	}
 
 	Path.Resize(i);
-	return (i > 0 ? true : false);
+	return (i > 0 ? true : false);*/
+
+	// DB Structure: entry, pathID, map, x, y, z, action, delay
+
+	uint32 i = 0;
+
+	QueryResult* QR = WorldDatabase.Query("SELECT * FROM transport_nodes WHERE `pathID` = '%u'", PathID);
+	if(!QR) return false;
+
+	Path.Resize(QR->GetRowCount());
+
+	do
+	{
+		Path[i].mapid		= QR->Fetch()[2].GetUInt32();
+		Path[i].x		    = QR->Fetch()[3].GetUInt32();
+		Path[i].y		    = QR->Fetch()[4].GetUInt32();
+		Path[i].z		    = QR->Fetch()[5].GetUInt32();
+		Path[i].actionFlag  = QR->Fetch()[6].GetUInt32();
+		Path[i].delay	    = QR->Fetch()[7].GetUInt32();
+		++i;
+	}
+	while(QR->NextRow());
+	delete QR;
 }
 
 bool Transporter::GenerateWaypoints()
