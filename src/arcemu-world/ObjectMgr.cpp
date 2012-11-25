@@ -4059,3 +4059,98 @@ bool ObjectMgr::IsAccountWideSpell(uint32 spellId)
 	delete query;
 	return result;
 }
+
+void ObjectMgr::LoadPetLevelInfo()
+{
+    QueryResult* result = WorldDatabase.Query("SELECT creature_entry, level, hp, mana, str, agi, sta, inte, spi, armor FROM pet_levelstats");
+
+    if (!result)
+    {
+        sLog.outError(">> Loaded 0 level pet stats definitions. DB table `pet_levelstats` is empty.");
+        return;
+    }
+
+    uint32 count = 0;
+
+    do
+    {
+        Field* fields = result->Fetch();
+
+        uint32 creature_id = fields[0].GetUInt32();
+		
+        if (!CreatureNameStorage.LookupEntry(creature_id))
+        {
+            sLog.outError("Wrong creature id %u in `pet_levelstats` table, ignoring.", creature_id);
+            continue;
+        }
+
+        uint32 current_level = fields[1].GetUInt8();
+		if (current_level > sWorld.m_levelCap)
+        {
+			++count;
+			continue;
+        }
+        else if (current_level < 1)
+        {
+            sLog.outError("Wrong (<1) level %u in `pet_levelstats` table, ignoring.", current_level);
+            continue;
+        }
+
+        PetLevelInfo*& pInfoMapEntry = _petInfoStore[creature_id];
+
+        if (pInfoMapEntry == NULL)
+            pInfoMapEntry = new PetLevelInfo[sWorld.m_levelCap];
+
+        // data for level 1 stored in [0] array element, ...
+        PetLevelInfo* pLevelInfo = &pInfoMapEntry[current_level-1];
+
+        pLevelInfo->health = fields[2].GetUInt16();
+        pLevelInfo->mana   = fields[3].GetUInt16();
+        pLevelInfo->armor  = fields[9].GetUInt32();
+
+        for (int i = 0; i < MAX_STATS; i++)
+        {
+            pLevelInfo->stats[i] = fields[i+4].GetUInt16();
+        }
+
+        ++count;
+    }
+    while (result->NextRow());
+
+    // Fill gaps and check integrity
+    for (PetLevelInfoContainer::iterator itr = _petInfoStore.begin(); itr != _petInfoStore.end(); ++itr)
+    {
+        PetLevelInfo* pInfo = itr->second;
+
+        // fatal error if no level 1 data
+        if (!pInfo || pInfo[0].health == 0)
+        {
+            sLog.outError("Creature %u does not have pet stats data for Level 1!", itr->first);
+            exit(1);
+        }
+
+        // fill level gaps
+        for (uint8 level = 1; level < sWorld.m_levelCap; ++level)
+        {
+            if (pInfo[level].health == 0)
+            {
+                sLog.outError("Creature %u has no data for Level %i pet stats data, using data of Level %i.", itr->first, level+1, level);
+                pInfo[level] = pInfo[level-1];
+            }
+        }
+    }
+
+    sLog.outString(">> Loaded %u level pet stats definitions.", count);
+}
+
+PetLevelInfo const* ObjectMgr::GetPetLevelInfo(uint32 creature_id, uint8 level) const
+{
+    if (level > sWorld.m_levelCap)
+        level = sWorld.m_levelCap;
+
+    PetLevelInfoContainer::const_iterator itr = _petInfoStore.find(creature_id);
+    if (itr == _petInfoStore.end())
+        return NULL;
+
+    return &itr->second[level-1];                           // data for level 1 stored in [0] array element, ...
+}

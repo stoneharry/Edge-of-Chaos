@@ -234,28 +234,9 @@ bool Master::Run(int argc, char** argv)
 		return false;
 	}
 
-#if !defined(WIN32) && defined(__DEBUG__)
-	if(Config.MainConfig.GetIntDefault("LogLevel", "DisableCrashdumpReport", 0) == 0)
-	{
-		char cmd[1024];
-		char banner[1024];
-		snprintf(banner, 1024, BANNER, BUILD_TAG, BUILD_REVISION, CONFIG, PLATFORM_TEXT, ARCH);
-		snprintf(cmd, 1024, "./arcemu-crashreport -r %d -d \'%s\'", BUILD_REVISION, banner);
-		system(cmd);
-	}
-	unlink("arcemu.uptime");
-#endif
-
 	if(!_StartDB())
 	{
 		Database::CleanupLibs();
-		sLog.Close();
-		return false;
-	}
-
-	// Checking the DB version. If it's wrong or can't be validated we exit.
-	if(!CheckDBVersion())
-	{
 		sLog.Close();
 		return false;
 	}
@@ -567,15 +548,6 @@ bool Master::Run(int argc, char** argv)
 	return true;
 }
 
-static const char *REQUIRED_CHAR_DB_VERSION  = "2011-11-16_22-00_saved_mail";
-static const char *REQUIRED_WORLD_DB_VERSION = "2011-11-12_20-00_initial";
-
-bool Master::CheckDBVersion()
-{
-	Log.Success("Database", "Database successfully validated.");
-	return true;
-}
-
 bool Master::_StartDB()
 {
 	Database_World = NULL;
@@ -708,6 +680,8 @@ void OnCrash(bool Terminate)
 			Log.Notice("sql", "All pending database operations cleared.");
 			sWorld.SaveAllPlayers();
 			Log.Notice("sql", "Data saved.");
+			sWorld.SendWorldText("Server has crashed, server restart imminent.");
+			Arcemu::Sleep(1000);
 		}
 	}
 	catch(...)
