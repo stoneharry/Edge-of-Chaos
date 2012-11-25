@@ -251,7 +251,7 @@ static const uint32 NextLevelXp[MAX_PREDEFINED_NEXTLEVELXP] =
 
 struct PetLevelInfo
 {
-    PetLevelInfo() : health(0), mana(0) { for (uint8 i=0; i < MAX_STATS; ++i) stats[i] = 0; }
+    PetLevelInfo() : health(0), mana(0) { for (uint8 i=0; i < 5; ++i) stats[i] = 0; }
 
     uint16 stats[5];
     uint16 health;
