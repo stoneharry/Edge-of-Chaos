@@ -66,7 +66,7 @@ bool FillPathVector(uint32 PathID, TransportPath & Path)
 
 	uint32 i = 0;
 
-	QueryResult* QR = WorldDatabase.Query("SELECT * FROM transport_nodes WHERE `pathID` = '%u'", PathID);
+	QueryResult* QR = WorldDatabase.Query("SELECT * FROM transport_nodes WHERE `pathID` = '%u' ORDER BY entry ASC", PathID);
 	if(!QR) 
 		return false;
 	Path.Resize(QR->GetRowCount());
