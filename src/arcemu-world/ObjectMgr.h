@@ -249,6 +249,16 @@ static const uint32 NextLevelXp[MAX_PREDEFINED_NEXTLEVELXP] =
 	1539600,	1555700,	1571800,	1587900,	1604200,	1620700,	1637400,	1653900,	1670800,	1700000,
 };
 
+struct PetLevelInfo
+{
+    PetLevelInfo() : health(0), mana(0) { for (uint8 i=0; i < MAX_STATS; ++i) stats[i] = 0; }
+
+    uint16 stats[5];
+    uint16 health;
+    uint16 mana;
+    uint16 armor;
+};
+
 class SERVER_DECL GossipMenu
 {
 	public:
@@ -707,52 +717,8 @@ class SERVER_DECL ObjectMgr : public Singleton < ObjectMgr >, public EventableOb
 		const std::vector<int32> *GetSpellLinked(int32 spell_id) const;
 		SpellEntry* GetRankOneSpell(uint32 baseId);
 		bool IsAccountWideSpell(uint32 spellId);
-#undef ENABLE_ALWAYS_SERIOUS_MODE_GCC_STL_HACK
-
-// it's for private persons (pps)
-	private:
-
-// we don't want too serious people to see this, they'd freak out!
-#ifndef ENABLE_ALWAYS_SERIOUS_MODE_GCC_STL_HACK
-
-#define GRRR "Group Rest & Relaxation & Recreation"
-
-		/*
-
-		//////////////////////////////////////////////////////////////////////////////
-		// I've been asked if there was an easter egg in the source code
-		// No there isn't really, but now here's this easter octagon instead, enjoy!
-		// ( if you are artistic, female, blue eyed with good imagination, and
-		//   at least some sense of humor, this might even look like an egg. :P )
-		//
-		//                  ---------
-		//                 /         \
-		//                /           \
-		//               /             \
-		//              |               |
-		//              |               |
-		//              |               |
-		//              |               |
-		//              |               |
-		//              |               |
-		//              |               |
-		//              \               /
-		//               \             /
-		//                \           /
-		//                 -----------
-		//
-		//
-		// dfighter March, 2010
-		//////////////////////////////////////////////////////////////////////////////
-
-		*/
-
-#undef GRRR
-
-#endif
-
-#define ENABLE_ALWAYS_SERIOUS_MODE_GCC_STL_HACK
-
+		void LoadPetLevelInfo();
+		PetLevelInfo const* GetPetLevelInfo(uint32 creature_id, uint8 level) const;
 	protected:
 		BCEntryStorage m_BCEntryStorage; // broadcast system.
 		RWLock playernamelock;
@@ -831,6 +797,10 @@ class SERVER_DECL ObjectMgr : public Singleton < ObjectMgr >, public EventableOb
 		std::map< uint32, std::vector< VehicleAccessoryEntry* >* > vehicle_accessories;
 		std::map< uint32, std::multimap< uint32, WorldState >* > worldstate_templates;
 		SpellLinkedMap	mSpellLinkedMap;
+
+		typedef std::map<uint32, PetLevelInfo*> PetLevelInfoContainer;
+		// PetLevelInfoContainer[creature_id][level]
+		PetLevelInfoContainer _petInfoStore;                            // [creature_id][level]
 };
 
 
