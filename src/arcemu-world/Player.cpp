@@ -492,23 +492,6 @@ void Player::OnLogin()
 			g->AddGuildMember(getPlayerInfo(), m_session, NULL);
 	}
 
-	if(m_FirstLogin && getClass() == HUNTER)
-	{
-		uint32 Entry;
-		if (GetTeam() == TEAM_HORDE)
-			Entry = 3122;
-		else
-			Entry = 69;
-
-		CreatureInfo* i = CreatureNameStorage.LookupEntry(Entry);
-
-		Pet* pet = objmgr.CreatePet(Entry);
-
-		if(!pet->CreateAsSummon(Entry, i, NULL, this, NULL, 2, 0))
-			pet->DeleteMe();
-		else
-			pet->SetPower(POWER_TYPE_HAPPINESS, sizeof(uint32)-1);
-	}
 	if (m_FirstLogin)
 		m_FirstLogin = false;
 }

@@ -154,9 +154,12 @@ bool Pet::CreateAsSummon(uint32 entry, CreatureInfo* ci, Creature* created_from_
 	}
 	else
 	{
-		x = owner->GetPositionX() + 2;
-		y = owner->GetPositionY() + 2;
-		z = owner->GetPositionZ();
+		if(owner->IsInWorld())
+		{
+			x = owner->GetPositionX() + 2;
+			y = owner->GetPositionY() + 2;
+			z = owner->GetPositionZ();
+		}
 	}
 
 	// Create ourself
@@ -229,25 +232,31 @@ bool Pet::CreateAsSummon(uint32 entry, CreatureInfo* ci, Creature* created_from_
 		SetMaxPower(POWER_TYPE_FOCUS, 100);
 		SetUInt32Value(UNIT_FIELD_BYTES_2, 1  /* | (0x28 << 8) */ | (PET_RENAME_ALLOWED << 16));  // 0x3 -> Enable pet rename.
 		SetPowerType(POWER_TYPE_FOCUS);
-		float bonusAP = owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.22f;
-		SetBonusDamage(float2int32(owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.1287f));
+		if(owner->IsInWorld())
+		{
+			float bonusAP = owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.22f;
+			SetBonusDamage(float2int32(owner->GetTotalAttackPowerValue(RANGED_ATTACK) * 0.1287f));
+		}
 	}
-	SetFaction(owner->GetFaction());
+	if(owner->IsInWorld())
+	{
+		SetFaction(owner->GetFaction());
 
-	if(owner->IsPvPFlagged())
-		this->SetPvPFlag();
-	else
-		this->RemovePvPFlag();
+		if(owner->IsPvPFlagged())
+			this->SetPvPFlag();
+		else
+			this->RemovePvPFlag();
 
-	if(owner->IsFFAPvPFlagged())
-		this->SetFFAPvPFlag();
-	else
-		this->RemoveFFAPvPFlag();
+		if(owner->IsFFAPvPFlagged())
+			this->SetFFAPvPFlag();
+		else
+			this->RemoveFFAPvPFlag();
 
-	if(owner->IsSanctuaryFlagged())
-		this->SetSanctuaryFlag();
-	else
-		this->RemoveSanctuaryFlag();
+		if(owner->IsSanctuaryFlagged())
+			this->SetSanctuaryFlag();
+		else
+			this->RemoveSanctuaryFlag();
+	}
 
 	BaseDamage[0] = 0;
 	BaseDamage[1] = 0;
@@ -747,6 +756,11 @@ void Pet::OnPushToWorld()
 
 void Pet::InitializeMe(bool first)
 {
+	if(!m_Owner->IsInWorld() && first)
+	{
+		SetTPs(GetTPsForLevel(getLevel()));
+		SetDefaultActionbar();
+	}
 	GetAIInterface()->Init(this, AITYPE_PET, MOVEMENTTYPE_NONE, m_Owner);
 	GetAIInterface()->SetUnitToFollow(m_Owner);
 	GetAIInterface()->SetFollowDistance(3.0f);

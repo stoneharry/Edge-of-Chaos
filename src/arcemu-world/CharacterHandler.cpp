@@ -455,7 +455,23 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket & recv_data)
 		pNewChar->AddSummonSpell(1860, 3716);
 		pNewChar->AddSummonSpell(1863, 7814);
 	}
+	if(pNewChar->getClass() == HUNTER)
+	{
+		uint32 Entry = 3122;
+		if (pNewChar->GetTeam() == TEAM_ALLIANCE)
+			Entry = 69;
 
+		CreatureInfo* i = CreatureNameStorage.LookupEntry(Entry);
+
+		Pet* pet = objmgr.CreatePet(Entry);
+
+		if(pet->CreateAsSummon(Entry, i, NULL, pNewChar, NULL, 2, 0))
+		{
+			pet->SetMaxPower(POWER_TYPE_HAPPINESS, sizeof(uint16));
+			pet->SetPower(POWER_TYPE_HAPPINESS, sizeof(uint16));
+		}
+		pet->DeleteMe();
+	}
 	pNewChar->SaveToDB(true);
 
 	PlayerInfo* pn = new PlayerInfo ;
@@ -479,6 +495,7 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket & recv_data)
 	delete  pNewChar;
 
 	OutPacket(SMSG_CHAR_CREATE, 1, CHAR_CREATE_SUCCESS);
+
 
 	sLogonCommHandler.UpdateAccountCount(GetAccountId(true), 1);
 }
