@@ -491,9 +491,6 @@ void Player::OnLogin()
 		if(g)
 			g->AddGuildMember(getPlayerInfo(), m_session, NULL);
 	}
-
-	if (m_FirstLogin)
-		m_FirstLogin = false;
 }
 
 
@@ -3717,7 +3714,6 @@ void Player::OnPushToWorld()
 		if(class_ == DEMON_HUNTER)
 			startlevel = 10;
 
-		sHookInterface.OnFirstEnterWorld(this);
 		LevelInfo* Info = objmgr.GetLevelInfo(getRace(), getClass(), startlevel);
 		ApplyLevelInfo(Info, startlevel);
 		Guild* g = objmgr.GetGuildByGuildName("ChaoticUnited");
@@ -3790,6 +3786,29 @@ void Player::OnPushToWorld()
 	if( resettalents ){
 		Reset_AllTalents();
 		resettalents = false;
+	}
+
+	if (m_FirstLogin)
+	{
+		if (class_ == HUNTER)
+		{
+			uint32 Entry = 3122;
+			if (GetTeam() == TEAM_ALLIANCE)
+				Entry = 69;
+
+			CreatureInfo* i = CreatureNameStorage.LookupEntry(Entry);
+
+			Pet* pet = objmgr.CreatePet(Entry);
+
+			if(pet->CreateAsSummon(Entry, i, NULL, this, NULL, 2, 0))
+			{
+				pet->SetMaxPower(POWER_TYPE_HAPPINESS, sizeof(uint16));
+				pet->SetPower(POWER_TYPE_HAPPINESS, sizeof(uint16));
+			}
+			pet->DeleteMe();
+		}
+		sHookInterface.OnFirstEnterWorld(this);
+		m_FirstLogin = false;
 	}
 }
 

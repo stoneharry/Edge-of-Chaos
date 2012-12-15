@@ -24,6 +24,7 @@ uint32 m_transportGuidMax = 50;
 
 bool Transporter::CreateAsTransporter(uint32 EntryID, const char* Name, int32 Time)
 {
+	LOG_BASIC("Creating transport ID %i name %s", EntryID, Name);
 	// Lookup GameobjectInfo
 	if(!CreateFromProto(EntryID, 0, 0, 0, 0, 0))
 		return false;
@@ -45,10 +46,12 @@ bool Transporter::CreateAsTransporter(uint32 EntryID, const char* Name, int32 Ti
 	// Set period
 	m_period = Time;
 
+	LOG_BASIC("Generating waypoints for transport ID %i name %s", EntryID, Name);
 	// Generate waypoints
 	if(!GenerateWaypoints())
 		return false;
 
+	LOG_BASIC("Adding transport to world at: %u, %g, %g, %g", m_WayPoints[0].mapid, m_WayPoints[0].x, m_WayPoints[0].y, m_WayPoints[0].z);
 	// Set position
 	SetMapId(m_WayPoints[0].mapid);
 	SetPosition(m_WayPoints[0].x, m_WayPoints[0].y, m_WayPoints[0].z, 0);

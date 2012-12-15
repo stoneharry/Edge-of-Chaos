@@ -247,7 +247,7 @@ const char LFGDungeonEntryFormat[]="uxxxxxxxxxxxxxxxxxiiiiiiixixxixixxxxxxxxxxxx
 template<class T>
 bool loader_stub(const char* filename, const char* format, bool ind, T & l, bool loadstrs)
 {
-	Log.Notice("DBC", "Loading %s.", filename);
+	Log.Success("DBC", "Loading %s.", filename);
 	return l.Load(filename, format, ind, loadstrs);
 }
 
@@ -265,7 +265,7 @@ bool LoadDBCs()
 	LOAD_DBC("DBC/CharTitles.dbc", CharTitlesEntryfmt, true, dbcCharTitlesEntry, true);
 	LOAD_DBC("DBC/CurrencyTypes.dbc", CurrencyTypesEntryFormat, true, dbcCurrencyTypesStore, true);
 	LOAD_DBC("DBC/BarberShopStyle.dbc", BarberShopStyleEntryFormat, true, dbcBarberShopStyleStore, true);
-	LOAD_DBC("DBC/ItemEntry.dbc", ItemEntryFormat, true, dbcItemEntry, true);
+	//LOAD_DBC("DBC/ItemEntry.dbc", ItemEntryFormat, true, dbcItemEntry, true);
 	LOAD_DBC("DBC/ItemSet.dbc", ItemSetFormat, true, dbcItemSet, true);
 	LOAD_DBC("DBC/Lock.dbc", LockFormat, true, dbcLock, false);
 	LOAD_DBC("DBC/EmotesText.dbc", EmoteEntryFormat, true, dbcEmoteEntry, false);

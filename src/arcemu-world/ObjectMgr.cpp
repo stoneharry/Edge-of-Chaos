@@ -4108,7 +4108,7 @@ void ObjectMgr::LoadPetLevelInfo()
         pLevelInfo->mana   = fields[3].GetUInt16();
         pLevelInfo->armor  = fields[9].GetUInt32();
 
-        for (int i = 0; i < MAX_STATS; i++)
+        for (int i = 0; i < 5; i++)
         {
             pLevelInfo->stats[i] = fields[i+4].GetUInt16();
         }
