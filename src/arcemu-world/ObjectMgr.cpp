@@ -2666,11 +2666,11 @@ void ObjectMgr::CreateCharCreationPet(uint32 entry, uint32 ownerGUID)
 	std::stringstream ss;
 
 	if (entry == 3122) // horde
-		ss << "INSERT INTO `playerpets` (ownerguid, petnumber, `name`, entry, xp, active, `level`, actionbar, happinessupdate, reset_time, reset_cost, spellid, petstate, alive, talentpoints, current_power, current_hp, current_happiness, renamable, `type`) VALUES ('" << ownerGUID << "', '1', 'Raptor', '3122', '0', '11', '1', '117440514 0,117440513 0,117440512 0,52473 49408,0 49408,0 49408,0 49408,100663298 0,100663297 0,100663296 0,', '500', '0', '0', '883', '1', '1', '1', '100', '80', '4294951145', '1', '1')";
+		ss << "INSERT INTO `playerpets` VALUES ('" << ownerGUID << "', '1', 'Raptor', '3122', '0', '11', '1', '117440514 0,117440513 0,117440512 0,52473 49408,0 49408,0 49408,0 49408,100663298 0,100663297 0,100663296 0,', '500', '0', '0', '883', '1', '1', '1', '100', '80', '4294951145', '1', '1')";
 	else
-		ss << "INSERT INTO `playerpets` (ownerguid, petnumber, `name`, entry, xp, active, `level`, actionbar, happinessupdate, reset_time, reset_cost, spellid, petstate, alive, talentpoints, current_power, current_hp, current_happiness, renamable, `type`) VALUES ('" << ownerGUID << "', '1', 'Wolf', '69', '0', '11', '1', '117440514 0,117440513 0,117440512 0,52473 49408,0 49408,0 49408,0 49408,100663298 0,100663297 0,100663296 0,', '500', '0', '0', '883', '1', '1', '1', '100', '80', '4294951145', '1', '1')";
+		ss << "INSERT INTO `playerpets` VALUES ('" << ownerGUID << "', '1', 'Wolf', '69', '0', '11', '1', '117440514 0,117440513 0,117440512 0,52473 49408,0 49408,0 49408,0 49408,100663298 0,100663297 0,100663296 0,', '500', '0', '0', '883', '1', '1', '1', '100', '80', '4294951145', '1', '1')";
 
-	CharacterDatabase.Query(ss.str().c_str());
+	CharacterDatabase.Execute(ss.str().c_str());
 }
 
 Player* ObjectMgr::CreatePlayer(uint8 _class)
