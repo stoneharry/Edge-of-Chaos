@@ -3790,7 +3790,7 @@ void Player::OnPushToWorld()
 
 	if (m_FirstLogin)
 	{
-		if (class_ == HUNTER)
+		/*if (class_ == HUNTER)
 		{
 			uint32 Entry = 3122;
 			if (GetTeam() == TEAM_ALLIANCE)
@@ -3806,7 +3806,7 @@ void Player::OnPushToWorld()
 				pet->SetPower(POWER_TYPE_HAPPINESS, sizeof(uint16));
 			}
 			pet->DeleteMe();
-		}
+		}*/
 		sHookInterface.OnFirstEnterWorld(this);
 		m_FirstLogin = false;
 	}

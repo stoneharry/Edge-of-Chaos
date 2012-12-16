@@ -1921,6 +1921,9 @@ class LuaUnit
 				case 11:
 					lua_pushstring(L, "Druid");
 					break;
+				case 12:
+					lua_pushstring(L, "Demon Hunter");
+					break;
 				default:
 					lua_pushstring(L, "Unknown");
 					break;
