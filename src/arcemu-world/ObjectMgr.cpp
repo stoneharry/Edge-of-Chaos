@@ -2660,9 +2660,6 @@ Pet* ObjectMgr::CreatePet(uint32 entry)
 
 void ObjectMgr::CreateCharCreationPet(uint32 entry, uint32 ownerGUID)
 {
-	uint32 guid;
-	guid = ++m_hiPetGuid;
-
 	std::stringstream ss;
 
 	if (entry == 3122) // horde
