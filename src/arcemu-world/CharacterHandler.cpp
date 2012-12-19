@@ -445,14 +445,6 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket & recv_data)
 		return;
 	}
 
-	if (pNewChar->getClass() == HUNTER)
-	{
-		uint32 entry = 3122;
-		if (pNewChar->GetTeam() == TEAM_ALLIANCE)
-			entry = 69;
-		objmgr.CreateCharCreationPet(entry, pNewChar->GetLowGUID());
-	}
-
 	pNewChar->UnSetBanned();
 	pNewChar->addSpell(22027);	  // Remove Insignia
 
@@ -483,13 +475,21 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket & recv_data)
 	pn->lastOnline = UNIXTIME;
 	objmgr.AddPlayerInfo(pn);
 
+	if (pNewChar->getClass() == HUNTER)
+	{
+		uint32 entry = 3122;
+		if (pNewChar->GetTeam() == TEAM_ALLIANCE)
+			entry = 69;
+		objmgr.CreateCharCreationPet(entry, pNewChar->GetLowGUID());
+	}
+
 	pNewChar->ok_to_remove = true;
 	delete  pNewChar;
 
 	OutPacket(SMSG_CHAR_CREATE, 1, CHAR_CREATE_SUCCESS);
 
-
 	sLogonCommHandler.UpdateAccountCount(GetAccountId(true), 1);
+
 }
 
 void WorldSession::HandleCharDeleteOpcode(WorldPacket & recv_data)
