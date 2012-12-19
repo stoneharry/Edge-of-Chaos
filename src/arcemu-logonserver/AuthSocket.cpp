@@ -638,6 +638,12 @@ void AuthSocket::HandleReconnectChallenge()
 		break;
 	}
 
+	if(m_challenge.I_len >= 50)
+	{
+		Disconnect();
+		return;
+	}
+
 	// Null-terminate the account string
 	m_challenge.I[m_challenge.I_len] = 0;
 
