@@ -803,62 +803,7 @@ bool ChatHandler::HandleNpcInfoCommand(const char* args, WorldSession* m_session
 	Creature* crt = getSelectedCreature(m_session);
 	if(!crt) return false;
 	BlueSystemMessage(m_session, "Showing creature info for %s", crt->GetCreatureInfo()->Name);
-	SystemMessage(m_session, "GUID: %d", guid);
-	SystemMessage(m_session, "Faction: %d", crt->GetFaction());
-	SystemMessage(m_session, "Phase: %u", crt->GetPhase());
-	{
-		string s = "";
-		if(crt->isBattleMaster())
-			s.append(" (Battlemaster)");
-		if(crt->isTrainer())
-			s.append(" (Trainer)");
-		if(crt->isProf())
-			s.append(" (Profession Trainer)");
-		if(crt->isQuestGiver())
-			s.append(" (Quests)");
-		if(crt->isGossip())
-			s.append(" (Gossip)");
-		if(crt->isTaxi())
-			s.append(" (Taxi)");
-		if(crt->isCharterGiver())
-			s.append(" (Charter)");
-		if(crt->isGuildBank())
-			s.append(" (Guild Bank)");
-		if(crt->isSpiritHealer())
-			s.append(" (Spirit Healer)");
-		if(crt->isInnkeeper())
-			s.append(" (Innkeeper)");
-		if(crt->isTabardDesigner())
-			s.append(" (Tabard Designer)");
-		if(crt->isAuctioner())
-			s.append(" (Auctioneer)");
-		if(crt->isStableMaster())
-			s.append(" (Stablemaster)");
-		if(crt->isArmorer())
-			s.append(" (Armorer)");
 
-		SystemMessage(m_session, "NPCFlags: %d%s", crt->GetUInt32Value(UNIT_NPC_FLAGS), s.c_str());
-	}
-	SystemMessage(m_session, "DisplayID: %u", crt->GetDisplayId() );
-	SystemMessage(m_session, "VehicleID: %u", crt->GetProto()->vehicleid );
-
-	if(crt->m_faction)
-		SystemMessage(m_session, "Combat Support: 0x%.3X", crt->m_faction->FriendlyMask);
-	SystemMessage(m_session, "Health (cur/max): %d/%d", crt->GetHealth(), crt->GetMaxHealth());
-
-	uint32 powertype = crt->GetPowerType();
-	if((powertype >= 0) && (powertype <= 6))
-	{
-		SystemMessage(m_session, "Powertype: %s", POWERTYPE[ powertype ]);
-		SystemMessage(m_session, "Power (cur/max): %d/%d", crt->GetPower(powertype), crt->GetMaxPower(powertype));
-	}
-
-	SystemMessage(m_session, "Armor/Holy/Fire/Nature/Frost/Shadow/Arcane");
-	SystemMessage(m_session, "%d/%d/%d/%d/%d/%d/%d", crt->GetResistance(SCHOOL_NORMAL), crt->GetResistance(SCHOOL_HOLY), crt->GetResistance(SCHOOL_FIRE), crt->GetResistance(SCHOOL_NATURE), crt->GetResistance(SCHOOL_FROST), crt->GetResistance(SCHOOL_SHADOW), crt->GetResistance(SCHOOL_ARCANE));
-	SystemMessage(m_session, "Damage (min/max): %f/%f", crt->GetMinDamage(), crt->GetMaxDamage());
-
-	ColorSystemMessage(m_session, MSG_COLOR_RED, "Entry ID: %d", crt->GetEntry());
-	ColorSystemMessage(m_session, MSG_COLOR_RED, "SQL Entry ID: %d", crt->GetSQL_id());
 	// show byte
 	std::stringstream sstext;
 	uint32 theBytes = crt->GetUInt32Value(UNIT_FIELD_BYTES_0);
@@ -948,6 +893,63 @@ bool ChatHandler::HandleNpcInfoCommand(const char* args, WorldSession* m_session
 	for(uint32 i = 0; i < numdynflags; i++)
 		if((dynflags & UnitDynFlagToName[ i ].Flag) != 0)
 			SystemMessage(m_session, "%s", UnitDynFlagToName[ i ].Name);
+
+	SystemMessage(m_session, "GUID: %d", guid);
+	SystemMessage(m_session, "Faction: %d", crt->GetFaction());
+	SystemMessage(m_session, "Phase: %u", crt->GetPhase());
+	{
+		string s = "";
+		if(crt->isBattleMaster())
+			s.append(" (Battlemaster)");
+		if(crt->isTrainer())
+			s.append(" (Trainer)");
+		if(crt->isProf())
+			s.append(" (Profession Trainer)");
+		if(crt->isQuestGiver())
+			s.append(" (Quests)");
+		if(crt->isGossip())
+			s.append(" (Gossip)");
+		if(crt->isTaxi())
+			s.append(" (Taxi)");
+		if(crt->isCharterGiver())
+			s.append(" (Charter)");
+		if(crt->isGuildBank())
+			s.append(" (Guild Bank)");
+		if(crt->isSpiritHealer())
+			s.append(" (Spirit Healer)");
+		if(crt->isInnkeeper())
+			s.append(" (Innkeeper)");
+		if(crt->isTabardDesigner())
+			s.append(" (Tabard Designer)");
+		if(crt->isAuctioner())
+			s.append(" (Auctioneer)");
+		if(crt->isStableMaster())
+			s.append(" (Stablemaster)");
+		if(crt->isArmorer())
+			s.append(" (Armorer)");
+
+		SystemMessage(m_session, "NPCFlags: %d%s", crt->GetUInt32Value(UNIT_NPC_FLAGS), s.c_str());
+	}
+	SystemMessage(m_session, "DisplayID: %u", crt->GetDisplayId() );
+	SystemMessage(m_session, "VehicleID: %u", crt->GetProto()->vehicleid );
+
+	if(crt->m_faction)
+		SystemMessage(m_session, "Combat Support: 0x%.3X", crt->m_faction->FriendlyMask);
+	SystemMessage(m_session, "Health (cur/max): %d/%d", crt->GetHealth(), crt->GetMaxHealth());
+
+	uint32 powertype = crt->GetPowerType();
+	if((powertype >= 0) && (powertype <= 6))
+	{
+		SystemMessage(m_session, "Powertype: %s", POWERTYPE[ powertype ]);
+		SystemMessage(m_session, "Power (cur/max): %d/%d", crt->GetPower(powertype), crt->GetMaxPower(powertype));
+	}
+
+	SystemMessage(m_session, "Armor/Holy/Fire/Nature/Frost/Shadow/Arcane");
+	SystemMessage(m_session, "%d/%d/%d/%d/%d/%d/%d", crt->GetResistance(SCHOOL_NORMAL), crt->GetResistance(SCHOOL_HOLY), crt->GetResistance(SCHOOL_FIRE), crt->GetResistance(SCHOOL_NATURE), crt->GetResistance(SCHOOL_FROST), crt->GetResistance(SCHOOL_SHADOW), crt->GetResistance(SCHOOL_ARCANE));
+	SystemMessage(m_session, "Damage (min/max): %f/%f", crt->GetMinDamage(), crt->GetMaxDamage());
+
+	ColorSystemMessage(m_session, MSG_COLOR_RED, "Entry ID: %d", crt->GetEntry());
+	ColorSystemMessage(m_session, MSG_COLOR_RED, "SQL Entry ID: %d", crt->GetSQL_id());
 
 	return true;
 }
@@ -1818,7 +1820,7 @@ bool ChatHandler::HandleDBReloadCommand(const char* args, WorldSession* m_sessio
 	ret = Storage_ReloadTable(args);
 	char str[200];
 	snprintf(str, 200, "%sDatabase reload of %s %s.", ret ? MSG_COLOR_LIGHTBLUE : MSG_COLOR_LIGHTRED, args, ret ? "completed" : "failed");
-	sWorld.SendGMWorldText(str, 0);
+	BlueSystemMessage(m_session, str); // send to GM not world
 	sGMLog.writefromsession(m_session, "reloaded table %s", args);
 	return true;
 }
