@@ -247,7 +247,6 @@ const char LFGDungeonEntryFormat[]="uxxxxxxxxxxxxxxxxxiiiiiiixixxixixxxxxxxxxxxx
 template<class T>
 bool loader_stub(const char* filename, const char* format, bool ind, T & l, bool loadstrs)
 {
-	Log.Success("DBC", "Loading %s.", filename);
 	return l.Load(filename, format, ind, loadstrs);
 }
 

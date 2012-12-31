@@ -128,8 +128,6 @@ void LuaEngine::ScriptLoadDir(char* Dirname, LUALoadScripts* pak)
 		if(FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)   //Credits for this 'if' go to Cebernic from ArcScripts Team. Thanks, you saved me some work ;-)
 		{
 			strcpy(SearchName, Dirname);
-			// custom 1 lines
-			printf("------- \n Folder: %s \n -------- \n", Dirname);
 			strcat(SearchName, "\\");
 			strcat(SearchName, FindData.cFileName);
 			ScriptLoadDir(SearchName, pak);
@@ -154,8 +152,7 @@ void LuaEngine::ScriptLoadDir(char* Dirname, LUALoadScripts* pak)
 			if ( !_stricmp(ext,"aul.") )
 			{
 				pak->luaFiles.insert(fname);
-				//printf("Loaded %s", fname);
-				printf("Loaded %s \n", FindData.cFileName);
+				//printf("Loaded %s \n", FindData.cFileName);
 			}
 		}
 	}
