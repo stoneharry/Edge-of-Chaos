@@ -508,10 +508,10 @@ void Player::SendLoot(uint64 guid, uint8 loot_type, uint32 mapid)
 
 				if(iter->item.itemproto)
 				{
-					int numGroupActive = 1;
+					uint8 numGroupActive = 1;
 					if (m_Group != NULL)
 					{
-						m_Group->GetMembersCount();
+						numGroupActive = m_Group->GetMembersCount();
 						// Here we need to determine if members are actually online or not... If not online, reduce count
 					}
 					iter->roll = new LootRoll(60000, numGroupActive, guid, x, itemProto->ItemId, factor, uint32(ipid), GetMapMgr());
