@@ -942,6 +942,16 @@ void LootRoll::PlayerRolled(Player* player, uint8 choice)
 	}
 }
 
+void LootRoll::OfflineRoll(uint32 lowguid)
+{
+	m_passRolls.insert(lowguid);
+	if(!--_remaining)
+	{
+		// kill event early
+		//sEventMgr.RemoveEvents(this);
+		Finalize();
+	}
+}
 void LootMgr::FillItemLoot(Loot* loot, uint32 loot_id)
 {
 	loot->items.clear();

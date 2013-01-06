@@ -39,6 +39,7 @@ class LootRoll : public EventableObject
 		LootRoll(uint32 timer, uint32 groupcount, uint64 guid, uint32 slotid, uint32 itemid, uint32 itemunk1, uint32 itemunk2, MapMgr* mgr);
 		~LootRoll();
 		void PlayerRolled(Player* player, uint8 choice);
+		void OfflineRoll(uint32 lowguid);
 		void Finalize();
 
 		int32 event_GetInstanceID();
