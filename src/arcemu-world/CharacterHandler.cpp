@@ -946,8 +946,6 @@ void WorldSession::FullLogin(Player* plr)
 		OutPacket(SMSG_TRIGGER_CINEMATIC, 4, &introid);
 	}
 
-	sWorld.incrementPlayerCount(plr->GetTeam());
-
 	LOG_DETAIL("WORLD: Created new player for existing players (%s)", plr->GetName());
 
 	// Login time, will be used for played time calc
