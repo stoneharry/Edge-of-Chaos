@@ -33,7 +33,7 @@ class WorldSession;
 #define CHAOTIC_LINE 0x0F
 #define DEFAULT_LINE 0xFF
 
-#define CHAOTIC "[Chaotic]"
+#define CHAOTIC "[EoC] "
 //----------------------
 
 #define TIME_FORMAT "[%H:%M]"

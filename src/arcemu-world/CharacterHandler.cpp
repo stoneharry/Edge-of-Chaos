@@ -986,7 +986,7 @@ void WorldSession::FullLogin(Player* plr)
 #endif
 
 	// Revision
-	_player->BroadcastMessage("ChaoticUnited : Revision: %s", sWorld.GetEmulatorRevision());
+	_player->BroadcastMessage("Edge of Chaos : Revision: %s", sWorld.GetEmulatorRevision());
 	// Bugs
 
 	// Shows Server uptime
