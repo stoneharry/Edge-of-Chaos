@@ -38,6 +38,7 @@ class LogonConsole :  public Singleton < LogonConsole >
 
 public:						// Public methods:
 	void Kill();
+	void CreateAccount(char* str);
 
 protected:					// Protected methods:
 	LogonConsoleThread *_thread;

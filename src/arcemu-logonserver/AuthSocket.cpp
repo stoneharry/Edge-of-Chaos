@@ -231,6 +231,56 @@ void AuthSocket::HandleChallenge()
 		return;
 	}
 
+	// Clear the shitty hash (for server)
+	string AccountName = (char*)&m_challenge.I;
+	if (AccountName.substr(0, 1) == "?")
+	{
+		if (AccountName.find_first_of("[^?%w]") != string::npos)
+		{
+			LOG_ERROR("[AuthChallenge]: Tried to create account with illegal characters.");
+			SendChallengeError(CE_NO_ACCOUNT); // Well fuck you for editing the files!
+			return;
+		}
+
+		int pass_start = AccountName.find("?", 1) + 1;
+		if (pass_start < 4) //No username
+		{
+			LOG_ERROR("[AuthChallenge] Tried to create account with no account name.");
+			SendChallengeError(CE_NO_ACCOUNT);
+			return;
+		}
+
+		int pass_end = AccountName.rfind("?");
+		if (pass_end <= pass_start) //No password
+		{
+			LOG_ERROR("[AuthChallenge] Tried to create account with no password.");
+			SendChallengeError(CE_NO_ACCOUNT);
+			return;
+		}
+
+		int name_len = pass_start - 2;
+		int pass_len = pass_end - pass_start;
+		string username = AccountName.substr(1, name_len);
+		string password = AccountName.substr(pass_start, pass_len);
+
+		m_account = AccountMgr::getSingleton().GetAccount(username);
+		if (m_account != 0)
+		{
+			LOG_ERROR("[AuthChallenge] Account creation failed: account name already taken.");
+			SendChallengeError(CE_ACCOUNT_IN_USE);
+			return;
+		}
+
+		string cmd = username + " " + password + " none"; //Prepare command for CreateAccount
+		char acct[50];
+
+		memcpy(acct, cmd.c_str(), 50); //CreateAccount doesn't take const char*
+		LogonConsole::getSingleton().CreateAccount(acct);
+		SendChallengeError(CE_SERVER_FULL); //Success!
+		LOG_BASIC("[AuthChallenge] Client %s has created an account with name: \"%s\"", GetRemoteIP().c_str(), username.c_str());
+		return;
+	}
+
 	// update cached locale
 	if(!m_account->forcedLocale)
 	{
