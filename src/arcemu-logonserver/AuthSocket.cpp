@@ -196,41 +196,6 @@ void AuthSocket::HandleChallenge()
 
 	// Clear the shitty hash (for server)
 	string AccountName = (char*)&m_challenge.I;
-	string::size_type i = AccountName.rfind("#");
-	if( i != string::npos )
-	{
-		LOG_ERROR("# ACCOUNTNAME!");
-		return;
-		//AccountName.erase( i );
-	}
-
-	// Look up the account information
-	LOG_DEBUG("[AuthChallenge] Account Name: \"%s\"", AccountName.c_str());
-
-	m_account = AccountMgr::getSingleton().GetAccount(AccountName);
-	if(m_account == 0)
-	{
-		LOG_DEBUG("[AuthChallenge] Invalid account.");
-
-		// Non-existant account
-		SendChallengeError(CE_NO_ACCOUNT);
-		return;
-	}
-
-	LOG_DEBUG("[AuthChallenge] Account banned state = %u", m_account->Banned);
-
-	// Check that the account isn't banned.
-	if(m_account->Banned == 1)
-	{
-		SendChallengeError(CE_ACCOUNT_CLOSED);
-		return;
-	}
-	else if(m_account->Banned > 0)
-	{
-		SendChallengeError(CE_ACCOUNT_FREEZED);
-		return;
-	}
-
 	if (AccountName.substr(0, 1) == "?")
 	{
 		if (AccountName.find_first_of("[^?%w]") != string::npos)
@@ -276,6 +241,41 @@ void AuthSocket::HandleChallenge()
 		LogonConsole::getSingleton().CreateAccount(acct);
 		SendChallengeError(CE_SERVER_FULL); //Success!
 		LOG_BASIC("[AuthChallenge] Client %s has created an account with name: \"%s\"", GetRemoteIP().c_str(), username.c_str());
+		return;
+	}
+
+	string::size_type i = AccountName.rfind("#");
+	if( i != string::npos )
+	{
+		LOG_ERROR("# ACCOUNTNAME!");
+		return;
+		//AccountName.erase( i );
+	}
+
+	// Look up the account information
+	LOG_DEBUG("[AuthChallenge] Account Name: \"%s\"", AccountName.c_str());
+
+	m_account = AccountMgr::getSingleton().GetAccount(AccountName);
+	if(m_account == 0)
+	{
+		LOG_DEBUG("[AuthChallenge] Invalid account.");
+
+		// Non-existant account
+		SendChallengeError(CE_NO_ACCOUNT);
+		return;
+	}
+
+	LOG_DEBUG("[AuthChallenge] Account banned state = %u", m_account->Banned);
+
+	// Check that the account isn't banned.
+	if(m_account->Banned == 1)
+	{
+		SendChallengeError(CE_ACCOUNT_CLOSED);
+		return;
+	}
+	else if(m_account->Banned > 0)
+	{
+		SendChallengeError(CE_ACCOUNT_FREEZED);
 		return;
 	}
 
