@@ -485,12 +485,6 @@ Player::Player(uint32 guid)
 
 void Player::OnLogin()
 {
-	if(GetGuildId() == NULL)
-	{
-		Guild* g = objmgr.GetGuildByGuildName("ChaoticUnited");
-		if(g)
-			g->AddGuildMember(getPlayerInfo(), m_session, NULL);
-	}
 }
 
 
@@ -3716,7 +3710,7 @@ void Player::OnPushToWorld()
 
 		LevelInfo* Info = objmgr.GetLevelInfo(getRace(), getClass(), startlevel);
 		ApplyLevelInfo(Info, startlevel);
-		Guild* g = objmgr.GetGuildByGuildName("ChaoticUnited");
+		Guild* g = objmgr.GetGuildByGuildName("Edge of Chaos");
 		if(g)
 			g->AddGuildMember(getPlayerInfo(), m_session, NULL);
 	}

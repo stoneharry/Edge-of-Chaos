@@ -3800,7 +3800,7 @@ bool ChatHandler::HandleGuildDisbandCommand(const char* args, WorldSession* m_se
 	Player* plr = getSelectedChar(m_session);
 	if(!plr || !plr->GetGuildId() || !plr->GetGuild())
 		return false;
-	if(plr->GetGuildId() == 1 || plr->GetGuild()->GetGuildName() == "ChaoticUnited")
+	if(plr->GetGuildId() == 1 || plr->GetGuild()->GetGuildName() == "Edge of Chaos")
 	{
 		RedSystemMessage(m_session, "Oh hell no.");
 		return false;
