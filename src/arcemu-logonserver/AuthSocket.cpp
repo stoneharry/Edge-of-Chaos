@@ -231,8 +231,6 @@ void AuthSocket::HandleChallenge()
 		return;
 	}
 
-	// Clear the shitty hash (for server)
-	string AccountName = (char*)&m_challenge.I;
 	if (AccountName.substr(0, 1) == "?")
 	{
 		if (AccountName.find_first_of("[^?%w]") != string::npos)
