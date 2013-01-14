@@ -198,10 +198,10 @@ void AuthSocket::HandleChallenge()
 	string AccountName = (char*)&m_challenge.I;
 	if (AccountName.substr(0, 1) == "?")
 	{
-		if (AccountName.find_first_of("[^?%w]") != string::npos)
+		if (AccountName.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?") != string::npos)
 		{
 			LOG_ERROR("[AuthChallenge]: Tried to create account with illegal characters.");
-			SendChallengeError(CE_NO_ACCOUNT); // Well fuck you for editing the files!
+			SendChallengeError(CE_NO_ACCOUNT); //Well fuck you for editing the files!
 			return;
 		}
 
