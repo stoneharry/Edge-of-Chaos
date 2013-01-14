@@ -65,9 +65,9 @@ void LogonConsole::CreateAccount(char* str)
 	std::stringstream query;
 	query << "INSERT INTO `accounts`( `login`,`password`,`encrypted_password`,`gm`,`banned`,`email`,`flags`,`banreason`) VALUES ( '";
 	query << name << "','',";
-	query << "SHA( UPPER( '" << pass << "' ) ),'0','0','";
+	query << "SHA( UPPER( '" << pass << "' ) ),'','0','";
 	query << email << "','";
-	query << 24 << "','' );";
+	query << 8 << "','' );";
 
 	if(!sLogonSQL->WaitExecuteNA(query.str().c_str()))
 	{
