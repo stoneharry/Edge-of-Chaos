@@ -508,7 +508,7 @@ bool Master::Run(int argc, char** argv)
 
 	sWorld.ShutdownClasses();
 
-	ThreadPool.Shutdown(); // THIS is causing a crash
+	ThreadPool.Shutdown(); // this rarely causes a crash now
 
 	Log.Notice("World", "~World()");
 	//delete World::getSingletonPtr(); // another crasher
@@ -681,7 +681,7 @@ void OnCrash(bool Terminate)
 			Log.Notice("sql", "All pending database operations cleared.");
 			sWorld.SaveAllPlayers();
 			Log.Notice("sql", "Data saved.");
-			sWorld.SendWorldText("Server has crashed, server restart imminent.");
+			//sWorld.SendWorldText("Server has crashed, server restart imminent."); // Server does not always crash. -_-
 			Arcemu::Sleep(1000);
 		}
 	}

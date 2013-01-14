@@ -716,8 +716,8 @@ void Guild::SetMOTD(const char* szNewMotd, WorldSession* pClient)
 	if(strlen(szNewMotd))
 	{
 		m_motd = strdup(szNewMotd);
-		if (m_motd == "")
-			m_motd = "Click here to set a message of the day."; // this is needed here as well apparently
+		if (strlen(m_motd) == 0)
+			m_motd = "Click here to set a message of the day.";
 		CharacterDatabase.Execute("UPDATE guilds SET motd = \'%s\' WHERE guildId = %u", CharacterDatabase.EscapeString(string(szNewMotd)).c_str(), m_guildId);
 	}
 	else
