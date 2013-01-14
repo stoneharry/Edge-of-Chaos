@@ -91,9 +91,9 @@ void World::LogoutPlayers()
 	Log.Notice("World", "Logging out players...");
 	for(SessionMap::iterator i = m_sessions.begin(); i != m_sessions.end(); i++)
 	{
-		(i->second)->LogoutPlayer(true);
+		if (i->second != NULL)
+			(i->second)->LogoutPlayer(true);
 	}
-
 	Log.Notice("World", "Deleting sessions...");
 	WorldSession* p;
 	for(SessionMap::iterator i = m_sessions.begin(); i != m_sessions.end();)

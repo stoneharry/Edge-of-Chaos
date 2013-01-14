@@ -488,7 +488,11 @@ bool Master::Run(int argc, char** argv)
 
 	ls->Close();
 
+	sScriptMgr.UnloadScripts();
+	delete ScriptMgr::getSingletonPtr();
+
 	CloseConsoleListener();
+
 	sWorld.SaveAllPlayers();
 	sWorld.LogoutPlayers();
 
@@ -498,19 +502,16 @@ bool Master::Run(int argc, char** argv)
 #endif
 	sSocketMgr.CloseAll();
 
-	ThreadPool.Shutdown();
+	//ThreadPool.Shutdown(); // this function doesn't exist and is causing a crash
 
 	delete ls;
-
 
 	delete LogonCommHandler::getSingletonPtr();
 
 	sWorld.ShutdownClasses();
-	Log.Notice("World", "~World()");
-	delete World::getSingletonPtr();
 
-	sScriptMgr.UnloadScripts();
-	delete ScriptMgr::getSingletonPtr();
+	Log.Notice("World", "~World()");
+	//delete World::getSingletonPtr(); // another crasher
 
 	Log.Notice("ChatHandler", "~ChatHandler()");
 	delete ChatHandler::getSingletonPtr();
@@ -536,7 +537,7 @@ bool Master::Run(int argc, char** argv)
 	Log.Close();
 
 #ifdef WIN32
-	WSACleanup();
+	//WSACleanup(); // more crashes?
 
 	// Terminate Entire Application
 	//HANDLE pH = OpenProcess(PROCESS_TERMINATE, TRUE, GetCurrentProcessId());

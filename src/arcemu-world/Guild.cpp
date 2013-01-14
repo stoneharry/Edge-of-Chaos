@@ -708,12 +708,16 @@ void Guild::SetMOTD(const char* szNewMotd, WorldSession* pClient)
 		return;
 	}
 
+
 	if(m_motd)
-		free(m_motd);
+	//	free(m_motd); // this causes a server crash
+		m_motd = "";
 
 	if(strlen(szNewMotd))
 	{
 		m_motd = strdup(szNewMotd);
+		if (m_motd == "")
+			m_motd = "Click here to set a message of the day."; // this is needed here as well apparently
 		CharacterDatabase.Execute("UPDATE guilds SET motd = \'%s\' WHERE guildId = %u", CharacterDatabase.EscapeString(string(szNewMotd)).c_str(), m_guildId);
 	}
 	else
