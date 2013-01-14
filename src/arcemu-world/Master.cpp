@@ -502,13 +502,13 @@ bool Master::Run(int argc, char** argv)
 #endif
 	sSocketMgr.CloseAll();
 
-	//ThreadPool.Shutdown(); // this function doesn't exist and is causing a crash
-
 	delete ls;
 
 	delete LogonCommHandler::getSingletonPtr();
 
 	sWorld.ShutdownClasses();
+
+	ThreadPool.Shutdown(); // THIS is causing a crash
 
 	Log.Notice("World", "~World()");
 	//delete World::getSingletonPtr(); // another crasher
@@ -537,7 +537,7 @@ bool Master::Run(int argc, char** argv)
 	Log.Close();
 
 #ifdef WIN32
-	//WSACleanup(); // more crashes?
+	WSACleanup();
 
 	// Terminate Entire Application
 	//HANDLE pH = OpenProcess(PROCESS_TERMINATE, TRUE, GetCurrentProcessId());
