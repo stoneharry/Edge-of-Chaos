@@ -4612,10 +4612,13 @@ void AIInterface::OnMoveCompleted()
 
 void AIInterface::MoveEvadeReturn()
 {
-	if(!MoveTo(m_returnX, m_returnY, m_returnZ, m_Unit->GetSpawnO()) && m_splinePriority == SPLINE_PRIORITY_MOVEMENT)
+	if (!m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_RETURN_AFTER_COMBAT))
 	{
-		m_Unit->SetPosition(m_returnX, m_returnY, m_returnZ, m_Unit->GetSpawnO());
-		StopMovement(0);
+		if(!MoveTo(m_returnX, m_returnY, m_returnZ, m_Unit->GetSpawnO()) && m_splinePriority == SPLINE_PRIORITY_MOVEMENT)
+		{
+			m_Unit->SetPosition(m_returnX, m_returnY, m_returnZ, m_Unit->GetSpawnO());
+			StopMovement(0);
+		}
 	}
 }
 
