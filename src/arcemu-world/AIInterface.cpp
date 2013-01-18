@@ -4620,6 +4620,13 @@ void AIInterface::MoveEvadeReturn()
 			StopMovement(0);
 		}
 	}
+	else
+	{
+		m_AIState = STATE_IDLE;
+		m_returnX = m_returnY = m_returnZ = 0.0f;
+		m_combatResetX = m_combatResetY = m_combatResetZ = 0.0f;
+		SetWalk();
+	}
 }
 
 void AIInterface::EventForceRedirected(Unit* pUnit, uint32 misc1)
