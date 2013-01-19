@@ -1952,7 +1952,7 @@ void Spell::SendCastResult(uint8 result, uint32 custommessage)
 	Player * plr = p_caster;
 	if(plr == NULL && u_caster && u_caster->m_redirectSpellPackets)
 		plr = u_caster->m_redirectSpellPackets;
-	else
+	if(!plr)
 		return;
 	WorldPacket data(SMSG_CAST_FAILED, (4+1+1));
 	data << uint8(extra_cast_number);
