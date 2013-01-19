@@ -1461,6 +1461,9 @@ void Pet::ApplySummonLevelAbilities()
 		case 27893:
 			stat_index = 4;
 			break;
+		case 1964: // treant
+			stat_index = 5; // unsure of correct index
+			break;
 	}
 	if(GetEntry() == 89)
 		has_mana = false;
