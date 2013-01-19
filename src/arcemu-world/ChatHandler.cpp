@@ -167,9 +167,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 		_player->numberofchats++;
 		if(_player->numberofchats >= 30)
 		{
-			m_muted = uint32(UNIXTIME+WEEK*IN_MILLISECONDS);
-			sLogonCommHandler.Account_SetMute(GetAccountNameS(), uint32(UNIXTIME+WEEK*IN_MILLISECONDS));
-			SystemMessage("You have been muted for spamming, if you wish to appeal this make a ticket.");
+			m_muted = uint32(UNIXTIME+HOUR*IN_MILLISECONDS);
+			sLogonCommHandler.Account_SetMute(GetAccountNameS(), uint32(UNIXTIME+HOUR*IN_MILLISECONDS));
+			SystemMessage("You have been muted for spamming, if you wish to appeal this make a ticket. You will be allowed to talk again in exactly one hour.");
 			return;
 		}
 	}
@@ -579,9 +579,9 @@ void WorldSession::HandleEmoteOpcode(WorldPacket & recv_data)
 	_player->numberofchats++;
 	if(_player->numberofchats >= 30)
 	{
-		m_muted = uint32(UNIXTIME+WEEK*IN_MILLISECONDS);
-		sLogonCommHandler.Account_SetMute(GetAccountNameS(), uint32(UNIXTIME+WEEK*IN_MILLISECONDS));
-		SystemMessage("You have been muted for spamming, if you wish to appeal this make a ticket.");
+		m_muted = uint32(UNIXTIME+HOUR*IN_MILLISECONDS);
+		sLogonCommHandler.Account_SetMute(GetAccountNameS(), uint32(UNIXTIME+HOUR*IN_MILLISECONDS));
+		SystemMessage("You have been muted for spamming, if you wish to appeal this make a ticket. You will be allowed to talk again in exactly one hour.");
 		return;
 	}
 	_player->Emote((EmoteType)emote);
