@@ -1935,7 +1935,7 @@ void Spell::SendCustomError(uint32 message)
 		return;
 	SetSpellFailed();
     WorldPacket data(SMSG_CAST_FAILED, (4+1+1));
-    data << uint8(extra_cast_number);                              // single cast or multi 2.3 (0/1)
+    data << uint8(extra_cast_number);
 	data << uint32(GetProto()->Id);
 	data << uint8(SPELL_FAILED_CUSTOM_ERROR);
 	data << uint32(message);
@@ -1944,7 +1944,6 @@ void Spell::SendCustomError(uint32 message)
 
 void Spell::SendCastResult(uint8 result, uint32 custommessage)
 {
-	uint32 Extra = 0;
 	if(result == SPELL_CANCAST_OK) return;
 
 	SetSpellFailed();
@@ -1955,11 +1954,14 @@ void Spell::SendCastResult(uint8 result, uint32 custommessage)
 		plr = u_caster->m_redirectSpellPackets;
 	else
 		return;
-	// for some reason, the result extra is not working for anything, including SPELL_FAILED_REQUIRES_SPELL_FOCUS
+	WorldPacket data(SMSG_CAST_FAILED, (4+1+1));
+	data << uint8(extra_cast_number);
+	data << uint32(GetProto()->Id);
+	data << uint8(result);
 	switch(result)
 	{
 		case SPELL_FAILED_REQUIRES_SPELL_FOCUS:
-			Extra = GetProto()->RequiresSpellFocus;
+			data << uint32(GetProto()->RequiresSpellFocus);
 			break;
 
 		case SPELL_FAILED_REQUIRES_AREA:
@@ -1970,24 +1972,86 @@ void Spell::SendCastResult(uint8 result, uint32 custommessage)
 				for(uint8 i = 0; i < 7; i++)
 					if(ag->AreaId[i] != 0 && ag->AreaId[i] != plrarea)
 					{
-						Extra = ag->AreaId[i];
+						data << uint32(ag->AreaId[i]);
 						break;
 					}
 			}
 			break;
 		case SPELL_FAILED_TOTEMS:
-			Extra = GetProto()->Totem[1] ? GetProto()->Totem[1] : GetProto()->Totem[0];
+			if(GetProto()->Totem[0])
+				data << uint32(GetProto()->Totem[0]);
+			if(GetProto()->Totem[1])
+				data << GetProto()->Totem[1];
 			break;
-
-		case SPELL_FAILED_ONLY_SHAPESHIFT:
-			Extra = GetProto()->Stances;
+		case SPELL_FAILED_TOTEM_CATEGORY:
+			if(GetProto()->TotemCategory[0])
+				data << uint32(GetProto()->TotemCategory[0]);
+			if(GetProto()->TotemCategory[1])
+				data << uint32(GetProto()->TotemCategory[1]);
 			break;
+		case SPELL_FAILED_EQUIPPED_ITEM_CLASS:
+		case SPELL_FAILED_EQUIPPED_ITEM_CLASS_MAINHAND:
+		case SPELL_FAILED_EQUIPPED_ITEM_CLASS_OFFHAND:
+			data << uint32(GetProto()->EquippedItemClass);
+			data << uint32(GetProto()->EquippedItemSubClassMask);
+			break;
+		case SPELL_FAILED_TOO_MANY_OF_ITEM:
+		{
+			uint32 item = 0;
+			for (int8 eff = 0; eff < MAX_SPELL_EFFECTS; eff++)
+				if (GetProto()->EffectItemType[eff])
+					item = GetProto()->EffectItemType[eff];
+			ItemPrototype* ip = ItemPrototypeStorage.LookupEntry(item);
+			if (ip && ip->ItemLimitCategory)
+				data << uint32(ip->ItemLimitCategory);
+			break;
+		}
 		case SPELL_FAILED_CUSTOM_ERROR:
-			Extra = custommessage;
-			//case SPELL_FAILED_TOTEM_CATEGORY: seems to be fully client sided.
-	}
+			data << uint32(custommessage);
+			break;
+        case SPELL_FAILED_REAGENTS:
+		{
+			uint32 missingItem = 0;
+			for (uint32 i = 0; i < MAX_SPELL_REAGENTS; i++)
+			{
+				if (GetProto()->Reagent[i] <= 0)
+					continue;
 
-	plr->SendCastResult(GetProto()->Id, result, extra_cast_number, Extra);
+				uint32 itemid	= GetProto()->Reagent[i];
+				uint32 itemcount = GetProto()->ReagentCount[i];
+
+				if (!plr->HasItemCount(itemid, itemcount))
+				{
+					missingItem = itemid;
+					break;
+				}
+			}
+
+			data << uint32(missingItem);
+			break;
+		}
+		case SPELL_FAILED_PREVENTED_BY_MECHANIC:
+			data << uint32(GetProto()->Mechanic);
+			break;
+		case SPELL_FAILED_NEED_EXOTIC_AMMO:
+			data << uint32(GetProto()->EquippedItemSubClassMask);
+			break;
+		case SPELL_FAILED_NEED_MORE_ITEMS:
+			data << uint32(0);
+			data << uint32(0);
+			break;
+		case SPELL_FAILED_MIN_SKILL:
+			data << uint32(0);
+			data << uint32(0);
+			break;
+		case SPELL_FAILED_FISHING_TOO_LOW:
+			data << uint32(0);
+			break;
+		default:
+			break;
+	}
+	plr->SendPacket(&data);
+	//plr->SendCastResult(GetProto()->Id, result, extra_cast_number, Extra);
 }
 
 void Spell::SendSpellStart()
