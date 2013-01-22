@@ -335,5 +335,5 @@ bool MapCell::CanUnload()
 	/*if(_corpses.size() == 0 && _mapmgr->m_battleground == NULL)
 		return true;
 	else
-		return false;*
+		return false;*/
 }
