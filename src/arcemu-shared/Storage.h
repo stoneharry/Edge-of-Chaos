@@ -712,7 +712,7 @@ class SERVER_DECL SQLStorage : public Storage<T, StorageType>
 				LoadBlock(fields, Allocated);
 			}
 			while(result->NextRow());
-			Log.Success("Storage", "%u entries loaded from table %s.", result->GetRowCount(), IndexName);
+			//Log.Success("Storage", "%u entries loaded from table %s.", result->GetRowCount(), IndexName);
 			delete result;
 
 			//Log.Success("Storage", "Loaded database cache from `%s`.", IndexName);

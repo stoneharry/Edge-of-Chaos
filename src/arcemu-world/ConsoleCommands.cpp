@@ -45,7 +45,6 @@ bool HandleInfoCommand(BaseConsole* pConsole, int argc, const char* argv[])
 	pConsole->Write("======================================================================\r\n");
 	pConsole->Write("Server Information: \r\n");
 	pConsole->Write("======================================================================\r\n");
-	pConsole->Write("Server Revision: ArcEmu %s/%s-%s-%s (www.arcemu.org)\r\n", BUILD_HASH_STR, CONFIG, PLATFORM_TEXT, ARCH);
 	pConsole->Write("Server Uptime: %s\r\n", sWorld.GetUptimeString().c_str());
 	pConsole->Write("Current Players: %d (%d GMs, %d queued)\r\n", clientsNum, gm,  0);
 	pConsole->Write("Active Thread Count: %u\r\n", ThreadPool.GetActiveThreadCount());
@@ -366,13 +365,12 @@ bool HandleNameHashCommand(BaseConsole* pConsole, int argc, const char* argv[])
 bool HandleClearConsoleCommand(BaseConsole* pConsole, int argc, const char* argv[])
 {
 	system("cls");
-	pConsole->Write("Out of the ashes, Chuck Norris appears! With a roundhouse kick, your console shall now be cleaned!");
+	pConsole->Write("Console Cleared.\n");
 	return true;
 }
 
 bool HandleReloadConsoleCommand(BaseConsole* pConsole, int argc, const char* argv[])
 {
-	sWorld.SendWorldText("Support for reloading tables on the fly was disabled in Arcemu revision 3621. You are seeing this message because apparently reading SVN changelog or using forums search is way over the head of some of our users.", 0);
 	return true;
 
 	/*
@@ -421,6 +419,6 @@ bool HandleReloadConsoleCommand(BaseConsole* pConsole, int argc, const char* arg
 }
 bool HandleScriptEngineReloadCommand(BaseConsole*, int, const char* [])
 {
-	sScriptMgr.ReloadScriptEngines();
+	//sScriptMgr.ReloadScriptEngines();
 	return true;
 }

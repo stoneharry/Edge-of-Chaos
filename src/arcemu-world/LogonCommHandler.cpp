@@ -148,7 +148,7 @@ void LogonCommHandler::Startup()
 
 void LogonCommHandler::ConnectAll()
 {
-	Log.Success("LogonCommClient", "Attempting to connect to logon server...");
+	Log.Success("Server", "Attempting to connect to logon server...");
 	for(set<LogonServer*>::iterator itr = servers.begin(); itr != servers.end(); ++itr)
 		Connect(*itr);
 }
@@ -176,7 +176,7 @@ void LogonCommHandler::Connect(LogonServer* server)
 		Log.Error("LogonCommClient", "Connection failed. Will try again in 10 seconds.");
 		return;
 	}
-	Log.Success("LogonCommClient", "Authenticating...");
+	//Log.Success("LogonCommClient", "Authenticating...");
 	uint32 tt = (uint32)UNIXTIME + 10;
 	conn->SendChallenge();
 	while(!conn->authenticated)
@@ -200,13 +200,13 @@ void LogonCommHandler::Connect(LogonServer* server)
 		return;
 	}
 
-	Log.Success("LogonCommClient", "Authentication OK.");
-	Log.Notice("LogonCommClient", "Logonserver was connected on [%s:%u].", server->Address.c_str(), server->Port);
+	//Log.Success("LogonCommClient", "Authentication OK.");
+	Log.Notice("Server", "Logonserver was connected on [%s:%u].", server->Address.c_str(), server->Port);
 
 	// Send the initial ping
 	conn->SendPing();
 
-	Log.Notice("LogonCommClient", "Registering Realms...");
+	Log.Notice("Server", "Registering Realms...");
 	conn->_id = server->ID;
 
 	RequestAddition(conn);
@@ -233,7 +233,7 @@ void LogonCommHandler::Connect(LogonServer* server)
 	// Wait for all realms to register
 	Arcemu::Sleep(200);
 
-	Log.Success("LogonCommClient", "Logonserver latency is %ums.", conn->latency);
+	Log.Success("Server", "Logonserver latency is %ums.", conn->latency);
 }
 
 void LogonCommHandler::AdditionAck(uint32 ID, uint32 ServID)

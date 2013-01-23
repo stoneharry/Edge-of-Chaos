@@ -243,7 +243,7 @@ void LootMgr::LoadLootTables(const char* szTableName, LootStore* LootTable)
 	QueryResult* result = WorldDatabase.Query("SELECT * FROM %s ORDER BY entryid ASC", szTableName);
 	if(!result)
 	{
-		sLog.Error("LootMgr", "Loading loot from table %s failed.", szTableName);
+		//sLog.Error("LootMgr", "Loading loot from table %s failed.", szTableName);
 		return;
 	}
 	uint32 entry_id = 0;
@@ -347,7 +347,7 @@ void LootMgr::LoadLootTables(const char* szTableName, LootStore* LootTable)
 		}
 	}
 
-	sLog.outString("  %d loot templates loaded from %s", db_cache.size(), szTableName);
+	//sLog.outString("  %d loot templates loaded from %s", db_cache.size(), szTableName);
 	delete result;
 }
 

@@ -478,14 +478,14 @@ bool World::SetInitialWorldSettings()
 	sLocalizationMgr.Reload(false);
 
 	CommandTableStorage::getSingleton().Load();
-	Log.Success("WordFilter", "Loading...");
+	//Log.Success("WordFilter", "Loading...");
 
 	g_characterNameFilter = new WordFilter();
 	g_chatFilter = new WordFilter();
 	g_characterNameFilter->Load("wordfilter_character_names");
 	g_chatFilter->Load("wordfilter_chat");
 
-	Log.Success("WordFilter", "Done.");
+	//Log.Success("WordFilter", "Done.");
 
 	Log.Success("World", "Database loaded in %ums.", getMSTime() - start_time);
 
@@ -514,7 +514,7 @@ bool World::SetInitialWorldSettings()
 
 // ------------------------------------------------------------------------------------------------
 
-	Log.Success("World", "Starting Transport System...");
+	//Log.Success("World", "Starting Transport System...");
 	objmgr.LoadTransporters();
 
 	//Start the Achievement system :D
@@ -1698,7 +1698,7 @@ void World::AnnounceColorChooser(int tagcolor, int gmtagcolor, int namecolor, in
 			ann_msgcolor = "|cffffff00"; //yellow
 			break;
 	}
-	LOG_BASIC("Announce colors initialized.");
+	//LOG_BASIC("Announce colors initialized.");
 }
 
 void World::LoadAccountDataProc(QueryResultVector & results, uint32 AccountId)

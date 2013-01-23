@@ -45,7 +45,7 @@ void ApplyNormalFixes()
 {
 	//Updating spell.dbc
 
-	Log.Success("World", "Processing %u spells...", dbcSpell.GetNumRows());
+	//Log.Success("World", "Processing %u spells...", dbcSpell.GetNumRows());
 
 	//checking if the DBCs have been extracted from an english client, based on namehash of spell 4, the first with a different name in non-english DBCs
 	SpellEntry * sp = dbcSpell.LookupEntry(4);
