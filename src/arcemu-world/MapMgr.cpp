@@ -338,10 +338,10 @@ void MapMgr::PushObject(Object* obj)
 	}
 	ARCEMU_ASSERT(objCell != NULL);
 
-	uint32 endX = (x <= _sizeX) ? x + 2 : (_sizeX - 2);
-	uint32 endY = (y <= _sizeY) ? y + 2 : (_sizeY - 2);
-	uint32 startX = x > 0 ? x - 2 : 0;
-	uint32 startY = y > 0 ? y - 2 : 0;
+	uint32 endX = (x <= _sizeX) ? x + sWorld.MagicCellNumber : (_sizeX - sWorld.MagicCellNumber);
+	uint32 endY = (y <= _sizeY) ? y + sWorld.MagicCellNumber : (_sizeY - sWorld.MagicCellNumber);
+	uint32 startX = x > 0 ? x - sWorld.MagicCellNumber : 0;
+	uint32 startY = y > 0 ? y - sWorld.MagicCellNumber : 0;
 	uint32 posX, posY;
 	MapCell* cell;
 	//MapCell::ObjectSet::iterator iter;
@@ -387,7 +387,7 @@ void MapMgr::PushObject(Object* obj)
 	if(plObj != NULL)
 	{
 		m_PlayerStorage[plObj->GetLowGUID()] = plObj;
-		UpdateCellActivity(x, y, 4);
+		UpdateCellActivity(x, y, sWorld.MagicCellNumber*2);
 	}
 	else
 	{
@@ -621,7 +621,7 @@ void MapMgr::RemoveObject(Object* obj, bool free_guid)
 		{
 			uint32 x = GetPosX(obj->GetPositionX());
 			uint32 y = GetPosY(obj->GetPositionY());
-			UpdateCellActivity(x, y, 4);
+			UpdateCellActivity(x, y, sWorld.MagicCellNumber*2);
 		}
 		m_PlayerStorage.erase(TO< Player* >(obj)->GetLowGUID());
 	}
@@ -803,14 +803,14 @@ void MapMgr::ChangeObjectLocation(Object* obj)
 		if(obj->IsPlayer())
 		{
 			// have to unlock/lock here to avoid a deadlock situation.
-			UpdateCellActivity(cellX, cellY, 4);
+			UpdateCellActivity(cellX, cellY, sWorld.MagicCellNumber*2);
 			if(pOldCell != NULL)
 			{
 				// only do the second check if there's -/+ 2 difference
-				if(abs((int)cellX - (int)pOldCell->_x) > 4 ||
-				        abs((int)cellY - (int)pOldCell->_y) > 4)
+				if(abs((int)cellX - (int)pOldCell->_x) > sWorld.MagicCellNumber*2 ||
+				        abs((int)cellY - (int)pOldCell->_y) > sWorld.MagicCellNumber*2)
 				{
-					UpdateCellActivity(pOldCell->_x, pOldCell->_y, 4);
+					UpdateCellActivity(pOldCell->_x, pOldCell->_y, sWorld.MagicCellNumber*2);
 				}
 			}
 		}
@@ -821,10 +821,10 @@ void MapMgr::ChangeObjectLocation(Object* obj)
 	// Update in-range set for new objects
 	//////////////////////////////////////
 
-	uint32 endX = (cellX <= _sizeX) ? cellX + 2 : (_sizeX - 2);
-	uint32 endY = (cellY <= _sizeY) ? cellY + 2 : (_sizeY - 2);
-	uint32 startX = cellX > 0 ? cellX - 2 : 0;
-	uint32 startY = cellY > 0 ? cellY - 2 : 0;
+	uint32 endX = (cellX <= _sizeX) ? cellX + sWorld.MagicCellNumber : (_sizeX - sWorld.MagicCellNumber);
+	uint32 endY = (cellY <= _sizeY) ? cellY + sWorld.MagicCellNumber : (_sizeY - sWorld.MagicCellNumber);
+	uint32 startX = cellX > 0 ? cellX - sWorld.MagicCellNumber : 0;
+	uint32 startY = cellY > 0 ? cellY - sWorld.MagicCellNumber : 0;
 	uint32 posX, posY;
 	MapCell* cell;
 
@@ -1187,10 +1187,10 @@ void MapMgr::UpdateCellActivity(uint32 x, uint32 y, uint32 radius)
 
 bool MapMgr::_CellActive(uint32 x, uint32 y)
 {
-	uint32 endX = ((x + 2) <= _sizeX) ? x + 2 : (_sizeX - 2);
-	uint32 endY = ((y + 2) <= _sizeY) ? y + 2 : (_sizeY - 2);
-	uint32 startX = x > 0 ? x - 2 : 0;
-	uint32 startY = y > 0 ? y - 2 : 0;
+	uint32 endX = ((x + sWorld.MagicCellNumber) <= _sizeX) ? x + sWorld.MagicCellNumber : (_sizeX - sWorld.MagicCellNumber);
+	uint32 endY = ((y + sWorld.MagicCellNumber) <= _sizeY) ? y + sWorld.MagicCellNumber : (_sizeY - sWorld.MagicCellNumber);
+	uint32 startX = x > 0 ? x - sWorld.MagicCellNumber : 0;
+	uint32 startY = y > 0 ? y - sWorld.MagicCellNumber : 0;
 	uint32 posX, posY;
 
 	MapCell* objCell;
@@ -1250,10 +1250,10 @@ void MapMgr::ChangeFarsightLocation(Player* plr, DynamicObject* farsight)
 	{
 		uint32 cellX = GetPosX(farsight->GetPositionX());
 		uint32 cellY = GetPosY(farsight->GetPositionY());
-		uint32 endX = (cellX <= _sizeX) ? cellX + 2 : (_sizeX - 2);
-		uint32 endY = (cellY <= _sizeY) ? cellY + 2 : (_sizeY - 2);
-		uint32 startX = cellX > 0 ? cellX - 2 : 0;
-		uint32 startY = cellY > 0 ? cellY - 2 : 0;
+		uint32 endX = (cellX <= _sizeX) ? cellX + sWorld.MagicCellNumber : (_sizeX - sWorld.MagicCellNumber);
+		uint32 endY = (cellY <= _sizeY) ? cellY + sWorld.MagicCellNumber : (_sizeY - sWorld.MagicCellNumber);
+		uint32 startX = cellX > 0 ? cellX - sWorld.MagicCellNumber : 0;
+		uint32 startY = cellY > 0 ? cellY - sWorld.MagicCellNumber : 0;
 		uint32 posX, posY;
 		MapCell* cell;
 		Object* obj;
@@ -1918,12 +1918,12 @@ DynamicObject* MapMgr::CreateDynamicObject()
 void MapMgr::AddForcedCell(MapCell* c)
 {
 	m_forcedcells.insert(c);
-	UpdateCellActivity(c->GetPositionX(), c->GetPositionY(), 1);
+	UpdateCellActivity(c->GetPositionX(), c->GetPositionY(), sWorld.MagicCellNumber*2);
 }
 void MapMgr::RemoveForcedCell(MapCell* c)
 {
 	m_forcedcells.erase(c);
-	UpdateCellActivity(c->GetPositionX(), c->GetPositionY(), 1);
+	UpdateCellActivity(c->GetPositionX(), c->GetPositionY(), sWorld.MagicCellNumber*2);
 }
 
 float MapMgr::GetFirstZWithCPZ(float x, float y, float z)

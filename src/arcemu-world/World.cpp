@@ -1527,6 +1527,8 @@ void World::Rehash(bool load)
 
 	m_movementCompressThreshold = Config.MainConfig.GetFloatDefault("Movement", "CompressThreshold", 25.0f);
 	m_movementCompressThreshold *= m_movementCompressThreshold;		// square it to avoid sqrt() on checks
+	MagicCellNumber = Config.MainConfig.GetIntDefault("Server", "MagicCellNumber", 2);
+
 	// ======================================
 
 	if(m_banTable != NULL)

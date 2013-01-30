@@ -623,7 +623,7 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 		bool instance_SlidingExpiration;
 		int instance_DailyHeroicInstanceResetHour;
 		bool instance_CheckTriggerPrerequsites;
-
+		uint32 MagicCellNumber;
 		// battleground settings
 		struct BGSettings{
 			uint32 AV_MIN;
