@@ -821,10 +821,10 @@ void MapMgr::ChangeObjectLocation(Object* obj)
 	// Update in-range set for new objects
 	//////////////////////////////////////
 
-	uint32 endX = cellX <= _sizeX ? cellX + 1 : (_sizeX - 1);
-	uint32 endY = cellY <= _sizeY ? cellY + 1 : (_sizeY - 1);
-	uint32 startX = cellX > 0 ? cellX - 1 : 0;
-	uint32 startY = cellY > 0 ? cellY - 1 : 0;
+	uint32 endX = (cellX <= _sizeX) ? cellX + 2 : (_sizeX - 2);
+	uint32 endY = (cellY <= _sizeY) ? cellY + 2 : (_sizeY - 2);
+	uint32 startX = cellX > 0 ? cellX - 2 : 0;
+	uint32 startY = cellY > 0 ? cellY - 2 : 0;
 	uint32 posX, posY;
 	MapCell* cell;
 
@@ -1187,10 +1187,10 @@ void MapMgr::UpdateCellActivity(uint32 x, uint32 y, uint32 radius)
 
 bool MapMgr::_CellActive(uint32 x, uint32 y)
 {
-	uint32 endX = ((x + 1) <= _sizeX) ? x + 1 : (_sizeX - 1);
-	uint32 endY = ((y + 1) <= _sizeY) ? y + 1 : (_sizeY - 1);
-	uint32 startX = x > 0 ? x - 1 : 0;
-	uint32 startY = y > 0 ? y - 1 : 0;
+	uint32 endX = (x <= _sizeX) ? x + 2 : (_sizeX - 2);
+	uint32 endY = (y <= _sizeY) ? y + 2 : (_sizeY - 2);
+	uint32 startX = x > 0 ? x - 2 : 0;
+	uint32 startY = y > 0 ? y - 2 : 0;
 	uint32 posX, posY;
 
 	MapCell* objCell;
@@ -1250,10 +1250,10 @@ void MapMgr::ChangeFarsightLocation(Player* plr, DynamicObject* farsight)
 	{
 		uint32 cellX = GetPosX(farsight->GetPositionX());
 		uint32 cellY = GetPosY(farsight->GetPositionY());
-		uint32 endX = (cellX <= _sizeX) ? cellX + 1 : (_sizeX - 1);
-		uint32 endY = (cellY <= _sizeY) ? cellY + 1 : (_sizeY - 1);
-		uint32 startX = cellX > 0 ? cellX - 1 : 0;
-		uint32 startY = cellY > 0 ? cellY - 1 : 0;
+		uint32 endX = (cellX <= _sizeX) ? cellX + 2 : (_sizeX - 2);
+		uint32 endY = (cellY <= _sizeY) ? cellY + 2 : (_sizeY - 2);
+		uint32 startX = cellX > 0 ? cellX - 2 : 0;
+		uint32 startY = cellY > 0 ? cellY - 2 : 0;
 		uint32 posX, posY;
 		MapCell* cell;
 		Object* obj;
@@ -1665,6 +1665,7 @@ void MapMgr::TeleportPlayers()
 
 void MapMgr::UnloadCell(uint32 x, uint32 y)
 {
+
 	MapCell* c = GetCell(x, y);
 	if(c == NULL || c->HasPlayers() || _CellActive(x, y) || !c->IsUnloadPending()) return;
 
