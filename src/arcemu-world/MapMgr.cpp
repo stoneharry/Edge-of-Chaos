@@ -1187,8 +1187,8 @@ void MapMgr::UpdateCellActivity(uint32 x, uint32 y, uint32 radius)
 
 bool MapMgr::_CellActive(uint32 x, uint32 y)
 {
-	uint32 endX = (x <= _sizeX) ? x + 2 : (_sizeX - 2);
-	uint32 endY = (y <= _sizeY) ? y + 2 : (_sizeY - 2);
+	uint32 endX = ((x + 2) <= _sizeX) ? x + 2 : (_sizeX - 2);
+	uint32 endY = ((y + 2) <= _sizeY) ? y + 2 : (_sizeY - 2);
 	uint32 startX = x > 0 ? x - 2 : 0;
 	uint32 startY = y > 0 ? y - 2 : 0;
 	uint32 posX, posY;
