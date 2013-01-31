@@ -624,6 +624,7 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 		int instance_DailyHeroicInstanceResetHour;
 		bool instance_CheckTriggerPrerequsites;
 		uint32 MagicCellNumber;
+		bool fuckyomultibox;
 		// battleground settings
 		struct BGSettings{
 			uint32 AV_MIN;

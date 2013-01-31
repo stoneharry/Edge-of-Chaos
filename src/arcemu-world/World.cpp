@@ -83,6 +83,8 @@ World::World()
 	LastTotalTrafficInKB = 0.0;
 	LastTotalTrafficOutKB = 0.0;
 	LastTrafficQuery = 0;
+	MagicCellNumber = 0;
+	fuckyomultibox = false;
 }
 
 void CleanupRandomNumberGenerators();
@@ -224,26 +226,29 @@ void World::AddGlobalSession(WorldSession* session)
 	SessionsMutex.Acquire();
 	Sessions.insert(session);
 	SessionsMutex.Release();
-	if(session->GetSocket())
+	if(fuckyomultibox)
 	{
-		std::string ip = session->GetSocket()->GetRemoteIP();
-		if(ip != "noip")
+		if(session->GetSocket())
 		{
-			m_sessionlock.AcquireReadLock();
-			SessionMap::iterator itr;
-			for(itr = m_sessions.begin(); itr != m_sessions.end(); itr++)
+			std::string ip = session->GetSocket()->GetRemoteIP();
+			if(ip != "noip")
 			{
-				if(itr->second->GetAccountId() == session->GetAccountId())
-					continue;
-				if(itr->second->GetSocket() == NULL)
-					continue;
-				if(ip == itr->second->GetSocket()->GetRemoteIP())
+				m_sessionlock.AcquireReadLock();
+				SessionMap::iterator itr;
+				for(itr = m_sessions.begin(); itr != m_sessions.end(); itr++)
 				{
-					session->Disconnect();
-					itr->second->Disconnect();
+					if(itr->second->GetAccountId() == session->GetAccountId())
+						continue;
+					if(itr->second->GetSocket() == NULL)
+						continue;
+					if(ip == itr->second->GetSocket()->GetRemoteIP())
+					{
+						session->Disconnect();
+						itr->second->Disconnect();
+					}
 				}
+				m_sessionlock.ReleaseReadLock();
 			}
-			m_sessionlock.ReleaseReadLock();
 		}
 	}
 }
@@ -1528,6 +1533,7 @@ void World::Rehash(bool load)
 	m_movementCompressThreshold = Config.MainConfig.GetFloatDefault("Movement", "CompressThreshold", 25.0f);
 	m_movementCompressThreshold *= m_movementCompressThreshold;		// square it to avoid sqrt() on checks
 	MagicCellNumber = Config.MainConfig.GetIntDefault("Server", "MagicCellNumber", 2);
+	fuckyomultibox = Config.MainConfig.GetBoolDefault("Server", "FuckYoMultiBox", false);
 
 	// ======================================
 
