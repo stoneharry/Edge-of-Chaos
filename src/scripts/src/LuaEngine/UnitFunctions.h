@@ -260,6 +260,8 @@ class LuaUnit
 
 				case TYPEID_PLAYER:
 					p_target = TO_PLAYER(ptr);
+					if (p_target->HasFlag(PLAYER_FLAGS, PLAYER_FLAG_GM)) // GMs should not be phased
+						return 0;
 					p_target->Phase(PHASE_SET, newphase);
 					if(p_target->GetSession())
 					{
