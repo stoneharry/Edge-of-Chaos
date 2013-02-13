@@ -708,6 +708,8 @@ bool Storage_ReloadTable(const char* TableName)
 		objmgr.ReloadVendors();
 	else if(!stricmp(TableName, "spell_dbc"))
 		objmgr.ReloadSpellDbc();
+	else if(!stricmp(TableName, "xp_to_level"))
+		objmgr.LoadXpTable();
 	else
 		return false;
 

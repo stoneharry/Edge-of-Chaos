@@ -185,7 +185,6 @@ struct LevelInfo
 	uint32 HP;
 	uint32 Mana;
 	uint32 Stat[5];
-	uint32 XPToNextLevel;
 };
 
 struct ReputationMod
@@ -612,6 +611,8 @@ class SERVER_DECL ObjectMgr : public Singleton < ObjectMgr >, public EventableOb
 
 		LevelInfo* GetLevelInfo(uint32 Race, uint32 Class, uint32 Level);
 		void GenerateLevelUpInfo();
+		void LoadXpTable();
+		uint32 GetXPToLevel(uint32 level);
 		void LoadDefaultPetSpells();
 		set<SpellEntry*>* GetDefaultPetSpells(uint32 Entry);
 		uint32 GetPetSpellCooldown(uint32 SpellId);
@@ -802,6 +803,8 @@ class SERVER_DECL ObjectMgr : public Singleton < ObjectMgr >, public EventableOb
 		typedef std::map<uint32, PetLevelInfo*> PetLevelInfoContainer;
 		// PetLevelInfoContainer[creature_id][level]
 		PetLevelInfoContainer _petInfoStore;                            // [creature_id][level]
+		typedef std::vector<uint32> PlayerXPperLevel;
+		PlayerXPperLevel _playerXPperLevel;
 };
 
 

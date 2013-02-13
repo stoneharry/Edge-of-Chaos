@@ -10140,3 +10140,10 @@ void Unit::SendBreakTarget()
     data.append(GetNewGUID());
     SendMessageToSet(&data, false);
 }
+
+void Unit::setLevel(uint32 level)
+{
+	SetUInt32Value(UNIT_FIELD_LEVEL, level); 
+	if(IsPlayer()) //I cheat
+		TO< Player* >(this)->SetNextLevelXp(objmgr.GetXPToLevel(level));
+};

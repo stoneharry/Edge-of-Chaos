@@ -685,6 +685,7 @@ void ObjectMgr::LoadPlayerCreateInfo()
 	delete result;
 
 	//Log.Success("ObjectMgr", "%u player create infos loaded.", mPlayerCreateInfo.size());
+	LoadXpTable();
 	GenerateLevelUpInfo();
 }
 
@@ -2181,7 +2182,6 @@ void ObjectMgr::GenerateLevelUpInfo()
 			lastlvl.Stat[2] = PCI->stamina;
 			lastlvl.Stat[3] = PCI->intellect;
 			lastlvl.Stat[4] = PCI->spirit;
-			lastlvl.XPToNextLevel = 400;
 			LevelMap* lMap = new LevelMap;
 
 			// Create first level.
@@ -2351,7 +2351,6 @@ void ObjectMgr::GenerateLevelUpInfo()
 					nextLvlXP = (int)((XP / 100.0) + 0.5) * 100;
 				}
 
-				lvl->XPToNextLevel = nextLvlXP;
 				lastlvl = *lvl;
 				lastlvl.HP = lastlvl.HP;
 
@@ -2369,6 +2368,43 @@ void ObjectMgr::GenerateLevelUpInfo()
 		}
 	}
 	//Log.Notice("ObjectMgr", "%u level up information generated.", mLevelInfo.size());
+}
+
+void ObjectMgr::LoadXpTable()
+{
+	_playerXPperLevel.clear(); //For reloading
+	_playerXPperLevel.resize(sWorld.m_levelCap);
+	for (uint8 level = 0; level < sWorld.m_levelCap; ++level)
+		_playerXPperLevel[level] = 0;
+ 	QueryResult* result  = WorldDatabase.Query("SELECT lvl, xp_for_next_level FROM player_xp_for_level");
+
+	if (result)
+	{
+		do
+		{
+			Field* fields = result->Fetch();
+
+			uint32 current_level = fields[0].GetUInt8();
+			uint32 current_xp    = fields[1].GetUInt32();
+
+			if (current_level >= sWorld.m_levelCap)
+               continue;
+            _playerXPperLevel[current_level] = current_xp;
+        }
+        while (result->NextRow());
+	}
+	for (uint8 level = 1; level < sWorld.m_levelCap; ++level)
+	{
+		if (_playerXPperLevel[level] == 0)
+			_playerXPperLevel[level] = NextLevelXp[level];
+	}
+}
+
+uint32 ObjectMgr::GetXPToLevel(uint32 level)
+{
+	if (level < _playerXPperLevel.size())
+		return _playerXPperLevel[level];
+	return 0;
 }
 
 LevelInfo* ObjectMgr::GetLevelInfo(uint32 Race, uint32 Class, uint32 Level)
