@@ -60,7 +60,8 @@ enum BattleGroundTypes
     BATTLEGROUND_STRAND_OF_THE_ANCIENT	= 9,
     BATTLEGROUND_ISLE_OF_CONQUEST           = 30,
     BATTLEGROUND_RANDOM                     = 32,
-    BATTLEGROUND_NUM_TYPES			= 33, //Based on BattlemasterList.dbc, make the storage arrays big enough! On 3.1.3 the last one was 11 The Ring of Valor, so 12 was enough here, but on 3.2.0 there is 32 All Battlegrounds!
+	BATTLEGROUND_HUNGER_GAMES 				= 40,
+    BATTLEGROUND_NUM_TYPES			= 41, //Based on BattlemasterList.dbc, make the storage arrays big enough! On 3.1.3 the last one was 11 The Ring of Valor, so 12 was enough here, but on 3.2.0 there is 32 All Battlegrounds!
 };
 
 #define IS_ARENA(x) ( (x) >= BATTLEGROUND_ARENA_2V2 && (x) <= BATTLEGROUND_ARENA_5V5 )

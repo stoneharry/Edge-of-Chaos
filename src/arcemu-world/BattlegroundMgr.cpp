@@ -196,7 +196,6 @@ void CBattlegroundManager::HandleBattlegroundJoin(WorldSession* m_session, World
 
 	pck >> guid >> bgtype >> instance;
 
-
 	if(bgtype >= BATTLEGROUND_NUM_TYPES || !bgtype)
 	{
 		sCheatLog.writefromsession(m_session, "tried to crash the server by joining battleground that does not exist (0)");
@@ -933,6 +932,8 @@ uint32 CBattlegroundManager::GetMaximumPlayers(uint32 dbcIndex)
 			return sWorld.bgsettings.SOTA_MAX;
 		case BATTLEGROUND_ISLE_OF_CONQUEST:
 			return sWorld.bgsettings.IOC_MAX;
+		case BATTLEGROUND_HUNGER_GAMES:
+			return 10;
 		default:
 			return 1;
 	}
