@@ -56,6 +56,7 @@ SET(sources
 	Guild.cpp 
 	GuildHandler.cpp 
 	HonorHandler.cpp 
+	HungerGames.cpp
 	InstanceCommands.cpp 
 	Item.cpp 
 	ItemHandler.cpp 
@@ -213,6 +214,7 @@ SET( headers
 	Guild.h
 	HonorHandler.h
 	Hunter.h
+	HungerGames.cpp
 	IEventListener.h
 	IsleOfConquest.h
 	Item.h

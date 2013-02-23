@@ -165,6 +165,7 @@ template< class T, class U > T TO(U u) { return static_cast< T >(u); }
 #include "Group.h"
 #include "Guild.h"
 #include "HonorHandler.h"
+#include "HungerGames.h"
 #include "ItemPrototype.h"
 #include "Item.h"
 #include "Container.h"
@@ -239,7 +240,3 @@ template< class T, class U > T TO(U u) { return static_cast< T >(u); }
 #include "ServerPlayedCharacter.h"
 #include "DemonHunter.h"
 #endif
-
-#define RECRUITING "Info: |cff00FF7FArcEmu is recruiting developers: Join us on irc.freenode.net #arcemu"
-#define BUGTRACKER "https://github.com/arcemu/arcemu/issues"
-
