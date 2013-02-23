@@ -64,8 +64,8 @@ const static uint32 BGMapIds[ BATTLEGROUND_NUM_TYPES ] =
 	0,
 	0,
 	0,
-	607, // Hunger Games
-	0
+	0,
+	607 // Hunger Games
 };
 
 const static CreateBattlegroundFunc BGCFuncs[BATTLEGROUND_NUM_TYPES] =
@@ -109,8 +109,8 @@ const static CreateBattlegroundFunc BGCFuncs[BATTLEGROUND_NUM_TYPES] =
 	NULL,
 	NULL,
 	NULL,
-	&IsleOfConquest::Create, //&HungerGames::Create, // Hunger Games
-	NULL
+	NULL,
+	&IsleOfConquest::Create //&HungerGames::Create, // Hunger Games
 };
 
 CBattlegroundManager::CBattlegroundManager()
