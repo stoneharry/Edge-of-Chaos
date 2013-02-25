@@ -1,6 +1,14 @@
 
 #ifndef _HUNG_H
-#define _HUNG_H
+#define _HUNG_Hb
+
+const float HG_SPAWN_POINTS[5][4] = {
+	{15747.00f, 15687.00f, 1.00f, 0.90f},
+	{15747.00f, 15687.00f, 1.00f, 0.90f},
+	{15747.00f, 15687.00f, 1.00f, 0.90f},
+	{15747.00f, 15687.00f, 1.00f, 0.90f},
+	{15747.00f, 15687.00f, 1.00f, 0.90f}
+};
 
 class HungerGames : public CBattleground
 {
@@ -51,6 +59,7 @@ protected:
 	uint32 m_lastHonorGainResources[2];
 	std::map<Creature*, uint8> m_vehicles;
 	bool ActiveBonuses[1][6];
+	int SpawnPoint;
 };
 
 #endif

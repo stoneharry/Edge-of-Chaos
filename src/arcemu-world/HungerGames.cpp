@@ -1,8 +1,22 @@
 
 #include "StdAfx.h"
 
+/*
+	To Do:
+		- Make player leave shortly after death
+		- Spawn mobs at start of BG
+		- Add waypoints to mobs (a way to automate this through DB?)
+		- Player removing gear etc on enter, reset on leave (Terror was working on this)
+		- Mob AI
+		- Scenarios
+		- Events
+		- Reward for killing players
+		...
+*/
+
 HungerGames::HungerGames(MapMgr * mgr, uint32 id, uint32 lgroup, uint32 t) : CBattleground(mgr, id, lgroup, t)
 {
+	SpawnPoint = 0;
 }
 
 HungerGames::~HungerGames()
@@ -12,10 +26,9 @@ HungerGames::~HungerGames()
 bool HungerGames::HookHandleRepop(Player* plr)
 {
 	LocationVector dest_pos;
-	if( plr->GetTeam() == 1 )
-		dest_pos.ChangeCoords(0,0,0);
-	else
-		dest_pos.ChangeCoords(0,0,0);
+	
+	dest_pos.ChangeCoords(HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2]);
+	SpawnPoint++;
 
 	// port to it
 	plr->SafeTeleport(plr->GetMapId(), plr->GetInstanceID(), dest_pos);
@@ -63,8 +76,7 @@ void HungerGames::OnRemovePlayer(Player* plr)
 
 void HungerGames::OnCreate()
 {
-	// Spawn const spiritguides
-	//AddSpiritGuide(SpawnSpiritGuide(0, 0, 0, 0));
+	// Spawn creatures
 }
 
 void HungerGames::HookOnPlayerKill(Player* plr, Player* pVictim)
@@ -91,10 +103,7 @@ void HungerGames::RemoveReinforcements(uint32 teamId, uint32 amt)
 
 LocationVector HungerGames::GetStartingCoords(uint32 Team)
 {
-	if(Team)		// Horde
-		return LocationVector(0.00f, 0.00f, 0.00f, 0.00f);
-	else			// Alliance
-		return LocationVector(0.00f, 0.00f, 0.00f, 0.00f);
+	return LocationVector(HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2], HG_SPAWN_POINTS[SpawnPoint][3]);
 }
 
 void HungerGames::OnStart()
