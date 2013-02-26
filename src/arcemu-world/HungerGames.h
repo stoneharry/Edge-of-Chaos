@@ -2,7 +2,12 @@
 #ifndef _HUNG_H
 #define _HUNG_Hb
 
-const float HG_SPAWN_POINTS[5][4] = {
+const float HG_SPAWN_POINTS[10][4] = {
+	{15747.00f, 15687.00f, 1.00f, 0.90f},
+	{15747.00f, 15687.00f, 1.00f, 0.90f},
+	{15747.00f, 15687.00f, 1.00f, 0.90f},
+	{15747.00f, 15687.00f, 1.00f, 0.90f},
+	{15747.00f, 15687.00f, 1.00f, 0.90f},
 	{15747.00f, 15687.00f, 1.00f, 0.90f},
 	{15747.00f, 15687.00f, 1.00f, 0.90f},
 	{15747.00f, 15687.00f, 1.00f, 0.90f},
@@ -64,6 +69,7 @@ protected:
 	int SpawnPoint;
 	int ReaminingPlayers;
 	string winningPlayer;
+	GameObject * m_bubbles[10];
 	enum EventList {
 		EVENT_HUNGER_GAMES_CHECK_FOR_WIN = 0
 	};

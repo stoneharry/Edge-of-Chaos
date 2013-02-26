@@ -18,11 +18,30 @@ HungerGames::HungerGames(MapMgr * mgr, uint32 id, uint32 lgroup, uint32 t) : CBa
 	winningPlayer = "";
 	m_started = false;
 
+	for (int i = 0; i < 10; i++)
+	{
+		m_bubbles[i] = SpawnGameObject(184719, HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2], 0, 0, 35, 0.1f);
+		m_bubbles[i]->SetScale(0.1f);
+		m_bubbles[i]->SetByte(GAMEOBJECT_BYTES_1, 0, 1);
+		m_bubbles[i]->SetUInt32Value(GAMEOBJECT_FLAGS, 32);
+		m_bubbles[i]->SetFaction(114);
+		m_bubbles[i]->SetByte(GAMEOBJECT_BYTES_1, 3, 100);
+		m_bubbles[i]->PushToWorld(m_mapMgr);
+	}
+
 	sEventMgr.AddEvent(this, &HungerGames::CheckForWin, EVENT_HUNGER_GAMES_CHECK_FOR_WIN, 1000, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 }
 
 HungerGames::~HungerGames()
 {
+	for(uint32 i = 0; i < 2; ++i)
+	{
+		if(m_bubbles[i] != NULL)
+		{
+			if(!m_bubbles[i]->IsInWorld())
+				delete m_bubbles[i];
+		}
+	}
 }
 
 void HungerGames::CheckForWin()
@@ -50,13 +69,13 @@ bool HungerGames::HookHandleRepop(Player* plr)
 	LocationVector dest_pos;
 	
 	dest_pos.ChangeCoords(HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2]);
-	SpawnPoint++;
 	ReaminingPlayers++;
+	SpawnPoint++;
 
 	plr->SetFFAPvPFlag();
 
 	if (!m_started)
-		plr->CastSpell(plr, BG_PREPARATION, false);
+		plr->CastSpell(plr, BG_PREPARATION, true);
 
 	// port to it
 	plr->SafeTeleport(plr->GetMapId(), plr->GetInstanceID(), dest_pos);
@@ -72,8 +91,8 @@ void HungerGames::HookOnPlayerDeath(Player* plr)
 	ReaminingPlayers--;
 	plr->m_bgScore.Deaths++;
 	UpdatePvPData();
-	// Apparently you cannot loot your own factions corpse so we spawn a chest instead
 
+	// Apparently you cannot loot your own factions corpse so we spawn a chest instead
 	GameObjectInfo * gi;
 	gi = GameObjectNameStorage.LookupEntry(6038333);
 
@@ -106,7 +125,7 @@ void HungerGames::HookOnMount(Player* plr)
 void HungerGames::OnAddPlayer(Player* plr)
 {
 	if(!m_started)
-		plr->CastSpell(plr, BG_PREPARATION, false);
+		plr->CastSpell(plr, BG_PREPARATION, true);
 	// players should not join during a game of hunger games
 	UpdatePvPData();
 	plr->SetFFAPvPFlag();
@@ -161,6 +180,13 @@ void HungerGames::OnStart()
 		for(set<Player*  >::iterator itr = m_players[i].begin(); itr != m_players[i].end(); itr++) {
 			(*itr)->RemoveAura(BG_PREPARATION);
 		}
+	}
+
+	for (int i = 0; i < 10; i++)
+	{
+		m_bubbles[i]->RemoveFromWorld(false);
+		delete m_bubbles[i];
+		m_bubbles[i] = NULL;
 	}
 
 	PlaySoundToAll(SOUND_BATTLEGROUND_BEGIN);
