@@ -9,18 +9,42 @@
 		- Player removing gear etc on enter, reset on leave (Terror was working on this)
 		- Mob AI
 		- Scenarios
-		- Events
-		- Reward for killing players
+		- Item(s) for killing players
+		- Add missing world strings
 		...
 */
 
 HungerGames::HungerGames(MapMgr * mgr, uint32 id, uint32 lgroup, uint32 t) : CBattleground(mgr, id, lgroup, t)
 {
 	SpawnPoint = 0;
+	ReaminingPlayers = 0;
+	winningPlayer = "";
+
+	sEventMgr.AddEvent(this, &HungerGames::CheckForWin, EVENT_HUNGER_GAMES_CHECK_FOR_WIN, 1000, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 }
 
 HungerGames::~HungerGames()
 {
+}
+
+void HungerGames::CheckForWin()
+{
+	if (m_started && ReaminingPlayers < 2)
+	{
+		for (int i = 0; i < 2; i++)
+		{
+			for (set<Player*  >::iterator itr = m_players[i].begin(); itr != m_players[i].end(); itr++)
+			{
+				if ((*itr)->isAlive())
+				{
+					winningPlayer = (*itr)->GetName();
+					break;
+				}
+			}
+		}
+
+		Finish(0);
+	}
 }
 
 bool HungerGames::HookHandleRepop(Player* plr)
@@ -29,6 +53,9 @@ bool HungerGames::HookHandleRepop(Player* plr)
 	
 	dest_pos.ChangeCoords(HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2]);
 	SpawnPoint++;
+	ReaminingPlayers++;
+
+	plr->SetFFAPvPFlag();
 
 	// port to it
 	plr->SafeTeleport(plr->GetMapId(), plr->GetInstanceID(), dest_pos);
@@ -41,6 +68,7 @@ void HungerGames::HookOnAreaTrigger(Player* plr, uint32 id)
 
 void HungerGames::HookOnPlayerDeath(Player* plr)
 {
+	ReaminingPlayers--;
 	plr->m_bgScore.Deaths++;
 	UpdatePvPData();
 }
@@ -66,12 +94,15 @@ void HungerGames::OnAddPlayer(Player* plr)
 {
 	if(!m_started)
 		plr->CastSpell(plr, BG_PREPARATION, true);
+	// players should not join during a game of hunger games
 	UpdatePvPData();
 }
 
 void HungerGames::OnRemovePlayer(Player* plr)
 {
 	plr->RemoveAura(BG_PREPARATION);
+	if (!plr->isAlive())
+		ReaminingPlayers--;
 }
 
 void HungerGames::OnCreate()
@@ -127,6 +158,7 @@ void HungerGames::HookGenerateLoot(Player* plr, Object* pCorpse)
 		float gold = ((float(plr->getLevel()) / 2.5f)+1) * 100.0f;
 		gold *= sWorld.getRate(RATE_MONEY);
 		TO< Corpse* >(pCorpse)->loot.gold = float2int32(gold);
+		// Add random possible item here
 	}
 }
 
@@ -140,6 +172,7 @@ void HungerGames::SetIsWeekend(bool isweekend)
 
 void HungerGames::HookOnUnitKill(Player* plr, Unit* pVictim)
 {
+	// Can hook on special unit deaths here
 }
 
 void HungerGames::Herald(const char *format, ...)
@@ -175,17 +208,21 @@ void HungerGames::Finish(uint32 losingTeam)
 	m_ended = true;
 	sEventMgr.RemoveEvents(this);
 	sEventMgr.AddEvent(TO< CBattleground* >(this), &CBattleground::Close, EVENT_BATTLEGROUND_CLOSE, 120000, 1,0);
-
-	for(uint32 i = 0; i < 2; i++)
+	
+	for (int i = 0; i < 2; i++)
 	{
-		for(set<Player*  >::iterator itr = m_players[i].begin(); itr != m_players[i].end(); itr++)
+		for (set<Player*  >::iterator itr = m_players[i].begin(); itr != m_players[i].end(); itr++)
 		{
 			(*itr)->Root();
-			(*itr)->BroadcastMessage("The Hunger Games has ended, %s has won!", losingTeam ? "Alliance" : "Horde");
-			if(i == losingTeam)
-				(*itr)->AddHonor(75);	
+
+			if (winningPlayer == "")
+				winningPlayer = "<No Winner>";
+
+			(*itr)->BroadcastMessage("The Hunger Games has ended, %s has won!", winningPlayer);
+			if ((*itr)->GetName() == winningPlayer) // not sure if this will work
+				(*itr)->AddHonor(200);	
 			else
-				(*itr)->AddHonor(200);
+				(*itr)->AddHonor(75);
 		}
 	}
 
@@ -211,8 +248,4 @@ void HungerGames::CreateVehicle(uint8 team, uint32 entry, float x, float y, floa
 
 void HungerGames::AddHonorToTeam(uint32 amount, uint8 team)
 {
-	for(set<Player*  >::iterator itr = m_players[team].begin(); itr != m_players[team].end(); itr++)
-	{
-		(*itr)->AddHonor(amount);
-	}
 }

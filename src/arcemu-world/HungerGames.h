@@ -54,12 +54,19 @@ public:
 
 	void CreateVehicle(uint8 team, uint32 entry, float x, float y, float z, float o);
 	void AddHonorToTeam(uint32 amount, uint8 team);
+
+	void CheckForWin();
 protected:
 	int m_bonusHonor;
 	uint32 m_lastHonorGainResources[2];
 	std::map<Creature*, uint8> m_vehicles;
 	bool ActiveBonuses[1][6];
 	int SpawnPoint;
+	int ReaminingPlayers;
+	string winningPlayer;
+	enum EventList {
+		EVENT_HUNGER_GAMES_CHECK_FOR_WIN = 0
+	};
 };
 
 #endif
