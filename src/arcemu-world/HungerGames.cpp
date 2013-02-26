@@ -34,8 +34,6 @@ void HungerGames::CheckForWin()
 		{
 			for (set<Player*  >::iterator itr = m_players[i].begin(); itr != m_players[i].end(); itr++)
 			{
-				if ((*itr)->InGroup())
-					(*itr)->GetGroup()->Disband();
 				if ((*itr)->isAlive())
 				{
 					winningPlayer = (*itr)->GetName();

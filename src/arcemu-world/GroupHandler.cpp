@@ -48,6 +48,9 @@ void WorldSession::HandleGroupInviteOpcode(WorldPacket & recv_data)
 		return;
 	}
 
+	if (player->GetMapId() == 750 || _player->GetMapId() == 750)
+		return;
+
 	if(_player->InGroup() && !_player->IsGroupLeader())
 	{
 		SendPartyCommandResult(_player, 0, "", ERR_PARTY_YOU_ARE_NOT_LEADER);
