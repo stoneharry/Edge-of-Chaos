@@ -8,7 +8,6 @@
 		- Player removing gear etc on enter, reset on leave (Terror was working on this)
 		- Mob AI
 		- Scenarios
-		- Item(s) for killing players
 		...
 */
 
@@ -73,6 +72,8 @@ void HungerGames::HookOnPlayerDeath(Player* plr)
 	ReaminingPlayers--;
 	plr->m_bgScore.Deaths++;
 	UpdatePvPData();
+	// Apparently you cannot loot your own factions corpse so we spawn a chest instead
+	SpawnGameObject(6038333, plr->GetPosition().x, plr->GetPosition().y, plr->GetPosition().z, plr->GetPosition().o, 0, 35, 1.0f);
 }
 
 void HungerGames::HookFlagDrop(Player* plr, GameObject* obj)
@@ -157,14 +158,13 @@ void HungerGames::OnStart()
 
 void HungerGames::HookGenerateLoot(Player* plr, Object* pCorpse)
 {
-	if(pCorpse->IsCorpse())
+	/*if(pCorpse->IsCorpse())
 	{
 		// add some money
 		float gold = ((float(plr->getLevel()) / 2.5f)+1) * 100.0f;
 		gold *= sWorld.getRate(RATE_MONEY);
 		TO< Corpse* >(pCorpse)->loot.gold = float2int32(gold);
-		// Add random possible item here
-	}
+	}*/
 }
 
 void HungerGames::HookOnShadowSight()
