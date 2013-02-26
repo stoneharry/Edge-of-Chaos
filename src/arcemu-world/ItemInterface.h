@@ -102,6 +102,7 @@ class SERVER_DECL ItemInterface
 		Item* SafeRemoveAndRetreiveItemByGuid(uint64 guid, bool destroy);
 		bool SafeFullRemoveItemFromSlot(int8 ContainerSlot, int16 slot); //destroys item fully
 		bool SafeFullRemoveItemByGuid(uint64 guid); //destroys item fully
+		void RemoveAllItems();
 		AddItemResult AddItemToFreeSlot(Item* item);
 		AddItemResult AddItemToFreeBankSlot(Item* item);
 

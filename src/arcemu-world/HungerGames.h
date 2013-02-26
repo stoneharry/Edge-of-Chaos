@@ -57,14 +57,12 @@ public:
 	void Herald(const char *format, ...);
 	void Finish(uint32 losingTeam);
 
-	void CreateVehicle(uint8 team, uint32 entry, float x, float y, float z, float o);
 	void AddHonorToTeam(uint32 amount, uint8 team);
 
 	void CheckForWin();
 protected:
 	int m_bonusHonor;
 	uint32 m_lastHonorGainResources[2];
-	std::map<Creature*, uint8> m_vehicles;
 	bool ActiveBonuses[1][6];
 	int SpawnPoint;
 	int ReaminingPlayers;

@@ -2608,6 +2608,7 @@ class SERVER_DECL Player : public Unit
 		Spell* m_spellModTakingSpell;
 		uint8 m_roles;
 		uint32 GroupUpdateFlags;
+		bool UseAltDatabase;
 	public:
 		void SendUpdateDataToSet(ByteBuffer* groupbuf, ByteBuffer* nongroupbuf, bool sendtoself);
 
@@ -2652,6 +2653,10 @@ class SERVER_DECL Player : public Unit
 
 		bool icanhascameraplz;
 		void SendDatCameraShit(uint32 id);
+		bool IsUsingAltDatabase() { return UseAltDatabase; }
+		void SwitchDatabase(bool alt);
+		void ReloadSpells();
+		void ReloadItems();
 };
 
 

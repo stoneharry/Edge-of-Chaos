@@ -416,18 +416,6 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket & recv_data)
 		return;
 	}
 
-	//Same Faction limitation only applies to PVP and RPPVP realms :)
-	uint32 realmType = sLogonCommHandler.GetRealmType();
-	if(!HasGMPermissions() && realmType == REALMTYPE_PVP && _side >= 0 && !sWorld.crossover_chars)  // ceberwow fixed bug
-	{
-		if((pNewChar->IsTeamAlliance() && (_side == 1)) || (pNewChar->IsTeamHorde() && (_side == 0)))
-		{
-			pNewChar->ok_to_remove = true;
-			delete pNewChar;
-			OutPacket(SMSG_CHAR_CREATE, 1, CHAR_CREATE_PVP_TEAMS_VIOLATION);
-			return;
-		}
-	}
 
 	//Check if player has a level 55 or higher character on this realm and allow him to create DK.
 	//This check can be turned off in optional.conf
@@ -435,12 +423,6 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket & recv_data)
 	{
 		pNewChar->ok_to_remove = true;
 		delete pNewChar;
-		/*
-		WorldPacket data(1);
-		data.SetOpcode(SMSG_CHAR_CREATE);
-		data << (uint8)56 + 1; // This errorcode is not the actual one. Need to find a real error code.
-		SendPacket( &data );
-		*/
 		OutPacket(SMSG_CHAR_CREATE, 1, CHAR_CREATE_LEVEL_REQUIREMENT);
 		return;
 	}

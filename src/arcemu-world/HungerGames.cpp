@@ -93,15 +93,13 @@ void HungerGames::HookOnPlayerDeath(Player* plr)
 	UpdatePvPData();
 
 	// Apparently you cannot loot your own factions corpse so we spawn a chest instead
-	GameObjectInfo * gi;
-	gi = GameObjectNameStorage.LookupEntry(6038333);
-
 	GameObject * chest = SpawnGameObject(6038333, plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), 0, 0, 35, 1.0f);
-
+	if(!chest)
+	{
+		delete chest;
+		return;
+	}
 	chest->SetState(1);
-	chest->SetType(gi->Type);
-	chest->SetDisplayId(gi->DisplayID);
-	chest->SetFaction(35);
 	chest->PushToWorld(m_mapMgr);
 }
 
@@ -269,15 +267,6 @@ void HungerGames::HookOnFlagDrop(Player * plr)
 
 void HungerGames::HookGameObjectDamage(GameObject*go)
 {
-}
-
-void HungerGames::CreateVehicle(uint8 team, uint32 entry, float x, float y, float z, float o)
-{
-	Creature * c = SpawnCreature(entry, x, y, z, o);
-	if(c)
-	{
-		m_vehicles.insert(make_pair(c, team));
-	}
 }
 
 void HungerGames::AddHonorToTeam(uint32 amount, uint8 team)

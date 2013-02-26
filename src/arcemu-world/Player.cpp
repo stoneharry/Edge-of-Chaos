@@ -824,13 +824,9 @@ bool Player::Create(WorldPacket & data)
 	setClass(class_);
 	setGender(gender);
 	if (class_ == HUNTER)
-	{
 		SetPowerType(POWER_TYPE_FOCUS);
-	}
 	else
-	{
 		SetPowerType(powertype);
-	}
 
 	SetUInt32Value(UNIT_FIELD_BYTES_2, (U_FIELD_BYTES_FLAG_PVP << 8));
 
@@ -1189,15 +1185,9 @@ void Player::_EventAttack(bool offhand)
 	{
 		WorldPacket data(SMSG_ATTACKSWING_CANT_ATTACK, 0);
 		GetSession()->SendPacket(&data);
-		EventAttackStop();
-		smsg_AttackStop(pVictim->GetGUID());
-		return;
-	}
-
-	if(!isAttackable( this, pVictim ))
-	{
 		setHRegenTimer(5000);
 		EventAttackStop();
+		smsg_AttackStop(pVictim->GetGUID());
 		return;
 	}
 
@@ -2330,6 +2320,8 @@ void Player::InitVisibleUpdateBits()
 
 void Player::SaveToDB(bool bNewCharacter /* =false */)
 {
+	if(IsUsingAltDatabase())
+		return;
 	bool in_arena = false;
 	QueryBuffer* buf = NULL;
 	if(!bNewCharacter)
@@ -14239,4 +14231,84 @@ void Player::SendDatCameraShit(uint32 id)
 	GetMapMgr()->ChangeObjectLocation(this);
 	SetPosition(GetPositionX()+0.01,GetPositionY()+0.01, GetPositionZ()+0.01, GetOrientation());
 	GetSession()->OutPacket(SMSG_TRIGGER_CINEMATIC, 4, &id);
+}
+
+void Player::SwitchDatabase(bool alt)
+{
+	UseAltDatabase = alt;
+	ReloadSpells();
+	ReloadItems();
+}
+
+void Player::ReloadSpells()
+{
+	Reset_Spells();
+	if(!IsUsingAltDatabase())
+	{
+		QueryResult * result = CharacterDatabase.Query("SELECT SpellID FROM playerspells WHERE GUID = %u", GetLowGUID());
+		if(result == NULL)
+			return;
+
+		Field* fields = NULL;
+
+		do
+		{
+			fields = result->Fetch();
+
+			uint32 spellid = fields[ 0 ].GetUInt32();
+
+			SpellEntry* sp = dbcSpell.LookupEntryForced(spellid);
+			if(sp != NULL)
+				addSpell(spellid);
+		}while(result->NextRow());
+		delete result;
+		QueryResult * accountwide = CharacterDatabase.Query("select spellid from character_spell_accountwide where accountid = %u", GetSession()->GetAccountId());
+		if(accountwide)
+		{
+			do
+			{
+				fields = accountwide->Fetch();
+
+				uint32 spellid = fields[ 0 ].GetUInt32();
+
+				SpellEntry* sp = dbcSpell.LookupEntryForced(spellid);
+				if(sp != NULL)
+					mSpells.insert(spellid);
+
+			}while(accountwide->NextRow());
+		}
+		delete accountwide;
+	}
+}
+
+void Player::ReloadItems()
+{
+	GetItemInterface()->RemoveAllItems();
+	if(IsUsingAltDatabase())
+	{
+		Item * item;
+		for(std::list<CreateInfo_ItemStruct>::iterator is = info->items.begin(); is != info->items.end(); ++is)
+		{
+			if((*is).protoid != 0)
+			{
+				item = objmgr.CreateItem((*is).protoid, this);
+				if(item)
+				{
+					item->SetStackCount((*is).amount);
+					if((*is).slot < INVENTORY_SLOT_BAG_END)
+					{
+						if(!GetItemInterface()->SafeAddItem(item, INVENTORY_SLOT_NOT_SET, (*is).slot))
+							item->DeleteMe();
+					}
+					else
+					{
+						if(!GetItemInterface()->AddItemToFreeSlot(item))
+							item->DeleteMe();
+					}
+				}
+			}
+		}
+	}
+	else
+		GetItemInterface()->mLoadItemsFromDatabase(CharacterDatabase.Query("SELECT * FROM playeritems WHERE ownerguid = %u ORDER BY containerslot ASC",GetLowGUID()));
 }

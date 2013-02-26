@@ -195,7 +195,6 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
 		passenger->SendPacket( &ack );
 
 		passenger->SetFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_PVP_ATTACKABLE );
-
 		static_cast< Player* >( passenger )->SetFarsightTarget( owner->GetGUID() );
 
 		if( seats[ seatid ]->Controller() ){
@@ -210,6 +209,8 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
 			WorldPacket spells( SMSG_PET_SPELLS, 100 );
 			owner->BuildPetSpellList( spells );
 			passenger->SendPacket( &spells );
+			
+			static_cast< Player* >( passenger )->SetMover(owner);
 		}
 		passenger->AddExtraUnitMovementFlag(GetMoveFlags2());
 		GetOwner()->AddExtraUnitMovementFlag(GetMoveFlags2());
@@ -308,6 +309,7 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 
 			// send null spells if needed
 			static_cast< Player* >( passenger )->SendEmptyPetSpellList();
+			static_cast< Player* >( passenger )->SetMover(passenger);
 		}
 	}	
 

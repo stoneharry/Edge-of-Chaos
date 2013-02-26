@@ -716,6 +716,86 @@ bool ItemInterface::SafeFullRemoveItemByGuid(uint64 guid)
 	return false;
 }
 
+void ItemInterface::RemoveAllItems()
+{
+	int16 i = 0;
+
+	for(i = EQUIPMENT_SLOT_START; i < EQUIPMENT_SLOT_END; i++)
+	{
+		Item* item = GetInventoryItem(i);
+		if(item)
+			SafeFullRemoveItemFromSlot(INVENTORY_SLOT_NOT_SET, i);
+	}
+
+	for(i = INVENTORY_SLOT_ITEM_START; i < INVENTORY_SLOT_ITEM_END; i++)
+	{
+		Item* item = GetInventoryItem(i);
+		if(item)
+			SafeFullRemoveItemFromSlot(INVENTORY_SLOT_NOT_SET, i);
+	}
+
+	for(i = INVENTORY_KEYRING_START; i < INVENTORY_KEYRING_END; i++)
+	{
+		Item* item = GetInventoryItem(i);
+		if(item)
+		{
+			SafeFullRemoveItemFromSlot(INVENTORY_SLOT_NOT_SET, i);
+		}
+	}
+
+	for(i = CURRENCYTOKEN_SLOT_START; i < CURRENCYTOKEN_SLOT_END; i++)
+	{
+		Item* item = GetInventoryItem(i);
+		if(item)
+			SafeFullRemoveItemFromSlot(INVENTORY_SLOT_NOT_SET, i);
+	}
+
+	for(i = INVENTORY_SLOT_BAG_START; i < INVENTORY_SLOT_BAG_END; i++)
+	{
+		Item* item = GetInventoryItem(i);
+		if(item)
+			SafeFullRemoveItemFromSlot(INVENTORY_SLOT_NOT_SET, i);
+		else
+		{
+			if(item && item->IsContainer())
+			{
+				for(uint32 j = 0; j < item->GetProto()->ContainerSlots; j++)
+				{
+					Item* item2 = TO< Container* >(item)->GetItem(static_cast<int16>(j));
+					if(item2)
+						TO< Container* >(item)->SafeFullRemoveItemFromSlot(static_cast<int16>(j));
+				}
+			}
+		}
+	}
+
+	for(i = BANK_SLOT_ITEM_START; i < BANK_SLOT_ITEM_END; i++)
+	{
+		Item* item = GetInventoryItem(i);
+
+		if(item)
+			SafeFullRemoveItemFromSlot(INVENTORY_SLOT_NOT_SET, i);
+	}
+
+	for(i = BANK_SLOT_BAG_START; i < BANK_SLOT_BAG_END; i++)
+	{
+		Item* item = GetInventoryItem(i);
+		if(item)
+			SafeFullRemoveItemFromSlot(INVENTORY_SLOT_NOT_SET, i);
+		else
+		{
+			if(item && item->IsContainer())
+			{
+				for(uint32 j = 0; j < item->GetProto()->ContainerSlots; j++)
+				{
+					Item* item2 = TO< Container* >(item)->GetItem(static_cast<int16>(j));
+					if(item2)
+						TO< Container* >(item)->SafeFullRemoveItemFromSlot(static_cast<int16>(j));
+				}
+			}
+		}
+	}
+}
 //-------------------------------------------------------------------//
 //Description: Gets a item from Inventory
 //-------------------------------------------------------------------//
