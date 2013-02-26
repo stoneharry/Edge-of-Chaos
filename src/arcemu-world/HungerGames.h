@@ -38,6 +38,7 @@ public:
 	static CBattleground* Create(MapMgr* m, uint32 i, uint32 l, uint32 t) { return new HungerGames(m, i, l, t); }
 
 	const char * GetName() { return "Hunger Games"; }
+	uint32 GetNameID() { return 84; }
 
 	void OnStart();
 
@@ -50,7 +51,6 @@ public:
 	void HookOnUnitKill(Player* plr, Unit* pVictim);
 	void Herald(const char *format, ...);
 	void Finish(uint32 losingTeam);
-	uint32 GetNameID() { return -1; }
 
 	void CreateVehicle(uint8 team, uint32 entry, float x, float y, float z, float o);
 	void AddHonorToTeam(uint32 amount, uint8 team);

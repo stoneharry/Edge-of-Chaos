@@ -1170,7 +1170,7 @@ void CBattleground::OnPlayerPushed(Player* plr)
 
 	if(plr->GetGroup() == NULL)
 	{
-		if(plr->m_isGmInvisible == false)    //do not join invisible gm's into bg groups.
+		if(plr->m_isGmInvisible == false && plr->GetMapId() != 750)    //do not join invisible gm's into bg groups and do not join hunger games into groups
 			m_groups[plr->m_bgTeam]->AddMember(plr->getPlayerInfo());
 	}
 }

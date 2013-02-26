@@ -3,14 +3,12 @@
 
 /*
 	To Do:
-		- Make player leave shortly after death
 		- Spawn mobs at start of BG
 		- Add waypoints to mobs (a way to automate this through DB?)
 		- Player removing gear etc on enter, reset on leave (Terror was working on this)
 		- Mob AI
 		- Scenarios
 		- Item(s) for killing players
-		- Add missing world strings
 		...
 */
 
@@ -19,6 +17,7 @@ HungerGames::HungerGames(MapMgr * mgr, uint32 id, uint32 lgroup, uint32 t) : CBa
 	SpawnPoint = 0;
 	ReaminingPlayers = 0;
 	winningPlayer = "";
+	m_started = false;
 
 	sEventMgr.AddEvent(this, &HungerGames::CheckForWin, EVENT_HUNGER_GAMES_CHECK_FOR_WIN, 1000, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 }
@@ -35,6 +34,8 @@ void HungerGames::CheckForWin()
 		{
 			for (set<Player*  >::iterator itr = m_players[i].begin(); itr != m_players[i].end(); itr++)
 			{
+				if ((*itr)->InGroup())
+					(*itr)->GetGroup()->Disband();
 				if ((*itr)->isAlive())
 				{
 					winningPlayer = (*itr)->GetName();
@@ -55,9 +56,10 @@ bool HungerGames::HookHandleRepop(Player* plr)
 	SpawnPoint++;
 	ReaminingPlayers++;
 
-	if (plr->InGroup())
-		plr->GetGroup()->Disband();
 	plr->SetFFAPvPFlag();
+
+	if (!m_started)
+		plr->CastSpell(plr, BG_PREPARATION, false);
 
 	// port to it
 	plr->SafeTeleport(plr->GetMapId(), plr->GetInstanceID(), dest_pos);
@@ -95,12 +97,11 @@ void HungerGames::HookOnMount(Player* plr)
 void HungerGames::OnAddPlayer(Player* plr)
 {
 	if(!m_started)
-		plr->CastSpell(plr, BG_PREPARATION, true);
+		plr->CastSpell(plr, BG_PREPARATION, false);
 	// players should not join during a game of hunger games
 	UpdatePvPData();
-	if (plr->InGroup())
-		plr->GetGroup()->Disband();
 	plr->SetFFAPvPFlag();
+	ReaminingPlayers++;
 }
 
 void HungerGames::OnRemovePlayer(Player* plr)
@@ -145,6 +146,8 @@ LocationVector HungerGames::GetStartingCoords(uint32 Team)
 
 void HungerGames::OnStart()
 {
+	m_started = true;
+
 	for(uint32 i = 0; i < 2; i++) {
 		for(set<Player*  >::iterator itr = m_players[i].begin(); itr != m_players[i].end(); itr++) {
 			(*itr)->RemoveAura(BG_PREPARATION);
@@ -152,8 +155,6 @@ void HungerGames::OnStart()
 	}
 
 	PlaySoundToAll(SOUND_BATTLEGROUND_BEGIN);
-
-	m_started = true;
 }
 
 void HungerGames::HookGenerateLoot(Player* plr, Object* pCorpse)
