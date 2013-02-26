@@ -55,6 +55,8 @@ bool HungerGames::HookHandleRepop(Player* plr)
 	SpawnPoint++;
 	ReaminingPlayers++;
 
+	if (plr->InGroup())
+		plr->GetGroup()->Disband();
 	plr->SetFFAPvPFlag();
 
 	// port to it
@@ -96,6 +98,9 @@ void HungerGames::OnAddPlayer(Player* plr)
 		plr->CastSpell(plr, BG_PREPARATION, true);
 	// players should not join during a game of hunger games
 	UpdatePvPData();
+	if (plr->InGroup())
+		plr->GetGroup()->Disband();
+	plr->SetFFAPvPFlag();
 }
 
 void HungerGames::OnRemovePlayer(Player* plr)
@@ -103,6 +108,7 @@ void HungerGames::OnRemovePlayer(Player* plr)
 	plr->RemoveAura(BG_PREPARATION);
 	if (!plr->isAlive())
 		ReaminingPlayers--;
+	plr->RemoveFFAPvPFlag();
 }
 
 void HungerGames::OnCreate()
@@ -218,7 +224,7 @@ void HungerGames::Finish(uint32 losingTeam)
 			if (winningPlayer == "")
 				winningPlayer = "<No Winner>";
 
-			(*itr)->BroadcastMessage("The Hunger Games has ended, %s has won!", winningPlayer);
+			(*itr)->BroadcastMessage("The Hunger Games has ended, %s has won!", winningPlayer.c_str());
 			if ((*itr)->GetName() == winningPlayer) // not sure if this will work
 				(*itr)->AddHonor(200);	
 			else
