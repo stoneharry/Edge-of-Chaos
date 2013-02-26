@@ -20,11 +20,13 @@ HungerGames::HungerGames(MapMgr * mgr, uint32 id, uint32 lgroup, uint32 t) : CBa
 
 	for (int i = 0; i < 10; i++)
 	{
-		m_bubbles[i] = SpawnGameObject(184719, HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2], 0, 0, 35, 0.1f);
-		m_bubbles[i]->SetScale(0.1f);
+		m_bubbles[i] = SpawnGameObject(184719, HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2], 0, 32, 114, 0.1f);
+		if(!m_bubbles[i])
+		{
+			delete m_bubbles[i];
+			continue;
+		}
 		m_bubbles[i]->SetByte(GAMEOBJECT_BYTES_1, 0, 1);
-		m_bubbles[i]->SetUInt32Value(GAMEOBJECT_FLAGS, 32);
-		m_bubbles[i]->SetFaction(114);
 		m_bubbles[i]->SetByte(GAMEOBJECT_BYTES_1, 3, 100);
 		m_bubbles[i]->PushToWorld(m_mapMgr);
 	}
@@ -182,9 +184,12 @@ void HungerGames::OnStart()
 
 	for (int i = 0; i < 10; i++)
 	{
-		m_bubbles[i]->RemoveFromWorld(false);
-		delete m_bubbles[i];
-		m_bubbles[i] = NULL;
+		if(m_bubbles[i])
+		{
+			m_bubbles[i]->RemoveFromWorld(false);
+			delete m_bubbles[i];
+			m_bubbles[i] = NULL;
+		}
 	}
 
 	PlaySoundToAll(SOUND_BATTLEGROUND_BEGIN);
