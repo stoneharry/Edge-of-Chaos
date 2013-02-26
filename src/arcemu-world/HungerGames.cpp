@@ -73,7 +73,17 @@ void HungerGames::HookOnPlayerDeath(Player* plr)
 	plr->m_bgScore.Deaths++;
 	UpdatePvPData();
 	// Apparently you cannot loot your own factions corpse so we spawn a chest instead
-	SpawnGameObject(6038333, plr->GetPosition().x, plr->GetPosition().y, plr->GetPosition().z, plr->GetPosition().o, 0, 35, 1.0f);
+
+	GameObjectInfo * gi;
+	gi = GameObjectNameStorage.LookupEntry(6038333);
+
+	GameObject * chest = SpawnGameObject(6038333, plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), 0, 0, 35, 1.0f);
+
+	chest->SetState(1);
+	chest->SetType(gi->Type);
+	chest->SetDisplayId(gi->DisplayID);
+	chest->SetFaction(35);
+	chest->PushToWorld(m_mapMgr);
 }
 
 void HungerGames::HookFlagDrop(Player* plr, GameObject* obj)
@@ -158,13 +168,6 @@ void HungerGames::OnStart()
 
 void HungerGames::HookGenerateLoot(Player* plr, Object* pCorpse)
 {
-	/*if(pCorpse->IsCorpse())
-	{
-		// add some money
-		float gold = ((float(plr->getLevel()) / 2.5f)+1) * 100.0f;
-		gold *= sWorld.getRate(RATE_MONEY);
-		TO< Corpse* >(pCorpse)->loot.gold = float2int32(gold);
-	}*/
 }
 
 void HungerGames::HookOnShadowSight()
