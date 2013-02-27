@@ -5,9 +5,9 @@
 	To Do:
 		- Spawn mobs at start of BG
 		- Add waypoints to mobs (a way to automate this through DB?)
-		- Player removing gear etc on enter, reset on leave (Terror was working on this)
 		- Mob AI
 		- Scenarios
+		- Player change DB function is not restoring items when reverse'd (ALL items are lost) and level should be reset to 1 when in BG and returned to original level after BG
 		...
 */
 
@@ -18,9 +18,11 @@ HungerGames::HungerGames(MapMgr * mgr, uint32 id, uint32 lgroup, uint32 t) : CBa
 	winningPlayer = "";
 	m_started = false;
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 10; i++) // Pushing this object to world is causing a crash for some reason. Tried using mgr passed in function and pushing later on. Still crashes.
 	{
-		m_bubbles[i] = SpawnGameObject(184719, HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2], 0, 32, 114, 0.1f);
+		m_bubbles[i] = NULL; // Added to prevent crash on end if not set
+		/*
+		m_bubbles[i] = SpawnGameObject(184719, HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2], 0, 35, 0, 0.1f);
 		if(!m_bubbles[i])
 		{
 			delete m_bubbles[i];
@@ -29,8 +31,8 @@ HungerGames::HungerGames(MapMgr * mgr, uint32 id, uint32 lgroup, uint32 t) : CBa
 		m_bubbles[i]->SetByte(GAMEOBJECT_BYTES_1, 0, 1);
 		m_bubbles[i]->SetByte(GAMEOBJECT_BYTES_1, 3, 100);
 		m_bubbles[i]->PushToWorld(m_mapMgr);
+		*/
 	}
-
 	sEventMgr.AddEvent(this, &HungerGames::CheckForWin, EVENT_HUNGER_GAMES_CHECK_FOR_WIN, 1000, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 }
 
@@ -130,6 +132,7 @@ void HungerGames::OnAddPlayer(Player* plr)
 	UpdatePvPData();
 	plr->SetFFAPvPFlag();
 	ReaminingPlayers++;
+	plr->SwitchDatabase(true);
 }
 
 void HungerGames::OnRemovePlayer(Player* plr)
@@ -138,6 +141,7 @@ void HungerGames::OnRemovePlayer(Player* plr)
 	if (!plr->isAlive())
 		ReaminingPlayers--;
 	plr->RemoveFFAPvPFlag();
+	plr->SwitchDatabase(false);
 }
 
 void HungerGames::OnCreate()
@@ -184,7 +188,7 @@ void HungerGames::OnStart()
 
 	for (int i = 0; i < 10; i++)
 	{
-		if(m_bubbles[i])
+		if(m_bubbles[i] != NULL)
 		{
 			m_bubbles[i]->RemoveFromWorld(false);
 			delete m_bubbles[i];
