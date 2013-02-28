@@ -14232,6 +14232,7 @@ void Player::SaveBlock(bool block)
 	SaveBlocked = block;
 	ReloadSpells();
 	ReloadItems();
+	ReloadActionBars();
 	if(block)
 	{
 		HGTemps[0] = getLevel();
@@ -14244,6 +14245,26 @@ void Player::SaveBlock(bool block)
 		setLevel(HGTemps[0]);
 		SetXp(HGTemps[1]);
 	}
+	LevelInfo* lvlinfo = objmgr.GetLevelInfo(getRace(), getClass(), getLevel());
+	
+	if(lvlinfo == NULL) 
+		return;
+	CalculateBaseStats();
+
+	_UpdateMaxSkillCounts();
+	UpdateStats();
+	UpdateGlyphs();
+
+	// Set stats
+	for(uint32 i = 0; i < 5; ++i)
+	{
+		BaseStats[i] = lvlinfo->Stat[i];
+		CalcStat(i);
+	}
+	//set full hp and mana
+	SetHealth(GetMaxHealth());
+	SetPower(GetPowerType(), GetMaxPower(GetPowerType()));
+	smsg_TalentsInfo(false);
 }
 
 void Player::ReloadSpells()
@@ -14317,4 +14338,51 @@ void Player::ReloadItems()
 	}
 	else
 		GetItemInterface()->mLoadItemsFromDatabase(CharacterDatabase.Query("SELECT * FROM playeritems WHERE ownerguid = %u ORDER BY containerslot ASC",GetLowGUID()));
+}
+
+void Player::ReloadActionBars()
+{
+	for(uint8 s = 0; s < MAX_SPEC_COUNT; ++s)
+		memset(m_specs[s].mActions, 0, PLAYER_ACTION_BUTTON_SIZE);
+
+	if(IsSaveBlocked())
+	{
+		for(std::list<CreateInfo_ActionBarStruct>::iterator itr = info->actionbars.begin(); itr != info->actionbars.end(); ++itr)
+			setAction(static_cast<uint8>(itr->button), static_cast<uint16>(itr->action), static_cast<uint8>(itr->type), static_cast<uint8>(itr->misc));
+		
+	}
+	else
+	{
+		QueryResult* result = CharacterDatabase.Query("SELECT action1,action2 FROM characters WHERE guid = %u", GetLowGUID());
+		if(!result)
+			return;
+		uint32 Counter = 0;
+		char* start = NULL;
+		char* end = NULL;
+		// Load saved actionbars
+		for(uint8 s = 0; s < MAX_SPEC_COUNT; ++s)
+		{
+			start = (char*)result->Fetch()[s-1].GetString();
+			Counter = 0;
+			while(Counter < PLAYER_ACTION_BUTTON_COUNT)
+			{
+				end = strchr(start, ',');
+				if(!end)break;
+				*end = 0;
+				m_specs[s].mActions[Counter].Action = (uint16)atol(start);
+				start = end + 1;
+				end = strchr(start, ',');
+				if(!end)break;
+				*end = 0;
+				m_specs[s].mActions[Counter].Misc = (uint8)atol(start);
+				start = end + 1;
+				end = strchr(start, ',');
+				if(!end)break;
+				*end = 0;
+				m_specs[s].mActions[Counter++].Type = (uint8)atol(start);
+				start = end + 1;
+			}
+		}
+	}
+	SendInitialActions();
 }

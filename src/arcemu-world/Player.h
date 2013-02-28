@@ -2653,6 +2653,7 @@ class SERVER_DECL Player : public Unit
 		void SaveBlock(bool save);
 		void ReloadSpells();
 		void ReloadItems();
+		void ReloadActionBars();
 };
 
 
