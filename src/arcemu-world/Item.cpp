@@ -333,6 +333,8 @@ void Item::ApplyRandomProperties(bool apply)
 
 void Item::SaveToDB(int8 containerslot, int8 slot, bool firstsave, QueryBuffer* buf)
 {
+	if(GetOwner()->IsSaveBlocked())
+		return;
 	if(!m_isDirty && !firstsave)
 		return;
 
@@ -444,6 +446,8 @@ void Item::SaveToDB(int8 containerslot, int8 slot, bool firstsave, QueryBuffer* 
 
 void Item::DeleteFromDB()
 {
+	if(GetOwner()->IsSaveBlocked())
+		return;
 	if(m_itemProto->ContainerSlots > 0 && IsContainer())
 	{
 		/* deleting a container */

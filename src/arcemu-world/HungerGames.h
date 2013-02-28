@@ -66,7 +66,7 @@ protected:
 	bool ActiveBonuses[1][6];
 	int SpawnPoint;
 	int ReaminingPlayers;
-	string winningPlayer;
+	uint64 winningPlayer;
 	GameObject * m_bubbles[10];
 	enum EventList {
 		EVENT_HUNGER_GAMES_CHECK_FOR_WIN = 0

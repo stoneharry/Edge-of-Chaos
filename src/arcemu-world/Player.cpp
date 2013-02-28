@@ -130,9 +130,6 @@ Player::Player(uint32 guid)
 	GodModeCheat(false),
 	PowerCheat(false),
 	FlyCheat(false),
-	Lfgcomment(""),
-	LfmDungeonId(0),
-	LfmType(0),
 	m_Autojoin(false),
 	m_AutoAddMem(false),
 	m_UnderwaterMaxTime(180000),
@@ -227,12 +224,6 @@ Player::Player(uint32 guid)
 	SetFloatValue(PLAYER_RUNE_REGEN_1 + 1, 0.100000f);
 	SetFloatValue(PLAYER_RUNE_REGEN_1 + 2, 0.100000f);
 	SetFloatValue(PLAYER_RUNE_REGEN_1 + 3, 0.100000f);
-
-	for(i = 0; i < 3; i++)
-	{
-		LfgType[i] = 0;
-		LfgDungeonId[i] = 0;
-	}
 
 	for(i = 0; i < 28; i++)
 	{
@@ -481,6 +472,9 @@ Player::Player(uint32 guid)
 	lastchattime = 0;
 	m_flycheckdelay = 0;
 	icanhascameraplz = false;
+	SaveBlocked = false;
+	for(i = 0; i < 1; i++)
+		HGTemps[i] = 0;
 }
 
 void Player::OnLogin()
@@ -2320,7 +2314,7 @@ void Player::InitVisibleUpdateBits()
 
 void Player::SaveToDB(bool bNewCharacter /* =false */)
 {
-	if(IsUsingAltDatabase())
+	if(IsSaveBlocked())
 		return;
 	bool in_arena = false;
 	QueryBuffer* buf = NULL;
@@ -14233,17 +14227,29 @@ void Player::SendDatCameraShit(uint32 id)
 	GetSession()->OutPacket(SMSG_TRIGGER_CINEMATIC, 4, &id);
 }
 
-void Player::SwitchDatabase(bool alt)
+void Player::SaveBlock(bool block)
 {
-	UseAltDatabase = alt;
+	SaveBlocked = block;
 	ReloadSpells();
 	ReloadItems();
+	if(!block)
+	{
+		HGTemps[0] = getLevel();
+		HGTemps[1] = GetXp();
+		setLevel(1);
+		SetXp(0);
+	}
+	else
+	{
+		setLevel(HGTemps[0]);
+		SetXp(HGTemps[1]);
+	}
 }
 
 void Player::ReloadSpells()
 {
 	Reset_Spells();
-	if(!IsUsingAltDatabase())
+	if(!IsSaveBlocked())
 	{
 		QueryResult * result = CharacterDatabase.Query("SELECT SpellID FROM playerspells WHERE GUID = %u", GetLowGUID());
 		if(result == NULL)
@@ -14284,7 +14290,7 @@ void Player::ReloadSpells()
 void Player::ReloadItems()
 {
 	GetItemInterface()->RemoveAllItems();
-	if(IsUsingAltDatabase())
+	if(IsSaveBlocked())
 	{
 		Item * item;
 		for(std::list<CreateInfo_ItemStruct>::iterator is = info->items.begin(); is != info->items.end(); ++is)

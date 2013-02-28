@@ -1966,11 +1966,6 @@ class SERVER_DECL Player : public Unit
 		void ResetDualWield2H();
 	public:
 
-		std::string Lfgcomment;
-		uint16 LfgDungeonId[3];
-		uint8 LfgType[3];
-		uint16 LfmDungeonId;
-		uint8 LfmType;
 		bool m_Autojoin;
 		bool m_AutoAddMem;
 		void StopMirrorTimer(uint32 Type);
@@ -2608,7 +2603,8 @@ class SERVER_DECL Player : public Unit
 		Spell* m_spellModTakingSpell;
 		uint8 m_roles;
 		uint32 GroupUpdateFlags;
-		bool UseAltDatabase;
+		bool SaveBlocked;
+		uint32 HGTemps[1];
 	public:
 		void SendUpdateDataToSet(ByteBuffer* groupbuf, ByteBuffer* nongroupbuf, bool sendtoself);
 
@@ -2653,8 +2649,8 @@ class SERVER_DECL Player : public Unit
 
 		bool icanhascameraplz;
 		void SendDatCameraShit(uint32 id);
-		bool IsUsingAltDatabase() { return UseAltDatabase; }
-		void SwitchDatabase(bool alt);
+		bool IsSaveBlocked() { return SaveBlocked; }
+		void SaveBlock(bool save);
 		void ReloadSpells();
 		void ReloadItems();
 };

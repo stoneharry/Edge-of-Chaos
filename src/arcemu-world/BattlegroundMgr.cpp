@@ -1170,7 +1170,7 @@ void CBattleground::OnPlayerPushed(Player* plr)
 
 	if(plr->GetGroup() == NULL)
 	{
-		if(plr->m_isGmInvisible == false && plr->GetMapId() != 750)    //do not join invisible gm's into bg groups and do not join hunger games into groups
+		if(!plr->m_isGmInvisible && plr->GetMapId() != 750)    //do not join invisible gm's into bg groups and do not join hunger games into groups
 			m_groups[plr->m_bgTeam]->AddMember(plr->getPlayerInfo());
 	}
 }
@@ -1196,7 +1196,7 @@ void CBattleground::PortPlayer(Player* plr, bool skip_teleport /* = false*/)
 
 	plr->FullHPMP();
 	plr->SetTeam(plr->m_bgTeam);
-	if(plr->m_isGmInvisible == false)
+	if(!plr->m_isGmInvisible)
 	{
 		//Do not let everyone know an invisible gm has joined.
 		WorldPacket data(SMSG_BATTLEGROUND_PLAYER_JOINED, 8);
@@ -1204,9 +1204,7 @@ void CBattleground::PortPlayer(Player* plr, bool skip_teleport /* = false*/)
 		DistributePacketToTeam(&data, plr->m_bgTeam);
 	}
 	else
-	{
 		m_invisGMs++;
-	}
 	m_players[plr->m_bgTeam].insert(plr);
 
 	/* remove from any auto queue remove events */
@@ -2218,5 +2216,3 @@ bool CBattleground::HasFreeSlots(uint32 Team, uint32 type)
 	m_mainLock.Release();
 	return res;
 }
-
-

@@ -37,19 +37,6 @@ void WorldSession::HandleChannelJoin(WorldPacket & recvPacket)
 	recvPacket >> channelname;
 	recvPacket >> pass;
 
-	if(!stricmp(channelname.c_str(), "LookingForGroup") && !sWorld.m_lfgForNonLfg)
-	{
-		// make sure we have lfg dungeons
-		for(i = 0; i < 3; ++i)
-		{
-			if(_player->LfgDungeonId[i] != 0)
-				break;
-		}
-
-		if(i == 3)
-			return;		// don't join lfg
-	}
-
 	if(sWorld.GmClientChannel.size() && !stricmp(sWorld.GmClientChannel.c_str(), channelname.c_str()) && !GetPermissionCount())
 		return;
 

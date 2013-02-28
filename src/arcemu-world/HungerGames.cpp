@@ -15,13 +15,11 @@ HungerGames::HungerGames(MapMgr * mgr, uint32 id, uint32 lgroup, uint32 t) : CBa
 {
 	SpawnPoint = 0;
 	ReaminingPlayers = 0;
-	winningPlayer = "";
+	winningPlayer = 0;
 	m_started = false;
 
 	for (int i = 0; i < 10; i++) // Pushing this object to world is causing a crash for some reason. Tried using mgr passed in function and pushing later on. Still crashes.
 	{
-		m_bubbles[i] = NULL; // Added to prevent crash on end if not set
-		/*
 		m_bubbles[i] = SpawnGameObject(184719, HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2], 0, 35, 0, 0.1f);
 		if(!m_bubbles[i])
 		{
@@ -30,8 +28,6 @@ HungerGames::HungerGames(MapMgr * mgr, uint32 id, uint32 lgroup, uint32 t) : CBa
 		}
 		m_bubbles[i]->SetByte(GAMEOBJECT_BYTES_1, 0, 1);
 		m_bubbles[i]->SetByte(GAMEOBJECT_BYTES_1, 3, 100);
-		m_bubbles[i]->PushToWorld(m_mapMgr);
-		*/
 	}
 	sEventMgr.AddEvent(this, &HungerGames::CheckForWin, EVENT_HUNGER_GAMES_CHECK_FOR_WIN, 1000, 0, EVENT_FLAG_DO_NOT_EXECUTE_IN_WORLD_CONTEXT);
 }
@@ -58,7 +54,7 @@ void HungerGames::CheckForWin()
 			{
 				if ((*itr)->isAlive())
 				{
-					winningPlayer = (*itr)->GetName();
+					winningPlayer = (*itr)->GetGUID();
 					break;
 				}
 			}
@@ -132,7 +128,7 @@ void HungerGames::OnAddPlayer(Player* plr)
 	UpdatePvPData();
 	plr->SetFFAPvPFlag();
 	ReaminingPlayers++;
-	plr->SwitchDatabase(true);
+	plr->SaveBlock(true);
 }
 
 void HungerGames::OnRemovePlayer(Player* plr)
@@ -141,11 +137,16 @@ void HungerGames::OnRemovePlayer(Player* plr)
 	if (!plr->isAlive())
 		ReaminingPlayers--;
 	plr->RemoveFFAPvPFlag();
-	plr->SwitchDatabase(false);
+	plr->SaveBlock(false);
 }
 
 void HungerGames::OnCreate()
 {
+	for (int i = 0; i < 10; i++)
+	{
+		if(m_bubbles[i] && !m_bubbles[i]->IsInWorld())
+			m_bubbles[i]->PushToWorld(m_mapMgr);
+	}
 	// Spawn creatures
 }
 
@@ -188,12 +189,8 @@ void HungerGames::OnStart()
 
 	for (int i = 0; i < 10; i++)
 	{
-		if(m_bubbles[i] != NULL)
-		{
+		if(m_bubbles[i] && m_bubbles[i]->IsInWorld())
 			m_bubbles[i]->RemoveFromWorld(false);
-			delete m_bubbles[i];
-			m_bubbles[i] = NULL;
-		}
 	}
 
 	PlaySoundToAll(SOUND_BATTLEGROUND_BEGIN);
@@ -248,24 +245,26 @@ void HungerGames::Finish(uint32 losingTeam)
 
 	m_ended = true;
 	sEventMgr.RemoveEvents(this);
+	const char* winnername = "no one";
 	sEventMgr.AddEvent(TO< CBattleground* >(this), &CBattleground::Close, EVENT_BATTLEGROUND_CLOSE, 120000, 1,0);
-	
 	for (int i = 0; i < 2; i++)
 	{
 		for (set<Player*  >::iterator itr = m_players[i].begin(); itr != m_players[i].end(); itr++)
 		{
-			(*itr)->Root();
+			Player * plr = (*itr);
+			plr->Root();
 
-			if (winningPlayer == "")
-				winningPlayer = "<No Winner>";
-
-			(*itr)->BroadcastMessage("The Hunger Games has ended, %s has won!", winningPlayer.c_str());
-			if ((*itr)->GetName() == winningPlayer) // not sure if this will work
-				(*itr)->AddHonor(200);	
+			if (plr->GetGUID() == winningPlayer)
+			{
+				plr->AddHonor(200);
+				winnername = (*itr)->GetName();
+			}
 			else
-				(*itr)->AddHonor(75);
+				plr->AddHonor(75);
 		}
 	}
+
+	Herald("The Hunger Games has ended, %s has won!", winnername);
 
 	UpdatePvPData();
 }
