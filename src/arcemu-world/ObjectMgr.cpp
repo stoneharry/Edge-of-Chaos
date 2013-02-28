@@ -2422,8 +2422,8 @@ LevelInfo* ObjectMgr::GetLevelInfo(uint32 Race, uint32 Class, uint32 Level)
 
 			// Pull the level information from the second map.
 			LevelMap::iterator it2 = itr->second->find(Level);
-			ARCEMU_ASSERT(it2 != itr->second->end());
-
+			if(it2 == itr->second->end());
+				itr->second->find(1);
 			return it2->second;
 		}
 	}

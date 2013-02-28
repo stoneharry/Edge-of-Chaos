@@ -14232,7 +14232,7 @@ void Player::SaveBlock(bool block)
 	SaveBlocked = block;
 	ReloadSpells();
 	ReloadItems();
-	if(!block)
+	if(block)
 	{
 		HGTemps[0] = getLevel();
 		HGTemps[1] = GetXp();
