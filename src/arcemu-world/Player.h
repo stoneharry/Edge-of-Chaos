@@ -1281,7 +1281,7 @@ class SERVER_DECL Player : public Unit
 		/* Actionbar                                                            */
 		/************************************************************************/
 		void                setAction(uint8 button, uint16 action, uint8 type, uint8 misc);
-		void                SendInitialActions();
+		void                SendInitialActions(uint8 state = 0);
 
 		/************************************************************************/
 		/* Reputation                                                           */

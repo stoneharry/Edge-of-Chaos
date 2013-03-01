@@ -4920,11 +4920,11 @@ void Player::CleanupChannels()
 	}
 }
 
-void Player::SendInitialActions()
+void Player::SendInitialActions(uint8 state)
 {
 	WorldPacket data(SMSG_ACTION_BUTTONS, PLAYER_ACTION_BUTTON_SIZE + 1);
 
-	data << uint8(0);         // VLack: 3.1, some bool - 0 or 1. seems to work both ways
+	data << uint8(state);
 
 	for(uint32 i = 0; i < PLAYER_ACTION_BUTTON_COUNT; ++i)
 	{
@@ -14353,6 +14353,7 @@ void Player::ReloadItems()
 
 void Player::ReloadActionBars()
 {
+	SendInitialActions(2);
 	for(uint8 s = 0; s < MAX_SPEC_COUNT; ++s)
 		memset(m_specs[s].mActions, 0, PLAYER_ACTION_BUTTON_SIZE);
 
@@ -14370,11 +14371,13 @@ void Player::ReloadActionBars()
 		uint32 Counter = 0;
 		char* start = NULL;
 		char* end = NULL;
+		uint8 col = 0;
 		// Load saved actionbars
 		for(uint8 s = 0; s < MAX_SPEC_COUNT; ++s)
 		{
-			start = (char*)result->Fetch()[s-1].GetString();
+			start = (char*)result->Fetch()[col].GetString();
 			Counter = 0;
+			col = 1;
 			while(Counter < PLAYER_ACTION_BUTTON_COUNT)
 			{
 				end = strchr(start, ',');
@@ -14395,5 +14398,5 @@ void Player::ReloadActionBars()
 			}
 		}
 	}
-	SendInitialActions();
+	SendInitialActions(1);
 }
