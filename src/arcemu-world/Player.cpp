@@ -8247,7 +8247,8 @@ void Player::ApplyLevelInfo(LevelInfo* Info, uint32 Level)
 
 	// Apply level
 	uint32 PreviousLevel = getLevel();
-	setLevel(Level);
+	if(Level != 0)
+		setLevel(Level);
 
 	// Set stats
 	for(uint8 i = 0; i < 5; ++i)
@@ -14254,8 +14255,7 @@ void Player::SaveBlock(bool block)
 		setLevel(HGTemps[0]);
 		SetXp(HGTemps[1]);
 	}
-	uint8 level = block ? 1 : HGTemps[0];
-	LevelInfo* lvlinfo = objmgr.GetLevelInfo(getRace(), getClass(), level);
+	LevelInfo* lvlinfo = objmgr.GetLevelInfo(getRace(), getClass(), block ? 1 : HGTemps[0]);
 	ApplyLevelInfo(lvlinfo,  0);
 }
 
