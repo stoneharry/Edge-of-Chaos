@@ -3655,6 +3655,9 @@ void Spell::SpellEffectInterruptCast(uint32 i) // Interrupt Cast
 	if(!unitTarget || !unitTarget->isAlive())
 		return;
 
+	if(GetProto()->AttributesEx7 & SPELL_ATTR7_INTERRUPT_ONLY_NONPLAYER && unitTarget->IsPlayer())
+		return;
+
 	if(!playerTarget)
 	{
 		if(u_caster && (u_caster != unitTarget))
