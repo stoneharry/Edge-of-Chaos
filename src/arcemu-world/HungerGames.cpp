@@ -135,8 +135,7 @@ void HungerGames::OnAddPlayer(Player* plr)
 void HungerGames::OnRemovePlayer(Player* plr)
 {
 	plr->RemoveAura(BG_PREPARATION);
-	if (!plr->isAlive())
-		ReaminingPlayers--;
+	ReaminingPlayers--;
 	plr->RemoveFFAPvPFlag();
 	plr->SaveBlock(false);
 }

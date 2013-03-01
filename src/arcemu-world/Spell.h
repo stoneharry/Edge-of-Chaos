@@ -1850,7 +1850,7 @@ class SERVER_DECL Spell : public EventableObject
 		void SpellEffectActivateRunes(uint32 i);
 		void SpellEffectJumpTarget(uint32 i);
 		void SpellEffectJumpBehindTarget(uint32 i);
-
+		void SpellEffectCastButtons(uint32 i);
 		// Spell Targets Handlers
 		void SpellTargetNULL(uint32 i, uint32 j);
 		void SpellTargetDefault(uint32 i, uint32 j);

@@ -4947,6 +4947,13 @@ void Player::setAction(uint8 button, uint16 action, uint8 type, uint8 misc)
 	m_specs[m_talentActiveSpec].mActions[button].Misc = misc;
 }
 
+ActionButton Player::GetActionButton(uint8 button)
+{
+	if(button >= PLAYER_ACTION_BUTTON_COUNT)
+		return ActionButton();
+	return m_specs[m_talentActiveSpec].mActions[button];
+}
+
 // Groupcheck
 bool Player::IsGroupMember(Player* plyr)
 {
@@ -14238,6 +14245,8 @@ void Player::SaveBlock(bool block)
 	ReloadSpells();
 	ReloadItems();
 	ReloadActionBars();
+	ReloadPowerType();
+	ReloadSkills();
 	if(block)
 	{
 		HGTemps[0] = getLevel();
@@ -14377,4 +14386,67 @@ void Player::ReloadActionBars()
 		}
 	}
 	SendInitialActions(1);
+}
+
+void Player::ReloadPowerType()
+{
+	if(IsSaveBlocked())
+	{
+		switch(getClass())
+		{
+			case ROGUE:
+			case WARRIOR:
+			case DEMON_HUNTER:
+			case HUNTER:
+			{
+				SetPowerType(POWER_TYPE_MANA);
+				PlayerCreateInfo* finfo = objmgr.GetPlayerCreateInfo(0,0, false);
+				SetMaxPower(POWER_TYPE_MANA, finfo->mana);
+				SetPower(POWER_TYPE_MANA, finfo->mana);
+			}break;
+		}
+	}
+	else
+	{
+		switch(getClass())
+		{
+			case ROGUE:
+			{
+				SetPowerType(POWER_TYPE_ENERGY);
+				SetPower(POWER_TYPE_MANA, 0);
+				SetMaxPower(POWER_TYPE_MANA, 0);
+			}break;
+			case WARRIOR:
+			{
+				SetPowerType(POWER_TYPE_RAGE);
+				SetPower(POWER_TYPE_MANA, 0);
+				SetMaxPower(POWER_TYPE_MANA, 0);
+			}break;
+			case DEMON_HUNTER:
+			{
+				SetPowerType(POWER_TYPE_ENERGY);
+				SetPower(POWER_TYPE_MANA, 0);
+				SetMaxPower(POWER_TYPE_MANA, 0);
+			}break;
+			case HUNTER:
+			{
+				SetPowerType(POWER_TYPE_FOCUS);
+				SetPower(POWER_TYPE_MANA, 0);
+				SetMaxPower(POWER_TYPE_MANA, 0);
+			}break;
+		}
+	}
+}
+
+void Player::ReloadSkills()
+{
+	_RemoveAllSkills();
+	if(IsSaveBlocked())
+	{
+		PlayerCreateInfo* finfo = objmgr.GetPlayerCreateInfo(0,0, false);
+		for(std::list<CreateInfo_SkillStruct>::iterator ss = finfo->skills.begin(); ss != finfo->skills.end(); ++ss)
+			_AddSkillLine(ss->skillid, ss->currentval, ss->maxval);
+	}
+	else
+		LoadSkills(CharacterDatabase.Query("SELECT SkillID, CurrentValue, MaximumValue FROM playerskills WHERE GUID = %u", GetLowGUID()));
 }

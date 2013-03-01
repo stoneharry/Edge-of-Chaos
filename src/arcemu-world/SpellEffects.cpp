@@ -119,7 +119,7 @@ pSpellEffect SpellEffectsHandler[TOTAL_SPELL_EFFECTS] =
 	&Spell::SpellEffectSelfResurrect,			//SPELL_EFFECT_SELF_RESURRECT - 94
 	&Spell::SpellEffectSkinning,				//SPELL_EFFECT_SKINNING - 95
 	&Spell::SpellEffectCharge,					//SPELL_EFFECT_CHARGE - 96
-	&Spell::SpellEffectNULL,					//SPELL_EFFECT_SUMMON_MULTIPLE_TOTEMS - 97
+	&Spell::SpellEffectCastButtons,				//SPELL_EFFECT_SUMMON_MULTIPLE_TOTEMS - 97
 	&Spell::SpellEffectKnockBack,				//SPELL_EFFECT_KNOCK_BACK - 98
 	&Spell::SpellEffectDisenchant,				//SPELL_EFFECT_DISENCHANT - 99
 	&Spell::SpellEffectInebriate,				//SPELL_EFFECT_INEBRIATE - 100
@@ -5598,4 +5598,42 @@ void Spell::SpellEffectSetMirrorName(uint32 i)
 	WorldPacket data(SMSG_CLEAR_TARGET, 8);
 	data << uint64(m_caster->GetGUID());
 	m_caster->SendMessageToSet(&data, true);
+}
+
+void Spell::SpellEffectCastButtons(uint32 i)
+{
+	if (!m_caster->IsPlayer())
+		return;
+
+	Player* p_caster = TO_PLAYER(m_caster);
+	uint32 button_id = m_spellInfo->EffectMiscValue[i] + 132;
+	uint32 n_buttons = m_spellInfo->EffectMiscValueB[i];
+
+	for (; n_buttons; --n_buttons, ++button_id)
+	{
+		
+		ActionButton ab = p_caster->GetActionButton(button_id);
+		if (ab.Type != 0)
+			continue;
+
+		uint32 spell_id = ab.Action;
+		if (!spell_id)
+			continue;
+
+		SpellEntry* spellInfo = dbcSpell.LookupEntryForced(spell_id);
+		if (!spellInfo)
+			continue;
+
+		if (!p_caster->HasSpell(spell_id) || !p_caster->Cooldown_CanCast(spellInfo))
+			continue;
+
+		if (!(spellInfo->AttributesEx7 & SPELL_ATTR7_SUMMON_PLAYER_TOTEM))
+			continue;
+		//Todo:
+		//uint32 cost = p_caster->GetManaCost(spellInfo->SchoolMask)
+		//if (m_caster->GetPower(POWER_TYPE_MANA) < cost)
+			//continue;
+
+		p_caster->CastSpell(p_caster, spellInfo, true);
+	}
 }

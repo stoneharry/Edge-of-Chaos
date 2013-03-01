@@ -2525,6 +2525,8 @@ class SERVER_DECL Player : public Unit
 		void _CreateTaxi();
 		void _AddPathNode(uint32 mapid, float x, float y, float z, uint32 index = 0);
 		void _StartTaxi(uint32 modelid, uint32 start_node);
+
+		ActionButton  GetActionButton(uint8 button);
 		/************************************************************************/
 		/* SOCIAL                                                               */
 		/************************************************************************/
@@ -2654,6 +2656,8 @@ class SERVER_DECL Player : public Unit
 		void ReloadSpells();
 		void ReloadItems();
 		void ReloadActionBars();
+		void ReloadPowerType();
+		void ReloadSkills();
 };
 
 
