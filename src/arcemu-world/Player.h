@@ -1698,7 +1698,7 @@ class SERVER_DECL Player : public Unit
 		uint32 m_modblockabsorbvalue;
 		uint32 m_modblockvaluefromspells;
 		void SendInitialLogonPackets();
-		void Reset_Spells();
+		void Reset_Spells(bool fakeinfo = false);
 		void Reset_Talents();
 		void Reset_AllTalents();
 		// Battlegrounds xD

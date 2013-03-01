@@ -223,15 +223,24 @@ AddItemResult ItemInterface::m_AddItem(Item* item, int8 ContainerSlot, int16 slo
 	//case 1, item is from backpack container
 	if(ContainerSlot == INVENTORY_SLOT_NOT_SET)
 	{
-		//ARCEMU_ASSERT(   m_pItems[slot] == NULL);
-		if(GetInventoryItem(slot) != NULL /*|| (slot == EQUIPMENT_SLOT_OFFHAND && !m_pOwner->HasSkillLine(118))*/)
+		if(GetInventoryItem(slot) && SafeFullRemoveItemFromSlot(ContainerSlot, slot))
+		{
+			if(GetOwner()->GetSession()->HasGMPermissions())
+				sChatHandler.BlueSystemMessageToPlr(m_pOwner, "That weird error occured from item `%s`, completely removed.",item->GetProto()->Name1);
+		}
+		else
+		{
+			if(GetOwner()->GetSession()->HasGMPermissions())
+				sChatHandler.BlueSystemMessageToPlr(m_pOwner, "That weird error occured from item `%s`, it somehow survived deletion.",item->GetProto()->Name1);
+		}
+			
+		/*//ARCEMU_ASSERT(   m_pItems[slot] == NULL);
+		if(GetInventoryItem(slot) != NULL /*|| (slot == EQUIPMENT_SLOT_OFFHAND && !m_pOwner->HasSkillLine(118)))
 		{
 			//LOG_ERROR("bugged inventory: %u %u", m_pOwner->GetName(), item->GetGUID());
 			SlotResult result = this->FindFreeInventorySlot(item->GetProto());
 
 			// send message to player
-			sChatHandler.BlueSystemMessageToPlr(m_pOwner, "A duplicated item, `%s` was found in your inventory. We've attempted to add it to a free slot in your inventory, if there is none this will fail. It will be attempted again the next time you log on.",
-			                                    item->GetProto()->Name1);
 			if(result.Result == true)
 			{
 				// Found a new slot for that item.
@@ -241,12 +250,11 @@ AddItemResult ItemInterface::m_AddItem(Item* item, int8 ContainerSlot, int16 slo
 			else
 			{
 				// don't leak memory!
-				/*delete item;*/
+				/*delete item;/
 
 				return ADD_ITEM_RESULT_ERROR;
 			}
-		}
-
+		}*/
 		if(!GetInventoryItem(slot)) //slot is free, add item.
 		{
 			item->SetOwner(m_pOwner);

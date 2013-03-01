@@ -6329,24 +6329,19 @@ void Player::AreaExploredOrEventHappens(uint32 questId)
 	sQuestMgr.AreaExplored(this, questId);
 }
 
-void Player::Reset_Spells()
+void Player::Reset_Spells(bool fakeinfo)
 {
-	PlayerCreateInfo* info = objmgr.GetPlayerCreateInfo(getRace(), getClass(), IsTrial());
-	ARCEMU_ASSERT(info != NULL);
-
-	std::list<uint32> spelllist;
+	PlayerCreateInfo* _info = objmgr.GetPlayerCreateInfo(getRace(), getClass(), IsTrial());
+	if(fakeinfo)
+		_info = objmgr.GetPlayerCreateInfo(0,0, false);
+	ARCEMU_ASSERT(_info != NULL);
 
 	for(SpellSet::iterator itr = mSpells.begin(); itr != mSpells.end(); itr++)
-	{
-		spelllist.push_back((*itr));
-	}
-
-	for(std::list<uint32>::iterator itr = spelllist.begin(); itr != spelllist.end(); ++itr)
 	{
 		removeSpell((*itr), false, false, 0);
 	}
 
-	for(std::set<uint32>::iterator sp = info->spell_list.begin(); sp != info->spell_list.end(); sp++)
+	for(std::set<uint32>::iterator sp = _info->spell_list.begin(); sp != _info->spell_list.end(); sp++)
 	{
 		if(*sp)
 		{
@@ -14292,7 +14287,7 @@ void Player::ReloadSpells()
 
 				SpellEntry* sp = dbcSpell.LookupEntryForced(spellid);
 				if(sp != NULL)
-					mSpells.insert(spellid);
+					addSpell(spellid);
 
 			}while(accountwide->NextRow());
 		}
@@ -14305,8 +14300,9 @@ void Player::ReloadItems()
 	GetItemInterface()->RemoveAllItems();
 	if(IsSaveBlocked())
 	{
+		PlayerCreateInfo* finfo = objmgr.GetPlayerCreateInfo(0,0, false);
 		Item * item;
-		for(std::list<CreateInfo_ItemStruct>::iterator is = info->items.begin(); is != info->items.end(); ++is)
+		for(std::list<CreateInfo_ItemStruct>::iterator is = finfo->items.begin(); is != finfo->items.end(); ++is)
 		{
 			if((*is).protoid != 0)
 			{
@@ -14340,7 +14336,8 @@ void Player::ReloadActionBars()
 
 	if(IsSaveBlocked())
 	{
-		for(std::list<CreateInfo_ActionBarStruct>::iterator itr = info->actionbars.begin(); itr != info->actionbars.end(); ++itr)
+		PlayerCreateInfo* finfo = objmgr.GetPlayerCreateInfo(0,0, false);
+		for(std::list<CreateInfo_ActionBarStruct>::iterator itr = finfo->actionbars.begin(); itr != finfo->actionbars.end(); ++itr)
 			setAction(static_cast<uint8>(itr->button), static_cast<uint16>(itr->action), static_cast<uint8>(itr->type), static_cast<uint8>(itr->misc));
 		
 	}
