@@ -14256,7 +14256,7 @@ void Player::SaveBlock(bool block)
 
 void Player::ReloadSpells()
 {
-	Reset_Spells();
+	Reset_Spells(true);
 	if(!IsSaveBlocked())
 	{
 		QueryResult * result = CharacterDatabase.Query("SELECT SpellID FROM playerspells WHERE GUID = %u", GetLowGUID());

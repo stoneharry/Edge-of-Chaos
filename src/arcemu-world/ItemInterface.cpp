@@ -223,15 +223,19 @@ AddItemResult ItemInterface::m_AddItem(Item* item, int8 ContainerSlot, int16 slo
 	//case 1, item is from backpack container
 	if(ContainerSlot == INVENTORY_SLOT_NOT_SET)
 	{
-		if(GetInventoryItem(slot) && SafeFullRemoveItemFromSlot(ContainerSlot, slot))
+		if(GetInventoryItem(slot) != NULL)
 		{
-			if(GetOwner()->GetSession()->HasGMPermissions())
-				sChatHandler.BlueSystemMessageToPlr(m_pOwner, "That weird error occured from item `%s`, completely removed.",item->GetProto()->Name1);
-		}
-		else
-		{
-			if(GetOwner()->GetSession()->HasGMPermissions())
-				sChatHandler.BlueSystemMessageToPlr(m_pOwner, "That weird error occured from item `%s`, it somehow survived deletion.",item->GetProto()->Name1);
+			if(SafeFullRemoveItemFromSlot(ContainerSlot, slot))
+			{
+				if(GetOwner()->GetSession()->HasGMPermissions())
+					sChatHandler.BlueSystemMessageToPlr(m_pOwner, "That weird error occured from item `%s`, completely removed.",item->GetProto()->Name1);
+			}
+			else
+			{
+				if(GetOwner()->GetSession()->HasGMPermissions())
+					sChatHandler.BlueSystemMessageToPlr(m_pOwner, "That weird error occured from item `%s`, it somehow survived deletion.",item->GetProto()->Name1);
+				return ADD_ITEM_RESULT_ERROR;
+			}
 		}
 			
 		/*//ARCEMU_ASSERT(   m_pItems[slot] == NULL);
