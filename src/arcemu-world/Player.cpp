@@ -8262,28 +8262,30 @@ void Player::ApplyLevelInfo(LevelInfo* Info, uint32 Level)
 	SetMaxPower(POWER_TYPE_MANA, Info->Mana);
 	SetPower(POWER_TYPE_MANA, Info->Mana);
 
-
-	if( Level > PreviousLevel )
+	if(Level != 0)
 	{
-		if( Level > 9 )
+		if( Level > PreviousLevel )
 		{
-			switch(Level) // I don't like checking if a number is purely dividable by 5
+			if( Level > 9 )
 			{
-				case 10:
-				case 15:
-				case 20:
-				case 25:
-				case 30:
+				switch(Level) // I don't like checking if a number is purely dividable by 5
 				{
-					SetTalentPointsForAllSpec( float2int32(Level/5) -1 );
-				}break;
+					case 10:
+					case 15:
+					case 20:
+					case 25:
+					case 30:
+					{
+						SetTalentPointsForAllSpec( float2int32(Level/5) -1 );
+					}break;
+				}
 			}
 		}
-	}
-	else
-	{
-		if( Level != PreviousLevel )
-			Reset_AllTalents();
+		else
+		{
+			if( Level != PreviousLevel )
+				Reset_AllTalents();
+		}
 	}
 
 	// Set base fields
@@ -8294,10 +8296,13 @@ void Player::ApplyLevelInfo(LevelInfo* Info, uint32 Level)
 	UpdateStats();
 	//UpdateChances();
 	UpdateGlyphs();
-	m_playerInfo->lastLevel = Level;
-#ifdef ENABLE_ACHIEVEMENTS
-	GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_REACH_LEVEL);
-#endif
+	if(Level != 0)
+	{
+		m_playerInfo->lastLevel = Level;
+		#ifdef ENABLE_ACHIEVEMENTS
+		GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_REACH_LEVEL);
+		#endif
+	}
 	//VLack: 3.1.3, as a final step, send the player's talents, this will set the talent points right too...
 	smsg_TalentsInfo(false);
 
@@ -14231,6 +14236,8 @@ void Player::SendDatCameraShit(uint32 id)
 
 void Player::SaveBlock(bool block)
 {
+	if(block)
+		SaveToDB(false);
 	SaveBlocked = block;
 	ReloadSpells();
 	ReloadItems();
@@ -14249,35 +14256,7 @@ void Player::SaveBlock(bool block)
 	}
 	uint8 level = block ? 1 : HGTemps[0];
 	LevelInfo* lvlinfo = objmgr.GetLevelInfo(getRace(), getClass(), level);
-	LevelInfo* oldlevel = objmgr.GetLevelInfo(getRace(), getClass(), block ? HGTemps[0] : 1);
-	
-	if(lvlinfo == NULL) 
-		return;
-	CalculateBaseStats();
-	SendLevelupInfo(
-	    level,
-	    lvlinfo->HP - oldlevel->HP,
-	    lvlinfo->Mana - oldlevel->Mana,
-	    lvlinfo->Stat[0] - oldlevel->Stat[0],
-	    lvlinfo->Stat[1] - oldlevel->Stat[1],
-	    lvlinfo->Stat[2] - oldlevel->Stat[2],
-	    lvlinfo->Stat[3] - oldlevel->Stat[3],
-	    lvlinfo->Stat[4] - oldlevel->Stat[4]);
-
-	_UpdateMaxSkillCounts();
-	UpdateStats();
-	UpdateGlyphs();
-
-	// Set stats
-	for(uint32 i = 0; i < 5; ++i)
-	{
-		BaseStats[i] = lvlinfo->Stat[i];
-		CalcStat(i);
-	}
-	//set full hp and mana
-	SetHealth(GetMaxHealth());
-	SetPower(GetPowerType(), GetMaxPower(GetPowerType()));
-	smsg_TalentsInfo(false);
+	ApplyLevelInfo(lvlinfo,  0);
 }
 
 void Player::ReloadSpells()
