@@ -14245,11 +14245,22 @@ void Player::SaveBlock(bool block)
 		setLevel(HGTemps[0]);
 		SetXp(HGTemps[1]);
 	}
-	LevelInfo* lvlinfo = objmgr.GetLevelInfo(getRace(), getClass(), getLevel());
+	uint8 level = block ? 1 : HGTemps[0];
+	LevelInfo* lvlinfo = objmgr.GetLevelInfo(getRace(), getClass(), level);
+	LevelInfo* oldlevel = objmgr.GetLevelInfo(getRace(), getClass(), block ? HGTemps[0] : 1);
 	
 	if(lvlinfo == NULL) 
 		return;
 	CalculateBaseStats();
+	SendLevelupInfo(
+	    level,
+	    lvlinfo->HP - oldlevel->HP,
+	    lvlinfo->Mana - oldlevel->Mana,
+	    lvlinfo->Stat[0] - oldlevel->Stat[0],
+	    lvlinfo->Stat[1] - oldlevel->Stat[1],
+	    lvlinfo->Stat[2] - oldlevel->Stat[2],
+	    lvlinfo->Stat[3] - oldlevel->Stat[3],
+	    lvlinfo->Stat[4] - oldlevel->Stat[4]);
 
 	_UpdateMaxSkillCounts();
 	UpdateStats();
@@ -14353,7 +14364,7 @@ void Player::ReloadActionBars()
 	}
 	else
 	{
-		QueryResult* result = CharacterDatabase.Query("SELECT action1,action2 FROM characters WHERE guid = %u", GetLowGUID());
+		QueryResult* result = CharacterDatabase.Query("SELECT actions1,actions2 FROM characters WHERE guid = %u", GetLowGUID());
 		if(!result)
 			return;
 		uint32 Counter = 0;
