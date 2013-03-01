@@ -66,7 +66,7 @@ void HungerGames::CheckForWin()
 
 bool HungerGames::HookHandleRepop(Player* plr)
 {
-	LocationVector dest_pos;
+	/*LocationVector dest_pos;
 	
 	dest_pos.ChangeCoords(HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2]);
 	ReaminingPlayers++;
@@ -78,7 +78,7 @@ bool HungerGames::HookHandleRepop(Player* plr)
 		plr->CastSpell(plr, BG_PREPARATION, true);
 
 	// port to it
-	plr->SafeTeleport(plr->GetMapId(), plr->GetInstanceID(), dest_pos);
+	plr->SafeTeleport(plr->GetMapId(), plr->GetInstanceID(), dest_pos);*/
 	return false;
 }
 
@@ -129,6 +129,7 @@ void HungerGames::OnAddPlayer(Player* plr)
 	plr->SetFFAPvPFlag();
 	ReaminingPlayers++;
 	plr->SaveBlock(true);
+	SpawnPoint++;
 }
 
 void HungerGames::OnRemovePlayer(Player* plr)
