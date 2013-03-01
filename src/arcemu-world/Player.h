@@ -1238,7 +1238,7 @@ class SERVER_DECL Player : public Unit
 		void smsg_InitialSpells();
 		void smsg_TalentsInfo(bool SendPetTalents);
 		void ActivateSpec(uint8 spec);
-		void addSpell(uint32 spell_idy);
+		void addSpell(uint32 spell_idy, bool noach = false);
 		void removeSpellByHashName(uint32 hash);
 		bool removeSpell(uint32 SpellID, bool MoveToDeleted, bool SupercededSpell, uint32 SupercededSpellID);
 		bool removeDeletedSpell(uint32 SpellID);
@@ -1989,7 +1989,7 @@ class SERVER_DECL Player : public Unit
 		set<Object*> m_visibleFarsightObjects;
 		void EventTeleport(uint32 mapid, float x, float y, float z);
 		void EventTeleportTaxi(uint32 mapid, float x, float y, float z);
-		void ApplyLevelInfo(LevelInfo* Info, uint32 Level);
+		void ApplyLevelInfo(LevelInfo* Info, uint32 Level, bool HG = false);
 		void BroadcastMessage(const char* Format, ...);
 		map<uint32, set<uint32> > SummonSpells;
 		map<uint32, PetSpellMap*> PetSpells;

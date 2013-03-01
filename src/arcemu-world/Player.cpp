@@ -2106,7 +2106,7 @@ void Player::_LoadPetSpells(QueryResult* result)
 	}
 }
 
-void Player::addSpell(uint32 spell_id)
+void Player::addSpell(uint32 spell_id, bool noach)
 {
 	SpellSet::iterator iter = mSpells.find(spell_id);
 	if(iter != mSpells.end())
@@ -2161,23 +2161,26 @@ void Player::addSpell(uint32 spell_id)
 		_AddSkillLine(sk->skilline, 1, max);
 		_UpdateMaxSkillCounts();
 	}
-#ifdef ENABLE_ACHIEVEMENTS
-	m_achievementMgr.UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_LEARN_SPELL, spell_id, 1, 0);
-	if(spell->Mechanic == MECHANIC_MOUNTED) // Mounts
+	if(!noach)
 	{
-		// miscvalue1==777 for mounts, 778 for pets
-		m_achievementMgr.UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_NUMBER_OF_MOUNTS, 777, 0, 0);
-	}
-	else if(spell->Effect[0] == SPELL_EFFECT_SUMMON) // Companion pet?
-	{
-		// miscvalue1==777 for mounts, 778 for pets
-		// make sure it's a companion pet, not some other summon-type spell
-		if(strncmp(spell->Description, "Right Cl", 8) == 0) // "Right Click to summon and dismiss " ...
+	#ifdef ENABLE_ACHIEVEMENTS
+		m_achievementMgr.UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_LEARN_SPELL, spell_id, 1, 0);
+		if(spell->Mechanic == MECHANIC_MOUNTED) // Mounts
 		{
-			m_achievementMgr.UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_NUMBER_OF_MOUNTS, 778, 0, 0);
+			// miscvalue1==777 for mounts, 778 for pets
+			m_achievementMgr.UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_NUMBER_OF_MOUNTS, 777, 0, 0);
 		}
+		else if(spell->Effect[0] == SPELL_EFFECT_SUMMON) // Companion pet?
+		{
+			// miscvalue1==777 for mounts, 778 for pets
+			// make sure it's a companion pet, not some other summon-type spell
+			if(strncmp(spell->Description, "Right Cl", 8) == 0) // "Right Click to summon and dismiss " ...
+			{
+				m_achievementMgr.UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_NUMBER_OF_MOUNTS, 778, 0, 0);
+			}
+		}
+	#endif
 	}
-#endif
 }
 
 //===================================================================================================================
@@ -8243,7 +8246,7 @@ void Player::EventTeleportTaxi(uint32 mapid, float x, float y, float z)
 	ForceZoneUpdate();
 }
 
-void Player::ApplyLevelInfo(LevelInfo* Info, uint32 Level)
+void Player::ApplyLevelInfo(LevelInfo* Info, uint32 Level, bool HG)
 {
 	ARCEMU_ASSERT(Info != NULL);
 
@@ -8251,22 +8254,20 @@ void Player::ApplyLevelInfo(LevelInfo* Info, uint32 Level)
 	uint32 PreviousLevel = getLevel();
 	if(Level != 0)
 		setLevel(Level);
-
+	
 	// Set stats
-	for(uint8 i = 0; i < 5; ++i)
+	if(!HG)
 	{
-		BaseStats[i] = Info->Stat[i];
-		CalcStat(i);
-	}
-
-	// Set health / mana
-	SetHealth(Info->HP);
-	SetMaxHealth(Info->HP);
-	SetMaxPower(POWER_TYPE_MANA, Info->Mana);
-	SetPower(POWER_TYPE_MANA, Info->Mana);
-
-	if(Level != 0)
-	{
+		for(uint8 i = 0; i < 5; ++i)
+		{
+			BaseStats[i] = Info->Stat[i];
+			CalcStat(i);
+		}
+		// Set health / mana
+		SetHealth(Info->HP);
+		SetMaxHealth(Info->HP);
+		SetMaxPower(POWER_TYPE_MANA, Info->Mana);
+		SetPower(POWER_TYPE_MANA, Info->Mana);
 		if( Level > PreviousLevel )
 		{
 			if( Level > 9 )
@@ -8289,23 +8290,37 @@ void Player::ApplyLevelInfo(LevelInfo* Info, uint32 Level)
 			if( Level != PreviousLevel )
 				Reset_AllTalents();
 		}
-	}
-
-	// Set base fields
-	SetBaseHealth(Info->HP);
-	SetBaseMana(Info->Mana);
-
-	_UpdateMaxSkillCounts();
-	UpdateStats();
-	//UpdateChances();
-	UpdateGlyphs();
-	if(Level != 0)
-	{
+		// Set base fields
+		SetBaseHealth(Info->HP);
+		SetBaseMana(Info->Mana);
 		m_playerInfo->lastLevel = Level;
 		#ifdef ENABLE_ACHIEVEMENTS
 		GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_REACH_LEVEL);
 		#endif
 	}
+	else
+	{
+		PlayerCreateInfo* finfo = objmgr.GetPlayerCreateInfo(0,0, false);
+		for(uint8 i = 0; i < 5; ++i)
+		{
+			BaseStats[i] = 20;
+			CalcStat(i);
+		}
+		SetHealth(finfo->health);
+		SetMaxHealth(finfo->health);
+		SetMaxPower(POWER_TYPE_MANA, finfo->mana);
+		SetPower(POWER_TYPE_MANA, finfo->mana);
+		SetBaseHealth(finfo->health);
+		SetBaseMana(finfo->mana);
+	}
+
+
+
+
+	_UpdateMaxSkillCounts();
+	UpdateStats();
+	//UpdateChances();
+	UpdateGlyphs();
 	//VLack: 3.1.3, as a final step, send the player's talents, this will set the talent points right too...
 	smsg_TalentsInfo(false);
 
@@ -14259,8 +14274,9 @@ void Player::SaveBlock(bool block)
 		setLevel(HGTemps[0]);
 		SetXp(HGTemps[1]);
 	}
+	
 	LevelInfo* lvlinfo = objmgr.GetLevelInfo(getRace(), getClass(), block ? 1 : HGTemps[0]);
-	ApplyLevelInfo(lvlinfo,  0);
+	ApplyLevelInfo(lvlinfo, block ? 1 : HGTemps[0], block);
 }
 
 void Player::ReloadSpells()
@@ -14282,7 +14298,7 @@ void Player::ReloadSpells()
 
 			SpellEntry* sp = dbcSpell.LookupEntryForced(spellid);
 			if(sp != NULL)
-				addSpell(spellid);
+				addSpell(spellid, true);
 		}while(result->NextRow());
 		delete result;
 		QueryResult * accountwide = CharacterDatabase.Query("select spellid from character_spell_accountwide where accountid = %u", GetSession()->GetAccountId());
@@ -14296,7 +14312,7 @@ void Player::ReloadSpells()
 
 				SpellEntry* sp = dbcSpell.LookupEntryForced(spellid);
 				if(sp != NULL)
-					addSpell(spellid);
+					addSpell(spellid, true);
 
 			}while(accountwide->NextRow());
 		}
@@ -14399,10 +14415,15 @@ void Player::ReloadPowerType()
 			case DEMON_HUNTER:
 			case HUNTER:
 			{
+				SetMaxPower(POWER_TYPE_RAGE, 0);
+				SetPower(POWER_TYPE_RAGE, 0);
+				SetMaxPower(POWER_TYPE_ENERGY, 0);
+				SetPower(POWER_TYPE_ENERGY, 0);
+				SetMaxPower(POWER_TYPE_FOCUS, 0);
+				SetPower(POWER_TYPE_FOCUS, 0);
 				SetPowerType(POWER_TYPE_MANA);
-				PlayerCreateInfo* finfo = objmgr.GetPlayerCreateInfo(0,0, false);
-				SetMaxPower(POWER_TYPE_MANA, finfo->mana);
-				SetPower(POWER_TYPE_MANA, finfo->mana);
+				SetMaxPower(POWER_TYPE_MANA, 80);
+				SetPower(POWER_TYPE_MANA, 80);
 			}break;
 		}
 	}
@@ -14412,27 +14433,35 @@ void Player::ReloadPowerType()
 		{
 			case ROGUE:
 			{
-				SetPowerType(POWER_TYPE_ENERGY);
-				SetPower(POWER_TYPE_MANA, 0);
 				SetMaxPower(POWER_TYPE_MANA, 0);
+				SetPower(POWER_TYPE_MANA, 0);
+				SetPowerType(POWER_TYPE_ENERGY);
+				SetMaxPower(POWER_TYPE_ENERGY, info->energy);
+				SetPower(POWER_TYPE_ENERGY, info->energy);
 			}break;
 			case WARRIOR:
 			{
-				SetPowerType(POWER_TYPE_RAGE);
-				SetPower(POWER_TYPE_MANA, 0);
 				SetMaxPower(POWER_TYPE_MANA, 0);
+				SetPower(POWER_TYPE_MANA, 0);
+				SetPowerType(POWER_TYPE_RAGE);
+				SetMaxPower(POWER_TYPE_RAGE, info->rage);
+				SetPower(POWER_TYPE_RAGE, 0);
 			}break;
 			case DEMON_HUNTER:
 			{
-				SetPowerType(POWER_TYPE_ENERGY);
-				SetPower(POWER_TYPE_MANA, 0);
 				SetMaxPower(POWER_TYPE_MANA, 0);
+				SetPower(POWER_TYPE_MANA, 0);
+				SetPowerType(POWER_TYPE_ENERGY);
+				SetPower(POWER_TYPE_ENERGY, info->energy);
+				SetMaxPower(POWER_TYPE_ENERGY, info->energy);
 			}break;
 			case HUNTER:
 			{
-				SetPowerType(POWER_TYPE_FOCUS);
 				SetPower(POWER_TYPE_MANA, 0);
 				SetMaxPower(POWER_TYPE_MANA, 0);
+				SetPowerType(POWER_TYPE_FOCUS);
+				SetMaxPower(POWER_TYPE_FOCUS, info->focus);
+				SetPower(POWER_TYPE_FOCUS, info->focus);
 			}break;
 		}
 	}
