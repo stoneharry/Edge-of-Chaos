@@ -7,7 +7,7 @@
 		- Add waypoints to mobs (a way to automate this through DB?)
 		- Mob AI
 		- Scenarios
-		- Player change DB function is not restoring items when reverse'd (ALL items are lost) and level should be reset to 1 when in BG and returned to original level after BG
+		- If a player dies then leaves, it will count as 2 players getting killed at the moment
 		...
 */
 
@@ -66,19 +66,6 @@ void HungerGames::CheckForWin()
 
 bool HungerGames::HookHandleRepop(Player* plr)
 {
-	/*LocationVector dest_pos;
-	
-	dest_pos.ChangeCoords(HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2]);
-	ReaminingPlayers++;
-	SpawnPoint++;
-
-	plr->SetFFAPvPFlag();
-
-	if (!m_started)
-		plr->CastSpell(plr, BG_PREPARATION, true);
-
-	// port to it
-	plr->SafeTeleport(plr->GetMapId(), plr->GetInstanceID(), dest_pos);*/
 	return false;
 }
 
@@ -122,6 +109,10 @@ void HungerGames::HookOnMount(Player* plr)
 
 void HungerGames::OnAddPlayer(Player* plr)
 {
+	LocationVector dest_pos;
+	dest_pos.ChangeCoords(HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2]);
+	plr->SafeTeleport(plr->GetMapId(), plr->GetInstanceID(), dest_pos);
+
 	if(!m_started)
 		plr->CastSpell(plr, BG_PREPARATION, true);
 	// players should not join during a game of hunger games
@@ -134,6 +125,7 @@ void HungerGames::OnAddPlayer(Player* plr)
 
 void HungerGames::OnRemovePlayer(Player* plr)
 {
+	Herald("%s has left the game!", plr->GetName());
 	plr->RemoveAura(BG_PREPARATION);
 	ReaminingPlayers--;
 	plr->RemoveFFAPvPFlag();
@@ -155,6 +147,9 @@ void HungerGames::HookOnPlayerKill(Player* plr, Player* pVictim)
 	plr->AddHonor(20);
 	plr->m_bgScore.KillingBlows++;
 	UpdatePvPData();
+	Herald("%s has killed %s!", plr->GetName(), pVictim->GetName());
+	if (ReaminingPlayers > 1)
+		Herald("There are just %d players remaining!", ReaminingPlayers);
 }
 
 void HungerGames::HookOnHK(Player* plr)
