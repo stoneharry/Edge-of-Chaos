@@ -14478,4 +14478,5 @@ void Player::ReloadSkills()
 	}
 	else
 		LoadSkills(CharacterDatabase.Query("SELECT SkillID, CurrentValue, MaximumValue FROM playerskills WHERE GUID = %u", GetLowGUID()));
+	_AddLanguages(true);
 }
