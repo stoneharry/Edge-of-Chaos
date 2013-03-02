@@ -260,7 +260,7 @@ void HungerGames::Finish(uint32 losingTeam)
 		}
 	}
 
-	Herald("The Hunger Games has ended, %s has won!", winnername);
+	Herald("The Divide has ended, %s has won!", winnername);
 
 	UpdatePvPData();
 }
