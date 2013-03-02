@@ -8,6 +8,7 @@
 		- Mob AI
 		- Scenarios
 		- If a player dies then leaves, it will count as 2 players getting killed at the moment
+		- Bags were lost on exit of the BG, player could not speak after exiting the BG
 		...
 */
 
