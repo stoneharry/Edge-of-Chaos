@@ -14276,7 +14276,7 @@ void Player::SaveBlock(bool block)
 	}
 	
 	LevelInfo* lvlinfo = objmgr.GetLevelInfo(getRace(), getClass(), block ? 1 : HGTemps[0]);
-	ApplyLevelInfo(lvlinfo, block ? 1 : HGTemps[0], block);
+	ApplyLevelInfo(lvlinfo, block ? 1 : HGTemps[0], true);
 }
 
 void Player::ReloadSpells()
@@ -14470,6 +14470,7 @@ void Player::ReloadPowerType()
 void Player::ReloadSkills()
 {
 	_RemoveAllSkills();
+	_AddLanguages(true);
 	if(IsSaveBlocked())
 	{
 		PlayerCreateInfo* finfo = objmgr.GetPlayerCreateInfo(0,0, false);
@@ -14478,5 +14479,4 @@ void Player::ReloadSkills()
 	}
 	else
 		LoadSkills(CharacterDatabase.Query("SELECT SkillID, CurrentValue, MaximumValue FROM playerskills WHERE GUID = %u", GetLowGUID()));
-	_AddLanguages(true);
 }
