@@ -122,6 +122,7 @@ void HungerGames::OnAddPlayer(Player* plr)
 	ReaminingPlayers++;
 	plr->SaveBlock(true);
 	SpawnPoint++;
+	plr->BroadcastMessage("[EoC-Addon] HungerGamesOpen");
 }
 
 void HungerGames::OnRemovePlayer(Player* plr)
