@@ -8,7 +8,9 @@
 		- Mob AI
 		- Scenarios
 		- If a player dies then leaves, it will count as 2 players getting killed at the moment
-		- Bags were lost on exit of the BG, player could not speak after exiting the BG
+		- Player cannot speak when exiting the BG
+		- Talent points are not fully restored when exiting the BG - player gets 5 new talent points still
+		- Server froze up with no crash dump when entering the BG a second time
 		...
 */
 
