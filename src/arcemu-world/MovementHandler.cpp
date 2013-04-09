@@ -186,7 +186,8 @@ void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSessio
 	//player is swimming and not flagged as in the water
 	if(movement_info.flags & MOVEFLAG_SWIMMING && !(_player->m_UnderwaterState & UNDERWATERSTATE_SWIMMING))
 	{
-		if( ( _player->GetZoneId() == 46 )&& !(_player->m_UnderwaterState & UNDERWATERSTATE_LAVA))
+		// The position > 125 is such a hackfix and appears to be very buggy... But it is a temporary solution
+		if( (_player->GetPositionZ() > 125 && _player->GetZoneId() == 46 ) && !(_player->m_UnderwaterState & UNDERWATERSTATE_LAVA))
 			_player->m_UnderwaterState |= UNDERWATERSTATE_LAVA;
 
 		_player->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_ENTER_WATER);
@@ -255,7 +256,7 @@ void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSessio
 		if(movement_info.z + _player->m_noseLevel > _player->GetMapMgr()->GetLiquidHeight(movement_info.x, movement_info.y))
 		{
 			_player->m_UnderwaterState &= ~UNDERWATERSTATE_UNDERWATER;
-			if( ( _player->GetZoneId() == 46) && (_player->m_UnderwaterState & UNDERWATERSTATE_LAVA))
+			if( ( _player->GetZoneId() == 46 ) && (_player->m_UnderwaterState & UNDERWATERSTATE_LAVA))
 				_player->m_UnderwaterState &= ~UNDERWATERSTATE_LAVA;
 			else
 			{
@@ -272,7 +273,7 @@ void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSessio
 		//the player is out of the water, no breath bar needed.
 		if(movement_info.z + _player->m_noseLevel > _player->GetMapMgr()->GetLiquidHeight(movement_info.x, movement_info.y))
 		{
-			if( ( _player->GetZoneId() == 46 ) && (_player->m_UnderwaterState & UNDERWATERSTATE_LAVA))
+			if( ( _player->GetZoneId() == 46 && _player->GetPositionY() > -2440 ) && (_player->m_UnderwaterState & UNDERWATERSTATE_LAVA))
 				_player->m_UnderwaterState &= ~UNDERWATERSTATE_LAVA;
 			else
 			{
