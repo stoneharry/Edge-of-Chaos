@@ -4,6 +4,8 @@
 /*
 	To Do:
 		- Talent points are not restored when exiting the BG - instead you get 5 new talents (talent reset)
+		- Water can be buggy - very frustrating
+		- Stats do not seem to be applying a bonus
 		...
 */
 
@@ -155,24 +157,17 @@ void HungerGames::OnCreate()
 		temp->PushToWorld(m_mapMgr);
 	// Push the shark creature
 	SpawnCreature(246371, 15778.00f, 16178.00f, -37.50f, 4.12f, 17)->GetAIInterface()->SetFly();
-	// Push average chests to world (does one of two random location generations)
-	bool spawn = false;
-	if (rand() % 2 == 1)
-		spawn = true;
+	// Push average chests to world
 	for (i = 0; i < HG_AVERAGE_CHEST_COUNT; i++)
 	{
-		if (spawn)
+		GameObject * temp = SpawnGameObject(2855, HG_AVERAGE_CHESTS[i][0], HG_AVERAGE_CHESTS[i][1], HG_AVERAGE_CHESTS[i][2], HG_AVERAGE_CHESTS[i][3], 0, 35, 1.0f);
+		if(!temp)
 		{
-			GameObject * temp = SpawnGameObject(2855, HG_AVERAGE_CHESTS[i][0], HG_AVERAGE_CHESTS[i][1], HG_AVERAGE_CHESTS[i][2], HG_AVERAGE_CHESTS[i][3], 0, 35, 1.0f);
-			if(!temp)
-			{
-				delete temp;
-				continue;
-			}
-			temp->SetState(1);
-			temp->PushToWorld(m_mapMgr);
+			delete temp;
+			continue;
 		}
-		spawn = !spawn;
+		temp->SetState(1);
+		temp->PushToWorld(m_mapMgr);
 	}
 	// Spawn creatures
 	// Murlocs
