@@ -1539,6 +1539,9 @@ void Player::GiveXP(uint32 xp, const uint64 & guid, bool allowbonus)
 	if(xp < 1)
 		return;
 
+	if(IsInBg())
+		return;
+
 	// Obviously if Xp gaining is disabled we don't want to gain XP
 	if(!m_XpGain)
 		return;
