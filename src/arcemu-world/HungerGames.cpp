@@ -161,7 +161,7 @@ void HungerGames::OnCreate()
 	{
 		if (spawn)
 		{
-			GameObject * temp = SpawnGameObject(2855, HG_AVERAGE_CHESTS[i][0], HG_AVERAGE_CHESTS[i][1], HG_AVERAGE_CHESTS[i][2], 0, 35, 0, 1.0f);
+			GameObject * temp = SpawnGameObject(2855, HG_AVERAGE_CHESTS[i][0], HG_AVERAGE_CHESTS[i][1], HG_AVERAGE_CHESTS[i][2], HG_AVERAGE_CHESTS[i][3], 0, 35, 1.0f);
 			if(!temp)
 			{
 				delete temp;
