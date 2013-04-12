@@ -169,10 +169,6 @@ void HungerGames::OnCreate()
 		temp->SetState(1);
 		temp->PushToWorld(m_mapMgr);
 	}
-	// Spawn creatures
-	// Murlocs
-	for (i = 0; i < HG_MURLOC_COUNT; i++)
-		SpawnCreature(80050, HG_MURLOC_SPAWNS[i][0], HG_MURLOC_SPAWNS[i][1], HG_MURLOC_SPAWNS[i][2], HG_MURLOC_SPAWNS[i][3]);
 }
 
 void HungerGames::HookOnPlayerKill(Player* plr, Player* pVictim)
@@ -208,20 +204,31 @@ LocationVector HungerGames::GetStartingCoords(uint32 Team)
 void HungerGames::OnStart()
 {
 	m_started = true;
+	int i = 0;
 
-	for(uint32 i = 0; i < 2; i++) {
+	for(i = 0; i < 2; i++) {
 		for(set<Player*  >::iterator itr = m_players[i].begin(); itr != m_players[i].end(); itr++) {
 			(*itr)->RemoveAura(BG_PREPARATION);
 		}
 	}
 
-	for (int i = 0; i < 10; i++)
+	for (i = 0; i < 10; i++)
 	{
 		if(m_bubbles[i] && m_bubbles[i]->IsInWorld())
 			m_bubbles[i]->RemoveFromWorld(false);
 	}
 
 	PlaySoundToAll(SOUND_BATTLEGROUND_BEGIN);
+
+	// Spawn creatures
+	// Murlocs
+	for (i = 0; i < HG_MURLOC_COUNT; i++)
+		SpawnCreature(80050, HG_MURLOC_SPAWNS[i][0], HG_MURLOC_SPAWNS[i][1], HG_MURLOC_SPAWNS[i][2], HG_MURLOC_SPAWNS[i][3]);
+	// Goblins
+	for (i = 0; i < HG_GOBLIN_COUNT; i++)
+		SpawnCreature(80051, HG_GOBLIN_SPAWNS[i][0], HG_GOBLIN_SPAWNS[i][1], 0.00f, 0.00f);
+	// Goblin Lord
+	SpawnCreature(80052, 15913.00f, 15901.50f, 0.00f, 1.00f)->SetEquippedItem(44053, 0);
 }
 
 void HungerGames::HookGenerateLoot(Player* plr, Object* pCorpse)
