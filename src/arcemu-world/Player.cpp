@@ -6909,6 +6909,10 @@ void Player::RegenerateMana(bool is_interrupted)
 	uint32 mm = GetMaxPower(POWER_TYPE_MANA);
 	if(cur >= mm)
 		return;
+
+	if (GetMapId() == 750) // If in the divide, don't regenerate health
+		return;
+
 	float wrate = sWorld.getRate(RATE_POWER1); // config file regen rate
 	float amt = (is_interrupted) ? GetFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER) : GetFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER);
 	amt *= wrate * 2.0f;
@@ -6942,6 +6946,9 @@ void Player::RegenerateHealth(bool inCombat)
 	if(cur == 0) return;   // cebernic: bugfix dying but regenerated?
 
 	if(cur >= mh)
+		return;
+
+	if (GetMapId() == 750) // Do not regenerate inside the divide
 		return;
 
 	gtFloat* HPRegenBase = dbcHPRegenBase.LookupEntry(getLevel() - 1 + (getClass() - 1) * 100);
@@ -12652,7 +12659,7 @@ void Player::TakeDamage(Unit* pAttacker, uint32 damage, uint32 spellid, bool no_
 	{
 		float rageconversion = ((0.0091107836f * getLevel() * getLevel()) + 3.225598133f * getLevel()) + 4.2652911f;
 		float addRage = damage / rageconversion * 2.5f;
-		addRage *= 10;
+		addRage *= 20; // Changed from 10, lets get more rage
 		ModPower(POWER_TYPE_RAGE, float2int32(addRage));
 	}
 

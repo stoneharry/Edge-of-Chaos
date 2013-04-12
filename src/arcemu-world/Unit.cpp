@@ -3627,7 +3627,7 @@ void Unit::Strike(Unit* pVictim, uint32 weapon_damage_type, SpellEntry* ability,
 			weaponSpeedHitFactor *= 2;
 		float addRage = (dmg.full_damage / rageconversion * 7.5f + weaponSpeedHitFactor) / 2;
 		AddPctN(addRage, GetTotalAuraModifier(213));
-		addRage *= 10;
+		addRage *= 20; // MORE RAGE!
 		ModPower(POWER_TYPE_RAGE, float2int32(addRage));
 	}
 

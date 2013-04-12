@@ -147,6 +147,14 @@ void HungerGames::OnCreate()
 		if(m_bubbles[i] && !m_bubbles[i]->IsInWorld())
 			m_bubbles[i]->PushToWorld(m_mapMgr);
 	}
+	// Push cave in (maybe temporary)
+	GameObject * temp = SpawnGameObject(146086, 16156.50f, 15730.00f, -9.00f, 1.61f, 0, 35, 2.00f);
+	if (!temp)
+		delete temp;
+	else
+		temp->PushToWorld(m_mapMgr);
+	// Push the shark creature
+	SpawnCreature(246371, 15778.00f, 16178.00f, -37.50f, 4.12f, 17)->GetAIInterface()->SetFly();
 	// Push average chests to world (does one of two random location generations)
 	bool spawn = false;
 	if (rand() % 2 == 1)

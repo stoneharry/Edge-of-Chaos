@@ -328,7 +328,7 @@ bool WillOfTheNecropolis( uint32 i, Spell *spell )
 
 void SetupDeathKnightSpells(ScriptMgr * mgr)
 {
-	mgr->register_creature_script(24207, &ArmyofDeadGhoul::Create);
+	//mgr->register_creature_script(24207, &ArmyofDeadGhoul::Create); // Don't need this
     mgr->register_dummy_spell(50842, &Pestilence);
 	uint32 DeathStrikeIds[] =
 	{
