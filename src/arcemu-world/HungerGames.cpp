@@ -3,14 +3,7 @@
 
 /*
 	To Do:
-		- Spawn mobs at start of BG
-		- Add waypoints to mobs (a way to automate this through DB?)
-		- Mob AI
-		- Scenarios
-		- If a player dies then leaves, it will count as 2 players getting killed at the moment
-		- Player cannot speak when exiting the BG
-		- Talent points are not fully restored when exiting the BG - player gets 5 new talent points still
-		- Server froze up with no crash dump when entering the BG a second time
+		- Talent points are not restored when exiting the BG - instead you get 5 new talents (talent reset)
 		...
 */
 
@@ -139,7 +132,8 @@ void HungerGames::OnRemovePlayer(Player* plr)
 {
 	Herald("%s has left the game!", plr->GetName());
 	plr->RemoveAura(BG_PREPARATION);
-	ReaminingPlayers--;
+	if (plr->isAlive())
+		ReaminingPlayers--;
 	plr->RemoveFFAPvPFlag();
 	plr->SaveBlock(false);
 }
@@ -173,7 +167,9 @@ void HungerGames::OnCreate()
 		spawn = !spawn;
 	}
 	// Spawn creatures
-	// ...
+	// Murlocs
+	for (i = 0; i < HG_MURLOC_COUNT; i++)
+		SpawnCreature(80050, HG_MURLOC_SPAWNS[i][0], HG_MURLOC_SPAWNS[i][1], HG_MURLOC_SPAWNS[i][2], HG_MURLOC_SPAWNS[i][3]);
 }
 
 void HungerGames::HookOnPlayerKill(Player* plr, Player* pVictim)
