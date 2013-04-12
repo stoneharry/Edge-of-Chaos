@@ -14268,6 +14268,7 @@ void Player::SaveBlock(bool block)
 		HGTemps[1] = GetXp();
 		setLevel(1);
 		SetXp(0);
+		//SetCurrentTalentPoints(0);
 	}
 	else
 	{

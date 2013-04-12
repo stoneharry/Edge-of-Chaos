@@ -23,7 +23,7 @@ HungerGames::HungerGames(MapMgr * mgr, uint32 id, uint32 lgroup, uint32 t) : CBa
 
 	for (int i = 0; i < 10; i++) // Pushing this object to world is causing a crash for some reason. Tried using mgr passed in function and pushing later on. Still crashes.
 	{
-		m_bubbles[i] = SpawnGameObject(184719, HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2], 0, 35, 0, 0.1f);
+		m_bubbles[i] = SpawnGameObject(184719, HG_SPAWN_POINTS[i][0], HG_SPAWN_POINTS[i][1], HG_SPAWN_POINTS[i][2], 0, 35, 0, 0.1f);
 		if(!m_bubbles[i])
 		{
 			delete m_bubbles[i];
@@ -112,6 +112,14 @@ void HungerGames::HookOnMount(Player* plr)
 
 void HungerGames::OnAddPlayer(Player* plr)
 {
+	if (m_started && plr->GetSession()->GetPermissionCount() != 0) // If a GM and game has started do not count
+	{
+		UpdatePvPData();
+		plr->SetFFAPvPFlag();
+		plr->SaveBlock(true);
+		return;
+	}
+
 	LocationVector dest_pos;
 	dest_pos.ChangeCoords(HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2]);
 	plr->SafeTeleport(plr->GetMapId(), plr->GetInstanceID(), dest_pos);
@@ -138,12 +146,34 @@ void HungerGames::OnRemovePlayer(Player* plr)
 
 void HungerGames::OnCreate()
 {
-	for (int i = 0; i < 10; i++)
+	int i;
+	// Push bubbles to world
+	for (i = 0; i < 10; i++)
 	{
 		if(m_bubbles[i] && !m_bubbles[i]->IsInWorld())
 			m_bubbles[i]->PushToWorld(m_mapMgr);
 	}
+	// Push average chests to world (does one of two random location generations)
+	bool spawn = false;
+	if (rand() % 2 == 1)
+		spawn = true;
+	for (i = 0; i < HG_AVERAGE_CHEST_COUNT; i++)
+	{
+		if (spawn)
+		{
+			GameObject * temp = SpawnGameObject(2855, HG_AVERAGE_CHESTS[i][0], HG_AVERAGE_CHESTS[i][1], HG_AVERAGE_CHESTS[i][2], 0, 35, 0, 1.0f);
+			if(!temp)
+			{
+				delete temp;
+				continue;
+			}
+			temp->SetState(1);
+			temp->PushToWorld(m_mapMgr);
+		}
+		spawn = !spawn;
+	}
 	// Spawn creatures
+	// ...
 }
 
 void HungerGames::HookOnPlayerKill(Player* plr, Player* pVictim)
