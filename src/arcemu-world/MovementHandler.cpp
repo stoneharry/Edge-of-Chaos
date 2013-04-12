@@ -151,6 +151,9 @@ void WorldSession::HandleMoveTeleportAckOpcode(WorldPacket & recv_data)
 
 void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSession* pSession)
 {
+	if (_player->HasAura(22807)) // Do not get damage from water breathing (the divide)
+		return;
+
 	// no water breathing is required
 	if(!sWorld.BreathingEnabled || _player->FlyCheat || _player->m_bUnlimitedBreath || !_player->isAlive() || _player->GodModeCheat)
 	{
