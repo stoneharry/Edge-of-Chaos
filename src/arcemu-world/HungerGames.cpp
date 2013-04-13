@@ -118,7 +118,7 @@ void HungerGames::OnAddPlayer(Player* plr)
 	LocationVector dest_pos;
 	dest_pos.ChangeCoords(HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2]);
 	plr->SafeTeleport(plr->GetMapId(), plr->GetInstanceID(), dest_pos);
-
+	plr->Phase(PHASE_SET, 1);
 	if(!m_started)
 		plr->CastSpell(plr, BG_PREPARATION, true);
 	// players should not join during a game of hunger games
