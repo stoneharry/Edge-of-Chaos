@@ -174,8 +174,8 @@ void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSessio
 		{
 			if(movement_info.z + _player->m_noseLevel <= _player->GetMapMgr()->GetLiquidHeight(movement_info.x, movement_info.y))
 			{
-				_player->m_UnderwaterTime = 0;
-				_player->m_UnderwaterMaxTime = 0;
+				//_player->m_UnderwaterTime = 180000;
+				//_player->m_UnderwaterMaxTime = 180000;
 				_player->m_UnderwaterState = UNDERWATERSTATE_NONE;
 				_player->StopMirrorTimer(TIMER_BREATH);
 				_player->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_LEAVE_WATER);
@@ -211,8 +211,8 @@ void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSessio
 	{
 		if(movement_info.z + _player->m_noseLevel <= _player->GetMapMgr()->GetLiquidHeight(movement_info.x, movement_info.y))
 		{
-			_player->m_UnderwaterTime = 0;
-			_player->m_UnderwaterMaxTime = 0;
+			//_player->m_UnderwaterTime = 0;
+			//_player->m_UnderwaterMaxTime = 180000;
 			_player->m_UnderwaterState = UNDERWATERSTATE_NONE;
 			_player->StopMirrorTimer(TIMER_BREATH);
 			_player->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_LEAVE_WATER);
