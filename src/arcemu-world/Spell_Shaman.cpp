@@ -29,30 +29,33 @@ class FireNova : public Spell
 				SendCustomError(SPELL_CUSTOM_ERROR_GM_ONLY);
 				return SPELL_FAILED_CUSTOM_ERROR;
 			}*/
+
 			uint8 result = Spell::CanCast(tolerate);
 
 			if(result == SPELL_CANCAST_OK)
 			{
 				if(u_caster)
 				{
-					Unit * totem = u_caster->summonhandler.GetSummonWithEntry(3902);
+					Unit * totem = u_caster->summonhandler.GetSummonWithEntry(2523); // fire totem rank 1
 					if(totem == NULL)
 					{
-						SendCustomError(SPELL_CUSTOM_ERROR_MUST_HAVE_FIRE_TOTEM);
+						SendCustomError(SPELL_CUSTOM_ERROR_MUST_HAVE_FIRE_TOTEM); // does not appear to be sending a message to client
 						result = SPELL_FAILED_CUSTOM_ERROR;
 					}
 				}
 			}
+
 			return result;
 		}
 		void SpellEffectDummy(uint32 i)
 		{
-			Unit * totem = u_caster->summonhandler.GetSummonWithEntry(3902);
+			Unit * totem = u_caster->summonhandler.GetSummonWithEntry(2523); // fire totem rank 1
 			if(totem == NULL)
 			{
 				SendCustomError(SPELL_CUSTOM_ERROR_MUST_HAVE_FIRE_TOTEM);
 				return;
 			}
+
 			totem->CastSpellAoF(totem->GetPositionX(), totem->GetPositionY(), totem->GetPositionZ(), dbcSpell.LookupEntryForced(8349), true);
 			//totem->CastSpell(totem, 8349, true);
 		}
