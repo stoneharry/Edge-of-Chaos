@@ -1013,7 +1013,7 @@ void Player::Update(uint32 p_time)
 			if(m_UnderwaterTime >= m_UnderwaterMaxTime)
 			{
 				m_UnderwaterTime = m_UnderwaterMaxTime;
-				StopMirrorTimer(1);
+				StopMirrorTimer(TIMER_BREATH);
 			}
 		}
 	}

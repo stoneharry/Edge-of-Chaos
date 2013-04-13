@@ -177,7 +177,7 @@ void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSessio
 				//_player->m_UnderwaterTime = 180000;
 				//_player->m_UnderwaterMaxTime = 180000;
 				_player->m_UnderwaterState = UNDERWATERSTATE_NONE;
-				_player->StopMirrorTimer(TIMER_BREATH);
+				//_player->StopMirrorTimer(TIMER_BREATH);
 				_player->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_LEAVE_WATER);
 				// unset swim session water level
 				pSession->m_bIsWLevelSet = false;
@@ -214,7 +214,7 @@ void _HandleBreathing(MovementInfo & movement_info, Player* _player, WorldSessio
 			//_player->m_UnderwaterTime = 0;
 			//_player->m_UnderwaterMaxTime = 180000;
 			_player->m_UnderwaterState = UNDERWATERSTATE_NONE;
-			_player->StopMirrorTimer(TIMER_BREATH);
+			//_player->StopMirrorTimer(TIMER_BREATH);
 			_player->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_LEAVE_WATER);
 			pSession->m_bIsWLevelSet = false;
 			return;
