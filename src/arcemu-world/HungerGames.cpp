@@ -134,7 +134,7 @@ void HungerGames::OnRemovePlayer(Player* plr)
 {
 	Herald("%s has left the game!", plr->GetName());
 	plr->RemoveAura(BG_PREPARATION);
-	if (plr->isAlive())
+	if (plr == NULL || plr->isAlive())
 		ReaminingPlayers--;
 	plr->RemoveFFAPvPFlag();
 	plr->SaveBlock(false);
