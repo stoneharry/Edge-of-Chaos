@@ -1009,7 +1009,7 @@ void Player::Update(uint32 p_time)
 		if(m_UnderwaterTime < m_UnderwaterMaxTime)
 		{
 			// regenning
-			m_UnderwaterTime += (p_time * 10);
+			m_UnderwaterTime += (p_time * 2);
 			if(m_UnderwaterTime >= m_UnderwaterMaxTime)
 			{
 				m_UnderwaterTime = m_UnderwaterMaxTime;
