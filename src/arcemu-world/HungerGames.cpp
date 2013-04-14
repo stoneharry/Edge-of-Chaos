@@ -5,6 +5,7 @@
 	To Do:
 		- Talent points are not restored when exiting the BG - instead you get 5 new talents (talent reset)
 		- Hunters can keep their quivers inside the BG and keep the arrows inside them - big exploittttt
+		- The repop function (player needs to be removed from the BG)
 		...
 */
 
@@ -63,6 +64,9 @@ void HungerGames::CheckForWin()
 
 bool HungerGames::HookHandleRepop(Player* plr)
 {
+	//if (!m_ended) // Commented out till removal from BG is implemented
+	//	plr->AddHonor(40);
+	// Player needs to be removed from BG here
 	return false;
 }
 
@@ -134,7 +138,7 @@ void HungerGames::OnRemovePlayer(Player* plr)
 {
 	Herald("%s has left the game!", plr->GetName());
 	plr->RemoveAura(BG_PREPARATION);
-	if (plr == NULL || plr->isAlive())
+	if (plr->isAlive())
 		ReaminingPlayers--;
 	plr->RemoveFFAPvPFlag();
 	plr->SaveBlock(false);
@@ -155,20 +159,6 @@ void HungerGames::OnCreate()
 		delete temp;
 	else
 		temp->PushToWorld(m_mapMgr);
-	// Push the shark creature
-	SpawnCreature(246371, 15778.00f, 16178.00f, -37.50f, 4.12f, 17)->GetAIInterface()->SetFly();
-	// Push average chests to world
-	for (i = 0; i < HG_AVERAGE_CHEST_COUNT; i++)
-	{
-		GameObject * temp = SpawnGameObject(2855, HG_AVERAGE_CHESTS[i][0], HG_AVERAGE_CHESTS[i][1], HG_AVERAGE_CHESTS[i][2], HG_AVERAGE_CHESTS[i][3], 0, 35, 1.0f);
-		if(!temp)
-		{
-			delete temp;
-			continue;
-		}
-		temp->SetState(1);
-		temp->PushToWorld(m_mapMgr);
-	}
 }
 
 void HungerGames::HookOnPlayerKill(Player* plr, Player* pVictim)
@@ -220,6 +210,20 @@ void HungerGames::OnStart()
 
 	PlaySoundToAll(SOUND_BATTLEGROUND_BEGIN);
 
+	// Push the shark creature
+	SpawnCreature(246371, 15778.00f, 16178.00f, -37.50f, 4.12f, 17)->GetAIInterface()->SetFly();
+	// Push average chests to world
+	for (i = 0; i < HG_AVERAGE_CHEST_COUNT; i++)
+	{
+		GameObject * temp = SpawnGameObject(2855, HG_AVERAGE_CHESTS[i][0], HG_AVERAGE_CHESTS[i][1], HG_AVERAGE_CHESTS[i][2], HG_AVERAGE_CHESTS[i][3], 0, 35, 1.0f);
+		if(!temp)
+		{
+			delete temp;
+			continue;
+		}
+		temp->SetState(1);
+		temp->PushToWorld(m_mapMgr);
+	}
 	// Spawn creatures
 	// Murlocs
 	for (i = 0; i < HG_MURLOC_COUNT; i++)
