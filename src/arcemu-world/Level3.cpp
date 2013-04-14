@@ -4225,37 +4225,9 @@ bool ChatHandler::HandleLevelUpCommand(const char* args, WorldSession* m_session
 
 	if(!plr) return false;
 
-	sGMLog.writefromsession(m_session, "used level up command on %s, with %u levels", plr->GetName(), levels);
+	sGMLog.writefromsession(m_session, "used level up command on %s, with %u xp", plr->GetName(), levels);
 
-	levels += plr->getLevel();
-
-	if(levels > PLAYER_LEVEL_CAP)
-		levels = PLAYER_LEVEL_CAP;
-
-	LevelInfo* inf = objmgr.GetLevelInfo(plr->getRace(), plr->getClass(), levels);
-	if(!inf)
-		return false;
-	plr->ApplyLevelInfo(inf, levels);
-	if(plr->getClass() == WARLOCK)
-	{
-		std::list<Pet*> summons = plr->GetSummons();
-		for(std::list<Pet*>::iterator itr = summons.begin(); itr != summons.end(); ++itr)
-		{
-			if((*itr)->IsInWorld() && (*itr)->isAlive())
-			{
-				(*itr)->setLevel(levels);
-				(*itr)->ApplyStatsForLevel();
-				(*itr)->UpdateSpellList();
-			}
-		}
-	}
-
-	WorldPacket data;
-	std::stringstream sstext;
-	sstext << "You have been leveled up to Level " << levels << '\0';
-	SystemMessage(plr->GetSession(), sstext.str().c_str());
-
-	plr->Social_TellFriendsOnline();
+	plr->GiveXP(levels, plr->GetGUID(), true);
 
 	return true;
 }

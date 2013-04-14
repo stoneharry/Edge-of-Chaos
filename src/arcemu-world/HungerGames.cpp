@@ -4,8 +4,7 @@
 /*
 	To Do:
 		- Talent points are not restored when exiting the BG - instead you get 5 new talents (talent reset)
-		- Water can be buggy - very frustrating
-		- Stats do not seem to be applying a bonus
+		- Hunters can keep their quivers inside the BG and keep the arrows inside them - big exploittttt
 		...
 */
 
