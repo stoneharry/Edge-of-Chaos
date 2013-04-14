@@ -4209,25 +4209,15 @@ bool ChatHandler::HandleCollisionGetHeight(const char* args, WorldSession* m_ses
 }
 bool ChatHandler::HandleLevelUpCommand(const char* args, WorldSession* m_session)
 {
-	int levels = 0;
-
-	if(!*args)
-		levels = 1;
-	else
-		levels = atoi(args);
-
-	if(levels <= 0)
-		return false;
-
 	Player* plr = getSelectedChar(m_session, true);
 
 	if(!plr) plr = m_session->GetPlayer();
 
 	if(!plr) return false;
 
-	sGMLog.writefromsession(m_session, "used level up command on %s, with %u xp", plr->GetName(), levels);
+	sGMLog.writefromsession(m_session, "used level up command on %s", plr->GetName());
 
-	plr->GiveXP(levels, plr->GetGUID(), true);
+	plr->GiveXP(NextLevelXp[plr->getLevel()-1]-plr->GetXp(), plr->GetGUID(), true);
 
 	return true;
 }
