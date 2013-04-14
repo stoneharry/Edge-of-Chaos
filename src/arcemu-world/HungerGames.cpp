@@ -119,6 +119,7 @@ void HungerGames::OnAddPlayer(Player* plr)
 	dest_pos.ChangeCoords(HG_SPAWN_POINTS[SpawnPoint][0], HG_SPAWN_POINTS[SpawnPoint][1], HG_SPAWN_POINTS[SpawnPoint][2]);
 	plr->SafeTeleport(plr->GetMapId(), plr->GetInstanceID(), dest_pos);
 	plr->Phase(PHASE_SET, 1);
+	plr->RemoveAllAuras();
 	if(!m_started)
 		plr->CastSpell(plr, BG_PREPARATION, true);
 	// players should not join during a game of hunger games
@@ -228,7 +229,7 @@ void HungerGames::OnStart()
 	for (i = 0; i < HG_GOBLIN_COUNT; i++)
 		SpawnCreature(80051, HG_GOBLIN_SPAWNS[i][0], HG_GOBLIN_SPAWNS[i][1], 0.00f, 0.00f);
 	// Goblin Lord
-	SpawnCreature(80052, 15913.00f, 15901.50f, 0.00f, 1.00f)->SetEquippedItem(44053, 0);
+	SpawnCreature(80052, 15913.00f, 15901.50f, 0.00f, 1.00f)->SetEquippedItem(0, 44053);
 }
 
 void HungerGames::HookGenerateLoot(Player* plr, Object* pCorpse)
