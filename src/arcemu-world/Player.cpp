@@ -1184,11 +1184,12 @@ void Player::_EventAttack(bool offhand)
 		return;
 	}
 
-	if (GetEquippedItem(ITEM_SLOT_MAINHAND) == 13937 && isInFront(pVictim))
+	Item * temp = GetItemInterface()->GetInventoryItem(EQUIPMENT_SLOT_MAINHAND);
+	if (temp != NULL && temp->GetEntry() == 13937 && isInFront(pVictim))
 	{
 		LocationVector vec = GetPosition();
 		int distance = vec.Distance(pVictim->GetPosition());
-		if (distance > 15)
+		if (distance > 30)
 		{
 			if(m_AttackMsgTimer != 1)
 			{
