@@ -64,9 +64,8 @@ void HungerGames::CheckForWin()
 
 bool HungerGames::HookHandleRepop(Player* plr)
 {
-	//if (!m_ended) // Commented out till removal from BG is implemented
-	//	plr->AddHonor(40);
-	// Player needs to be removed from BG here
+	if (!m_ended)
+		plr->AddHonor(40);
 	return false;
 }
 
@@ -232,7 +231,13 @@ void HungerGames::OnStart()
 	for (i = 0; i < HG_GOBLIN_COUNT; i++)
 		SpawnCreature(80051, HG_GOBLIN_SPAWNS[i][0], HG_GOBLIN_SPAWNS[i][1], 0.00f, 0.00f);
 	// Goblin Lord
-	SpawnCreature(80052, 15913.00f, 15901.50f, 0.00f, 1.00f)->SetEquippedItem(0, 44053);
+	Creature * temp = SpawnCreature(80052, 15913.00f, 15901.50f, 0.00f, 1.00f);
+	temp->SetEquippedItem(0, 44053);
+	temp->SetByte(UNIT_FIELD_BYTES_2, 0, 1);
+	// The Keeper
+	temp = SpawnCreature(80053, 15685.83f, 16320.71f, 1.67f, 5.61f);
+	temp->SetEquippedItem(0, 38632);
+	temp->SetByte(UNIT_FIELD_BYTES_2, 0, 1);
 }
 
 void HungerGames::HookGenerateLoot(Player* plr, Object* pCorpse)
