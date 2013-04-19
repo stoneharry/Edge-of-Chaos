@@ -7,6 +7,7 @@
 		- Hunters can keep their quivers and equip arrows - advantage
 		- The repop function (player needs to be removed from the BG)
 		- Add worldstate for players left alive
+		- plyercreateinfo_skills does not appear to be loading correctly or not applying correctly (?) investigate
 		...
 */
 
@@ -238,6 +239,10 @@ void HungerGames::OnStart()
 	// The Keeper
 	temp = SpawnCreature(80053, 15685.83f, 16320.71f, 1.67f, 5.61f);
 	temp->SetEquippedItem(0, 38632);
+	temp->SetByte(UNIT_FIELD_BYTES_2, 0, 1);
+	// The Troll
+	temp = SpawnCreature(12829, 16350.69f, 15969.44f, 0.00f, 2.82f);
+	temp->SetEquippedItem(0, 20083);
 	temp->SetByte(UNIT_FIELD_BYTES_2, 0, 1);
 }
 

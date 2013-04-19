@@ -413,6 +413,7 @@ bool ChatHandler::HandleReviveCommand(const char* args, WorldSession* m_session)
 	SelectedPlayer->SetHealth(SelectedPlayer->GetMaxHealth());
 	SelectedPlayer->SetPower(POWER_TYPE_MANA, SelectedPlayer->GetMaxPower(POWER_TYPE_MANA));
 	SelectedPlayer->SetPower(POWER_TYPE_ENERGY, SelectedPlayer->GetMaxPower(POWER_TYPE_ENERGY));
+	SelectedPlayer->SetPower(POWER_TYPE_FOCUS, SelectedPlayer->GetMaxPower(POWER_TYPE_FOCUS));
 
 
 	if(SelectedPlayer != m_session->GetPlayer())

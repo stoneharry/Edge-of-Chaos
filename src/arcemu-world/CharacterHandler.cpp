@@ -779,37 +779,11 @@ void WorldSession::FullLogin(Player* plr)
 	}
 
 	// world preload
-	uint32 VMapId;
-	float VO;
-	float VX;
-	float VY;
-	float VZ;
-
-	// GMs should start on GM Island and be bound there
-	if(HasGMPermissions() && plr->m_FirstLogin && sWorld.gamemaster_startonGMIsland)
-	{
-		VMapId = 1;
-		VO = 0;
-		VX = 16222.6f;
-		VY = 16265.9f;
-		VZ = 14.2085f;
-
-		plr->m_position.x = VX;
-		plr->m_position.y = VY;
-		plr->m_position.z = VZ;
-		plr->m_position.o = VO;
-		plr->m_mapId = VMapId;
-
-		plr->SetBindPoint(plr->GetPositionX(), plr->GetPositionY(), plr->GetPositionZ(), plr->GetMapId(), plr->GetZoneId());
-	}
-	else
-	{
-		VMapId = plr->GetMapId();
-		VO = plr->GetOrientation();
-		VX = plr->GetPositionX();
-		VY = plr->GetPositionY();
-		VZ = plr->GetPositionZ();
-	}
+	uint32 VMapId = plr->GetMapId();
+	float VO = plr->GetOrientation();
+	float VX = plr->GetPositionX();
+	float VY = plr->GetPositionY();
+	float VZ = plr->GetPositionZ();
 
 	plr->SendLoginVerifyWorld(VMapId, VX, VY, VZ, VO);
 	StackWorldPacket<20> datab(SMSG_FEATURE_SYSTEM_STATUS);

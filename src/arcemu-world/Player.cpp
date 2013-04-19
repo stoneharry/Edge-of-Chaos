@@ -1209,6 +1209,30 @@ void Player::_EventAttack(bool offhand)
 
 		return;
 	}
+	else if (temp != NULL && temp->GetEntry() == 20083 && isInFront(pVictim))
+	{
+		LocationVector vec = GetPosition();
+		int distance = vec.Distance(pVictim->GetPosition());
+		if (distance > 30)
+		{
+			if(m_AttackMsgTimer != 1)
+			{
+				m_session->OutPacket(SMSG_ATTACKSWING_NOTINRANGE);
+				m_AttackMsgTimer = 1;
+			}
+			setAttackTimer(300, offhand);
+			return;
+		}
+
+		m_AttackMsgTimer = 0;
+
+		// Set to weapon time.
+		setAttackTimer(0, offhand);
+
+		CastSpell(pVictim, 55217, true);
+
+		return;
+	}
 
 	if(!canReachWithAttack(pVictim))
 	{

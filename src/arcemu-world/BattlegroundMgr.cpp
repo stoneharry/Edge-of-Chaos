@@ -1990,6 +1990,7 @@ void CBattleground::EventResurrectPlayers()
 				plr->SetHealth(plr->GetMaxHealth());
 				plr->SetPower(POWER_TYPE_MANA, plr->GetMaxPower(POWER_TYPE_MANA));
 				plr->SetPower(POWER_TYPE_ENERGY, plr->GetMaxPower(POWER_TYPE_ENERGY));
+				plr->SetPower(POWER_TYPE_FOCUS, plr->GetMaxPower(POWER_TYPE_FOCUS));
 				plr->CastSpell(plr, BG_REVIVE_PREPARATION, true);
 			}
 		}
