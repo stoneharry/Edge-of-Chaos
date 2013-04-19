@@ -5948,7 +5948,16 @@ class LuaUnit
 			float x = CHECK_FLOAT(L,1);
 			float y = CHECK_FLOAT(L,2);
 			float z = CHECK_FLOAT(L,3);
-			ptr->GetAIInterface()->MoveJump(x,y,z);
+			float o = CHECK_FLOAT(L,4);
+			float speed = CHECK_FLOAT(L,5);
+			bool largearc = CHECK_BOOL(L,6);
+			if (!o)
+				o = 0.00f;
+			if (!speed)
+				speed = NULL;
+			if (!largearc)
+				largearc = false;
+			ptr->GetAIInterface()->MoveJumpExt(x,y,z,o,speed,largearc);
 			return 1;
 		}
 

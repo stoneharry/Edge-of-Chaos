@@ -2,10 +2,11 @@
 #include "StdAfx.h"
 
 /*
-	To Do:
+	To Do/Bugs:
 		- Talent points are not restored when exiting the BG - instead you get 5 new talents (talent reset)
-		- Hunters can keep their quivers inside the BG and keep the arrows inside them - big exploittttt
+		- Hunters can keep their quivers and equip arrows - advantage
 		- The repop function (player needs to be removed from the BG)
+		- Add worldstate for players left alive
 		...
 */
 
