@@ -554,7 +554,12 @@ void WorldSession::HandleLootReleaseOpcode(WorldPacket & recv_data)
 							return;
 						}
 
-						pGO->Despawn(0, sQuestMgr.GetGameObjectLootQuest(pGO->GetEntry()) ? 180000 + (RandomUInt(180000)) : (IS_INSTANCE(pGO->GetMapId()) ? 0 : 900000 + (RandomUInt(600000))));
+						// Use sound2 for respawn time.
+						GameObjectInfo* pInfo = GameObjectNameStorage.LookupEntry(pGO->GetEntry());
+						if (pInfo != NULL)
+							pGO->Despawn(0, pInfo->sound2);
+						else
+							pGO->Despawn(0, sQuestMgr.GetGameObjectLootQuest(pGO->GetEntry()) ? 180000 + (RandomUInt(180000)) : (IS_INSTANCE(pGO->GetMapId()) ? 0 : 900000 + (RandomUInt(600000))));
 
 						return;
 
