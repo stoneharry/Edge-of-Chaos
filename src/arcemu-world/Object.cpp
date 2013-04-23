@@ -1503,6 +1503,8 @@ void Object::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint32
 {
 }
 
+const float spell_dam_bonus = 1.5f;
+
 void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage, bool allowProc, bool static_damage, bool no_remove_auras)
 {
 //==========================================================================================
@@ -1515,13 +1517,17 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 	if(spellInfo == NULL)
 		return;
 
-	if(this->IsPlayer() && ! TO< Player* >(this)->canCast(spellInfo))
+	if(IsPlayer() && ! TO< Player* >(this)->canCast(spellInfo))
 		return;
+
 //==========================================================================================
 //==============================Variables Initialization====================================
 //==========================================================================================
 	float res = static_cast< float >(damage);
 	bool critical = false;
+
+	if (IsPlayer() && TO<Unit*>(this)->getLevel() > 18) // Le hackkkkkk fixxxxx
+		res = res * spell_dam_bonus;
 
 	uint32 aproc = PROC_ON_ANY_HOSTILE_ACTION; /*| PROC_ON_SPELL_HIT;*/
 	uint32 vproc = PROC_ON_ANY_HOSTILE_ACTION | PROC_ON_ANY_DAMAGE_VICTIM; /*| PROC_ON_SPELL_HIT_VICTIM;*/
@@ -1561,8 +1567,8 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 
 		caster->RemoveAurasByInterruptFlag(AURA_INTERRUPT_ON_START_ATTACK);
 		res = static_cast<float>(caster->SpellDamageBonus(pVictim, spellInfo, damage, 1));
-		//if(caster->IsPlayer() && caster->getLevel() >= 19)
-			//res /= 2;
+		if (IsPlayer() && TO<Unit*>(this)->getLevel() > 18) // Le hackkkkkk fixxxxx
+			res = res * spell_dam_bonus;		
 		//res += static_cast< float >( caster->GetSpellDmgBonus(pVictim, spellInfo, damage, false) );
 		//res += static_cast< float >( caster->GetSpellDmgAPBonus(spellInfo, false));
 
@@ -1582,6 +1588,8 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 		if(critical)
 		{
 			res = this->GetCriticalDamageBonusForSpell(pVictim, spellInfo, res);
+			if (IsPlayer() && TO<Unit*>(this)->getLevel() > 18) // Le hackkkkkk fixxxxx
+				res = res * spell_dam_bonus;
 
 			switch(spellInfo->DmgClass)
 			{
