@@ -165,7 +165,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 		if(_player->lastchattime == 0)
 			_player->lastchattime = getMSTime() + (MINUTE*IN_MILLISECONDS);
 		_player->numberofchats++;
-		if(_player->numberofchats >= 30)
+		if(_player->numberofchats >= 90)
 		{
 			m_muted = uint32(UNIXTIME + GetTimePeriodFromString("1h"));
 			sLogonCommHandler.Account_SetMute(GetAccountNameS(), m_muted);
