@@ -8,6 +8,7 @@
 		- The repop function (player needs to be removed from the BG)
 		- Add worldstate for players left alive
 		- plyercreateinfo_skills does not appear to be loading correctly or not applying correctly (?) investigate
+		- Players left alive is completely bugged up, need to make a hash to store that shit or something
 		...
 */
 
@@ -52,10 +53,13 @@ void HungerGames::CheckForWin()
 		{
 			for (set<Player*  >::iterator itr = m_players[i].begin(); itr != m_players[i].end(); itr++)
 			{
-				if ((*itr)->isAlive())
+				if ((*itr) != NULL)
 				{
-					winningPlayer = (*itr)->GetGUID();
-					break;
+					if ((*itr)->isAlive())
+					{
+						winningPlayer = (*itr)->GetGUID();
+						break;
+					}
 				}
 			}
 		}
@@ -77,7 +81,7 @@ void HungerGames::HookOnAreaTrigger(Player* plr, uint32 id)
 
 void HungerGames::HookOnPlayerDeath(Player* plr)
 {
-	ReaminingPlayers--;
+	//ReaminingPlayers--; // on leave counts as another less player =/
 	plr->m_bgScore.Deaths++;
 	UpdatePvPData();
 

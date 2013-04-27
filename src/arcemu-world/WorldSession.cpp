@@ -252,7 +252,7 @@ void WorldSession::LogoutPlayer(bool Save)
 		objmgr.RemovePlayer(_player);
 		_player->ok_to_remove = true;
 
-		sHookInterface.OnLogout(pPlayer);
+		sHookInterface.OnLogout(pPlayer); // sHookInterface might be gone here on shutdown?
 		if(_player->DuelingWith)
 			_player->DuelingWith->EndDuel(DUEL_WINNER_RETREAT);
 
