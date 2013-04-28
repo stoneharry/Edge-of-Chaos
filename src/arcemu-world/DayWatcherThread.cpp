@@ -131,7 +131,7 @@ bool DayWatcherThread::has_timeout_expired(tm* now_time, tm* last_time, uint32 t
 
 bool DayWatcherThread::run()
 {
-	Log.Success("DayWatcherThread", "Started.");
+	//Log.Success("DayWatcherThread", "Started.");
 	currenttime = UNIXTIME;
 	dupe_tm_pointer(localtime(&currenttime), &local_currenttime);
 	load_settings();

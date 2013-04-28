@@ -148,7 +148,7 @@ void ScriptMgr::LoadScripts()
 	if(HookInterface::getSingletonPtr() == NULL)
 		new HookInterface;
 
-	Log.Success("Server", "Loading External Script Libraries...");
+	//Log.Success("Server", "Loading External Script Libraries...");
 
 	std::string Path;
 	std::string FileMask;
@@ -252,7 +252,7 @@ void ScriptMgr::LoadScripts()
 	else
 	{
 		Log.Success("Server", "Loaded %u external libraries.", count);
-		Log.Success("Server", "Loading optional scripting engine(s)...");
+		//Log.Success("Server", "Loading optional scripting engine(s)...");
 
 		for(std::vector< ScriptingEngine_dl >::iterator itr = Engines.begin(); itr != Engines.end(); ++itr)
 		{
@@ -260,7 +260,7 @@ void ScriptMgr::LoadScripts()
 			dynamiclibs.push_back(itr->dl);
 		}
 
-		Log.Success("Server", "Done loading scripting engine(s)...");
+		//Log.Success("Server", "Done loading scripting engine(s)...");
 	}
 }
 

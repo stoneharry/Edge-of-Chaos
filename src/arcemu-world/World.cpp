@@ -374,7 +374,7 @@ bool World::SetInitialWorldSettings()
 
 	uint32 start_time = getMSTime();
 
-	Log.Success("World", "Loading DBC files...");
+	//Log.Success("World", "Loading DBC files...");
 	if(!LoadDBCs())
 	{
 		Log.LargeErrorMessage("One or more of the DBC files are missing.", "These are absolutely necessary for the server to function.", "The server will not start without them.", NULL);
@@ -524,13 +524,13 @@ bool World::SetInitialWorldSettings()
 
 	//Start the Achievement system :D
 #ifdef ENABLE_ACHIEVEMENTS
-	Log.Success("World", "Starting Achievement System..");
+	//Log.Success("World", "Starting Achievement System..");
 	objmgr.LoadAchievementCriteriaList();
 #endif
 	// start mail system
 	MailSystem::getSingleton().StartMailSystem();
 
-	Log.Success("World", "Starting Auction System...");
+	//Log.Success("World", "system...");
 	new AuctionMgr;
 	sAuctionMgr.LoadAuctionHouses();
 
@@ -552,7 +552,7 @@ bool World::SetInitialWorldSettings()
 	objmgr.ReloadSpellDbc();
 	objmgr.ReloadSpellCoef();
 	Channel::LoadConfSettings();
-	Log.Success("BattlegroundManager", "Starting...");
+	//Log.Success("BattlegroundManager", "Starting...");
 	new CBattlegroundManager;
 
 	dw = new DayWatcherThread();

@@ -44,7 +44,7 @@ void CommonScheduleThread::terminate()
 
 bool CommonScheduleThread::run()
 {
-	Log.Success("CommonScheduleThread", "Started.");
+	//Log.Success("CommonScheduleThread", "Started.");
 	m_busy = false;
 
 	if(sWorld.BCSystemEnable && sWorld.BCOrderMode == 1)

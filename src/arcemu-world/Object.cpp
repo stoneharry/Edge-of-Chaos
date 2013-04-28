@@ -1503,7 +1503,7 @@ void Object::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint32
 {
 }
 
-const float spell_dam_bonus = 1.5f;
+const float spell_dam_bonus = 1.12f;
 
 void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage, bool allowProc, bool static_damage, bool no_remove_auras)
 {
@@ -1589,7 +1589,7 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 		{
 			res = this->GetCriticalDamageBonusForSpell(pVictim, spellInfo, res);
 			if (IsPlayer() && TO<Unit*>(this)->getLevel() > 18) // Le hackkkkkk fixxxxx
-				res = res * spell_dam_bonus;
+				res = res * (spell_dam_bonus - 0.1f);
 
 			switch(spellInfo->DmgClass)
 			{

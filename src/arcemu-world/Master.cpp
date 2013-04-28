@@ -192,7 +192,7 @@ bool Master::Run(int argc, char** argv)
 		return true;
 	}
 
-	printf("The key combination <Ctrl-C> will safely shut down the server at any time.");
+	printf("The key combination <Ctrl-C> will safely shut down the server at any time.\n");
 
 #ifndef WIN32
 	if(geteuid() == 0 || getegid() == 0)
@@ -206,7 +206,7 @@ bool Master::Run(int argc, char** argv)
 	ThreadPool.Startup();
 	uint32 LoadingTime = getMSTime();
 
-	Log.Success("Config", "Loading Config Files...");
+	//Log.Success("Config", "Loading Config Files...");
 	if(Config.MainConfig.SetSource(config_file))
 		Log.Notice("Config", ">> " CONFDIR "/world.conf loaded");
 	else
@@ -307,7 +307,7 @@ bool Master::Run(int argc, char** argv)
 	uint32 next_printout = getMSTime(), next_send = getMSTime();
 
 	// Start Network Subsystem
-	Log.Success("Network", "Starting subsystem...");
+	//Log.Success("Network", "Starting subsystem...");
 	new SocketMgr;
 	new SocketGarbageCollector;
 	sSocketMgr.SpawnWorkerThreads();
