@@ -251,8 +251,8 @@ void WorldSession::LogoutPlayer(bool Save)
 	{
 		objmgr.RemovePlayer(_player);
 		_player->ok_to_remove = true;
-
-		sHookInterface.OnLogout(pPlayer); // sHookInterface might be gone here on shutdown?
+		// This hook is useless and unsafe.
+		//sHookInterface.OnLogout(pPlayer); // sHookInterface might be gone here on shutdown?
 		if(_player->DuelingWith)
 			_player->DuelingWith->EndDuel(DUEL_WINNER_RETREAT);
 
@@ -276,7 +276,6 @@ void WorldSession::LogoutPlayer(bool Save)
 			}
 		}
 
-#ifndef GM_TICKET_MY_MASTER_COMPATIBLE
 		GM_Ticket* ticket = objmgr.GetGMTicketByPlayer(_player->GetGUID());
 		if(ticket != NULL)
 		{
@@ -293,7 +292,6 @@ void WorldSession::LogoutPlayer(bool Save)
 				chn->Say(_player, ss.str().c_str(), NULL, true);
 			}
 		}
-#endif
 
 		// part channels
 		_player->CleanupChannels();

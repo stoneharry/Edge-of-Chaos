@@ -63,6 +63,35 @@ static const uint32 LanguageSkills[NUM_LANGUAGES] =
 	759,			// -				0x23
 };
 
+bool isValidPlayerChat(uint32 type)
+{
+	switch(type)
+	{
+		case CHAT_MSG_ADDON:
+		case CHAT_MSG_SAY:
+		case CHAT_MSG_PARTY:
+		case CHAT_MSG_RAID:
+		case CHAT_MSG_GUILD:
+		case CHAT_MSG_OFFICER:
+		case CHAT_MSG_YELL:
+		case CHAT_MSG_WHISPER:
+		case CHAT_MSG_EMOTE:
+		case CHAT_MSG_CHANNEL:
+		case CHAT_MSG_AFK:
+		case CHAT_MSG_DND:
+		case CHAT_MSG_RAID_LEADER:
+		case CHAT_MSG_RAID_WARNING:
+		case CHAT_MSG_RAID_WARNING_WIDESCREEN:
+		case CHAT_MSG_BATTLEGROUND:
+		case CHAT_MSG_BATTLEGROUND_LEADER:
+		case CHAT_MSG_PARTY_LEADER:
+		{
+			return true;
+		}break;
+	}
+	return false;
+}
+
 void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 {
 	CHECK_INWORLD_RETURN
@@ -78,40 +107,14 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 	recv_data >> type;
 	recv_data >> lang;
 
-	if(lang >= NUM_LANGUAGES)
-		return;
-
-	if(GetPlayer()->IsBanned())
+	if(lang >= NUM_LANGUAGES || isValidPlayerChat(type) || GetPlayer()->IsBanned())
 	{
-		GetPlayer()->BroadcastMessage("You cannot do that when banned.");
-		return;
-	}
-
-	// Flood protection
-	if(lang != -1 && !GetPermissionCount() && sWorld.flood_lines != 0)
-	{
-		/* flood detection, wheeee! */
-		if(UNIXTIME >= floodTime)
-		{
-			floodLines = 0;
-			floodTime = UNIXTIME + sWorld.flood_seconds;
-		}
-
-		if((++floodLines) > sWorld.flood_lines)
-		{
-			if(sWorld.flood_message)
-				_player->BroadcastMessage("Your message has triggered serverside flood protection. You can speak again in %u seconds.", floodTime - UNIXTIME);
-
-			return;
-		}
-	}
-
-	if(m_muted && m_muted >= (uint32)UNIXTIME)
-	{
-		SystemMessage("You are muted, if you wish to appeal this mute make a ticket.");
 		recv_data.rfinish();
+		Anticheat_Log->writefromsession(this, "Attempted to send invalid chat msg type %u or lang %i.", type, lang);
+		Disconnect();
 		return;
 	}
+
 	std::string msg, to = "", channel = "";
 	msg.reserve(256);
 
@@ -159,9 +162,19 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			break;
 		default:
 			LOG_ERROR("CHAT: unknown msg type %u, lang: %u", type, lang);
+			recv_data.rfinish();
+			return;
+			break;
 	}
-	if(lang != -1)
+
+	if(lang != CHAT_MSG_ADDON)
 	{
+		if(m_muted && m_muted >= (uint32)UNIXTIME)
+		{
+			SystemMessage("You are muted, if you wish to appeal this mute make a ticket.");
+			recv_data.rfinish();
+			return;
+		}
 		if(_player->lastchattime == 0)
 			_player->lastchattime = getMSTime() + (MINUTE*IN_MILLISECONDS);
 		_player->numberofchats++;

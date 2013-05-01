@@ -2658,6 +2658,8 @@ class SERVER_DECL Player : public Unit
 		void ReloadActionBars();
 		void ReloadPowerType();
 		void ReloadSkills();
+		void _LoadSkills(QueryResult* result);
+		void __AddLanguages();
 };
 
 

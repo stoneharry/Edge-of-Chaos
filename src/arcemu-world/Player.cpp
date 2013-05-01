@@ -14530,7 +14530,6 @@ void Player::ReloadPowerType()
 void Player::ReloadSkills()
 {
 	_RemoveAllSkills();
-	_AddLanguages(true);
 	if(IsSaveBlocked())
 	{
 		PlayerCreateInfo* finfo = objmgr.GetPlayerCreateInfo(0,0, false);
@@ -14538,5 +14537,44 @@ void Player::ReloadSkills()
 			_AddSkillLine(ss->skillid, ss->currentval, ss->maxval);
 	}
 	else
-		LoadSkills(CharacterDatabase.Query("SELECT SkillID, CurrentValue, MaximumValue FROM playerskills WHERE GUID = %u", GetLowGUID()));
+		_LoadSkills(CharacterDatabase.Query("SELECT SkillID, CurrentValue, MaximumValue FROM playerskills WHERE GUID = %u", GetLowGUID()));
+	__AddLanguages();
+}
+
+void Player::_LoadSkills(QueryResult* result)
+{
+	if(result == NULL)
+		return;
+
+	Field* fields = NULL;
+
+	do
+	{
+		fields = result->Fetch();
+
+		uint32 skillid = fields[ 0 ].GetUInt32();
+		uint32 currval = fields[ 1 ].GetUInt32();
+		uint32 maxval  = fields[ 2 ].GetUInt32();
+		if(currval == 0)
+			currval = 1;
+		_AddSkillLine(skillid, currval, maxval);
+	}
+	while(result->NextRow());
+}
+
+void Player::__AddLanguages()
+{
+	static uint32 skills[] = { SKILL_LANG_COMMON, SKILL_LANG_ORCISH, SKILL_LANG_DWARVEN, SKILL_LANG_DARNASSIAN, SKILL_LANG_TAURAHE, SKILL_LANG_THALASSIAN,
+	                           SKILL_LANG_TROLL, SKILL_LANG_GUTTERSPEAK, SKILL_LANG_DRAENEI, 0
+	                         };
+
+	for(uint32 i = 0; skills[i] != 0; ++i)
+	{
+		if(!skills[i])
+			break;
+		_AddSkillLine(skills[i], 300, 300);
+		uint32 spell_id = ::GetSpellForLanguage(skills[i]);
+		if(!HasSpell(spell_id))
+			addSpell(spell_id);
+	}
 }
