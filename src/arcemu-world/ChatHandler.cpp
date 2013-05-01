@@ -107,7 +107,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 	recv_data >> type;
 	recv_data >> lang;
 
-	if(lang >= NUM_LANGUAGES || isValidPlayerChat(type) || GetPlayer()->IsBanned())
+	if(lang >= NUM_LANGUAGES || !isValidPlayerChat(type) || GetPlayer()->IsBanned())
 	{
 		recv_data.rfinish();
 		Anticheat_Log->writefromsession(this, "Attempted to send invalid chat msg type %u or lang %i.", type, lang);
