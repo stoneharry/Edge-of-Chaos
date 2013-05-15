@@ -533,7 +533,7 @@ void AuthSocket::SendProofError(uint8 Error, uint8 * M2)
 	memcpy(&buffer[2], M2, 20);
     buffer[22]= 0x01; //<-- ARENA TOURNAMENT ACC FLAG!
 	uint8 messages = 0;
-	QueryResult * result =  sLogonSQL->Query("SELECT `read` from account_messages where account = '%s'", m_account->UsernamePtr->c_str());
+	/*QueryResult * result =  sLogonSQL->Query("SELECT `read` from account_messages where account = '%s'", m_account->UsernamePtr->c_str());
 	if(result)
 	{
 		do
@@ -542,8 +542,8 @@ void AuthSocket::SendProofError(uint8 Error, uint8 * M2)
 				messages++;
 		} while (result->NextRow());
 		delete result;
-	}
-	buffer[30]= messages; // Unread messages
+	}*/
+	buffer[30]= 1; // Unread messages
 	Send(buffer, 32);
 }
 
