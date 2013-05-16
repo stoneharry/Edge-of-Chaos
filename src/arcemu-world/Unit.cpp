@@ -2324,7 +2324,6 @@ void Unit::RegeneratePower(bool isinterrupted)
 					if(cur >= mm)
 						return;
 					cur += 2;
-					TO< Player* >(this)->BroadcastMessage("Current = %d", cur);
 					SetPower(POWER_TYPE_FOCUS, (cur >= mm) ? mm : cur);
 				}
 				break;
