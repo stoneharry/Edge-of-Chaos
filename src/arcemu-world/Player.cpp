@@ -3755,10 +3755,12 @@ void Player::OnPushToWorld()
 		LevelInfo* Info = objmgr.GetLevelInfo(getRace(), getClass(), startlevel);
 		ApplyLevelInfo(Info, startlevel);
 
+		// Disabled for now.
+		/*
 		Guild* g = objmgr.GetGuildByGuildName("Edge of Chaos");
 		if(g)
 			g->AddGuildMember(getPlayerInfo(), m_session, NULL);
-		
+		*/
 	}
 
 	sHookInterface.OnEnterWorld(this);
