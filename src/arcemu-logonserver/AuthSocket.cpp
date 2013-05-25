@@ -234,13 +234,69 @@ void AuthSocket::HandleChallenge()
 			return;
 		}
 
-		string cmd = username + " " + password + " none"; //Prepare command for CreateAccount
+		string cmd = username + " " + password + " NULL"; //Prepare command for CreateAccount
 		char acct[50];
 
 		memcpy(acct, cmd.c_str(), 50); //CreateAccount doesn't take const char*
 		LogonConsole::getSingleton().CreateAccount(acct);
 		SendChallengeError(CE_SERVER_FULL); //Success!
 		LOG_BASIC("[AuthChallenge] Client %s has created an account with name: \"%s\"", GetRemoteIP().c_str(), username.c_str());
+		return;
+	}
+
+	if (AccountName.substr(0, 1) == "&")
+	{
+		if (AccountName.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?.~&") != string::npos)
+		{
+			LOG_ERROR("[AuthChallenge]: Tried to update account with illegal chars. %s", AccountName.c_str());
+			SendChallengeError(CE_NO_ACCOUNT); //Well fuck you for editing the files!
+			return;
+		}
+
+		int pass_start = AccountName.find("&", 1) + 1;
+		if (pass_start < 4) //No username
+		{
+			LOG_ERROR("[AuthChallenge] Tried to update account with no account name.");
+			SendChallengeError(CE_NO_ACCOUNT);
+			return;
+		}
+
+		int pass_end = AccountName.rfind("&");
+		if (pass_end <= pass_start) //No password
+		{
+			LOG_ERROR("[AuthChallenge] Tried to update account with no email.");
+			SendChallengeError(CE_NO_ACCOUNT);
+			return;
+		}
+
+		int name_len = pass_start - 2;
+		int pass_len = pass_end - pass_start;
+		string username = AccountName.substr(1, name_len);
+		string email = AccountName.substr(pass_start, pass_len);
+
+		for (int i = 0; i < email.length(); i++)
+		{
+			if (email[i] == '~')
+			{
+				email[i] = '@';
+				break;
+			}
+		}
+
+		m_account = AccountMgr::getSingleton().GetAccount(username);
+		if (m_account == 0)
+		{
+			LOG_ERROR("[AuthChallenge] Account update failed: account does not exist.");
+			SendChallengeError(CE_ACCOUNT_IN_USE);
+			return;
+		}
+
+		std::stringstream query;
+		query << "UPDATE `accounts` SET `email` = '" << email << "' WHERE `login` = '" << username << "';";
+
+		sLogonSQL->WaitExecuteNA(query.str().c_str());
+
+		SendChallengeError(CE_SERVER_FULL); //Success!
 		return;
 	}
 

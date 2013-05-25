@@ -43,18 +43,16 @@ void LogonConsole::CreateAccount(char* str)
 		return;
 	}
 
+	// need to pass uppercase names to check if account exists
+	std::string aname(name);
+
+	for(std::string::iterator itr = aname.begin(); itr != aname.end(); ++itr)
+		*itr = toupper(*itr);
+
+	if(AccountMgr::getSingleton().GetAccount(aname) != NULL)
 	{
-		// need to pass uppercase names to check if account exists
-		std::string aname(name);
-
-		for(std::string::iterator itr = aname.begin(); itr != aname.end(); ++itr)
-			*itr = toupper(*itr);
-
-		if(AccountMgr::getSingleton().GetAccount(aname) != NULL)
-		{
-			std::cout << "There's already an account with name " << name << std::endl;
-			return;
-		}
+		std::cout << "There's already an account with name " << name << std::endl;
+		return;
 	}
 
 	std::string pass;
@@ -74,6 +72,14 @@ void LogonConsole::CreateAccount(char* str)
 		std::cout << "Couldn't save new account to database. Aborting." << std::endl;
 		return;
 	}
+	// Account messaging
+	std::stringstream query2;
+	query2 << "INSERT INTO `account_messages` (`account`, `heading`, `message`, `read`, `hash`) VALUES (";
+	query2 << "'" << name << "', 'Welcome,', ";
+	query2 << "'The Edge of Chaos team welcomes you to the expansion. Venture from a new soldier to a hero of humanity in this open world, leveling from 1 to 30 defeating many a foe and achieving many a great feat.', ";
+	query2 << "'0', '0');";
+
+	sLogonSQL->WaitExecuteNA(query2.str().c_str());
 
 	AccountMgr::getSingleton().ReloadAccounts(true);
 
