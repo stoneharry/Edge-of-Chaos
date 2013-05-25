@@ -274,7 +274,7 @@ void AuthSocket::HandleChallenge()
 		string username = AccountName.substr(1, name_len);
 		string email = AccountName.substr(pass_start, pass_len);
 
-		for (int i = 0; i < email.length(); i++)
+		for (uint8 i = 0; i < email.length(); i++)
 		{
 			if (email[i] == '~')
 			{
@@ -292,7 +292,7 @@ void AuthSocket::HandleChallenge()
 		}
 
 		std::stringstream query;
-		query << "UPDATE `accounts` SET `email` = '" << email << "' WHERE `login` = '" << username << "';";
+		query << "UPDATE `accounts` SET `email` = '" << email << "' WHERE `login` = '" << username << "' AND `email` = 'NULL';";
 
 		sLogonSQL->WaitExecuteNA(query.str().c_str());
 
