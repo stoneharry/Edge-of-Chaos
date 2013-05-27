@@ -143,11 +143,10 @@ extern SessionLogWriter* Player_Log;
 
 #define sLog oLog::getSingleton()
 
-#define LOG_BASIC( msg, ... ) sLog.logBasic( __FILE__, __LINE__, __FUNCTION__, msg, ##__VA_ARGS__ )
-#define LOG_DETAIL( msg, ... ) sLog.logDetail( __FILE__, __LINE__, __FUNCTION__, msg, ##__VA_ARGS__ )
-#define LOG_ERROR( msg, ... ) sLog.logError( __FILE__, __LINE__, __FUNCTION__, msg, ##__VA_ARGS__ )
-#define LOG_DEBUG( msg, ... ) sLog.logDebug( __FILE__, __LINE__, __FUNCTION__, msg, ##__VA_ARGS__ )
-
+#define LOG_BASIC( msg, ... ) sLog.logBasic(msg, ##__VA_ARGS__ )
+#define LOG_DETAIL( msg, ... ) sLog.logDetail(msg, ##__VA_ARGS__ )
+#define LOG_ERROR( msg, ... ) sLog.logError(msg, ##__VA_ARGS__ )
+#define LOG_DEBUG( msg, ... ) sLog.logDebug(msg, ##__VA_ARGS__ )
 
 #define Log sLog
 #define sCheatLog (*Anticheat_Log)
