@@ -62,10 +62,10 @@ class SERVER_DECL oLog : public Singleton< oLog >
 		//log level 2
 		void outDebug(const char* str, ...);
 
-		void logError(const char* file, int line, const char* fncname, const char* msg, ...);
-		void logDebug(const char* file, int line, const char* fncname, const char* msg, ...);
-		void logBasic(const char* file, int line, const char* fncname,  const char* msg, ...);
-		void logDetail(const char* file, int line, const char* fncname, const char* msg, ...);
+		void logError(const char* msg, ...);
+		void logDebug(const char* msg, ...);
+		void logBasic(const char* msg, ...);
+		void logDetail(const char* msg, ...);
 
 		//old NGLog.h methods
 		//log level 0
