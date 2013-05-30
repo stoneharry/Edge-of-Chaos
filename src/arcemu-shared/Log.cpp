@@ -160,7 +160,7 @@ void oLog::outDebug(const char* str, ...)
 	outFile(m_errorFile, buf);
 }
 
-void oLog::logBasic(const char* msg, ...)
+void oLog::logBasic(const char* file, int line, const char* fncname, const char* msg, ...)
 {
 	if(m_normalFile == NULL)
 		return;
@@ -168,7 +168,7 @@ void oLog::logBasic(const char* msg, ...)
 	char buf[ 32768 ];
 	char message[ 32768 ];
 
-	snprintf(message, 32768, " [BSC] %s:%d %s %s", msg);
+	snprintf(message, 32768, " [BSC] %s:%d %s %s", file, line, fncname, msg);
 	va_list ap;
 
 	va_start(ap, msg);
@@ -178,7 +178,7 @@ void oLog::logBasic(const char* msg, ...)
 	outFile(m_normalFile, buf);
 }
 
-void oLog::logDetail(const char* msg, ...)
+void oLog::logDetail(const char* file, int line, const char* fncname, const char* msg, ...)
 {
 	if((m_fileLogLevel < 1) || (m_normalFile == NULL))
 		return;
@@ -186,7 +186,7 @@ void oLog::logDetail(const char* msg, ...)
 	char buf[ 32768 ];
 	char message[ 32768 ];
 
-	snprintf(message, 32768, " [DTL] %s:%d %s %s", msg);
+	snprintf(message, 32768, " [DTL] %s:%d %s %s", file, line, fncname, msg);
 	va_list ap;
 
 	va_start(ap, msg);
@@ -196,7 +196,7 @@ void oLog::logDetail(const char* msg, ...)
 	outFile(m_normalFile, buf);
 }
 
-void oLog::logError(const char* msg, ...)
+void oLog::logError(const char* file, int line, const char* fncname, const char* msg, ...)
 {
 	if(m_errorFile == NULL)
 		return;
@@ -204,7 +204,7 @@ void oLog::logError(const char* msg, ...)
 	char buf[ 32768 ];
 	char message[ 32768 ];
 
-	snprintf(message, 32768, " [ERR] %s:%d %s %s", msg);
+	snprintf(message, 32768, " [ERR] %s:%d %s %s", file, line, fncname, msg);
 	va_list ap;
 
 	va_start(ap, msg);
@@ -214,7 +214,7 @@ void oLog::logError(const char* msg, ...)
 	outFile(m_errorFile, buf);
 }
 
-void oLog::logDebug(const char* msg, ...)
+void oLog::logDebug(const char* file, int line, const char* fncname, const char* msg, ...)
 {
 	if((m_fileLogLevel < 2) || (m_errorFile == NULL))
 		return;
@@ -222,7 +222,7 @@ void oLog::logDebug(const char* msg, ...)
 	char buf[ 32768 ];
 	char message[ 32768 ];
 
-	snprintf(message, 32768, " [DBG] %s:%d %s %s", msg);
+	snprintf(message, 32768, " [DBG] %s:%d %s %s", file, line, fncname, msg);
 	va_list ap;
 
 	va_start(ap, msg);
