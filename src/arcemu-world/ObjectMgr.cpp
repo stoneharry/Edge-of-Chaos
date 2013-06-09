@@ -2308,7 +2308,7 @@ void ObjectMgr::GenerateLevelUpInfo()
 						else TotalHealthGain += 92;
 						break;
 					case DEMON_HUNTER:
-						TotalHealthGain += 92;
+						TotalHealthGain += 17;
 						break;
 				}
 
