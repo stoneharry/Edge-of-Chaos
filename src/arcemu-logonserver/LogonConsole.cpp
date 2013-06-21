@@ -81,6 +81,14 @@ void LogonConsole::CreateAccount(char* str)
 
 	sLogonSQL->WaitExecuteNA(query2.str().c_str());
 
+	std::stringstream query3;
+	query2 << "INSERT INTO `account_messages` (`account`, `heading`, `message`, `read`, `hash`) VALUES (";
+	query2 << "'" << name << "', 'Default Addons,', ";
+	query2 << "'Some addons may conflict with this expansion. If you get getting a lot of Lua errors, it is recommended you disable the addon. If you require further help, please visit the forums.', ";
+	query2 << "'0', '0');";
+
+	sLogonSQL->WaitExecuteNA(query3.str().c_str());
+
 	AccountMgr::getSingleton().ReloadAccounts(true);
 
 	std::cout << "Account created." << std::endl;
