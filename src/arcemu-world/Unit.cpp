@@ -9206,14 +9206,26 @@ float Unit::GetModPercentDamageDoneBonus(SpellEntry *proto, float DoneTotal)
 				if(m_auras[i]->GetSpellProto()->EffectApplyAuraName[x] == SPELL_AURA_MOD_DAMAGE_PERCENT_DONE)
 				{
 					Aura * aur = m_auras[i];
-					if(aur->GetMod(i).m_miscValue & proto->SchoolMask)
+					// Something was crashing here so hackfix around it
+					Modifier m;
+					// Make sure this value will be null when we check if not valid i
+					m.m_miscValue = NULL;
+					// If valid size get the mod (i indexes an array of size 3)
+					if (i >= 0 && i <= 2)
+						m = aur->GetMod(i);
+					// Check valid values
+					if ((m.m_miscValue) && (proto->SchoolMask))
 					{
-						if(aur->GetSpellProto()->EquippedItemClass == -1)
-							AddPctN(DoneTotalMod, m_auras[i]->GetModAmount(x));
-						else if (!(aur->GetSpellProto()->AttributesEx5 & SPELL_ATTR5_SPECIAL_ITEM_CLASS_CHECK) && (aur->GetSpellProto()->EquippedItemSubClassMask == 0))
-							AddPctN(DoneTotalMod, m_auras[i]->GetModAmount(x));
-						//else if (IsPlayer() && TO_PLAYER(this)->HasItemFitToSpellRequirements(aur->GetSpellProto()))
-							//AddPctN(DoneTotalMod, m_auras[i]->GetModAmount(x));
+						// Continue as normal
+						if(m.m_miscValue & proto->SchoolMask)
+						{
+							if(aur->GetSpellProto()->EquippedItemClass == -1)
+								AddPctN(DoneTotalMod, m_auras[i]->GetModAmount(x));
+							else if (!(aur->GetSpellProto()->AttributesEx5 & SPELL_ATTR5_SPECIAL_ITEM_CLASS_CHECK) && (aur->GetSpellProto()->EquippedItemSubClassMask == 0))
+								AddPctN(DoneTotalMod, m_auras[i]->GetModAmount(x));
+							//else if (IsPlayer() && TO_PLAYER(this)->HasItemFitToSpellRequirements(aur->GetSpellProto()))
+								//AddPctN(DoneTotalMod, m_auras[i]->GetModAmount(x));
+						}
 					}
 				}
 			}
