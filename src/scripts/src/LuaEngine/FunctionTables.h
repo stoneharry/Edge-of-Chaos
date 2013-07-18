@@ -565,6 +565,8 @@ RegType<Unit> UnitMethods[] =
 	{ "RemoveExtraMovementFlag", &LuaUnit::RemoveExtraMovementFlag },
 	{ "SendMovementFlagUpdate", &LuaUnit::SendMovementFlagUpdate },
 	{ "SendCinematic", &LuaUnit::SendCinematic },
+	{ "PlayMusicToSet", &LuaUnit::PlayMusicToSet },
+	{ "PlayMusicToPlayer", &LuaUnit::PlayMusicToPlayer },
 	{ NULL, NULL },
 };
 

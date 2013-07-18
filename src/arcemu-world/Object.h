@@ -699,8 +699,9 @@ class SERVER_DECL Object : public EventableObject
 				RemoveFromWorld(true);
 			delete this;
 		}
-		//! Play's a sound to players in range.
+		//! Play's a sound/music to players in range.
 		void PlaySoundToSet(uint32 sound_entry);
+		void PlayMusicToSet(uint32 sound_entry);
 		//! Is the player in a battleground?
 		bool IsInBg();
 		//! What's their faction? Horde/Ally.

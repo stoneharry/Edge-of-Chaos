@@ -6333,5 +6333,27 @@ class LuaUnit
 			TO_PLAYER(ptr)->SendDatCameraShit(id);
 			return 0;
 		}
+		static int PlayMusicToSet(lua_State* L, Unit* ptr)
+		{
+			TEST_UNITPLAYER();
+
+			int soundid = luaL_checkint(L, 1);
+			ptr->PlayMusicToSet(soundid);
+
+			return 0;
+		}
+		static int PlayMusicToPlayer(lua_State* L, Unit* ptr)
+		{
+			TEST_PLAYER();
+
+			int soundid = luaL_checkint(L, 1);
+			Player* plr = TO_PLAYER(ptr);
+			WorldPacket data;
+			data.Initialize(SMSG_PLAY_MUSIC);
+			data << uint32(soundid);
+			plr->GetSession()->SendPacket(&data);
+
+			return 0;
+		}
 };
 #endif

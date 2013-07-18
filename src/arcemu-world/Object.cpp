@@ -2075,6 +2075,14 @@ void Object::PlaySoundToSet(uint32 sound_entry)
 	SendMessageToSet(&data, true);
 }
 
+void Object::PlayMusicToSet(uint32 sound_entry)
+{
+	WorldPacket data(SMSG_PLAY_MUSIC, 4);
+	data << sound_entry;
+
+	SendMessageToSet(&data, true);
+}
+
 void Object::_SetExtension(const string & name, void* ptr)
 {
 	if(m_extensions == NULL)
