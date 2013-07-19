@@ -10043,17 +10043,16 @@ int32 Unit::SpellBaseHealingBonusForVictim(uint32 schoolMask, Unit* victim)
 
 void Unit::Possess(Unit *pTarget, uint32 delay)
 {
-	printf("Called.");
 	Player * pThis = NULL;
-	if (!pThis)
-		return;
 	if(IsPlayer())
 		pThis = TO_PLAYER(this);
 	else // do not support creatures just yet
 		return;
+	if (!pThis)
+		return;
 	if(GetCharmedUnitGUID())
 		return;
-	printf("success.");
+
 	Root();
 
 	if(delay != 0)
@@ -10109,6 +10108,10 @@ void Unit::UnPossess()
 	Player * pThis = NULL;
 	if(IsPlayer())
 		pThis = TO_PLAYER(this);
+	else // creatures no support yet
+		return;
+	if (!pThis)
+		return;
 	if(!GetCharmedUnitGUID())
 		return;
 
