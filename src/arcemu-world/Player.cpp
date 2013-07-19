@@ -14301,7 +14301,7 @@ void Player::SendUpdateToOutOfRangeGroupMembers()
 void Player::SetClientControl(Unit* target, uint8 allowMove)
 {
 	WorldPacket ack( SMSG_CLIENT_CONTROL_UPDATE, 200 );
-	ack << GetNewGUID() << uint8(allowMove);
+	ack << target->GetNewGUID() << uint8(allowMove);
 	SendPacket(&ack);
 	if (target == this)
 		SetMover(this);

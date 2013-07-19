@@ -10043,12 +10043,17 @@ int32 Unit::SpellBaseHealingBonusForVictim(uint32 schoolMask, Unit* victim)
 
 void Unit::Possess(Unit *pTarget, uint32 delay)
 {
+	printf("Called.");
 	Player * pThis = NULL;
+	if (!pThis)
+		return;
 	if(IsPlayer())
 		pThis = TO_PLAYER(this);
+	else // do not support creatures just yet
+		return;
 	if(GetCharmedUnitGUID())
 		return;
-
+	printf("success.");
 	Root();
 
 	if(delay != 0)
@@ -10062,50 +10067,41 @@ void Unit::Possess(Unit *pTarget, uint32 delay)
 		return;
 	}
 
+	pThis->m_CurrentCharm = pTarget->GetGUID();
 	if(pTarget->IsCreature())
 	{
 		// unit-only stuff.
 		pTarget->setAItoUse(false);
 		pTarget->GetAIInterface()->StopMovement(0);
-	}
-
-	m_noInterrupt++;
-	SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
-	SetCharmedUnitGUID(pTarget->GetGUID());
-	pTarget->SetCharmedByGUID(GetGUID());
-	pTarget->SetCharmTempVal(pTarget->GetFaction());
-
-	if(pThis)
-	{
-		//pThis->SetFarsightTarget(pTarget->GetGUID());
-		pThis->m_CurrentCharm = pTarget->GetGUID();
-		pThis->SetClientControl(pTarget, 1);
-		pTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED_CREATURE);
 		pTarget->m_redirectSpellPackets = pThis;
 	}
 
+	m_noInterrupt++;
+	SetCharmedUnitGUID(pTarget->GetGUID());
+	pTarget->SetCharmedByGUID(GetGUID());
+	pTarget->SetCharmTempVal(pTarget->GetFaction());
+	pThis->SetFarsightTarget(pTarget->GetGUID());
 	pTarget->SetFaction(GetFaction());
-		
-	if(pTarget->IsPlayer())
-	{
-		Player * pTarg = TO_PLAYER(pTarget);
-		pTarg->SetClientControl(pTarg, 0);
-		pTarg->SetMover(this);
-	}
+	pTarget->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED_CREATURE | UNIT_FLAG_PVP_ATTACKABLE);
+	
+	SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
+
+	pThis->SetClientControl(pTarget, 1);
+	// Below code does same as function above
+	/* send "switch mover" packet */
+	/*WorldPacket data1(SMSG_CLIENT_CONTROL_UPDATE, 10);
+	data1 << pTarget->GetNewGUID() << uint8(1);
+	pThis->GetSession()->SendPacket(&data1);*/
+
 	/* update target faction set */
 	pTarget->UpdateOppFactionSet();
-	pTarget->UpdateSameFactionSet();
 
-	if(pThis)
+	if(!(pTarget->IsPet() && TO< Pet* >(pTarget) == pThis->GetSummon()))
 	{
-		if(pTarget->IsCreature())
-		{
-			WorldPacket data(SMSG_PET_SPELLS, 4 * 4 + 20);
-			pTarget->BuildPetSpellList(data);
-			pThis->SendPacket(&data);
-		}
+		WorldPacket data(SMSG_PET_SPELLS, 4 * 4 + 20);
+		pTarget->BuildPetSpellList(data);
+		pThis->GetSession()->SendPacket(&data);
 	}
-
 }
 
 void Unit::UnPossess()
@@ -10119,35 +10115,39 @@ void Unit::UnPossess()
 	Unit* pTarget = GetMapMgr()->GetUnit(GetCharmedUnitGUID());
 	if(!pTarget)
 		return;
-	pTarget->m_redirectSpellPackets = NULL;
+
+	pThis->m_CurrentCharm = 0;
+
+	pThis->SpeedCheatReset();
+
 	if(pTarget->IsCreature())
-		pTarget->setAItoUse(true);	
-	else
 	{
-		Player * pTarg = TO_PLAYER(pTarget);
-		pTarg->SetClientControl(pTarg, 1);
-		pTarg->SetMover(pTarg);
+		// unit-only stuff.
+		pTarget->setAItoUse(true);
+		pTarget->m_redirectSpellPackets = 0;
 	}
 
 	m_noInterrupt--;
-	if(pThis)
-	{
-		//pThis->SetFarsightTarget(0);
-		pThis->SetClientControl(pTarget, 0);
-	}
-
+	pThis->SetFarsightTarget(0);
 	SetCharmedUnitGUID(0);
 	pTarget->SetCharmedByGUID(0);
+	SetCharmedUnitGUID(0);
+
 	RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_LOCK_PLAYER);
 	pTarget->RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_PLAYER_CONTROLLED_CREATURE | UNIT_FLAG_PVP_ATTACKABLE);
 	pTarget->SetFaction(pTarget->GetCharmTempVal());
 	pTarget->UpdateOppFactionSet();
-	pTarget->UpdateSameFactionSet();
-	if(pThis)
-	{
-		if(pTarget->IsCreature())
-			pThis->SendEmptyPetSpellList();
-	}
+
+	pThis->SetClientControl(pTarget, 0);
+	// Above function does same as below
+	/* send "switch mover" packet */
+	/*
+	WorldPacket data(SMSG_CLIENT_CONTROL_UPDATE, 10);
+	data << pTarget->GetNewGUID() << uint8(0);
+	pThis->GetSession()->SendPacket(&data);*/
+
+	if(!(pTarget->IsPet() && TO< Pet* >(pTarget) == pThis->GetSummon()))
+		pThis->SendEmptyPetSpellList();
 
 	Unroot();
 

@@ -2345,37 +2345,8 @@ bool ChatHandler::HandleKillByIPCommand(const char* args, WorldSession* m_sessio
 
 bool ChatHandler::HandleMassSummonCommand(const char* args, WorldSession* m_session)
 {
-	Player* summoner = m_session->GetPlayer();
-	Player* plr;
-	uint32 level = 0;
-	uint32 forced = 0;
-	if(sscanf(args, "%u %u", &level, &forced) != 2)
-		if( sscanf(args, "%u", &level) != 1)
-			return false;
-	uint32 c = 0;
-	PlayerStorageMap::const_iterator itr;
-	objmgr._playerslock.AcquireReadLock();
-	for(itr = objmgr._players.begin(); itr != objmgr._players.end(); itr++)
-	{
-		plr = itr->second;
-		if(plr->GetSession() && plr->IsInWorld() && plr->getLevel() >= level)
-		{
-			if(!forced)
-			{
-				GreenSystemMessageToPlr(plr,"%s requested a mass summon of players %u level and above.",summoner->GetName(), level);
-				plr->SummonRequest(summoner->GetLowGUID(), summoner->GetZoneId(), summoner->GetMapId(), summoner->GetInstanceID(), summoner->GetPosition());
-			}
-			else
-			{
-				GreenSystemMessageToPlr(plr,"%s forced a mass summon of players %u level and above.",summoner->GetName(), level);
-				plr->SafeTeleport(summoner->GetMapMgr(), summoner->GetPosition());
-			}
-			++c;
-		}
-	}
-	objmgr._playerslock.ReleaseReadLock();
-	BlueSystemMessage(m_session, "%s mass summon of %u players", c);
-	sGMLog.writefromsession(m_session, "requested a mass summon of %u players.", c);
+	// Disabled function because accepting the summon caused a server crash for some reason
+	RedSystemMessage(m_session, "Did not mass summon due to function broken.");
 	return true;
 }
 
