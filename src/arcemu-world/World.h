@@ -625,6 +625,7 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 		bool instance_CheckTriggerPrerequsites;
 		uint32 MagicCellNumber;
 		bool fuckyomultibox;
+		bool SaveCreatures;
 		// battleground settings
 		struct BGSettings{
 			uint32 AV_MIN;

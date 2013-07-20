@@ -1694,6 +1694,13 @@ float AIInterface::_CalcAggroRange(Unit* target)
 		AggroRange += TO< Player* >(target)->DetectedRange;
 	}
 
+	if (m_Unit->IsCreature())
+	{
+		uint32 ar = TO_CREATURE(m_Unit)->GetProto()->AggroRange;
+		if (ar != 0)
+			AggroRange = ar;
+	}
+
 	// Re-check if aggro range exceeds Minimum/Maximum caps
 	if(AggroRange < 3.0f)
 	{

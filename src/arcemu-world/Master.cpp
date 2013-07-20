@@ -20,7 +20,7 @@
 
 #include "StdAfx.h"
 
-#define BANNER "Kronos :: World Server"
+#define BANNER "EoC :: World Server"
 
 #ifndef WIN32
 #include <sched.h>
@@ -194,40 +194,28 @@ bool Master::Run(int argc, char** argv)
 
 	printf("The key combination <Ctrl-C> will safely shut down the server at any time.\n");
 
-#ifndef WIN32
-	if(geteuid() == 0 || getegid() == 0)
-		Log.LargeErrorMessage("You are running ArcEmu as root.", "This is not needed, and may be a possible security risk.", "It is advised to hit CTRL+C now and", "start as a non-privileged user.", NULL);
-#endif
-
 	InitImplicitTargetFlags();
 	InitRandomNumberGenerators();
-	Log.Notice("Rnd", "Initialized Random Number Generators.");
 
 	ThreadPool.Startup();
 	uint32 LoadingTime = getMSTime();
 
 	//Log.Success("Config", "Loading Config Files...");
-	if(Config.MainConfig.SetSource(config_file))
-		Log.Notice("Config", ">> " CONFDIR "/world.conf loaded");
-	else
+	if(!Config.MainConfig.SetSource(config_file))
 	{
 		sLog.Error("Config", ">> error occurred loading " CONFDIR "/world.conf");
 		sLog.Close();
 		return false;
 	}
 
-	if(Config.OptionalConfig.SetSource(optional_config_file))
-		Log.Notice("Config", ">> " CONFDIR "/optional.conf loaded");
-	else
+	if(!Config.OptionalConfig.SetSource(optional_config_file))
 	{
 		sLog.Error("Config", ">> error occurred loading " CONFDIR "/optional.conf");
 		sLog.Close();
 		return false;
 	}
 
-	if(Config.RealmConfig.SetSource(realm_config_file))
-		Log.Notice("Config", ">> " CONFDIR "/realms.conf loaded");
-	else
+	if(!Config.RealmConfig.SetSource(realm_config_file))
 	{
 		sLog.Error("Config", ">> error occurred loading " CONFDIR "/realms.conf");
 		sLog.Close();

@@ -176,6 +176,7 @@ struct CreatureProto
 	uint32 rooted;
 	uint32 CustomFlags;
 	uint32 CorpseDecayTime;
+	uint32 AggroRange;
 	/* AI Stuff */
 	bool m_canRangedAttack;
 	bool m_canFlee;

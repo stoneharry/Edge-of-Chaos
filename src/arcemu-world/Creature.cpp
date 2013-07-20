@@ -524,6 +524,9 @@ void Creature::generateLoot()
 
 void Creature::SaveToDB()
 {
+	if (!sWorld.SaveCreatures)
+		return;
+
 	if(m_spawn == NULL)
 	{
 		m_spawn = new CreatureSpawn;

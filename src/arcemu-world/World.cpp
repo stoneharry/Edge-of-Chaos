@@ -85,6 +85,7 @@ World::World()
 	LastTrafficQuery = 0;
 	MagicCellNumber = 0;
 	fuckyomultibox = false;
+	SaveCreatures = false;
 }
 
 void CleanupRandomNumberGenerators();
@@ -1534,6 +1535,7 @@ void World::Rehash(bool load)
 	m_movementCompressThreshold *= m_movementCompressThreshold;		// square it to avoid sqrt() on checks
 	MagicCellNumber = Config.MainConfig.GetIntDefault("Server", "MagicCellNumber", 2);
 	fuckyomultibox = Config.MainConfig.GetBoolDefault("Server", "FuckYoMultiBox", false);
+	SaveCreatures = Config.MainConfig.GetBoolDefault("Server", "SaveCreatures", false);
 
 	// ======================================
 
