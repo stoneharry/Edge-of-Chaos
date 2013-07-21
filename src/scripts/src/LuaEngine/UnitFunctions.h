@@ -3743,12 +3743,12 @@ class LuaUnit
 
 		static int PlaySpellVisual(lua_State* L, Unit* ptr)
 		{
-			uint64 guid = CHECK_GUID(L, 1);
+			Unit* target = CHECK_UNIT(L, 1);
 			uint32 spell = luaL_checkint(L, 2);
-			if(ptr && guid && spell)
+			if(ptr && target && spell)
 			{
 				WorldPacket data(SMSG_PLAY_SPELL_VISUAL, 12);
-				data << guid;
+				data << uint64(target->GetGUID());
 				data << uint32(spell);
 				ptr->SendMessageToSet(&data, ptr->IsPlayer());
 			}

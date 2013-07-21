@@ -1535,8 +1535,8 @@ void World::Rehash(bool load)
 	m_movementCompressThreshold *= m_movementCompressThreshold;		// square it to avoid sqrt() on checks
 	MagicCellNumber = Config.MainConfig.GetIntDefault("Server", "MagicCellNumber", 2);
 	fuckyomultibox = Config.MainConfig.GetBoolDefault("Server", "FuckYoMultiBox", false);
-	SaveCreatures = Config.MainConfig.GetBoolDefault("Server", "SaveCreatures", false);
-
+	SaveCreatures = Config.MainConfig.GetBoolDefault("Server", "SaveCreatures", true);
+	
 	// ======================================
 
 	if(m_banTable != NULL)
