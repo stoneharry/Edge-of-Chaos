@@ -750,9 +750,7 @@ uint32 CalculateDamage(Unit* pAttacker, Unit* pVictim, uint32 weapon_damage_type
 bool isEven(int num)
 {
 	if((num % 2) == 0)
-	{
 		return true;
-	}
 
 	return false;
 }

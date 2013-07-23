@@ -1062,6 +1062,16 @@ void Player::Update(uint32 p_time)
 			HandleSobering();
 	}
 
+	if (IsMounted())
+	{
+		if(sWorld.Collision)
+		{
+			const LocationVector & loc = GetPosition();
+			if(CollideInterface.IsIndoor(GetMapId(), loc.x, loc.y, loc.z + 2.0f))
+				Dismount();
+		}
+	}
+
 #ifdef TRACK_IMMUNITY_BUG
 	bool immune = false;
 	for(uint32 i = 0; i < 7; i++)
