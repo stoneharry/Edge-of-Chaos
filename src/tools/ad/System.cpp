@@ -221,6 +221,7 @@ uint32 ReadMapDBC()
     {
         map_ids[x].id = dbc.getRecord(x).getUInt(0);
         strcpy(map_ids[x].name, dbc.getRecord(x).getString(1));
+		printf("Loaded: %s", map_ids[x].name);
     }
     printf("Done! (%u maps loaded)\n", map_count);
     return map_count;

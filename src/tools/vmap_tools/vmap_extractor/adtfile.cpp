@@ -124,7 +124,12 @@ bool ADTFile::init(uint32 map_num, uint32 tileX, uint32 tileY)
                 ModelInstansName = new string[size];
                 while (p<buf+size)
                 {
-                    fixnamen(p,strlen(p));
+					if (strlen(p) == 0)
+					{
+						printf("\nSkipped broken ADT: map_num, tile_x, tile_y: %d, %d, %d\n", map_num, tileX, tileY);
+						break;
+					}
+					fixnamen(p,strlen(p));
                     string path(p);
                     char* s=GetPlainName(p);
                     fixname2(s,strlen(s));
