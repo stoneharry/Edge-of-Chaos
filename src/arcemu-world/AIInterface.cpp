@@ -1065,7 +1065,7 @@ void AIInterface::AttackReaction(Unit* pUnit, uint32 damage_dealt, uint32 spellI
 	{
 		if(m_Unit->GetMapMgr() != NULL)
 		{
-			if(!Flying())
+			if(!Flying() && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
 			{
 				float target_land_z = m_Unit->GetMapMgr()->GetLandHeight(pUnit->GetPositionX(), pUnit->GetPositionY(), pUnit->GetPositionZ());
 
@@ -1277,7 +1277,7 @@ Unit* AIInterface::FindTarget()
 				continue;
 			if(distance > dist)
 			{
-				if(sWorld.Collision)
+				if(sWorld.Collision && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
 				{
 					if(CollideInterface.CheckLOS(m_Unit->GetMapId(), m_Unit->GetPositionNC(), tmpPlr->GetPositionNC()))
 					{
@@ -1325,7 +1325,7 @@ Unit* AIInterface::FindTarget()
 
 		if(dist <= _CalcAggroRange(pUnit))
 		{
-			if(sWorld.Collision)
+			if(sWorld.Collision && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
 			{
 				if(m_Unit->GetMapMgr()->InLineOfSight(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ() + 2, pUnit->GetPositionX(), pUnit->GetPositionY(), pUnit->GetPositionZ() + 2))
 				{
@@ -1374,7 +1374,7 @@ Unit* AIInterface::FindTarget()
 
 			if(dist <= _CalcAggroRange(pUnit))
 			{
-				if(sWorld.Collision)
+				if(sWorld.Collision && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
 				{
 					if(m_Unit->GetMapMgr()->InLineOfSight(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ() + 2, pUnit->GetPositionX(), pUnit->GetPositionY(), pUnit->GetPositionZ() + 2))
 					{
@@ -2608,7 +2608,7 @@ void AIInterface::_UpdateMovement(uint32 p_time)
 			float wl = m_Unit->GetMapMgr()->GetLiquidHeight(Fx, Fy);
 //			uint8 wt = m_Unit->GetMapMgr()->GetWaterType(Fx, Fy);
 
-			if(sWorld.Collision)
+			if(sWorld.Collision && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
 			{
 				Fz = CollideInterface.GetHeight(m_Unit->GetMapId(), Fx, Fy, m_Unit->GetPositionZ() + 2.0f);
 				if(Fz == NO_WMO_HEIGHT)
