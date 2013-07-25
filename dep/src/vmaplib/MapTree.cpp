@@ -293,6 +293,8 @@ namespace VMAP
 			if(success)
 			{
 				iNTreeValues = iTree.primCount();
+				if (iNTreeValues == NULL)
+					return false;
 				iTreeValues = new ModelInstance[iNTreeValues];
 			}
 

@@ -259,6 +259,7 @@ void CCollideInterface::ActivateMap(uint32 mapid)
 
 		if(f == NULL)
 		{
+			//printf("Failed to load: %s\n", filename);
 			m_navmaplock.Release();
 			return;
 		}
@@ -321,7 +322,10 @@ void CCollideInterface::LoadNavMeshTile(uint32 mapId, uint32 tileX, uint32 tileY
 	FILE* f = fopen(filename, "rb");
 
 	if(f == NULL)
+	{
+		//printf("Failed to load: %s\n", filename);
 		return;
+	}
 
 	MmapTileHeader header;
 
@@ -330,6 +334,7 @@ void CCollideInterface::LoadNavMeshTile(uint32 mapId, uint32 tileX, uint32 tileY
 	if(header.mmapMagic != MMAP_MAGIC || header.mmapVersion != MMAP_VERSION)
 	{
 		sLog.Debug("NavMesh", "Load failed (%u %u %u): tile headers incorrect", mapId, tileX, tileY);
+		//printf("Load failed (%u %u %u): tile headers incorrect\n", mapId, tileX, tileY);
 		fclose(f);
 		return;
 	}
@@ -338,6 +343,7 @@ void CCollideInterface::LoadNavMeshTile(uint32 mapId, uint32 tileX, uint32 tileY
 
 	if(data == NULL)
 	{
+		//printf("Load failed (%u %u %u): data incorrect\n", mapId, tileX, tileY);
 		fclose(f);
 		return;
 	}
