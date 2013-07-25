@@ -976,9 +976,9 @@ void WorldSession::FullLogin(Player* plr)
 	sHookInterface.OnFullLogin(_player);
 
 	objmgr.AddPlayer(_player);
+
 	if (IsTrial())
 		_player->BroadcastMessage("%sDue to your account being a trial, your access to content is limited.", MSG_COLOR_RED);
-
 }
 
 bool ChatHandler::HandleRenameCommand(const char* args, WorldSession* m_session)

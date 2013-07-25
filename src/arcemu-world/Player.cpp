@@ -479,26 +479,7 @@ Player::Player(uint32 guid)
 
 void Player::OnLogin()
 {
-	uint32 acct = GetSession()->GetAccountId();
-    QueryResult* result = CharacterDatabase.Query("SELECT COUNT(*) FROM `accounts` WHERE acct = '%u'", acct);
-    if (!result)
-        return;
-
-    Field* fields = result->Fetch();
-    uint32 count = fields[0].GetUInt32();
-
-	if (count == 1)
-	{
-		AchievementMgr ach = GetAchievementMgr();
-		if (!ach.HasCompleted(60012))
-			ach.GMCompleteAchievement(NULL, 60012);
-		if (!ach.HasCompleted(60016))
-			ach.GMCompleteAchievement(NULL, 60016);
-	}
-
-    delete result;
 }
-
 
 Player::~Player()
 {
@@ -1673,6 +1654,26 @@ void Player::GiveXP(uint32 xp, const uint64 & guid, bool allowbonus)
 
 	if(levelup)
 	{
+		if (level == 10)
+		{
+			QueryResult* result = CharacterDatabase.Query("SELECT COUNT(*) FROM `accounts` WHERE acct = '%u'", GetSession()->GetAccountId());
+
+			if (!result)
+				return;
+
+			Field* fields = result->Fetch();
+			uint32 count = fields[0].GetUInt32();
+
+			if (count == 1)
+			{
+				AchievementMgr ach = GetAchievementMgr();
+				ach.GMCompleteAchievement(NULL, 60012);
+				ach.GMCompleteAchievement(NULL, 60016);
+			}
+
+			delete result;
+		}
+
 		m_playedtime[0] = 0; //Reset the "Current level played time"
 
 		setLevel(level);
