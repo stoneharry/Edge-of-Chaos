@@ -292,10 +292,17 @@ namespace VMAP
 			if(success) success = iTree.readFromFile(rf);
 			if(success)
 			{
-				iNTreeValues = iTree.primCount();
-				if (iNTreeValues == NULL)
+				if (iTree.primCount() == 0)
 					return false;
-				iTreeValues = new ModelInstance[iNTreeValues];
+				try
+				{
+					iNTreeValues = iTree.primCount();
+					iTreeValues = new ModelInstance[iNTreeValues];
+				}
+				catch(...)
+				{
+					return false;
+				}
 			}
 
 			if(success && !readChunk(rf, chunk, "GOBJ", 4)) success = false;

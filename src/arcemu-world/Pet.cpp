@@ -164,6 +164,8 @@ bool Pet::CreateAsSummon(uint32 entry, CreatureInfo* ci, Creature* created_from_
 
 	// Create ourself
 	Create(m_name.c_str(), owner->GetMapId(), x, y, z, owner->GetOrientation());
+	
+	SetFaction(owner->GetFaction());
 
 	// Hunter pet should be max 5 levels below owner
 	uint32 level = owner->getLevel();
@@ -183,7 +185,6 @@ bool Pet::CreateAsSummon(uint32 entry, CreatureInfo* ci, Creature* created_from_
 
 	SetBaseAttackTime(MELEE, 2000);
 	SetBaseAttackTime(OFFHAND, 2000);
-	SetFaction(owner->GetFaction());
 	SetCastSpeedMod(1.0f);	// better set this one
 
 	if(type == 1)
@@ -762,6 +763,8 @@ void Pet::InitializeMe(bool first)
 		SetTPs(GetTPsForLevel(getLevel()));
 		SetDefaultActionbar();
 	}
+	_setFaction();
+
 	GetAIInterface()->Init(this, AITYPE_PET, MOVEMENTTYPE_NONE, m_Owner);
 	GetAIInterface()->SetUnitToFollow(m_Owner);
 	GetAIInterface()->SetFollowDistance(3.0f);
@@ -778,7 +781,6 @@ void Pet::InitializeMe(bool first)
 	myFamily = dbcCreatureFamily.LookupEntry(GetCreatureInfo()->Family);
 
 	SetPetDiet();
-	_setFaction();
 
 	// Load our spells
 	if(Summon)   // Summons - always
