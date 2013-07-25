@@ -292,8 +292,6 @@ namespace VMAP
 			if(success) success = iTree.readFromFile(rf);
 			if(success)
 			{
-				if (iTree.primCount() == 0)
-					return false;
 				try
 				{
 					iNTreeValues = iTree.primCount();
@@ -301,6 +299,7 @@ namespace VMAP
 				}
 				catch(...)
 				{
+					printf("Caught fatal error!!! < MapTree.cpp, fname: %s\n", fname.c_str());
 					return false;
 				}
 			}

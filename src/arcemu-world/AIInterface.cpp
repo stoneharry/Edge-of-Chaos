@@ -622,7 +622,7 @@ void AIInterface::_UpdateCombat(uint32 p_time)
 
 		if(m_Unit->GetMapMgr() != NULL && getNextTarget() != NULL)
 		{
-			if(!Flying())
+			if(!Flying() && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
 			{
 				float target_land_z = m_Unit->GetMapMgr()->GetLandHeight(getNextTarget()->GetPositionX(), getNextTarget()->GetPositionY(), getNextTarget()->GetPositionZ());
 
@@ -3776,7 +3776,7 @@ bool AIInterface::Move(float & x, float & y, float & z, float o /*= 0*/)
 		}
 		else
 		{
-				
+			//m_Unit->SendChatMessage(12,0,"I am flying or have CustomFlags 32! Let us not use mmaps for this move.");
 			AddSpline(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ());
 			AddSpline(x, y, z);
 		}
