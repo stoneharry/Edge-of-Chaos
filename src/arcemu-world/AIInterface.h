@@ -21,7 +21,7 @@
 #ifndef WOWSERVER_AIINTERFACE_H
 #define WOWSERVER_AIINTERFACE_H
 
-#define UNIT_MOVEMENT_INTERPOLATE_INTERVAL 250 // Was 400 // ms smoother server/client side moving vs less cpu/ less b/w
+#define UNIT_MOVEMENT_INTERPOLATE_INTERVAL 400 // ms smoother server/client side moving vs less cpu/ less b/w
 #define TARGET_UPDATE_INTERVAL_ON_PLAYER 1000 // we most likely will have to kill players and only then check mobs
 #define TARGET_UPDATE_INTERVAL 5000 // this is a multiple of PLAYER_TARGET_UPDATE_INTERVAL
 #define PLAYER_SIZE 1.5f

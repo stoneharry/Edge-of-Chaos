@@ -1302,20 +1302,22 @@ uint32 Item::RepairItemCost()
 	DurabilityCostsEntry* dcosts = dbcDurabilityCosts.LookupEntryForced(m_itemProto->ItemLevel);
 	if(dcosts == NULL)
 	{
-		LOG_ERROR("Repair: Unknown item level (%u)", dcosts);
-		return 0;
+		dcosts->itemlevel = 1;
+		//LOG_ERROR("Repair: Unknown item level (%u)", dcosts);
+		//return 0;
 	}
 
 	DurabilityQualityEntry* dquality = dbcDurabilityQuality.LookupEntryForced((m_itemProto->Quality + 1) * 2);
 	if(dquality == NULL)
 	{
-		LOG_ERROR("Repair: Unknown item quality (%u)", dquality);
-		return 0;
+		dquality->quality_modifier = 4;
+		//LOG_ERROR("Repair: Unknown item quality (%u)", dquality);
+		//return 0;
 	}
 
 	uint32 dmodifier = dcosts->modifier[ m_itemProto->Class == ITEM_CLASS_WEAPON ? m_itemProto->SubClass : m_itemProto->SubClass + 21 ];
 	uint32 cost = long2int32((GetDurabilityMax() - GetDurability()) * dmodifier * double(dquality->quality_modifier));
-	return cost;
+	return cost * 4;
 }
 
 bool Item::RepairItem(Player* pPlayer, bool guildmoney, int32* pCost)   //pCost is needed for the guild log
