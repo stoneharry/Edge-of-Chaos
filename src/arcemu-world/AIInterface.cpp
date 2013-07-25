@@ -891,7 +891,7 @@ void AIInterface::_UpdateCombat(uint32 p_time)
 					float distance = m_Unit->CalcDistance(getNextTarget());
 					bool los = true;
 
-					if(sWorld.Collision)
+					if(sWorld.Collision && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
 					{
 						los = CollideInterface.CheckLOS(m_Unit->GetMapId(), m_Unit->GetPositionNC(), getNextTarget()->GetPositionNC());
 					}
