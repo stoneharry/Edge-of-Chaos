@@ -292,16 +292,21 @@ namespace VMAP
 			if(success) success = iTree.readFromFile(rf);
 			if(success)
 			{
+				iNTreeValues = iTree.primCount();
+				printf("Loaded iNTreeValues: %d\n", iNTreeValues);
 				try
 				{
-					iNTreeValues = iTree.primCount();
 					iTreeValues = new ModelInstance[iNTreeValues];
 				}
-				catch(...)
+				catch (const std::exception & e)
 				{
-					printf("Caught fatal error!!! < MapTree.cpp, fname: %s\n", fname.c_str());
-					return false;
+					std::cerr << typeid (e).name() << ":" << e.what();
+					printf("\nCaught fatal error < MapTree.cpp, fname: %s\n", fname.c_str());
+					printf("iNTreeValues = %d\n", iNTreeValues);
+					iTreeValues = new ModelInstance[100];
 				}
+				//iNTreeValues = iTree.primCount();
+				//iTreeValues = new ModelInstance[iNTreeValues];
 			}
 
 			if(success && !readChunk(rf, chunk, "GOBJ", 4)) success = false;
