@@ -42,7 +42,7 @@ class FireNova : public Spell
 					{
 						totem = u_caster->summonhandler.GetSummonWithEntry(totem_ids[i]); // fire totem rank 1
 						if (totem != NULL)
-							break;
+							return result;
 					}
 					if(totem == NULL)
 					{
@@ -56,7 +56,14 @@ class FireNova : public Spell
 		}
 		void SpellEffectDummy(uint32 i)
 		{
-			Unit * totem = u_caster->summonhandler.GetSummonWithEntry(2523); // fire totem rank 1
+			int totem_ids[3] = {3903, 3902, 2523};
+			Unit * totem;
+			for (int i = 0; i < 3; i++)
+			{
+				totem = u_caster->summonhandler.GetSummonWithEntry(totem_ids[i]); // fire totem rank 1
+				if (totem != NULL)
+					break;
+			}
 			if(totem == NULL)
 			{
 				SendCustomError(SPELL_CUSTOM_ERROR_MUST_HAVE_FIRE_TOTEM);
