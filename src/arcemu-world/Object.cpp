@@ -1984,6 +1984,8 @@ void Object::Deactivate(MapMgr* mgr)
 
 void Object::SetByte(uint32 index, uint32 index1, uint8 value)
 {
+	if (m_valuesCount == NULL)
+		return;
 	ARCEMU_ASSERT(index < m_valuesCount);
 	// save updating when val isn't changing.
 
