@@ -1474,6 +1474,8 @@ void Creature::Load(CreatureProto* proto_, float x, float y, float z, float o)
 	if(!creature_info)
 		return;
 
+	SetFaction(proto->Faction);
+
 	if(proto_->isTrainingDummy == 0 && !(IsVehicle() && (proto->CustomFlags & CREATURE_CUSTOMFLAG_VEHICLE_COMBAT)))
 	{
 		GetAIInterface()->SetAllowedToEnterCombat(true);
@@ -1527,7 +1529,6 @@ void Creature::Load(CreatureProto* proto_, float x, float y, float z, float o)
 //	SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID_1, m_spawn->Item2SlotDisplay);
 //	SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID_2, m_spawn->Item3SlotDisplay);
 
-	SetFaction(proto->Faction);
 	SetBoundingRadius(proto->BoundingRadius);
 	SetCombatReach(proto->CombatReach);
 	original_emotestate = 0;
