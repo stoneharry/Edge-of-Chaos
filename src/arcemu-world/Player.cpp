@@ -14009,14 +14009,20 @@ void Player::AddSpellMod(SpellModifier* mod, bool apply)
 			SendPacket(&data);
         }
     }
-
-    if (apply)
-        m_spellMods[mod->op].push_back(mod);
-    else
-    {
-        m_spellMods[mod->op].remove(mod);
-		delete mod;
-    }
+	try
+	{
+		if (apply)
+			m_spellMods[mod->op].push_back(mod);
+		else
+		{
+			m_spellMods[mod->op].remove(mod);
+			delete mod;
+		}
+	}
+	catch (...)
+	{
+		printf("Fatal exception thrown: Player.cpp, void Player::AddSpellMod(...)\n");
+	}
 }
 
 // Restore spellmods in case of failed cast
