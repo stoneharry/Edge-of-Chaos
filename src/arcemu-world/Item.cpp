@@ -393,7 +393,7 @@ void Item::SaveToDB(int8 containerslot, int8 slot, bool firstsave, QueryBuffer* 
 				remaining_duration = 0;
 
 
-			if(itr->second.Enchantment && itr->second.Enchantment->Id (remaining_duration > 5 || itr->second.Duration == 0))
+			if(itr->second.Enchantment && itr->second.Enchantment->Id && (remaining_duration > 5 || itr->second.Duration == 0))
 			{
 				ss << itr->second.Enchantment->Id << ",";
 				ss << remaining_duration << ",";
