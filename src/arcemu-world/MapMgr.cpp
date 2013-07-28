@@ -1514,7 +1514,14 @@ void MapMgr::_PerformObjectDuties()
 
 	// Update creatures.
 	{
-		creature_iterator = activeCreatures.begin();
+		try
+		{
+			creature_iterator = activeCreatures.begin();
+		}
+		catch (...)
+		{
+			printf("Caught fatal exception: MapMgr.cpp < void MapMgr::_PerformObjectDuties()\n");
+		}
 		Creature* ptr;
 		Pet* ptr2;
 

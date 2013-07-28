@@ -6598,6 +6598,9 @@ void CombatStatusHandler::ClearAttackers()
 	//and m_attackers should be empty. If it's not, something wrong happened.
 
 	// this is a FORCED function, only use when the reference will be destroyed.
+	if (m_attackTargets == NULL)
+		return;
+
 	AttackerMap::iterator itr = m_attackTargets.begin();
 	Unit* pt;
 	for(; itr != m_attackTargets.end(); ++itr)

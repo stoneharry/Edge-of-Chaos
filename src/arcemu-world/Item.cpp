@@ -392,12 +392,18 @@ void Item::SaveToDB(int8 containerslot, int8 slot, bool firstsave, QueryBuffer* 
 			if(remaining_duration < 0)
 				remaining_duration = 0;
 
-
-			if(itr->second.Enchantment && itr->second.Enchantment->Id && (remaining_duration > 5 || itr->second.Duration == 0))
+			try
 			{
-				ss << itr->second.Enchantment->Id << ",";
-				ss << remaining_duration << ",";
-				ss << itr->second.Slot << ";";
+				if(itr->second.Enchantment && (remaining_duration > 5 || itr->second.Duration == 0))
+				{
+					ss << itr->second.Enchantment->Id << ",";
+					ss << remaining_duration << ",";
+					ss << itr->second.Slot << ";";
+				}
+			}
+			catch (...)
+			{
+				printf("Caught fatal exception: Item.cpp < void Item::SaveToDB(...)\n");
 			}
 		}
 	}

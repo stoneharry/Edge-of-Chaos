@@ -378,7 +378,14 @@ class SERVER_DECL ByteBuffer
 		}
 		void append(const ByteBuffer & buffer)
 		{
-			if(buffer.size() > 0) append(buffer.contents(), buffer.size());
+			try
+			{
+				if(buffer.size() > 0)
+					append(buffer.contents(), buffer.size());
+			catch (...)
+			{
+				printf("Caught fatal exception: ByteBuffer.h, void append(const ByteBuffer & buffr)\n");
+			}
 		}
 
 		void appendPackGUID(uint64 guid)
