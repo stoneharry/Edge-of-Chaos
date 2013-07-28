@@ -333,7 +333,7 @@ void Item::ApplyRandomProperties(bool apply)
 
 void Item::SaveToDB(int8 containerslot, int8 slot, bool firstsave, QueryBuffer* buf)
 {
-	if(GetOwner()->IsSaveBlocked())
+	if(GetOwner() && GetOwner()->IsSaveBlocked())
 		return;
 	if(!m_isDirty && !firstsave)
 		return;
