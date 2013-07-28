@@ -394,16 +394,9 @@ void EventableObjectHolder::Update(time_t time_difference)
 				obj->event_RemoveByPointer(ev);*/
 
 				/* remove the event from here */
-				try
-				{
-					ev->deleted = true;
-					ev->DecRef();
-					m_events.erase(it2);
-				}
-				catch (...)
-				{
-					printf("Fatal error: EventableObject.cpp > void EventableObjectHolder::Update(time_t time_difference)\n");
-				}
+				ev->deleted = true;
+				ev->DecRef();
+				m_events.erase(it2);
 				continue;
 			}
 			else if(ev->deleted)

@@ -641,6 +641,8 @@ bool World::SetInitialWorldSettings()
 
 void World::Update(time_t diff)
 {
+	try
+	{
 	eventholder->Update((uint32)diff);
 	sAuctionMgr.Update();
 	_UpdateGameTime();
@@ -649,6 +651,8 @@ void World::Update(time_t diff)
 	if(GetSessionCount() >= SESSION_CAP)
 		TerminateProcess(GetCurrentProcess(), 0);
 #endif
+	}
+	catch (...) { printf("Caught fatal error during World::Update\n"); }
 }
 
 
