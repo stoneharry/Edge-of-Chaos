@@ -2298,9 +2298,7 @@ void Unit::RegeneratePower(bool isinterrupted)
 					{
 						m_P_regenTimer = 3000;
 						if(HasAura(12296))
-						{
 							TO< Player* >(this)->LooseRage(20);
-						}
 						else
 							TO< Player* >(this)->LooseRage(30);
 					}
@@ -3640,6 +3638,7 @@ void Unit::Strike(Unit* pVictim, uint32 weapon_damage_type, SpellEntry* ability,
 		float addRage = (dmg.full_damage / rageconversion * 7.5f + weaponSpeedHitFactor) / 2;
 		AddPctN(addRage, GetTotalAuraModifier(213));
 		addRage *= 20; // MORE RAGE!
+		addRage = addRage * 1.5;
 		ModPower(POWER_TYPE_RAGE, float2int32(addRage));
 	}
 
@@ -6598,8 +6597,14 @@ void CombatStatusHandler::ClearAttackers()
 	//and m_attackers should be empty. If it's not, something wrong happened.
 
 	// this is a FORCED function, only use when the reference will be destroyed.
-	if (m_attackTargets == NULL)
+	if (m_attackTargets.empty())
+	{
+		m_attackers.clear();
+		m_attackTargets.clear();
+		m_primaryAttackTarget = 0;
+		UpdateFlag();
 		return;
+	}
 
 	AttackerMap::iterator itr = m_attackTargets.begin();
 	Unit* pt;

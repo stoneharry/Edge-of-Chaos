@@ -382,6 +382,7 @@ class SERVER_DECL ByteBuffer
 			{
 				if(buffer.size() > 0)
 					append(buffer.contents(), buffer.size());
+			}
 			catch (...)
 			{
 				printf("Caught fatal exception: ByteBuffer.h, void append(const ByteBuffer & buffr)\n");
