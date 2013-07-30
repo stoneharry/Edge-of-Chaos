@@ -1859,6 +1859,7 @@ class SERVER_DECL Player : public Unit
 			{
 				RemoveAura(m_MountSpellId);
 				m_MountSpellId = 0;
+				SpawnActivePet();
 			}
 		}
 		

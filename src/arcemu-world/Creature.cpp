@@ -242,27 +242,33 @@ Creature::Creature(uint64 guid)
 
 Creature::~Creature()
 {
-	sEventMgr.RemoveEvents(this);
-
-	if(_myScriptClass != NULL)
+	try
 	{
-		_myScriptClass->Destroy();
-		_myScriptClass = NULL;
+
+		sEventMgr.RemoveEvents(this);
+
+		if(_myScriptClass != NULL)
+		{
+			_myScriptClass->Destroy();
+			_myScriptClass = NULL;
+		}
+
+		if(m_custom_waypoint_map != NULL)
+		{
+			GetAIInterface()->SetWaypointMap(NULL);
+			m_custom_waypoint_map = NULL;
+		}
+		if(m_respawnCell != NULL)
+			m_respawnCell->_respawnObjects.erase(this);
+
+		if(m_escorter != NULL)
+			m_escorter = NULL;
+
+		// Creature::PrepareForRemove() nullifies m_owner. If m_owner is not NULL then the Creature wasn't removed from world
+		//but it got a reference to m_owner
+
 	}
-
-	if(m_custom_waypoint_map != NULL)
-	{
-		GetAIInterface()->SetWaypointMap(NULL);
-		m_custom_waypoint_map = NULL;
-	}
-	if(m_respawnCell != NULL)
-		m_respawnCell->_respawnObjects.erase(this);
-
-	if(m_escorter != NULL)
-		m_escorter = NULL;
-
-	// Creature::PrepareForRemove() nullifies m_owner. If m_owner is not NULL then the Creature wasn't removed from world
-	//but it got a reference to m_owner
+	catch (...) { prnintf("Caught fatal exception in Creature.cpp : Deconstructor (~)\n"); }
 }
 
 void Creature::Update(uint32 p_time)
