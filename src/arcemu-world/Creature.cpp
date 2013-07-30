@@ -268,7 +268,7 @@ Creature::~Creature()
 		//but it got a reference to m_owner
 
 	}
-	catch (...) { prnintf("Caught fatal exception in Creature.cpp : Deconstructor (~)\n"); }
+	catch (...) { printf("Caught fatal exception in Creature.cpp : Deconstructor (~)\n"); }
 }
 
 void Creature::Update(uint32 p_time)
