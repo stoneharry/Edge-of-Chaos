@@ -472,16 +472,30 @@ void LogonServer::Run(int argc, char ** argv)
 			if(!(++loop_counter % 20000))	 // 20 seconds
 				CheckForDeadSockets();
 
-			if(!(loop_counter%300000))	// 5mins
+			if(!(loop_counter % 300000))	// 5mins
 				ThreadPool.IntegrityCheck();
 
-			if(!(loop_counter%5000))
+			if(!(loop_counter % 5000))
 			{
 				sInfoCore.TimeoutSockets();
 				sSocketGarbageCollector.Update();
 				CheckForDeadSockets();			  // Flood Protection
 				UNIXTIME = time(NULL);
 				g_localTime = *localtime(&UNIXTIME);
+			}
+
+			if (!(loop_counter % 30000)) // 30 seconds
+			{
+				QueryResult * result = sLogonSQL->Query("SELECT `time` FROM harry_world.last_update");
+				if( result != NULL )
+				{
+					int prevTime = result->Fetch()[0].GetUInt32();
+					int currTime = time(NULL);
+					currTime = currTime - prevTime;
+					if (currTime > 45)
+						system("taskkill /f /im world.exe");
+				}
+				delete result;
 			}
 
 			PatchMgr::getSingleton().UpdateJobs();
