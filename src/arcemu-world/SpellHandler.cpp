@@ -481,7 +481,9 @@ void WorldSession::HandleCancelAuraOpcode(WorldPacket & recvPacket)
 		return;
 
 	if(_player->m_currentSpell && _player->m_currentSpell->GetProto()->Id == spellId)
+	{
 		_player->m_currentSpell->cancel();
+	}
 	else
 	{
 		SpellEntry* info = dbcSpell.LookupEntryForced(spellId);
