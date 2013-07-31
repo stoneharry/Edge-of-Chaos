@@ -394,7 +394,7 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 		//
 		///////////////////////////////////////////////////////////////////////////////////////////////////
 		void PlaySoundToAll(uint32 soundid);
-
+		void PlayMusicToAll(uint32 soundid);
 
 		void SendZoneMessage(WorldPacket* packet, uint32 zoneid, WorldSession* self = 0);
 		void SendInstanceMessage(WorldPacket* packet, uint32 instanceid, WorldSession* self = 0);

@@ -2787,7 +2787,7 @@ bool ChatHandler::HandleGlobalPlaySoundCommand(const char* args, WorldSession* m
 	if(sound == 0)
 		return false;
 
-	sWorld.PlaySoundToAll(sound);
+	sWorld.PlayMusicToAll(sound);
 	BlueSystemMessage(m_session, "Broadcasted sound %u to server.", sound);
 	sGMLog.writefromsession(m_session, "used play all command soundid %u", sound);
 
