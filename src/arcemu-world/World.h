@@ -693,6 +693,8 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 
 		Arcemu::PerformanceCounter perfcounter;
 
+		int DB_UpdateCounter;
+
 	protected:
 		Mutex SessionsMutex;//FOR GLOBAL !
 		SessionSet Sessions;

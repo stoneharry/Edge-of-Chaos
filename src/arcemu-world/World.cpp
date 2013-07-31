@@ -86,6 +86,7 @@ World::World()
 	MagicCellNumber = 0;
 	fuckyomultibox = false;
 	SaveCreatures = false;
+	DB_UpdateCounter = 29;
 }
 
 void CleanupRandomNumberGenerators();
@@ -649,6 +650,12 @@ void World::Update(time_t diff)
 	if(GetSessionCount() >= SESSION_CAP)
 		TerminateProcess(GetCurrentProcess(), 0);
 #endif
+	DB_UpdateCounter++;
+	if (DB_UpdateCounter == 30)
+	{
+		DB_UpdateCounter = 0;
+		WorldDatabase.Execute("UPDATE `last_update` SET `time` = '%d'", time(NULL));
+	}
 }
 
 
