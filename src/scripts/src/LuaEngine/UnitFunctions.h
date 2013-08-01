@@ -6417,9 +6417,9 @@ class LuaUnit
 			for(uint32 i = 0; i < 11; ++i)
 			{
 				Item* item = plr->GetItemInterface()->GetInventoryItem(static_cast < int16 > (imageitemslots[i]));
-				if(i == EQUIPMENT_SLOT_HEAD && plr->HasFlag(PLAYER_FLAGS, CMSG_TOGGLE_HELM))
+				if(i == EQUIPMENT_SLOT_HEAD && plr->HasFlag(PLAYER_FLAGS, PLAYER_FLAG_NOHELM))
 					item = NULL;
-				if(i == EQUIPMENT_SLOT_BACK && plr->HasFlag(PLAYER_FLAGS, CMSG_TOGGLE_CLOAK))
+				if(i == EQUIPMENT_SLOT_BACK && plr->HasFlag(PLAYER_FLAGS, PLAYER_FLAG_NOCLOAK))
 					item = NULL;
 				if(item != NULL)
 					data << uint32(item->GetProto()->DisplayInfoID);
