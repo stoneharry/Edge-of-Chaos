@@ -567,6 +567,7 @@ RegType<Unit> UnitMethods[] =
 	{ "SendCinematic", &LuaUnit::SendCinematic },
 	{ "PlayMusicToSet", &LuaUnit::PlayMusicToSet },
 	{ "PlayMusicToPlayer", &LuaUnit::PlayMusicToPlayer },
+	{ "MirrorImagePlayer", &LuaUnit::MirrorImagePlayer },
 	{ NULL, NULL },
 };
 

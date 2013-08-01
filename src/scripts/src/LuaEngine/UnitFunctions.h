@@ -6355,5 +6355,91 @@ class LuaUnit
 
 			return 0;
 		}
+		static int MirrorImagePlayer(lua_State* L, Unit* ptr)
+		{
+			TEST_UNIT();
+
+			Player* plr = CHECK_PLAYER(L, 1);
+
+			if (!plr)
+				return;
+
+			static uint32 RaceDisplayMap[P_NUM_RACES * 2 + 2] =
+			{
+				0U, 0U, 49U, 50U, 51U, 52U, 53U, 54U, 55U, 56U, 57U, 58U, 59U,
+				60U, 1563U, 1564U, 1478U, 1479U, 6894U, 6895U, 15476U, 15475U,
+				16125U, 16126U, 16981U, 16980U, 17402U, 17403U, 17576U,
+				17577U, 17578U, 17579U, 21685U, 21686U, 21780U,21780U,21963U,
+				21964U, 26316U, 26317U, 26871U, 26872U, 26873U, 26874U
+			}; // maps the race index/gender in the DB to the actual display ID
+
+			ptr->SetDisplayId( RaceDisplayMap[(plr->getRace() << 1) | plr->getGender()] );
+			ptr->setRace(plr->getRace());
+			ptr->setGender(plr->getGender());
+
+			ptr->SetUInt32Value(UNIT_FIELD_FLAGS_2, ptr->GetUInt32Value(UNIT_FIELD_FLAGS_2) | UNIT_FLAG2_MIRROR_IMAGE);
+
+			WorldPacket data(SMSG_MIRRORIMAGE_DATA, 68);
+
+			data << uint64(ptr->GetGUID());
+			data << uint32(plr->GetDisplayId());
+			data << uint8(plr->getRace());
+			data << uint8(plr->getGender());
+			data << uint8(plr->getClass());
+
+			// facial features, like big nose, piercings, bonehead, etc
+			data << uint8(plr->GetByte(PLAYER_BYTES, 0));	// skin color
+			data << uint8(plr->GetByte(PLAYER_BYTES, 1));	// face
+			data << uint8(plr->GetByte(PLAYER_BYTES, 2));	// hair style
+			data << uint8(plr->GetByte(PLAYER_BYTES, 3));	// hair color
+			data << uint8(plr->GetByte(PLAYER_BYTES_2, 0));	// facial hair
+
+			if(plr->IsInGuild())
+				data << uint32(plr->GetGuildId());
+			else
+				data << uint32(0);
+
+			static const uint32 imageitemslots[] =
+			{
+				EQUIPMENT_SLOT_HEAD,
+				EQUIPMENT_SLOT_SHOULDERS,
+				EQUIPMENT_SLOT_BODY,
+				EQUIPMENT_SLOT_CHEST,
+				EQUIPMENT_SLOT_WAIST,
+				EQUIPMENT_SLOT_LEGS,
+				EQUIPMENT_SLOT_FEET,
+				EQUIPMENT_SLOT_WRISTS,
+				EQUIPMENT_SLOT_HANDS,
+				EQUIPMENT_SLOT_BACK,
+				EQUIPMENT_SLOT_TABARD
+			};
+
+			for(uint32 i = 0; i < 11; ++i)
+			{
+				Item* item = plr->GetItemInterface()->GetInventoryItem(static_cast < int16 > (imageitemslots[i]));
+				if(i == EQUIPMENT_SLOT_HEAD && plr->HasFlag(PLAYER_FLAGS, CMSG_TOGGLE_HELM))
+					item = NULL;
+				if(i == EQUIPMENT_SLOT_BACK && plr->HasFlag(PLAYER_FLAGS, CMSG_TOGGLE_CLOAK))
+					item = NULL;
+				if(item != NULL)
+					data << uint32(item->GetProto()->DisplayInfoID);
+				else
+					data << uint32(0);
+			}
+
+			Item* item = plr->GetItemInterface()->GetInventoryItem(static_cast < int16 >(EQUIPMENT_SLOT_MAINHAND));
+			if (item != NULL)
+				ptr->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID, item->GetProto()->DisplayInfoID);
+			item = plr->GetItemInterface()->GetInventoryItem(static_cast < int16 >(EQUIPMENT_SLOT_OFFHAND));
+			if (item != NULL)
+				ptr->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0x1, item->GetProto()->DisplayInfoID);
+			item = plr->GetItemInterface()->GetInventoryItem(static_cast < int16 >(EQUIPMENT_SLOT_RANGED));
+			if (item != NULL)
+				ptr->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0x2, item->GetProto()->DisplayInfoID);
+
+			ptr->SendPacket(&data);
+
+			return 0;
+		}
 };
 #endif

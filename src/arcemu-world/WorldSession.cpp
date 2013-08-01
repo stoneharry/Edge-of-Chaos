@@ -2013,9 +2013,9 @@ void WorldSession::HandleMirrorImageOpcode(WorldPacket & recv_data)
 			            int16 >
 			            (imageitemslots
 			             [i]));
-			if(i == EQUIPMENT_SLOT_HEAD && pcaster->HasFlag(PLAYER_FLAGS, 0x00000400))
+			if(i == EQUIPMENT_SLOT_HEAD && pcaster->HasFlag(PLAYER_FLAGS, CMSG_TOGGLE_HELM))
 				item = NULL;
-			if(i == EQUIPMENT_SLOT_BACK && pcaster->HasFlag(PLAYER_FLAGS, 0x00000800))
+			if(i == EQUIPMENT_SLOT_BACK && pcaster->HasFlag(PLAYER_FLAGS, CMSG_TOGGLE_CLOAK))
 				item = NULL;
 			if(item != NULL)
 				data << uint32(item->GetProto()->DisplayInfoID);
