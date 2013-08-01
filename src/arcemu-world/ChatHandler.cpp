@@ -198,6 +198,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 	if(pMsg && !sHookInterface.OnChat(_player, type, lang, pMsg, pMisc))
 		return;
 
+	if (!GetPlayer()->m_modlanguage)
+		return;
+
 	Channel* chn = NULL;
 	// Main chat message processing
 	switch(type)
