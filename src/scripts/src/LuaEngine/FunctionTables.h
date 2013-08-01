@@ -71,6 +71,7 @@ RegType<Item> ItemMethods[] =
 	{ "GetFloatValue", &luaItem::GetFloatValue },
 	{ "RemoveFlag", &luaItem::RemoveFlag },
 	{ "SetFlag", &luaItem::SetFlag },
+	{ "GetDisplayId", &luaItem::GetDisplayId },
 	{ NULL, NULL },
 };
 

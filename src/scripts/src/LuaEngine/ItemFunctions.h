@@ -176,6 +176,14 @@ namespace luaItem
 		return 1;
 	}
 
+	int GetDisplayId(lua_State* L, Item* ptr)
+	{
+		if (!ptr) return 1;
+		ItemPrototype* proto = ptr->GetProto();
+		lua_pushnumber(L, proto->DisplayInfoID);
+		return 0;
+	}
+
 	int GetName(lua_State* L, Item* ptr)
 	{
 		if(!ptr)
