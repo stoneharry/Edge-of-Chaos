@@ -8577,6 +8577,19 @@ uint32 Unit::GetModelForForm(uint32 form)
     return modelid;
 }
 
+uint32 Unit::GetCreatureIdForForm(uint32 form)
+{
+	uint32 id = 0;
+    switch (form)
+    {
+        case FORM_TRAVEL:
+			id = 6573;
+        default:
+            break;
+    }
+    return id;
+}
+
 bool Unit::IsControlledByPlayer()
 {
 	if(IS_PLAYER_GUID(GetCharmedByGUID()) || IsPlayer())

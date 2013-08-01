@@ -3758,6 +3758,24 @@ void Aura::SpellAuraModShapeshift(bool apply)
 		//execute after we changed shape
 		if(p_target != NULL)
 			p_target->EventTalentHearthOfWildChange(true);
+		CreatureProto *cp = CreatureProtoStorage.LookupEntry(m_target->GetCreatureIdForForm(ssf->id));
+		if(cp && p_target)
+		{
+			p_target->mountvehicleid = cp->vehicleid;
+			if( p_target->mountvehicleid != 0 )
+			{
+				p_target->AddVehicleComponent( cp->Id, cp->vehicleid );
+				WorldPacket data( SMSG_PLAYER_VEHICLE_DATA, 12 );
+				data << p_target->GetNewGUID();
+				data << uint32( p_target->mountvehicleid );
+				p_target->SendMessageToSet( &data, true );
+				data.Initialize( SMSG_CONTROL_VEHICLE );
+				p_target->SendPacket( &data );
+				p_target->SetFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT );
+				p_target->SetFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PLAYER_VEHICLE );
+				p_target->GetVehicleComponent()->InstallAccessories();
+			}
+		}
 	}
 	else
 	{
@@ -3789,6 +3807,23 @@ void Aura::SpellAuraModShapeshift(bool apply)
 	{
 		p_target->UpdateStats();
 		p_target->UpdateAttackSpeed();
+		if(p_target && p_target->GetVehicleComponent() != NULL )
+		{
+			p_target->RemoveFlag( UNIT_NPC_FLAGS, UNIT_NPC_FLAG_PLAYER_VEHICLE );
+			p_target->RemoveFlag( UNIT_FIELD_FLAGS, UNIT_FLAG_MOUNT );
+
+			p_target->GetVehicleComponent()->RemoveAccessories();
+			p_target->GetVehicleComponent()->EjectAllPassengers();
+
+			WorldPacket data( SMSG_PLAYER_VEHICLE_DATA, 12 );
+			data << p_target->GetNewGUID();
+			data << uint32( 0 );
+			p_target->SendMessageToSet( &data, true );
+
+			p_target->RemoveVehicleComponent();
+			p_target->mountvehicleid = 0;
+			p_target->SpawnActivePet();
+		}
 	}
 }
 
