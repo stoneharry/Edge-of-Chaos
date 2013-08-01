@@ -6362,7 +6362,7 @@ class LuaUnit
 			Player* plr = CHECK_PLAYER(L, 1);
 
 			if (!plr)
-				return;
+				return 0;
 
 			static uint32 RaceDisplayMap[P_NUM_RACES * 2 + 2] =
 			{
