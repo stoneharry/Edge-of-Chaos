@@ -8385,15 +8385,13 @@ void Aura::SpellAuraConvertRune(bool apply)
 
 void Aura::SpellAuraMirrorImage(bool apply)
 {
-	if(m_target == NULL || ! m_target->IsCreature())
+	if(m_target == NULL || GetUnitCaster() == NULL)
 		return;
-
-	if(apply && m_target->IsSummon())
+	Unit * caster = GetUnitCaster();
+	if(apply)
 	{
-		Summon* s = TO< Summon* >(m_target);
-
-		s->SetDisplayId(s->GetOwner()->GetDisplayId());
-		s->SetUInt32Value(UNIT_FIELD_FLAGS_2, s->GetUInt32Value(UNIT_FIELD_FLAGS_2) | UNIT_FLAG2_MIRROR_IMAGE);
+		m_target->SetDisplayId(caster->GetDisplayId());
+		m_target->SetUInt32Value(UNIT_FIELD_FLAGS_2, m_target->GetUInt32Value(UNIT_FIELD_FLAGS_2) | UNIT_FLAG2_MIRROR_IMAGE);
 	}
 
 	SpellAuraMirrorImage2(apply);
@@ -8401,10 +8399,10 @@ void Aura::SpellAuraMirrorImage(bool apply)
 
 void Aura::SpellAuraMirrorImage2(bool apply)
 {
-	if(m_target == NULL)
+	if(m_target == NULL || GetUnitCaster() == NULL)
 		return;
 
-	if(apply && m_target->IsSummon())
+	if(apply)
 	{
 		if(GetCaster()->IsPlayer())
 		{
