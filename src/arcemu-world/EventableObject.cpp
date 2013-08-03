@@ -329,6 +329,8 @@ EventableObjectHolder::~EventableObjectHolder()
 
 void EventableObjectHolder::Update(time_t time_difference)
 {
+	try
+	{
 	m_lock.Acquire();			// <<<<
 
 	/* Insert any pending objects in the insert pool. */
@@ -416,7 +418,11 @@ void EventableObjectHolder::Update(time_t time_difference)
 			ev->currTime -= time_difference;
 		}
 	}
-
+	}
+	catch (...)
+	{
+		printf("Fatal exception caught <- EventableObject.cpp\n");
+	}
 	m_lock.Release();
 }
 
