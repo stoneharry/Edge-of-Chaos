@@ -126,6 +126,8 @@ void AuthSocket::HandleChallenge()
 
 	uint16 build = m_challenge.build;
 
+	// _os = ch->os; <- Mangos
+
 	// Check client build.
 	if(build > LogonServer::getSingleton().max_build)
 	{

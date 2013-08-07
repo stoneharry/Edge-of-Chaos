@@ -237,21 +237,23 @@ void WorldSocket::OnConnect()
 void WorldSocket::_HandleAuthSession(WorldPacket* recvPacket)
 {
 	std::string account;
-	uint32 unk2, unk3;
+	std::string K;
+	uint32 unk3;
 	uint64 unk4;
-	uint32 unk5, unk6, unk7;
+	std::string m_s;
+	uint32 unk6, unk7;
 
 	_latency = getMSTime() - _latency;
 
 	try
 	{
 		*recvPacket >> mClientBuild;
-		*recvPacket >> unk2;
+		*recvPacket >> K;
 		*recvPacket >> account;
 		*recvPacket >> unk3;
 		*recvPacket >> mClientSeed;
 		*recvPacket >> unk4;
-		*recvPacket >> unk5;
+		*recvPacket >> m_s;
 		*recvPacket >> unk6;
 		*recvPacket >> unk7;
 	}
@@ -269,6 +271,8 @@ void WorldSocket::_HandleAuthSession(WorldPacket* recvPacket)
 		Disconnect();
 		return;
 	}
+
+	m_s = K; // ???
 
 	// shitty hash !
 	m_fullAccountName = new string(account);

@@ -36,7 +36,7 @@ typedef struct {
 	uint8   version3;	   // 0x00
 	uint16  build;		  // 3734
 	uint8   platform[4];	// 'x86'
-	uint8   os[4];		  // 'Win'
+	uint32   os;		  // 'Win'
 	uint8   country[4];	 // 'enUS'
 	uint32  timezone_bias;  // -419
 	uint32  ip;			 // client ip
