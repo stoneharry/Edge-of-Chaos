@@ -952,11 +952,18 @@ bool HookInterface::OnCastSpell(Player* pPlayer, SpellEntry* pSpell, Spell* spel
 {
 	ServerHookList hookList = sScriptMgr._hooks[SERVER_HOOK_EVENT_ON_CAST_SPELL];
 	bool ret_val = true;
+	try
+	{
 	for(ServerHookList::iterator itr = hookList.begin(); itr != hookList.end(); ++itr)
 	{
 		bool rv = ((tOnCastSpell) * itr)(pPlayer, pSpell, spell);
 		if(rv == false)  // never set ret_val back to true, once it's false
 			ret_val = false;
+	}
+	}
+	catch (...)
+	{
+		printf("Broken spell crash caught.\n");
 	}
 	return ret_val;
 }

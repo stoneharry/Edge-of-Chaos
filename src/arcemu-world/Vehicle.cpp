@@ -259,6 +259,8 @@ void Vehicle::AddPassengerToSeat( Unit *passenger, uint32 seatid, bool force )
 }
 
 void Vehicle::EjectPassenger( Unit *passenger ){
+try
+{
 	if( passenger->GetCurrentVehicle() == NULL )
 		return;
 
@@ -278,8 +280,15 @@ void Vehicle::EjectPassenger( Unit *passenger ){
 
 	EjectPassengerFromSeat( seatid );
 }
+catch(...)
+{
+	printf("Someone logged on while on a vehicle. \n");
+}
+}
 
 void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
+try
+{
 	//if( !seats[ seatid ]->Usable() )
 		//return;
 
@@ -369,6 +378,11 @@ void Vehicle::EjectPassengerFromSeat( uint32 seatid ){
 				c->Despawn( 1 * 1000, 0 );
 		}
 	}
+}
+catch(...)
+{
+	printf("Someone logged on while on a vehicle. \n");
+}
 }
 
 void Vehicle::EjectAllPassengers(){

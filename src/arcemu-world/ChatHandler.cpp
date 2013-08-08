@@ -137,19 +137,25 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			pMisc = 0;
 			if(sChatHandler.ParseCommands(msg.c_str(), this) > 0)
 				return;
-			spy << "<Public> " << GetPlayer()->GetName() << ": " << pMsg;
-			sWorld.SendGMWorldText(spy.str().c_str(), this);
-			spy << "\n";
-			printf(spy.str().c_str());
+			if(lang != CHAT_MSG_ADDON)
+			{
+				spy << "<Public> " << GetPlayer()->GetName() << ": " << pMsg;
+				sWorld.SendGMWorldText(spy.str().c_str(), this);
+				spy << "\n";
+				printf(spy.str().c_str());
+			}
 			break;
 		case CHAT_MSG_WHISPER:
 			recv_data >> to >> msg;
 			pMsg = msg.c_str();
 			pMisc = to.c_str();
-			spy << "<Private> " << GetPlayer()->GetName() << " to" << pMisc << ": " << pMsg;
-			sWorld.SendGMWorldText(spy.str().c_str(), this);
-			spy << "\n";
-			printf(spy.str().c_str());
+			if(lang != CHAT_MSG_ADDON)
+			{
+				spy << "<Private> " << GetPlayer()->GetName() << " to " << pMisc << ": " << pMsg;
+				sWorld.SendGMWorldText(spy.str().c_str(), this);
+				spy << "\n";
+				printf(spy.str().c_str());
+			}
 			break;
 		case CHAT_MSG_CHANNEL:
 			recv_data >> channel;
