@@ -31,13 +31,6 @@ std::vector<std::string> StrSplit(const std::string & src, const std::string & s
 void SetThreadName(const char* format, ...);
 time_t convTimePeriod(uint32 dLength, char dType);
 
-void hexDecodeString(const char *str, uint32 strlen, uint8* buffer);
-
-// Simple RC4 to work on 256+2 bytes keys
-void byteSwap(uint8 *a, uint8 *b);
-void rc4_init(uint8 *key_buffer, uint8 *base, uint32 base_length);
-void rc4_crypt(uint8 *key, uint8 *data, uint32 length);
-
 inline uint32 secsToTimeBitFields(time_t secs)
 {
 	tm* lt = localtime(&secs);

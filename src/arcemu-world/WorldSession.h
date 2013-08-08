@@ -26,8 +26,6 @@
 #ifndef __WORLDSESSION_H
 #define __WORLDSESSION_H
 
-#include "Timer.h"
-
 class Player;
 class WorldPacket;
 class WorldSocket;
@@ -211,28 +209,9 @@ void CapitalizeString(string & arg);
 class SERVER_DECL WorldSession
 {
 		friend class WorldSocket;
-		friend class WardenMgr;
 	public:
 		WorldSession(uint32 id, string Name, WorldSocket* sock);
 		~WorldSession();
-
-        uint8 *GetWardenServerKey() { return &m_rc4ServerKey[0]; }
-        uint8 *GetWardenSeed() { return &m_wardenSeed[0]; }
-        uint8 *GetWardenTempClientKey() { return &m_WardenTmpClientKey[0]; }
-        void UpdateWardenTimer(uint32 diff) { m_WardenTimer.Update(diff); }
-
-        void HandleWardenDataOpcode(WorldPacket& recv_data);
-        void HandleWardenRegister();                        // for internal call
-        void HandleWardenUnregister();                      // for internal call
-
-        uint8 m_wardenStatus;
-        uint8 m_rc4ServerKey[0x102];
-        uint8 m_rc4ClientKey[0x102];
-        uint8 m_wardenSeed[16];
-        ShortIntervalTimer m_WardenTimer;
-        std::string m_WardenModule;
-        void *m_WardenClientChecks;
-        uint8 m_WardenTmpClientKey[0x102];
 
 		Player* m_loggingInPlayer;
 		void SendPacket(WorldPacket* packet)

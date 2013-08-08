@@ -77,11 +77,6 @@ enum IntRates
     MAX_INTRATES
 };
 
-enum WorldTimers
-{
-	WUPDATE_WARDEN = 6,
-	WUPDATE_COUNT = 7
-};
 
 enum EnviromentalDamage
 {
@@ -332,8 +327,6 @@ class SERVER_DECL World : public Singleton<World>, public EventableObject
 	public:
 		World();
 		~World();
-
-		BanReturn BanAccount(WorldSession *session, uint32 duration_secs, std::string reason, std::string author);
 
 		/** Reloads the config and sets all of the setting variables
 		 */

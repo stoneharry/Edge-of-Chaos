@@ -20,7 +20,6 @@
 
 #include "StdAfx.h"
 #include <CrashHandler.h>
-#include "WardenMgr.h"
 
 initialiseSingleton(World);
 
@@ -493,11 +492,6 @@ bool World::SetInitialWorldSettings()
 	g_characterNameFilter->Load("wordfilter_character_names");
 	g_chatFilter->Load("wordfilter_chat");
 
-	sWardenMgr.Initialize("127.0.0.1");
-	//sConfig.GetIntDefault("wardend.Port", DEFAULT_WARDENSERVER_PORT),
-	//sConfig.GetBoolDefault("wardend.Ban"));
-	//m_timers[WUPDATE_WARDEN].SetInterval(1 * IN_MILLISECONDS);
-
 	//Log.Success("WordFilter", "Done.");
 
 	Log.Success("World", "Database loaded in %ums.", getMSTime() - start_time);
@@ -662,17 +656,6 @@ void World::Update(time_t diff)
 		DB_UpdateCounter = 0;
 		WorldDatabase.Execute("UPDATE `last_update` SET `time` = '%d'", time(NULL));
 	}
-
-    if (m_timers[WUPDATE_WARDEN].Passed())
-    {
-        ///- Update WardenTimer in all sessions
-        for (SessionMap::iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
-            itr->second->UpdateWardenTimer(m_timers[WUPDATE_WARDEN].GetCurrent());
-
-        ///- Then call the update method of WardenMgr Singleton
-        sWardenMgr.Update(m_timers[WUPDATE_WARDEN].GetCurrent());
-        m_timers[WUPDATE_WARDEN].SetCurrent(0);
-    }
 }
 
 
@@ -2378,17 +2361,4 @@ const char*  World::GetEmulatorRevision()
 		return "N/A";
 
 	return r->Fetch()[0].GetString();
-}
-
-BanReturn World::BanAccount(WorldSession *session, uint32 duration_secs, std::string reason, std::string author)
-{
-    if (duration_secs)
-        LoginDatabase.PExecute("INSERT INTO account_banned VALUES ('%u', UNIX_TIMESTAMP(), UNIX_TIMESTAMP()+%u, '%s', '%s', '1')",
-            session->GetAccountId(), duration_secs, author.c_str(), reason.c_str());
-    else
-        LoginDatabase.PExecute("INSERT INTO account_banned VALUES ('%u', UNIX_TIMESTAMP(), 0, '%s', '%s', '1')",
-            session->GetAccountId(), author.c_str(), reason.c_str());
-
-    session->KickPlayer();
-    return BAN_SUCCESS;
 }

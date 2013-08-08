@@ -23,7 +23,6 @@
 //
 
 #include "StdAfx.h"
-#include "WardenMgr.h"
 
 OpcodeHandler WorldPacketHandlers[NUM_MSG_TYPES];
 
@@ -49,8 +48,7 @@ WorldSession::WorldSession(uint32 id, string Name, WorldSocket* sock):
 	_loggingOut(false),
 	LoggingOut(false),
 	instanceId(0),
-	_updatecount(0), floodLines(0), floodTime(UNIXTIME), language(0), m_muted(0), item_info_sent(false),
-	m_wardenStatus(WARD_STATE_UNREGISTERED), m_WardenClientChecks(NULL)
+	_updatecount(0), floodLines(0), floodTime(UNIXTIME), language(0), m_muted(0), item_info_sent(false)
 {
 	for(uint8 x = 0; x < 8; x++)
 		sAccountData[x].data = NULL;
@@ -77,9 +75,6 @@ WorldSession::~WorldSession()
 
 	while((packet = _recvQueue.Pop()) != 0)
 		delete packet;
-
-    ///- inform Warden Manager
-    sWardenMgr.Unregister(this);
 
 	for(uint32 x = 0; x < 8; x++)
 	{
@@ -238,10 +233,6 @@ int WorldSession::Update(uint32 InstanceID)
 		if(!_logoutTime)
 			_logoutTime = m_currMsTime + PLAYER_LOGOUT_DELAY;
 	}
-
-    //Process Warden related update for this session
-    if (sWardenMgr.IsEnabled())
-        sWardenMgr.Update(this); //Called 2 times from Map::Update and World::UpdateSessions
 
 	return 0;
 }

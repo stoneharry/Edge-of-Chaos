@@ -21,8 +21,6 @@
 #define CONFIG_H
 #include "Common.h"
 
-#define DEFAULT_WARDENSERVER_PORT 4321
-
 #ifndef EOL
 #ifdef WIN32
 #define EOL "\r\n"
