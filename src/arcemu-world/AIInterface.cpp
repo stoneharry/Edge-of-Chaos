@@ -2348,7 +2348,8 @@ void AIInterface::_UpdateMovement(uint32 p_time)
 	{
 		m_timeMoved = m_timeToMove <= p_time + m_timeMoved ? m_timeToMove : p_time + m_timeMoved;
 	}
-
+	try
+	{
 	if(m_creatureState == MOVING)
 	{
 		if(!m_moveTimer)
@@ -2562,6 +2563,11 @@ void AIInterface::_UpdateMovement(uint32 p_time)
 				}
 			}
 		}
+	}
+	}
+	catch (...)
+	{
+		printf("caught fatal error.\n");
 	}
 
 	//Fear Code

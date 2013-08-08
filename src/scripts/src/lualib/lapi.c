@@ -201,8 +201,6 @@ LUA_API void lua_insert (lua_State *L, int idx) {
 
 
 LUA_API void lua_replace (lua_State *L, int idx) {
-	try
-	{
   StkId o;
   lua_lock(L);
   /* explicit test for incompatible code */
@@ -224,11 +222,6 @@ LUA_API void lua_replace (lua_State *L, int idx) {
   }
   L->top--;
   lua_unlock(L);
-	}
-	catch(...)
-	{
-		print("Lua engine lua_replace tried to crash the server. \n");
-	}
 }
 
 

@@ -401,13 +401,8 @@ void LogonServer::Run(int argc, char ** argv)
 	string host = Config.MainConfig.GetStringDefault("Listen", "Host", "0.0.0.0");
 	string shost = Config.MainConfig.GetStringDefault("Listen", "ISHost", host.c_str());
 
-	/* Due to many people's inability to cope with us being out-of-sync with retail sometimes we were forced to hardcode this
-	min_build = Config.MainConfig.GetIntDefault("Client", "MinBuild", 6180);
-	max_build = Config.MainConfig.GetIntDefault("Client", "MaxBuild", 6999);
-	*/
-
-	min_build = LOGON_MINBUILD;
-	max_build = LOGON_MAXBUILD;
+	min_build = Config.MainConfig.GetIntDefault("Client", "MinBuild", 12343);
+	max_build = Config.MainConfig.GetIntDefault("Client", "MaxBuild", 12350);
 
 	string logon_pass = Config.MainConfig.GetStringDefault("LogonServer", "RemotePassword", "r3m0t3b4d");
 	Sha1Hash hash;

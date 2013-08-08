@@ -864,6 +864,8 @@ void Object::AddToWorld(MapMgr* pMapMgr)
 //this can only be called from the thread of mapmgr!!!
 void Object::PushToWorld(MapMgr* mgr)
 {
+	try
+	{
 	ARCEMU_ASSERT(t_currentMapContext.get() == mgr);
 
 	if(mgr == NULL)
@@ -894,6 +896,8 @@ void Object::PushToWorld(MapMgr* mgr)
 
 	// call virtual function to handle stuff.. :P
 	OnPushToWorld();
+	}
+	catch (...) {}
 }
 
 //! Remove object from world

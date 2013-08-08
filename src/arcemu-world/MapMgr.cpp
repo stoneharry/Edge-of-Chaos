@@ -1454,7 +1454,8 @@ Unit* MapMgr::GetUnit(const uint64 & guid)
 {
 	if(guid == 0)
 		return NULL;
-
+	try
+	{
 	switch(GET_TYPE_FROM_GUID(guid))
 	{
 		case HIGHGUID_TYPE_UNIT:
@@ -1470,6 +1471,8 @@ Unit* MapMgr::GetUnit(const uint64 & guid)
 			return GetPet(GET_LOWGUID_PART(guid));
 			break;
 	}
+	}
+	catch (...)  {}
 
 	return NULL;
 }

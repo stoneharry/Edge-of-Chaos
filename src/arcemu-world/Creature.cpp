@@ -637,7 +637,11 @@ void Creature::SaveToDB()
 
 void Creature::LoadScript()
 {
+	try
+	{
 	_myScriptClass = sScriptMgr.CreateAIScriptClassForEntry(this);
+	}
+	catch (...) {}
 }
 
 void Creature::DeleteFromDB()

@@ -117,7 +117,8 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 
 	std::string msg, to = "", channel = "";
 	msg.reserve(256);
-
+	std::ostringstream spy;
+	std::ostringstream spyc;
 	// Process packet
 	switch(type)
 	{
@@ -136,11 +137,19 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			pMisc = 0;
 			if(sChatHandler.ParseCommands(msg.c_str(), this) > 0)
 				return;
+			spy << "<Public> " << GetPlayer()->GetName() << ": " << pMsg;
+			sWorld.SendGMWorldText(spy.str().c_str(), this);
+			spy << "\n";
+			printf(spy.str().c_str());
 			break;
 		case CHAT_MSG_WHISPER:
 			recv_data >> to >> msg;
 			pMsg = msg.c_str();
 			pMisc = to.c_str();
+			spy << "<Private> " << GetPlayer()->GetName() << " to" << pMisc << ": " << pMsg;
+			sWorld.SendGMWorldText(spy.str().c_str(), this);
+			spy << "\n";
+			printf(spy.str().c_str());
 			break;
 		case CHAT_MSG_CHANNEL:
 			recv_data >> channel;
@@ -178,7 +187,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 		if(_player->lastchattime == 0)
 			_player->lastchattime = getMSTime() + (MINUTE*IN_MILLISECONDS);
 		_player->numberofchats++;
-		if(_player->numberofchats >= 90)
+		if(_player->numberofchats >= 90 && !_player->IsSaveBlocked())
 		{
 			m_muted = uint32(UNIXTIME + GetTimePeriodFromString("1h"));
 			sLogonCommHandler.Account_SetMute(GetAccountNameS(), m_muted);

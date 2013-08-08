@@ -371,8 +371,7 @@ static void Arith (lua_State *L, StkId ra, const TValue *rb,
 
 
 void luaV_execute (lua_State *L, int nexeccalls) {
- try
- {
+
   LClosure *cl;
   StkId base;
   TValue *k;
@@ -760,11 +759,6 @@ void luaV_execute (lua_State *L, int nexeccalls) {
         continue;
       }
     }
-  }
-  }
-  catch(...)
-  {
-	  print("Lua Engine tried to crash the server \n");
   }
 }
 
