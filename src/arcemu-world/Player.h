@@ -2661,6 +2661,7 @@ class SERVER_DECL Player : public Unit
 		void ReloadSkills();
 		void _LoadSkills(QueryResult* result);
 		void __AddLanguages();
+		bool chatspy;
 };
 
 

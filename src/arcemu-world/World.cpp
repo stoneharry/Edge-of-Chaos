@@ -750,6 +750,22 @@ void World::SendGamemasterMessage(WorldPacket* packet, WorldSession* self)
 	m_sessionlock.ReleaseReadLock();
 }
 
+void World::SendChatSpyMessage(WorldPacket* packet, WorldSession* self)
+{
+	m_sessionlock.AcquireReadLock();
+	SessionMap::iterator itr;
+	for(itr = m_sessions.begin(); itr != m_sessions.end(); itr++)
+	{
+		if(itr->second->GetPlayer() &&
+		        itr->second->GetPlayer()->IsInWorld()
+		        && itr->second != self && itr->second->GetPlayer()->chatspy)  // don't send to self!
+		{
+			if(itr->second->CanUseCommand('u'))
+				itr->second->SendPacket(packet);
+		}
+	}
+	m_sessionlock.ReleaseReadLock();
+}
 void World::SendZoneMessage(WorldPacket* packet, uint32 zoneid, WorldSession* self)
 {
 	m_sessionlock.AcquireReadLock();

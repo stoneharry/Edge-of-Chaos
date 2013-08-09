@@ -801,6 +801,7 @@ void CommandTableStorage::Init()
 		{ "taxi",			 'b', &ChatHandler::HandleStartTaxiCommand,						"Force starts a taxi of the id specificed.",			NULL, 0, 0, 0 },
 		{ "camerashake",	 'b', &ChatHandler::HandleCameraShakeCommand,					"",			NULL, 0, 0, 0 },
 		{ "lightoverride",	 'b', &ChatHandler::HandleLightOverrideCommand,					"",			NULL, 0, 0, 0 },
+		{ "chatspy",		 'a', &ChatHandler::HandleChatSpyCommand,					"Toggles chat spy.",			NULL, 0, 0, 0 },
 		{ NULL,              '0', NULL,                                                     "",                                                                                                                                        NULL,                     0, 0, 0 }
 	};
 	dupe_command_table(commandTable, _commandTable);

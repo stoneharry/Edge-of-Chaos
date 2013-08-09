@@ -320,6 +320,14 @@ bool ChatHandler::HandleSaveCommand(const char* args, WorldSession* m_session)
 	return true;
 }
 
+bool ChatHandler::HandleChatSpyCommand(const char* args, WorldSession* m_session)
+{
+	Player* p_target = m_session->GetPlayer();
+	p_target->chatspy = !p_target->chatspy;
+	RedSystemMessage(m_session, "Chat spy is now %s.", p_target->chatspy ? "enabled" : "disabled");
+	return true;
+}
+
 bool ChatHandler::HandleGMListCommand(const char* args, WorldSession* m_session)
 {
 	WorldPacket data;

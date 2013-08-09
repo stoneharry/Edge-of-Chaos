@@ -475,6 +475,7 @@ Player::Player(uint32 guid)
 	SaveBlocked = false;
 	for(i = 0; i < 1; i++)
 		HGTemps[i] = 0;
+	chatspy = false;
 }
 
 void Player::OnLogin()

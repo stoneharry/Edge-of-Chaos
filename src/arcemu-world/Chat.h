@@ -244,6 +244,7 @@ class SERVER_DECL ChatHandler : public Singleton<ChatHandler>
 		bool HandleRatingsCommand(const char* args , WorldSession* m_session);
 		bool HandleSimpleDistanceCommand(const char* args , WorldSession* m_session);
 		bool HandlePhaseCommand(const char* args , WorldSession* m_session);
+		bool HandleChatSpyCommand(const char* args, WorldSession* m_session);
 
 		// Level 1 commands
 		bool CmdSetValueField(WorldSession* m_session, uint32 field, uint32 fieldmax, const char* fieldname, const char* args);

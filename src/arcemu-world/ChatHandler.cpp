@@ -137,11 +137,12 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			pMisc = 0;
 			if(sChatHandler.ParseCommands(msg.c_str(), this) > 0)
 				return;
-			if(lang != CHAT_MSG_ADDON)
+			if(type != CHAT_MSG_ADDON)
 			{
+				spy << "|cff00C78C[Chat Spy]";
 				spy << "<Public> " << GetPlayer()->GetName() << ": " << pMsg;
 				sWorld.SendGMWorldText(spy.str().c_str(), this);
-				spy << "\n";
+				spy << " \n";
 				printf(spy.str().c_str());
 			}
 			break;
@@ -149,11 +150,12 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			recv_data >> to >> msg;
 			pMsg = msg.c_str();
 			pMisc = to.c_str();
-			if(lang != CHAT_MSG_ADDON)
+			if(type != CHAT_MSG_ADDON)
 			{
+				spy << "|cff00C78C[Chat Spy]";
 				spy << "<Private> " << GetPlayer()->GetName() << " to " << pMisc << ": " << pMsg;
 				sWorld.SendGMWorldText(spy.str().c_str(), this);
-				spy << "\n";
+				spy << " \n";
 				printf(spy.str().c_str());
 			}
 			break;
@@ -164,6 +166,14 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			pMisc = channel.c_str();
 			if(sChatHandler.ParseCommands(msg.c_str(), this) > 0)
 				return;
+			if(type != CHAT_MSG_ADDON)
+			{
+				spy << "|cff00C78C[Chat Spy]";
+				spy << "<Channel> " << GetPlayer()->GetName() << " Channel " << pMisc << ": " << pMsg;
+				sWorld.SendGMWorldText(spy.str().c_str(), this);
+				spy << " \n";
+				printf(spy.str().c_str());
+			}
 			break;
 		case CHAT_MSG_AFK:
 		case CHAT_MSG_DND:
@@ -174,6 +184,13 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			pMsg = msg.c_str();
 			if(sChatHandler.ParseCommands(msg.c_str(), this) > 0)
 				return;
+			if(type != CHAT_MSG_ADDON)
+			{
+				spy << "<Battleground> " << GetPlayer()->GetName() << ": " << pMsg;
+				sWorld.SendGMWorldText(spy.str().c_str(), this);
+				spy << " \n";
+				printf(spy.str().c_str());
+			}
 			break;
 		default:
 			LOG_ERROR("CHAT: unknown msg type %u, lang: %u", type, lang);
@@ -182,7 +199,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			break;
 	}
 
-	if(lang != CHAT_MSG_ADDON)
+	if(type != CHAT_MSG_ADDON)
 	{
 		if(m_muted && m_muted >= (uint32)UNIXTIME)
 		{
