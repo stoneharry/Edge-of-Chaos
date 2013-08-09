@@ -622,7 +622,7 @@ void AIInterface::_UpdateCombat(uint32 p_time)
 
 		if(m_Unit->GetMapMgr() != NULL && getNextTarget() != NULL)
 		{
-			if(!Flying() && (!m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING) || !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_VMAPS)))
+			if(!Flying() && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_VMAPS))
 			{
 				float target_land_z = m_Unit->GetMapMgr()->GetLandHeight(getNextTarget()->GetPositionX(), getNextTarget()->GetPositionY(), getNextTarget()->GetPositionZ());
 
@@ -891,7 +891,7 @@ void AIInterface::_UpdateCombat(uint32 p_time)
 					float distance = m_Unit->CalcDistance(getNextTarget());
 					bool los = true;
 
-					if(sWorld.Collision && (!m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING) || !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_VMAPS)))
+					if(sWorld.Collision && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_VMAPS))
 					{
 						los = CollideInterface.CheckLOS(m_Unit->GetMapId(), m_Unit->GetPositionNC(), getNextTarget()->GetPositionNC());
 					}
@@ -1065,7 +1065,7 @@ void AIInterface::AttackReaction(Unit* pUnit, uint32 damage_dealt, uint32 spellI
 	{
 		if(m_Unit->GetMapMgr() != NULL)
 		{
-			if(!Flying() && (!m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING) || !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_VMAPS)))
+			if(!Flying() && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_VMAPS))
 			{
 				float target_land_z = m_Unit->GetMapMgr()->GetLandHeight(pUnit->GetPositionX(), pUnit->GetPositionY(), pUnit->GetPositionZ());
 
@@ -1232,13 +1232,6 @@ Unit* AIInterface::FindTarget()
 	Unit* pUnit;
 	float dist;
 
-	// Don't remove this please! - dfighter
-	/*
-	if( m_AIType == AITYPE_PET ){
-	    printf("I'm a pet and I'm looking for targets, RAWR!\n");
-	}
-	*/
-
 	//target is immune to all form of attacks, cant attack either.
 	// not attackable creatures sometimes fight enemies in scripted fights though
 	if(m_Unit->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE | UNIT_FLAG_NOT_ATTACKABLE_2))
@@ -1277,7 +1270,7 @@ Unit* AIInterface::FindTarget()
 				continue;
 			if(distance > dist)
 			{
-				if(sWorld.Collision && (!m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING) || !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_VMAPS)))
+				if(sWorld.Collision && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_VMAPS))
 				{
 					if(CollideInterface.CheckLOS(m_Unit->GetMapId(), m_Unit->GetPositionNC(), tmpPlr->GetPositionNC()))
 					{
@@ -1325,7 +1318,7 @@ Unit* AIInterface::FindTarget()
 
 		if(dist <= _CalcAggroRange(pUnit))
 		{
-			if(sWorld.Collision && (!m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING) || !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_VMAPS)))
+			if(sWorld.Collision && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_VMAPS))
 			{
 				if(m_Unit->GetMapMgr()->InLineOfSight(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ() + 2, pUnit->GetPositionX(), pUnit->GetPositionY(), pUnit->GetPositionZ() + 2))
 				{
@@ -1374,7 +1367,7 @@ Unit* AIInterface::FindTarget()
 
 			if(dist <= _CalcAggroRange(pUnit))
 			{
-				if(sWorld.Collision && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
+				if(sWorld.Collision && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_VMAPS))
 				{
 					if(m_Unit->GetMapMgr()->InLineOfSight(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ() + 2, pUnit->GetPositionX(), pUnit->GetPositionY(), pUnit->GetPositionZ() + 2))
 					{
@@ -1398,12 +1391,6 @@ Unit* AIInterface::FindTarget()
 
 	if(target)
 	{
-		/*		if(m_isGuard)
-				{
-					m_Unit->m_runSpeed = m_Unit->m_base_runSpeed * 2.0f;
-					m_fastMove = true;
-				}*/
-
 		AttackReaction(target, 1, 0);
 
 		m_Unit->SendAIReaction();
@@ -2614,7 +2601,7 @@ void AIInterface::_UpdateMovement(uint32 p_time)
 			float wl = m_Unit->GetMapMgr()->GetLiquidHeight(Fx, Fy);
 //			uint8 wt = m_Unit->GetMapMgr()->GetWaterType(Fx, Fy);
 
-			if(sWorld.Collision && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_PATHFINDING))
+			if(sWorld.Collision && !m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_VMAPS))
 			{
 				Fz = CollideInterface.GetHeight(m_Unit->GetMapId(), Fx, Fy, m_Unit->GetPositionZ() + 2.0f);
 				if(Fz == NO_WMO_HEIGHT)
@@ -3772,17 +3759,24 @@ bool AIInterface::Move(float & x, float & y, float & z, float o /*= 0*/)
 		{
 			if(!CreatePath(x, y, z))
 			{
-				if(m_Unit->IsCreature() || m_Unit->IsPet())
-					m_falsepath = true;
-				StopMovement(0); //old spline is probly still active on client, need to keep in sync
-				return false;
+				if (m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_VMAPS))
+				{
+					AddSpline(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ());
+					AddSpline(x, y, z);
+				}
+				else
+				{
+					if(m_Unit->IsCreature() || m_Unit->IsPet())
+						m_falsepath = true;
+					StopMovement(0); //old spline is probly still active on client, need to keep in sync
+					return false;
+				}
 			}
 			else
 				m_falsepath = false;
 		}
 		else
 		{
-			//m_Unit->SendChatMessage(12,0,"I am flying or have CustomFlags 32! Let us not use mmaps for this move.");
 			AddSpline(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ());
 			AddSpline(x, y, z);
 		}
@@ -4740,10 +4734,18 @@ bool AIInterface::MoveCharge(float x, float y, float z)
 		{
 			if(!CreatePath(x, y, z))
 			{
-				if(m_Unit->IsCreature() || m_Unit->IsPet())
-					m_falsepath = true;
-				StopMovement(0); //old spline is probly still active on client, need to keep in sync
-				return false;
+				if (m_Unit->HasCreatureCustomFlag(CREATURE_CUSTOMFLAG_NO_ADV_VMAPS))
+				{
+					AddSpline(m_Unit->GetPositionX(), m_Unit->GetPositionY(), m_Unit->GetPositionZ());
+					AddSpline(x, y, z);
+				}
+				else
+				{
+					if(m_Unit->IsCreature() || m_Unit->IsPet())
+						m_falsepath = true;
+					StopMovement(0); //old spline is probly still active on client, need to keep in sync
+					return false;
+				}
 			}
 			else
 				m_falsepath = false;
