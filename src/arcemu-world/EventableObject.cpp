@@ -329,8 +329,8 @@ EventableObjectHolder::~EventableObjectHolder()
 
 void EventableObjectHolder::Update(time_t time_difference)
 {
-	try
-	{
+	//try
+	//{
 	m_lock.Acquire();			// <<<<
 
 	/* Insert any pending objects in the insert pool. */
@@ -374,6 +374,8 @@ void EventableObjectHolder::Update(time_t time_difference)
 
 		if(ev->currTime <= time_difference)
 		{
+			try
+			{
 			// execute the callback
 			if(ev->eventFlag & EVENT_FLAG_DELETES_OBJECT)
 			{
@@ -385,7 +387,11 @@ void EventableObjectHolder::Update(time_t time_difference)
 			}
 			else
 				ev->cb->execute();
-
+			}
+			catch (...)
+			{
+				printf("<- EventableObject.cpp, Caught fatal crash.\n");
+			}
 			// check if the event is expired now.
 			if(ev->repeats && --ev->repeats == 0)
 			{
@@ -418,11 +424,11 @@ void EventableObjectHolder::Update(time_t time_difference)
 			ev->currTime -= time_difference;
 		}
 	}
-	}
+	/*}
 	catch (...)
 	{
 		printf("Fatal exception caught <- EventableObject.cpp\n");
-	}
+	}*/
 	m_lock.Release();
 }
 
