@@ -38,7 +38,7 @@
 ScriptMgr* m_scriptMgr = NULL;
 LuaEngine g_luaMgr;
 uint32 errorcount = 0;
-
+bool errorrestart = false;
 extern "C" SCRIPT_DECL uint32 _exp_get_script_type()
 {
 	return SCRIPT_TYPE_SCRIPT_ENGINE;
@@ -85,12 +85,13 @@ template<> RegType<Aura>* GetMethodTable<Aura>();
 void report(lua_State* L)
 {
 	++errorcount;
-	if(errorcount >=50)
+	if(errorcount >=50 && !errorrestart)
 	{
 		sWorld.SendWorldText("Too many Lua errors have occured auto restarting in 2 min.");
 		sMaster.m_ShutdownTimer = 120*1000;
 		sMaster.m_ShutdownEvent = true;
 		sMaster.m_restartEvent = true;
+		errorrestart = true;
 	}
 	int count = lua_gettop(L);
 	/*if(count == 0)
