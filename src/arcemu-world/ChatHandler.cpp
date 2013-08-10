@@ -100,17 +100,17 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 	WorldPacket* data = NULL;
 
 	uint32 type;
-	int32 lang;
+	uint32 lang;
 
 	const char* pMisc = NULL;
 	const char* pMsg = NULL;
 	recv_data >> type;
 	recv_data >> lang;
 
-	if(lang >= NUM_LANGUAGES || !isValidPlayerChat(type) || GetPlayer()->IsBanned())
+	if(!isValidPlayerChat(type) || GetPlayer()->IsBanned())
 	{
 		recv_data.rfinish();
-		Anticheat_Log->writefromsession(this, "Attempted to send invalid chat msg type %u or lang %i.", type, lang);
+		Anticheat_Log->writefromsession(this, "Attempted to send invalid chat msg type %u or lang %u.", type, lang);
 		Disconnect();
 		return;
 	}
@@ -118,7 +118,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 	std::string msg, to = "", channel = "";
 	msg.reserve(256);
 	std::ostringstream spy;
-	std::ostringstream spyc;
 	// Process packet
 	switch(type)
 	{
@@ -137,26 +136,22 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			pMisc = 0;
 			if(sChatHandler.ParseCommands(msg.c_str(), this) > 0)
 				return;
-			if(type != CHAT_MSG_ADDON)
+			if(lang != CHAT_MSG_ADDON)
 			{
 				spy << "|cff00C78C[Chat Spy]";
 				spy << "<Public> " << GetPlayer()->GetName() << ": " << pMsg;
-				sWorld.SendGMWorldText(spy.str().c_str(), this);
-				spy << " \n";
-				printf(spy.str().c_str());
+				sWorld.SendChatSpyText(spy.str().c_str(), this);
 			}
 			break;
 		case CHAT_MSG_WHISPER:
 			recv_data >> to >> msg;
 			pMsg = msg.c_str();
 			pMisc = to.c_str();
-			if(type != CHAT_MSG_ADDON)
+			if(lang != CHAT_MSG_ADDON)
 			{
 				spy << "|cff00C78C[Chat Spy]";
 				spy << "<Private> " << GetPlayer()->GetName() << " to " << pMisc << ": " << pMsg;
-				sWorld.SendGMWorldText(spy.str().c_str(), this);
-				spy << " \n";
-				printf(spy.str().c_str());
+				sWorld.SendChatSpyText(spy.str().c_str(), this);
 			}
 			break;
 		case CHAT_MSG_CHANNEL:
@@ -166,13 +161,11 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			pMisc = channel.c_str();
 			if(sChatHandler.ParseCommands(msg.c_str(), this) > 0)
 				return;
-			if(type != CHAT_MSG_ADDON)
+			if(lang != CHAT_MSG_ADDON)
 			{
 				spy << "|cff00C78C[Chat Spy]";
 				spy << "<Channel> " << GetPlayer()->GetName() << " Channel " << pMisc << ": " << pMsg;
-				sWorld.SendGMWorldText(spy.str().c_str(), this);
-				spy << " \n";
-				printf(spy.str().c_str());
+				sWorld.SendChatSpyText(spy.str().c_str(), this);
 			}
 			break;
 		case CHAT_MSG_AFK:
@@ -184,10 +177,11 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			pMsg = msg.c_str();
 			if(sChatHandler.ParseCommands(msg.c_str(), this) > 0)
 				return;
-			if(type != CHAT_MSG_ADDON)
+			if(lang != CHAT_MSG_ADDON)
 			{
+				spy << "|cff00C78C[Chat Spy]";
 				spy << "<Battleground> " << GetPlayer()->GetName() << ": " << pMsg;
-				sWorld.SendGMWorldText(spy.str().c_str(), this);
+				sWorld.SendChatSpyText(spy.str().c_str(), this);
 				spy << " \n";
 				printf(spy.str().c_str());
 			}
@@ -199,7 +193,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			break;
 	}
 
-	if(type != CHAT_MSG_ADDON)
+	if(lang != CHAT_MSG_ADDON)
 	{
 		if(m_muted && m_muted >= (uint32)UNIXTIME)
 		{
@@ -228,9 +222,6 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 
 	// HookInterface OnChat event
 	if(pMsg && !sHookInterface.OnChat(_player, type, lang, pMsg, pMisc))
-		return;
-
-	if (!GetPlayer()->m_modlanguage)
 		return;
 
 	Channel* chn = NULL;
