@@ -1308,17 +1308,17 @@ uint32 Item::RepairItemCost()
 	DurabilityCostsEntry* dcosts = dbcDurabilityCosts.LookupEntryForced(m_itemProto->ItemLevel);
 	if(dcosts == NULL)
 	{
-		dcosts->itemlevel = 1;
-		//LOG_ERROR("Repair: Unknown item level (%u)", dcosts);
-		//return 0;
+		//dcosts->itemlevel = 1;
+		LOG_ERROR("Repair: Unknown item level (%u)", dcosts);
+		return 0;
 	}
 
 	DurabilityQualityEntry* dquality = dbcDurabilityQuality.LookupEntryForced((m_itemProto->Quality + 1) * 2);
 	if(dquality == NULL)
 	{
-		dquality->quality_modifier = 4;
-		//LOG_ERROR("Repair: Unknown item quality (%u)", dquality);
-		//return 0;
+		//dquality->quality_modifier = 4;
+		LOG_ERROR("Repair: Unknown item quality (%u)", dquality);
+		return 0;
 	}
 
 	uint32 dmodifier = dcosts->modifier[ m_itemProto->Class == ITEM_CLASS_WEAPON ? m_itemProto->SubClass : m_itemProto->SubClass + 21 ];
