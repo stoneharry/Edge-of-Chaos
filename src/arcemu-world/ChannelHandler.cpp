@@ -30,7 +30,6 @@ void WorldSession::HandleChannelJoin(WorldPacket & recvPacket)
 	string channelname, pass;
 	uint32 dbc_id = 0;
 	uint16 crap;		// crap = some sort of channel type?
-	uint32 i;
 	Channel* chn;
 
 	recvPacket >> dbc_id >> crap;
