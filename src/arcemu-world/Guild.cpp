@@ -42,6 +42,8 @@ Guild::Guild()
 
 Guild::~Guild()
 {
+	try
+	{
 	for(GuildMemberMap::iterator itr = m_members.begin(); itr != m_members.end(); ++itr)
 	{
 		if(itr->second->szOfficerNote)
@@ -97,6 +99,11 @@ Guild::~Guild()
 		free(m_motd);
 	if(m_guildName)
 		free(m_guildName);
+	}
+	catch (...)
+	{
+		printf("Caught fatal exception deleting guild class, probably after disband.\n");
+	}
 }
 
 void Guild::SendGuildCommandResult(WorldSession* pClient, uint32 iCmd, const char* szMsg, uint32 iType)
@@ -996,6 +1003,8 @@ void Guild::RemoveGuildRank(WorldSession* pClient)
 void Guild::Disband()
 {
 	m_lock.Acquire();
+	try
+	{
 	for(GuildMemberMap::iterator itr = m_members.begin(); itr != m_members.end(); ++itr)
 	{
 		itr->first->guild = NULL;
@@ -1017,6 +1026,11 @@ void Guild::Disband()
 	CharacterDatabase.Execute("DELETE FROM guild_data WHERE guildid = %u", m_guildId);
 	CharacterDatabase.Execute("DELETE FROM guild_bankitems WHERE guildId = %u", m_guildId);
 	CharacterDatabase.Execute("DELETE FROM guild_banktabs WHERE guildId = %u", m_guildId);
+	}
+	catch (...)
+	{
+		printf("Caught fatal exception on deleting guild.\n");
+	}
 	m_lock.Release();
 	delete this;
 }
