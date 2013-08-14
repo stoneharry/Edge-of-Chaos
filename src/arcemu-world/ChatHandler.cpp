@@ -161,11 +161,17 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			pMisc = channel.c_str();
 			if(sChatHandler.ParseCommands(msg.c_str(), this) > 0)
 				return;
-			if(lang != CHAT_MSG_ADDON && channel != "WorldChat")
+			if(lang != CHAT_MSG_ADDON)
 			{
 				spy << "|cff00C78C[Chat Spy]";
 				spy << "<Channel> " << GetPlayer()->GetName() << " Channel " << pMisc << ": " << pMsg;
+				if(channel != "WorldChat")
 				sWorld.SendChatSpyText(spy.str().c_str(), this);
+				else
+				{
+					spy << " \n";
+					printf(spy.str().c_str());
+				}
 			}
 			break;
 		case CHAT_MSG_AFK:
