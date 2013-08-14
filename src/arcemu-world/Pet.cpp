@@ -1871,6 +1871,11 @@ void Pet::DealDamage(Unit* pVictim, uint32 damage, uint32 targetEvent, uint32 un
 		return;
 	if(pVictim->IsSpiritHealer())
 		return;
+	if (pVictim->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_SELECTABLE) || pVictim->HasFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_NOT_ATTACKABLE_2) || isFriendly(this, pVictim))
+	{
+		WipeTargetList();
+		return;
+	}
 
 	if(pVictim != this)
 		CombatStatus.OnDamageDealt(pVictim);
