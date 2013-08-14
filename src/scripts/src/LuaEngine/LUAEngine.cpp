@@ -87,7 +87,7 @@ void report(lua_State* L)
 	++errorcount;
 	if(errorcount >=50 && !errorrestart)
 	{
-		sWorld.SendWorldText("Too many Lua errors have occured auto restarting in 2 min.");
+		sWorld.SendWorldText("[SERVER] Too many server errors have occured, auto restarting in 2 minutes.");
 		sMaster.m_ShutdownTimer = 120*1000;
 		sMaster.m_ShutdownEvent = true;
 		sMaster.m_restartEvent = true;
