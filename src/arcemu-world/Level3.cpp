@@ -1299,9 +1299,8 @@ bool ChatHandler::HandleAddAuraCommand(const char *args, WorldSession *m_session
 	if(!u) 
 		u = m_session->GetPlayer();
 	uint32 spell = 0;
-	uint32 triggered = 0;
-	if( sscanf(args, "%u %u", &spell, &triggered) != 2 )
-		if( sscanf(args, "%u", &spell) != 1 )	
+	uint32 duration = 0;
+	if( sscanf(args, "%u %u", &spell, &duration) != 2 )
 		return false;
 	SpellEntry* sp = dbcSpell.LookupEntryForced(spell);
 	if(!sp)
@@ -1309,8 +1308,8 @@ bool ChatHandler::HandleAddAuraCommand(const char *args, WorldSession *m_session
 		SystemMessage(m_session, "Invalid spell %u", spell);
 		return true;
 	}
-	u->AddAura(m_session->GetPlayer(), spell, triggered);
-	//m_session->GetPlayer()->CastSpell(u,sp, triggered >= 1 ? true : false);
+	Aura* aura = sSpellFactoryMgr.NewAura(sp, duration, u, u, NULL, NULL);
+	u->AddAura(aura);
 	BlueSystemMessage(m_session, "Casted spell %u on %s.", spell, GetSelectedUnitName(u));
 	return true;
 }
@@ -1494,8 +1493,6 @@ bool ChatHandler::HandleRemoveRessurectionSickessAuraCommand(const char* args, W
 
 bool ChatHandler::HandleParalyzeCommand(const char* args, WorldSession* m_session)
 {
-	//Player *plr = getSelectedChar(m_session, true);
-	//if(!plr) return false;
 	Unit* plr = getSelectedUnit(m_session);
 	if(!plr)
 		return true;
@@ -1507,8 +1504,6 @@ bool ChatHandler::HandleParalyzeCommand(const char* args, WorldSession* m_sessio
 
 bool ChatHandler::HandleUnParalyzeCommand(const char* args, WorldSession* m_session)
 {
-	//Player *plr = getSelectedChar(m_session, true);
-	//if(!plr) return false;
 	Unit* plr = getSelectedUnit(m_session);
 	if(!plr)
 		return true;

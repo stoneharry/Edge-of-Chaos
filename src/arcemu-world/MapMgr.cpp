@@ -807,8 +807,8 @@ void MapMgr::ChangeObjectLocation(Object* obj)
 			if(pOldCell != NULL)
 			{
 				// only do the second check if there's -/+ 2 difference
-				if(abs((int)cellX - (int)pOldCell->_x) > sWorld.MagicCellNumber*2 ||
-				        abs((int)cellY - (int)pOldCell->_y) > sWorld.MagicCellNumber*2)
+				if(abs((int)cellX - (int)pOldCell->_x) > (int)sWorld.MagicCellNumber*2 ||
+				        abs((int)cellY - (int)pOldCell->_y) > (int)sWorld.MagicCellNumber*2)
 				{
 					UpdateCellActivity(pOldCell->_x, pOldCell->_y, sWorld.MagicCellNumber*2);
 				}

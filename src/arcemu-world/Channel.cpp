@@ -203,6 +203,8 @@ void Channel::Part(Player* plr, bool send_packet)
 
 void Channel::SetOwner(Player* oldpl, Player* plr)
 {
+	if(m_name == "WorldChat")
+		return;
 	Guard mGuard(m_lock);
 	Player* pOwner = NULL;
 	uint32 oldflags = 0, oldflags2 = 0;
@@ -311,6 +313,8 @@ void Channel::Invite(Player* plr, Player* new_player)
 
 void Channel::Moderate(Player* plr)
 {
+	if(m_name == "WorldChat")
+		return;
 	Guard mGuard(m_lock);
 	MemberMap::iterator itr = m_members.find(plr);
 	WorldPacket data(SMSG_CHANNEL_NOTIFY, 100);
@@ -401,6 +405,8 @@ void Channel::SendAlreadyOn(Player* plr, Player* plr2)
 
 void Channel::Kick(Player* plr, Player* die_player, bool ban)
 {
+	if(m_name == "WorldChat")
+		return;
 	Guard mGuard(m_lock);
 	MemberMap::iterator itr = m_members.find(die_player);
 	MemberMap::iterator me_itr = m_members.find(plr);
@@ -708,6 +714,8 @@ void Channel::Announce(Player* plr)
 
 void Channel::Password(Player* plr, const char* pass)
 {
+	if(m_name == "WorldChat")
+		return;
 	Guard mGuard(m_lock);
 	MemberMap::iterator itr = m_members.find(plr);
 	WorldPacket data(SMSG_CHANNEL_NOTIFY, 100);

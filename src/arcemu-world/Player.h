@@ -2662,6 +2662,7 @@ class SERVER_DECL Player : public Unit
 		void _LoadSkills(QueryResult* result);
 		void __AddLanguages();
 		bool chatspy;
+		float Fap;
 };
 
 

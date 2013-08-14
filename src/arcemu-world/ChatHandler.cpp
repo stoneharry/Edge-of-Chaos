@@ -161,7 +161,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recv_data)
 			pMisc = channel.c_str();
 			if(sChatHandler.ParseCommands(msg.c_str(), this) > 0)
 				return;
-			if(lang != CHAT_MSG_ADDON)
+			if(lang != CHAT_MSG_ADDON && channel != "WorldChat")
 			{
 				spy << "|cff00C78C[Chat Spy]";
 				spy << "<Channel> " << GetPlayer()->GetName() << " Channel " << pMisc << ": " << pMsg;

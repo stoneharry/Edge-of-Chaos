@@ -476,6 +476,7 @@ Player::Player(uint32 guid)
 	for(i = 0; i < 1; i++)
 		HGTemps[i] = 0;
 	chatspy = false;
+	Fap = 0;
 }
 
 void Player::OnLogin()
@@ -4298,9 +4299,7 @@ void Player::_ApplyItemMods(Item* item, int16 slot, bool apply, bool justdrokedo
 
 	if(this->getClass() == DRUID && slot == EQUIPMENT_SLOT_MAINHAND)
 	{
-		uint8 ss = GetShapeShift();
-		if(ss == FORM_MOONKIN || ss == FORM_CAT || ss == FORM_BEAR || ss == FORM_DIREBEAR)
-			this->ApplyFeralAttackPower(apply, item);
+		ApplyFeralAttackPower(apply, item);
 	}
 
 	// Misc
@@ -5393,25 +5392,27 @@ void Player::UpdateStats()
 	switch(cl)
 	{
 		case DRUID:
-			//(Strength x 2) - 20
-			AP = str * 2 - 20;
 			//Agility - 10
 			RAP = agi - 10;
-
-			if(GetShapeShift() == FORM_MOONKIN)
+			switch(GetShapeShift())
 			{
-				//(Strength x 2) + (Character Level x 1.5) - 20
-				AP += float2int32(static_cast<float>(lev) * 1.5f);
-			}
-			if(GetShapeShift() == FORM_CAT)
-			{
-				//(Strength x 2) + Agility + (Character Level x 2) - 20
-				AP += agi + (lev * 2);
-			}
-			if(GetShapeShift() == FORM_BEAR || GetShapeShift() == FORM_DIREBEAR)
-			{
-				//(Strength x 2) + (Character Level x 3) - 20
-				AP += (lev * 3);
+				case FORM_MOONKIN:
+				{
+					AP = getLevel() * 1.5f + str * 2.0f - 20.0f + Fap;
+				}break;
+				case FORM_CAT:
+				{
+					AP = getLevel() * 2.0f + str * 2.0f - 20.0f + agi - 20.0f + Fap;
+				}break;
+				case FORM_BEAR:
+				case FORM_DIREBEAR:
+				{
+					AP = getLevel() * 3.0f + str * 2.0f - 20.0f + agi - 20.0f + Fap;
+				}break;
+				default:
+				{
+					AP = str * 2 - 20;
+				}
 			}
 			break;
 
@@ -9301,7 +9302,7 @@ void Player::ModifyBonuses(uint32 type, int32 val, bool apply)
 			break;
 		case FERAL_ATTACK_POWER:
 			{
-				ModAttackPowerMods(val);
+				ApplyFeralAttackPower(true);
 			}
 			break;
 		case SPELL_HEALING_DONE:
@@ -9496,14 +9497,9 @@ void Player::SetShapeShift(uint8 ss)
 	//feral attack power
 	if(this->getClass() == DRUID)
 	{
-		// Changed from normal to feral form
-		if(!(old_ss == FORM_MOONKIN || old_ss == FORM_CAT || old_ss == FORM_BEAR || old_ss == FORM_DIREBEAR) &&
-		        (ss == FORM_MOONKIN || ss == FORM_CAT || ss == FORM_BEAR || ss == FORM_DIREBEAR))
-			this->ApplyFeralAttackPower(true);
+		ApplyFeralAttackPower(true);
 		// Changed from feral to normal form
-		else if((old_ss == FORM_MOONKIN || old_ss == FORM_CAT || old_ss == FORM_BEAR || old_ss == FORM_DIREBEAR) &&
-		        !(ss == FORM_MOONKIN || ss == FORM_CAT || ss == FORM_BEAR || ss == FORM_DIREBEAR))
-			this->ApplyFeralAttackPower(false);
+
 	}
 
 	// now dummy-handler stupid hacky fixed shapeshift spells (leader of the pack, etc)
@@ -13012,13 +13008,18 @@ void Player::ApplyFeralAttackPower(bool apply, Item* item)
 
 	if(it != NULL)
 	{
-		float delay = (float)it->GetProto()->Delay / 1000.0f;
+		/*float delay = (float)it->GetProto()->Delay / 1000.0f;
 		delay = max(1.0f, delay);
 		float dps = ((it->GetProto()->Damage[0].Min + it->GetProto()->Damage[0].Max) / 2) / delay;
 		if(dps > 54.8f)
-			FeralAP = (dps - 54.8f) * 14;
+			FeralAP = (dps - 54.8f) * 14;*/
+		float dps = (it->GetProto()->Damage[0].Min + it->GetProto()->Damage[0].Max) + (it->GetProto()->Damage[1].Min + it->GetProto()->Damage[1].Max);
+		dps = dps*500/it->GetProto()->Delay;
+		FeralAP = (dps*14.0) - 767;
 	}
-	ModifyBonuses(FERAL_ATTACK_POWER, (int) FeralAP, apply);
+	//ModifyBonuses(FERAL_ATTACK_POWER, (int) FeralAP, apply);
+	Fap = FeralAP;
+	UpdateStats();
 }
 
 void Player::SendChatMessage(uint8 type, uint32 lang, const char* msg, uint32 delay)

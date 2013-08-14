@@ -93,7 +93,9 @@ void WorldSession::HandleChannelPassword(WorldPacket & recvPacket)
 	recvPacket >> pass;
 	chn = channelmgr.GetChannel(channelname.c_str(), _player);
 	if(chn)
+	{
 		chn->Password(_player, pass.c_str());
+	}
 }
 
 void WorldSession::HandleChannelSetOwner(WorldPacket & recvPacket)

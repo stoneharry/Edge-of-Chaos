@@ -755,7 +755,7 @@ uint8 Spell::DidHit(uint32 effindex, Unit* target)
 	/* Check if player target has god mode */
 	if(p_victim && p_victim->GodModeCheat)
 	{
-		return SPELL_DID_HIT_IMMUNE;
+		return SPELL_DID_HIT_EVADE;
 	}
 
 	/*************************************************************************/
@@ -900,12 +900,6 @@ uint8 Spell::DidHit(uint32 effindex, Unit* target)
 			res = (Rand(1.0f) ? uint8(SPELL_DID_HIT_RESIST) : uint8(SPELL_DID_HIT_SUCCESS));
 		else
 			res = (Rand(resistchance) ? uint8(SPELL_DID_HIT_RESIST) : uint8(SPELL_DID_HIT_SUCCESS));
-
-		if(res == SPELL_DID_HIT_SUCCESS)  // proc handling. mb should be moved outside this function
-		{
-//			u_caster->HandleProc(PROC_ON_SPELL_LAND,target,GetProto());
-		}
-
 		return res;
 	}
 }
@@ -940,7 +934,7 @@ uint8 Spell::prepare(SpellCastTargets* targets)
 	{
 		m_castTime = GetCastTime(dbcSpellCastTime.LookupEntry(GetProto()->CastingTimeIndex));
 
-		if(m_castTime && GetProto()->SpellFamilyFlags && u_caster != NULL)
+		if(m_castTime && u_caster != NULL)
 		{
 			if(Player *p = u_caster->GetSpellModOwner())
 				p->ApplySpellMod(GetProto()->Id, SPELLMOD_CASTING_TIME, m_castTime, this);
@@ -975,15 +969,10 @@ uint8 Spell::prepare(SpellCastTargets* targets)
 
 	if(m_castTime < 0)
 		m_castTime = 0;
-	else if(m_castTime > 60 * 10 * 1000)
-		m_castTime = 60 * 10 * 1000; //we should limit cast time to 10 minutes right ?
 
 	m_timer = m_castTime;
 
 	m_magnetTarget = 0;
-
-	//if( p_caster != NULL )
-	//   m_castTime -= 100;	  // session update time
 
 
 	m_spellState = SPELL_STATE_PREPARING;
@@ -1048,7 +1037,6 @@ uint8 Spell::prepare(SpellCastTargets* targets)
 		{
 			if(p_caster != NULL && m_timer > 0 && !m_triggeredSpell)
 				p_caster->delayAttackTimer(m_timer + 1000);
-			//p_caster->setAttackTimer(m_timer + 1000, false);
 		}
 
 		// aura state removal
@@ -1137,7 +1125,6 @@ void Spell::cancel()
 					p_caster->delayAttackTimer(-m_timer);
 					RemoveItems();
 				}
-//				p_caster->setAttackTimer(1000, false);
 			}
 		}
 	}
@@ -1148,7 +1135,6 @@ void Spell::cancel()
 		TO_PLAYER(m_caster)->RemoveSpellMods(this);
 
     m_appliedMods.clear();
-	//m_spellState = SPELL_STATE_FINISHED;
 
 	// prevent memory corruption. free it up later.
 	// if this is true it means we are currently in the cast() function somewhere else down the stack
@@ -1393,14 +1379,6 @@ void Spell::cast(bool check)
 			}
 		}
 
-		/*SpellExtraInfo* sp = objmgr.GetSpellExtraData(GetProto()->Id);
-		if(sp)
-		{
-			Unit *Target = objmgr.GetUnit(m_targets.m_unitTarget);
-			if(Target)
-				Target->RemoveBySpecialType(sp->specialtype, p_caster->GetGUID());
-		}*/
-
 		if(!(hasAttribute(SPELL_ATTR0_ON_NEXT_SWING) && !m_triggeredSpell))  //on next attack
 		{
 			SendSpellGo();
@@ -1585,17 +1563,6 @@ void Spell::cast(bool check)
 			if(u_caster && !m_triggeredSpell && !m_triggeredByAura)
 				u_caster->RemoveAurasByInterruptFlagButSkip(AURA_INTERRUPT_ON_CAST_SPELL, GetProto()->Id);
 
-			//not sure if it must be there...
-			/*if( p_caster != NULL )
-			{
-				if(p_caster->m_onAutoShot)
-				{
-					p_caster->GetSession()->OutPacket(SMSG_CANCEL_AUTO_REPEAT);
-					p_caster->GetSession()->OutPacket(SMSG_CANCEL_COMBAT);
-					p_caster->m_onAutoShot = false;
-				}
-			}*/
-
 			m_isCasting = false;
 			SendCastResult(cancastresult);
 			if(u_caster != NULL)
@@ -1605,9 +1572,6 @@ void Spell::cast(bool check)
 
 			return;
 		}
-
-		//if( u_caster != NULL )
-		//	u_caster->RemoveAurasByInterruptFlagButSkip(AURA_INTERRUPT_ON_CAST_SPELL, GetProto()->Id);
 	}
 	else
 	{
@@ -1696,10 +1660,6 @@ void Spell::AddTime(uint32 type)
 
 void Spell::update(uint32 difftime)
 {
-	// skip cast if we're more than 2/3 of the way through
-	// TODO: determine which spells can be cast while moving.
-	// Client knows this, so it should be easy once we find the flag.
-	// XD, it's already there!
 	if(GetProto()->InterruptFlags & CAST_INTERRUPT_ON_MOVEMENT && p_caster && m_timer != 0 && (p_caster->IsMoving() || 
 		m_castPositionX != p_caster->GetPositionX() || 
 		m_castPositionY != p_caster->GetPositionY() ||
@@ -1768,24 +1728,8 @@ void Spell::finish(bool successful)
 		u_caster->m_canMove = true;
 		// mana           channeled                                                     power type is mana                             if spell wasn't cast successfully, don't delay mana regeneration
 		if(m_usesMana && (GetProto()->ChannelInterruptFlags == 0 && !m_triggeredSpell) && u_caster->GetPowerType() == POWER_TYPE_MANA && successful)
-		{
-			/*
-			Five Second Rule
-			After a character expends mana in casting a spell, the effective amount of mana gained per tick from spirit-based regeneration becomes a ratio of the normal
-			listed above, for a period of 5 seconds. During this period mana regeneration is said to be interrupted. This is commonly referred to as the five second rule.
-			By default, your interrupted mana regeneration ratio is 0%, meaning that spirit-based mana regeneration is suspended for 5 seconds after casting.
-			Several effects can increase this ratio, including:
-			*/
-
 			u_caster->DelayPowerRegeneration(5000);
-		}
 	}
-	/* Mana Regenerates while in combat but not for 5 seconds after each spell */
-	/* Only if the spell uses mana, will it cause a regen delay.
-	   is this correct? is there any spell that doesn't use mana that does cause a delay?
-	   this is for creatures as effects like chill (when they have frost armor on) prevents regening of mana	*/
-
-	//moved to spellhandler.cpp -> remove item when click on it! not when it finishes
 
 	//enable pvp when attacking another player with spells
 	if(p_caster != NULL)
@@ -1824,12 +1768,6 @@ void Spell::finish(bool successful)
 			{
 				pTarget->RemoveAura(GetProto()->Id, m_caster->GetGUID());
 			}
-		}
-
-		if(GetProto()->NameHash == SPELL_HASH_LIGHTNING_BOLT || GetProto()->NameHash == SPELL_HASH_CHAIN_LIGHTNING)
-		{
-			//Maelstrom Weapon
-			p_caster->RemoveAllAuras(53817, u_caster->GetGUID());
 		}
 	}
 
@@ -2124,9 +2062,6 @@ void Spell::SendSpellGo()
 				}
 				if(add && (*i) != 0)
 					UniqueTargets.push_back((*i));
-				//TargetsList::iterator itr = std::unique(m_targetUnits[x].begin(), m_targetUnits[x].end());
-				//UniqueTargets.insert(UniqueTargets.begin(),));
-				//UniqueTargets.insert(UniqueTargets.begin(), itr);
 			}
 		}
 	}
@@ -2224,24 +2159,11 @@ void Spell::writeSpellGoTargets(WorldPacket* data)
 {
 	TargetsList::iterator i;
 	for(i = UniqueTargets.begin(); i != UniqueTargets.end(); ++i)
-	{
-//		SendCastSuccess(*i);
 		*data << *i;
-	}
 }
 
 void Spell::writeSpellMissedTargets(WorldPacket* data)
 {
-	/*
-	 * The flags at the end known to us so far are.
-	 * 1 = Miss
-	 * 2 = Resist
-	 * 3 = Dodge // melee only
-	 * 4 = Deflect
-	 * 5 = Block // melee only
-	 * 6 = Evade
-	 * 7 = Immune
-	 */
 	SpellTargetsList::iterator i;
 	if(u_caster && u_caster->isAlive())
 	{
@@ -2395,20 +2317,6 @@ void Spell::SendChannelStart(uint32 duration)
 
 	if(u_caster != NULL)
 		u_caster->SetChannelSpellId(GetProto()->Id);
-
-	/*
-	Unit* target = objmgr.GetCreature( TO< Player* >( m_caster )->GetSelection());
-	if(!target)
-		target = objmgr.GetObject<Player>( TO< Player* >( m_caster )->GetSelection());
-	if(!target)
-		return;
-
-	m_caster->SetUInt32Value(UNIT_FIELD_CHANNEL_OBJECT,target->GetGUIDLow());
-	m_caster->SetUInt32Value(UNIT_FIELD_CHANNEL_OBJECT+1,target->GetGUIDHigh());
-	//disabled it can be not only creature but GO as well
-	//and GO is not selectable, so this method will not work
-	//these fields must be filled @ place of call
-	*/
 }
 
 void Spell::SendResurrectRequest(Player* target)
