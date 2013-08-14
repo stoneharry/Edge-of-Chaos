@@ -2302,10 +2302,7 @@ void ObjectMgr::GenerateLevelUpInfo()
 						else TotalManaGain += 54;
 						break;
 					case DEATHKNIGHT: // Based on 55-56 more testing will be done.
-						if(Level < 60)TotalHealthGain += 92;
-						/*else if(Level <60) TotalHealthGain+=??;
-						else if(Level <70) TotalHealthGain+=??;*/
-						else TotalHealthGain += 92;
+						TotalHealthGain += 25;
 						break;
 					case DEMON_HUNTER:
 						TotalHealthGain += 17;

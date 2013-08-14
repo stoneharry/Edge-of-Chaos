@@ -441,8 +441,16 @@ class SERVER_DECL Object : public EventableObject
 
 		const float GetDistanceSq(Object* obj)
 		{
-			if(obj->GetMapId() != m_mapId) return 40000.0f; //enough for out of range
-			return m_position.DistanceSq(obj->GetPosition());
+			try
+			{
+				if(obj->GetMapId() != m_mapId) return 40000.0f; //enough for out of range
+				return m_position.DistanceSq(obj->GetPosition());
+			}
+			catch (...)
+			{
+				printf("Caught fatal exception, GetDistanceSQ(Object* obj) @ Object.h\n");
+				return 40000.0f;
+			}
 		}
 
 		float GetDistanceSq(LocationVector & comp)

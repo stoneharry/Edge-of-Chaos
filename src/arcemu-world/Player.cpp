@@ -720,10 +720,7 @@ bool Player::Create(WorldPacket & data)
 		//sCheatLog.writefromsession(m_session, "tried to create invalid player with race %u and class %u", race, class_);
 		m_session->Disconnect();
 		// don't use Log.LargeErrorMessage() here, it doesn't handle %s %u in the string.
-		if(class_ == DEATHKNIGHT)
-			LOG_ERROR("Account Name: %s tried to create a deathknight, however your playercreateinfo table does not support this class, please update your database.", m_session->GetAccountName().c_str());
-		else
-			LOG_ERROR("Account Name: %s tried to create an invalid character with race %u and class %u, if this is intended please update your playercreateinfo table inside your database.", m_session->GetAccountName().c_str(), race, class_);
+		LOG_ERROR("Account Name: %s tried to create an invalid character with race %u and class %u, if this is intended please update your playercreateinfo table inside your database.", m_session->GetAccountName().c_str(), race, class_);
 		return false;
 	}
 
@@ -734,13 +731,6 @@ bool Player::Create(WorldPacket & data)
 		return false;
 	}
 	
-	// check that the account can create deathknights, if we're making one
-	if( class_ == DEATHKNIGHT && !(m_session->_accountFlags & ACCOUNT_FLAG_XPACK_02) )
-	{
-		m_session->Disconnect();
-		return false;
-	}
-
 	m_mapId = info->mapId;
 	SetZoneId(info->zoneId);
 	m_position.ChangeCoords(info->positionX, info->positionY, info->positionZ);
@@ -799,13 +789,11 @@ bool Player::Create(WorldPacket & data)
 	SetBaseMana(info->mana);
 	SetFaction(info->factiontemplate);
 
-	if(class_ == DEATHKNIGHT)
-		SetTalentPointsForAllSpec(sWorld.DKStartTalentPoints); // Default is 0 in case you do not want to modify it
-	else
-		SetTalentPointsForAllSpec(0);
+
+	SetTalentPointsForAllSpec(0);
 	uint32 start_level = (IsTrial() ? 30 : sWorld.StartingLevel);
 	setLevel(start_level);
-	if(class_ == DEMON_HUNTER)
+	if(class_ == DEMON_HUNTER || class_ == DEATHKNIGHT)
 	{
 		setLevel(10);
 		SetTalentPointsForAllSpec(1);
@@ -818,7 +806,7 @@ bool Player::Create(WorldPacket & data)
 	setRace(race);
 	setClass(class_);
 	setGender(gender);
-	if (class_ == HUNTER)
+	if (class_ == HUNTER || class_ == DEATHKNIGHT)
 		SetPowerType(POWER_TYPE_FOCUS);
 	else
 		SetPowerType(powertype);
@@ -3778,9 +3766,7 @@ void Player::OnPushToWorld()
 			startlevel = 30;
 		else
 			startlevel = sWorld.StartingLevel;
-		if(class_ == DEATHKNIGHT)
-			startlevel = static_cast<uint8>(max(55, sWorld.StartingLevel));
-		if(class_ == DEMON_HUNTER)
+		if(class_ == DEMON_HUNTER || class_ == DEATHKNIGHT)
 			startlevel = 10;
 
 		LevelInfo* Info = objmgr.GetLevelInfo(getRace(), getClass(), startlevel);
@@ -4714,7 +4700,7 @@ void Player::KillPlayer()
 	if(getClass() == WARRIOR)   // Rage resets on death
 		SetPower(POWER_TYPE_RAGE, 0);
 	else if(getClass() == DEATHKNIGHT)
-		SetPower(POWER_TYPE_RUNIC_POWER, 0);
+		SetPower(POWER_TYPE_FOCUS, 0);
 
 	summonhandler.RemoveAllSummons();
 	DismissActivePets();
@@ -5460,7 +5446,6 @@ void Player::UpdateStats()
 
 
 		case WARRIOR:
-		case DEATHKNIGHT:
 			//(Strength x 2) + (Character Level x 3) - 20
 			AP = (str * 2) + (lev * 3) - 20;
 			//Character Level + Agility - 10
@@ -14515,6 +14500,7 @@ void Player::ReloadPowerType()
 			case WARRIOR:
 			case DEMON_HUNTER:
 			case HUNTER:
+			case DEATHKNIGHT:
 			{
 				SetMaxPower(POWER_TYPE_RAGE, 0);
 				SetPower(POWER_TYPE_RAGE, 0);
@@ -14557,6 +14543,14 @@ void Player::ReloadPowerType()
 				SetMaxPower(POWER_TYPE_ENERGY, info->energy);
 			}break;
 			case HUNTER:
+			{
+				SetPower(POWER_TYPE_MANA, 0);
+				SetMaxPower(POWER_TYPE_MANA, 0);
+				SetPowerType(POWER_TYPE_FOCUS);
+				SetMaxPower(POWER_TYPE_FOCUS, info->focus);
+				SetPower(POWER_TYPE_FOCUS, info->focus);
+			}break;
+			case DEATHKNIGHT:
 			{
 				SetPower(POWER_TYPE_MANA, 0);
 				SetMaxPower(POWER_TYPE_MANA, 0);

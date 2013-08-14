@@ -499,21 +499,23 @@ uint32 GainStat(uint16 level, uint8 playerclass, uint8 Stat)
 				switch(Stat)
 				{
 					case STAT_STRENGTH:
-						{ gain = CalculateStat(level, 0.000039, 0.006902, 1.080040, -1.051701); }
-						break;
-					case STAT_AGILITY:
-						{ gain = CalculateStat(level, 0.000022, 0.004600, 0.655333, -0.600356); }
-						break;
-					case STAT_STAMINA:
-						{ gain = CalculateStat(level, 0.000059, 0.004044, 1.040000, -1.488504); }
-						break;
-					case STAT_INTELLECT:
 						{ gain = CalculateStat(level, 0.000002, 0.001003, 0.100890, -0.076055); }
 						break;
+					case STAT_AGILITY:
+						{ gain = CalculateStat(level, 0.000008, 0.001001, 0.163190, -0.064280); }
+						break;
+					case STAT_STAMINA:
+						{ gain = CalculateStat(level, 0.000011, 0.002031, 0.278360, -0.340077); }
+						break;
+					case STAT_INTELLECT:
+						{ gain = CalculateStat(level, 0.000080, 0.007416, 1.125108, -1.003045); }
+						break;
 					case STAT_SPIRIT:
-						{ gain = CalculateStat(level, 0.000006, 0.002031, 0.278360, -0.340077); }
+						{ gain = CalculateStat(level, 0.000044, 0.006981, 1.090090, -1.006070); }
 						break;
 				}
+			}
+			break;
 		case DEMON_HUNTER:
 			{
 				switch(Stat)
@@ -534,9 +536,6 @@ uint32 GainStat(uint16 level, uint8 playerclass, uint8 Stat)
 						{ gain = CalculateStat(level, 0.000024, 0.000981, 0.364935, -0.570900); }
 						break;
 				}
-			}
-			break;
-
 			}
 			break;
 	}

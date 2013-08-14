@@ -2083,8 +2083,7 @@ void Spell::SendSpellGo()
         castFlags |= CAST_FLAG_POWER_LEFT_SELF; // should only be sent to self, but the current messaging doesn't make that possible
 
     if ((m_caster->GetTypeId() == TYPEID_PLAYER)
-        && (p_caster->getClass() == DEATHKNIGHT)
-		&& m_spellInfo->runeCostID
+        && m_spellInfo->runeCostID
         && m_spellInfo->powerType == POWER_TYPE_RUNES)
     {
         castFlags |= CAST_FLAG_UNKNOWN_19;                   // same as in SMSG_SPELL_START
