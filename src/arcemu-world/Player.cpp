@@ -774,15 +774,15 @@ bool Player::Create(WorldPacket & data)
 	SetPower(POWER_TYPE_RAGE, 0);
 	SetPower(POWER_TYPE_FOCUS, info->focus); // focus
 	SetPower(POWER_TYPE_ENERGY, info->energy);
-	SetPower(POWER_TYPE_RUNES, 8);
+	//SetPower(POWER_TYPE_RUNES, 8);
 
 	SetMaxHealth(info->health);
 	SetMaxPower(POWER_TYPE_MANA, info->mana);
 	SetMaxPower(POWER_TYPE_RAGE, info->rage);
 	SetMaxPower(POWER_TYPE_FOCUS, info->focus);
 	SetMaxPower(POWER_TYPE_ENERGY, info->energy);
-	SetMaxPower(POWER_TYPE_RUNES, 8);
-	SetMaxPower(POWER_TYPE_RUNIC_POWER, 1000);
+	//SetMaxPower(POWER_TYPE_RUNES, 8);
+	//SetMaxPower(POWER_TYPE_RUNIC_POWER, 1000);
 
 	//THIS IS NEEDED
 	SetBaseHealth(info->health);
@@ -3066,12 +3066,12 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 	//SetUInt32Value(UNIT_FIELD_POWER2, 0);
 	SetPower(POWER_TYPE_FOCUS, info->focus); // focus
 	SetPower(POWER_TYPE_ENERGY, info->energy);
-	SetPower(POWER_TYPE_RUNES, 8);
+	//SetPower(POWER_TYPE_RUNES, 8);
 	SetMaxPower(POWER_TYPE_RAGE, info->rage);
 	SetMaxPower(POWER_TYPE_FOCUS, info->focus);
 	SetMaxPower(POWER_TYPE_ENERGY, info->energy);
-	SetMaxPower(POWER_TYPE_RUNES, 8);
-	SetMaxPower(POWER_TYPE_RUNIC_POWER, 1000);
+	//SetMaxPower(POWER_TYPE_RUNES, 8);
+	//SetMaxPower(POWER_TYPE_RUNIC_POWER, 1000);
 	if(getClass() == WARRIOR)
 		SetShapeShift(FORM_BATTLESTANCE);
 

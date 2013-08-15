@@ -600,7 +600,7 @@ void ObjectMgr::LoadPlayerCreateInfo()
 		pPlayerCreateInfo->maxdmg = fields[22].GetFloat();
 		pPlayerCreateInfo->introid = fields[23].GetUInt32();
 
-		string taxiMaskStr = fields[24].GetString();
+		string taxiMaskStr = "4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295";
 		vector<string> tokens = StrSplit(taxiMaskStr, " ");
 
 		memset(pPlayerCreateInfo->taximask, 0, sizeof(pPlayerCreateInfo->taximask));
