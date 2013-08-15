@@ -569,6 +569,7 @@ RegType<Unit> UnitMethods[] =
 	{ "PlayMusicToSet", &LuaUnit::PlayMusicToSet },
 	{ "PlayMusicToPlayer", &LuaUnit::PlayMusicToPlayer },
 	{ "MirrorImagePlayer", &LuaUnit::MirrorImagePlayer },
+	{ "SaveEntryPoint", &LuaUnit::SaveEntryPoint },
 	{ NULL, NULL },
 };
 

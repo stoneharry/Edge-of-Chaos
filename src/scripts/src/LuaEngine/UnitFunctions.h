@@ -1810,6 +1810,8 @@ class LuaUnit
 				else
 					mapId = 0; //MapId is false reported as empty if you use Eastern Kingdoms (0) So lets override it IF it is reported as empty.
 			}
+			if (mapId > 1)
+				TO_PLAYER(ptr)->SaveEntryPoint(mapId);
 			LocationVector vec(posX, posY, posZ, Orientation);
 			TO_PLAYER(ptr)->SafeTeleport(mapId, 0, vec);
 			return 0;
@@ -6438,6 +6440,18 @@ class LuaUnit
 				ptr->SetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + 0x2, item->GetProto()->DisplayInfoID);
 
 			ptr->SendPacket(&data);
+
+			return 0;
+		}
+
+		static int SaveEntryPoint(lua_State * L, Unit * ptr)
+		{
+			TEST_PLAYER();
+
+			int map = luaL_checkint(L, 1);
+
+			if (map && ptr)
+				TO_PLAYER(ptr)->SaveEntryPoint(map);
 
 			return 0;
 		}
