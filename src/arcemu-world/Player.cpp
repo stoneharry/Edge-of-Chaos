@@ -5543,32 +5543,7 @@ void Player::UpdateStats()
 		res = mana + bonus + manadelta;
 		if(res < mana)
 			res = mana;
-		if(sWorld.m_limits.enable && (sWorld.m_limits.manaCap > 0) && (res > sWorld.m_limits.manaCap) && GetSession()->GetPermissionCount() <= 0)   //hacker?
-		{
-			char logmsg[256];
-			snprintf(logmsg, 256, "has over %u mana (%i)", sWorld.m_limits.manaCap, res);
-			sCheatLog.writefromsession(GetSession(), logmsg);
-			if(sWorld.m_limits.broadcast) // send info to online GM
-			{
-				string gm_ann = MSG_COLOR_GREEN;
-				gm_ann += "|Hplayer:";
-				gm_ann += GetName();
-				gm_ann += "|h[";
-				gm_ann += GetName();
-				gm_ann += "]|h: ";
-				gm_ann += MSG_COLOR_YELLOW;
-				gm_ann += logmsg;
-				sWorld.SendGMWorldText(gm_ann.c_str());
-			}
-			if(sWorld.m_limits.disconnect)
-			{
-				GetSession()->Disconnect();
-			}
-			else // no disconnect, set it to the cap instead
-			{
-				res = sWorld.m_limits.manaCap;
-			}
-		}
+
 		SetMaxPower(POWER_TYPE_MANA, res);
 
 		if(GetPower(POWER_TYPE_MANA) > res)
@@ -5588,7 +5563,23 @@ void Player::UpdateStats()
 		SetFloatValue(UNIT_FIELD_POWER_REGEN_FLAT_MODIFIER, amt + m_ModInterrMRegen * 0.2f);
 		SetFloatValue(UNIT_FIELD_POWER_REGEN_INTERRUPTED_FLAT_MODIFIER, amt * m_ModInterrMRegenPCT / 100.0f + m_ModInterrMRegen * 0.2f);
 	}
+	if(cl == DEATHKNIGHT)
+	{
+		uint32 basefocus = 50;
 
+		stat_bonus = GetUInt32Value(UNIT_FIELD_POSSTAT3) - GetUInt32Value(UNIT_FIELD_NEGSTAT3);
+		if(stat_bonus < 0)
+			stat_bonus = 0; // Avoid of having negative mana
+		bonus = stat_bonus * 15 + m_manafromspell + m_manafromitems ;
+
+		res = bonus + manadelta;
+		res = uint32(float2int32(res * 0.25));
+		res = res+basefocus;
+		SetMaxPower(POWER_TYPE_FOCUS, res);
+
+		if(GetPower(POWER_TYPE_FOCUS) > res)
+			SetPower(POWER_TYPE_FOCUS, res);
+	}
 	// Spell haste rating
 	float haste = 1.0f + CalcRating(PLAYER_RATING_MODIFIER_SPELL_HASTE) / 100.0f;
 	if(haste != SpellHasteRatingBonus)

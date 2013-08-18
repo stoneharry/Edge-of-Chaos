@@ -1243,8 +1243,8 @@ void TaskList::spawn()
 		SYSTEM_INFO s;
 		GetSystemInfo(&s);
 		threadcount = s.dwNumberOfProcessors * 2;
-		if(threadcount > 8)
-			threadcount = 8;
+		//if(threadcount > 8)
+			//threadcount = 8;
 #endif
 	}
 	else
@@ -1303,7 +1303,7 @@ bool TaskExecutor::run()
 			delete t;
 		}
 		else
-			Arcemu::Sleep(20);
+			Arcemu::Sleep(10);
 	}
 
 	THREAD_HANDLE_CRASH

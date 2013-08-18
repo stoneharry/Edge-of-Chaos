@@ -62,7 +62,10 @@ bool ChatHandler::HandleInvisibleCommand(const char* args, WorldSession* m_sessi
 {
 	char msg[256];
 	Player* pChar = m_session->GetPlayer();
-
+	if(*args)
+		pChar = objmgr.GetPlayer(args, false);
+	if(!pChar)
+		return false;
 	snprintf(msg, 256, "Invisibility and Invincibility are now ");
 	if(pChar->m_isGmInvisible)
 	{
@@ -94,9 +97,6 @@ bool ChatHandler::HandleInvisibleCommand(const char* args, WorldSession* m_sessi
 	}
 
 	pChar->UpdateVisibility();
-
-	snprintf(msg, 256, "%s You may have to leave and re-enter this zone for changes to take effect.", msg);
-
 	GreenSystemMessage(m_session, (const char*)msg);
 	return true;
 }
