@@ -996,10 +996,11 @@ void Spell::SpellEffectApplyAura(uint32 i)  // Apply Aura
 							if(c->GetProto()->modImmunities & 16384)
 								immune = true;
 							break;
+						/* WTF?
 						case SPELL_AURA_MOD_LANGUAGE: //hacky way to prefer that the COT icon is set to mob
 							if(c->GetProto()->modImmunities & 16384)
 								immune = true;
-							break;
+							break;*/
 						case SPELL_AURA_MOD_HEALING_DONE_PERCENT:
 							if(c->GetProto()->modImmunities & 65536)
 								immune = true;
