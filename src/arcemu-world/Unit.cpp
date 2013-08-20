@@ -580,6 +580,8 @@ uint32 Unit::HandleProc(uint32 flag, Unit* victim, SpellEntry* CastingSpell, boo
 		return 0;
 	}
 
+	try
+	{
 	std::list<SpellProc*>::iterator itr, itr2;
 	for(itr = m_procSpells.begin(); itr != m_procSpells.end();)    // Proc Trigger Spells for Victim
 	{
@@ -2031,6 +2033,11 @@ uint32 Unit::HandleProc(uint32 flag, Unit* victim, SpellEntry* CastingSpell, boo
 			// Remove lightning overload aura after procing
 			RemoveAura(39805);
 		}
+	}
+	}
+	catch (...)
+	{
+		printf("Caught fatal exception in Unit.cpp <\n");
 	}
 
 	m_chargeSpellsInUse = true;
