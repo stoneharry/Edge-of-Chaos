@@ -6114,6 +6114,9 @@ void Spell::WriteAmmoToPacket(WorldPacket* data)
     {
         for (uint8 i = 0; i < 3; ++i)
         {
+			// To do:
+			// Add creature handling, if creature casts the spell then add a fixed displayid
+			// ^ ^ ^
             if (uint32 item_id = m_caster->GetUInt32Value(UNIT_VIRTUAL_ITEM_SLOT_ID + i))
             {
 				if (ItemEntry* itemEntry = dbcItemEntry.LookupRowForced(item_id))
