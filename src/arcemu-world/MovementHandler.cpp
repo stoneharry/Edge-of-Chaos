@@ -593,7 +593,7 @@ void WorldSession::HandleMoveNotActiveMoverOpcode(WorldPacket & recv_data)
     MovementInfo mi;
 	mi.guid = old_mover_guid.GetOldGuid();
 	ReadMovementInfo(recv_data, &mi);
-	_player->movement_info = mi;
+	//_player->movement_info = mi;
 }
 
 

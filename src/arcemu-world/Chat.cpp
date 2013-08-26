@@ -955,7 +955,7 @@ int ChatHandler::ParseCommands(const char* text, WorldSession* session)
 	if(session->GetPermissionCount() == 0 && sWorld.m_reqGmForCommands)
 		return 0;
 
-	if(text[0] != '!' && text[0] != '.') // let's not confuse users
+	if(text[0] != '.') // let's not confuse users
 		return 0;
 
 	/* skip '..' :P that pisses me off */
