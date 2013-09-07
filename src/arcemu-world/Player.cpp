@@ -8295,7 +8295,9 @@ void Player::EndDuel(uint8 WinCondition)
 	DuelingWith->m_duelCountdownTimer = 0;
 	m_duelCountdownTimer = 0;
 	FullHPMP();
+	ResetAllCooldowns();
 	DuelingWith->FullHPMP();
+	DuelingWith->ResetAllCooldowns();
 	DuelingWith->DuelingWith = NULL;
 	DuelingWith = NULL;
 }
