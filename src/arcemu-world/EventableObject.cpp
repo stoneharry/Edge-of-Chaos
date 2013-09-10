@@ -374,23 +374,34 @@ void EventableObjectHolder::Update(time_t time_difference)
 
 		if(ev->currTime <= time_difference)
 		{
-			try
-			{
 			// execute the callback
 			if(ev->eventFlag & EVENT_FLAG_DELETES_OBJECT)
 			{
-				m_events.erase(it2);
-				ev->deleted = true;
-				ev->cb->execute();
-				ev->DecRef();
+				try
+				{
+					m_events.erase(it2);
+					ev->deleted = true;
+					ev->cb->execute();
+					ev->DecRef();
+				}
+				catch (...)
+				{
+					printf("<- EventableObject.cpp, Caught fatal crash 1.\n");
+				}
 				continue;
+
 			}
 			else
-				ev->cb->execute();
-			}
-			catch (...)
 			{
-				printf("<- EventableObject.cpp, Caught fatal crash.\n");
+				try
+				{
+					if (ev->cb)
+						ev->cb->execute();
+				}
+				catch (...)
+				{
+					printf("<- EventableObject.cpp, Caught fatal crash 2.\n");
+				}
 			}
 			// check if the event is expired now.
 			if(ev->repeats && --ev->repeats == 0)

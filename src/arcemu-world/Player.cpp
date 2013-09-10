@@ -8039,6 +8039,16 @@ void Player::RequestDuel(Player* pTarget)
 	if(m_duelState != DUEL_STATE_FINISHED)
 		return;
 
+	if (!pTarget)
+		return;
+
+	MapInfo * info = pTarget->GetMapMgr()->GetMapInfo();
+	if (!info)
+		return;
+	int level = info->minlevel();
+	if (!level || level > 1)
+		return;
+
 	SetDuelState(DUEL_STATE_REQUESTED);
 
 	//Setup Duel
