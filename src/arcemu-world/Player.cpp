@@ -8045,7 +8045,7 @@ void Player::RequestDuel(Player* pTarget)
 	MapInfo * info = pTarget->GetMapMgr()->GetMapInfo();
 	if (!info)
 		return;
-	int level = info->minlevel();
+	int level = info->minlevel;
 	if (!level || level > 1)
 		return;
 
