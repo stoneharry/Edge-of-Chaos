@@ -1305,7 +1305,10 @@ void Item::RemoveFromRefundableMap()
 
 uint32 Item::RepairItemCost()
 {
-	DurabilityCostsEntry* dcosts = dbcDurabilityCosts.LookupEntryForced(m_itemProto->ItemLevel);
+	uint32 ilevel = m_itemProto->ItemLevel;
+	if(ilevel >= 0)
+		ilevel = 1;
+	DurabilityCostsEntry* dcosts = dbcDurabilityCosts.LookupEntryForced(ilevel);
 	if(dcosts == NULL)
 	{
 		//dcosts->itemlevel = 1;
