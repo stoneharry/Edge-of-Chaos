@@ -356,190 +356,88 @@ void LootMgr::PushLoot(StoreLootList* list, Loot* loot, uint32 type)
 {
 	uint32 i;
 	uint32 count;
-	bool MustDropTwoItems = false;
 
 	if(type < LOOT_NORMAL10 || type >= NUM_LOOT_TYPES)
 		return;
-
-	uint32 size = list->count;
-	uint32 numDropped = 0;
-	if (size > 1 && list->items[0].chance2 != 0) // check we are in dungeon or raid
-		MustDropTwoItems = true;
-
-	if (numDropped < 2 && size > 1)
+	for(uint32 x = 0; x < loot->items.size(); x++)
 	{
-		while (numDropped < 2 && size > 1)
+		if(list->items[x].item.itemproto)  // this check is needed until loot DB is fixed
 		{
-			if (!MustDropTwoItems)
-				numDropped = 2;
-			for(uint32 x = 0; x < size; x++)
+			float chance = 0.0f;
+
+			switch(type)
 			{
-				if(list->items[x].item.itemproto)  // this check is needed until loot DB is fixed
-				{
-					float chance = 0.0f;
+				case LOOT_NORMAL10:
+					chance = list->items[x].chance;
+					break;
 
-					switch(type)
-					{
-						case LOOT_NORMAL10:
-							chance = list->items[x].chance;
-							break;
+				case LOOT_NORMAL25:
+					chance = list->items[x].chance2;
+					break;
 
-						case LOOT_NORMAL25:
-							chance = list->items[x].chance2;
-							break;
+				case LOOT_HEROIC10:
+					chance = list->items[x].chance3;
+					break;
 
-						case LOOT_HEROIC10:
-							chance = list->items[x].chance3;
-							break;
-
-						case LOOT_HEROIC25:
-							chance = list->items[x].chance4;
-							break;
-					}
-
-					// drop chance cannot be larger than 100% or smaller than 0%
-					if(chance <= 0.0f || chance > 100.0f)
-						continue;
-
-					ItemPrototype* itemproto = list->items[x].item.itemproto;
-					if(Rand(chance))      //|| itemproto->Class == ITEM_CLASS_QUEST)
-					{
-						numDropped++;
-						if(list->items[x].mincount == list->items[x].maxcount)
-							count = list->items[x].maxcount;
-						else
-							count = RandomUInt(list->items[x].maxcount - list->items[x].mincount) + list->items[x].mincount;
-
-						for(i = 0; i < loot->items.size(); ++i)
-						{
-							//itemid rand match a already placed item, if item is stackable and unique(stack), increment it, otherwise skips
-							if((loot->items[i].item.itemproto == list->items[x].item.itemproto) && itemproto->MaxCount && ((loot->items[i].iItemsCount + count) < itemproto->MaxCount))
-							{
-								if(itemproto->Unique && ((loot->items[i].iItemsCount + count) < itemproto->Unique))
-								{
-									loot->items[i].iItemsCount += count;
-									break;
-								}
-								else if(!itemproto->Unique)
-								{
-									loot->items[i].iItemsCount += count;
-									break;
-								}
-							}
-						}
-
-						if(i != loot->items.size())
-							continue;
-
-						__LootItem itm;
-						itm.item = list->items[x].item;
-						itm.iItemsCount = count;
-						itm.roll = NULL;
-						itm.passed = false;
-						itm.ffa_loot = list->items[x].ffa_loot;
-						itm.has_looted.clear();
-
-						if(itemproto->Quality > 1 && itemproto->ContainerSlots == 0)
-						{
-							itm.iRandomProperty = GetRandomProperties(itemproto);
-							itm.iRandomSuffix = GetRandomSuffix(itemproto);
-						}
-						else
-						{
-							// save some calls :P
-							itm.iRandomProperty = NULL;
-							itm.iRandomSuffix = NULL;
-						}
-
-						loot->items.push_back(itm);
-					}
-				}
+				case LOOT_HEROIC25:
+					chance = list->items[x].chance4;
+					break;
 			}
-		}
-	}
-	else
-	{
-		for(uint32 x = 0; x < size; x++)
-		{
-			if(list->items[x].item.itemproto)  // this check is needed until loot DB is fixed
+
+			// drop chance cannot be larger than 100% or smaller than 0%
+			if(chance <= 0.0f || chance > 100.0f)
+				continue;
+
+			ItemPrototype* itemproto = list->items[x].item.itemproto;
+			if(Rand(chance))      //|| itemproto->Class == ITEM_CLASS_QUEST)
 			{
-				float chance = 0.0f;
+				if(list->items[x].mincount == list->items[x].maxcount)
+					count = list->items[x].maxcount;
+				else
+					count = RandomUInt(list->items[x].maxcount - list->items[x].mincount) + list->items[x].mincount;
 
-				switch(type)
+				for(i = 0; i < loot->items.size(); ++i)
 				{
-					case LOOT_NORMAL10:
-						chance = list->items[x].chance;
-						break;
-
-					case LOOT_NORMAL25:
-						chance = list->items[x].chance2;
-						break;
-
-					case LOOT_HEROIC10:
-						chance = list->items[x].chance3;
-						break;
-
-					case LOOT_HEROIC25:
-						chance = list->items[x].chance4;
-						break;
+					//itemid rand match a already placed item, if item is stackable and unique(stack), increment it, otherwise skips
+					if((loot->items[i].item.itemproto == list->items[x].item.itemproto) && itemproto->MaxCount && ((loot->items[i].iItemsCount + count) < itemproto->MaxCount))
+					{
+						if(itemproto->Unique && ((loot->items[i].iItemsCount + count) < itemproto->Unique))
+						{
+							loot->items[i].iItemsCount += count;
+							break;
+						}
+						else if(!itemproto->Unique)
+						{
+							loot->items[i].iItemsCount += count;
+							break;
+						}
+					}
 				}
 
-				// drop chance cannot be larger than 100% or smaller than 0%
-				if(chance <= 0.0f || chance > 100.0f)
+				if(i != loot->items.size())
 					continue;
 
-				ItemPrototype* itemproto = list->items[x].item.itemproto;
-				if(Rand(chance))      //|| itemproto->Class == ITEM_CLASS_QUEST)
+				__LootItem itm;
+				itm.item = list->items[x].item;
+				itm.iItemsCount = count;
+				itm.roll = NULL;
+				itm.passed = false;
+				itm.ffa_loot = list->items[x].ffa_loot;
+				itm.has_looted.clear();
+
+				if(itemproto->Quality > 1 && itemproto->ContainerSlots == 0)
 				{
-					numDropped++;
-					if(list->items[x].mincount == list->items[x].maxcount)
-						count = list->items[x].maxcount;
-					else
-						count = RandomUInt(list->items[x].maxcount - list->items[x].mincount) + list->items[x].mincount;
-
-					for(i = 0; i < loot->items.size(); ++i)
-					{
-						//itemid rand match a already placed item, if item is stackable and unique(stack), increment it, otherwise skips
-						if((loot->items[i].item.itemproto == list->items[x].item.itemproto) && itemproto->MaxCount && ((loot->items[i].iItemsCount + count) < itemproto->MaxCount))
-						{
-							if(itemproto->Unique && ((loot->items[i].iItemsCount + count) < itemproto->Unique))
-							{
-								loot->items[i].iItemsCount += count;
-								break;
-							}
-							else if(!itemproto->Unique)
-							{
-								loot->items[i].iItemsCount += count;
-								break;
-							}
-						}
-					}
-
-					if(i != loot->items.size())
-						continue;
-
-					__LootItem itm;
-					itm.item = list->items[x].item;
-					itm.iItemsCount = count;
-					itm.roll = NULL;
-					itm.passed = false;
-					itm.ffa_loot = list->items[x].ffa_loot;
-					itm.has_looted.clear();
-
-					if(itemproto->Quality > 1 && itemproto->ContainerSlots == 0)
-					{
-						itm.iRandomProperty = GetRandomProperties(itemproto);
-						itm.iRandomSuffix = GetRandomSuffix(itemproto);
-					}
-					else
-					{
-						// save some calls :P
-						itm.iRandomProperty = NULL;
-						itm.iRandomSuffix = NULL;
-					}
-
-					loot->items.push_back(itm);
+					itm.iRandomProperty = GetRandomProperties(itemproto);
+					itm.iRandomSuffix = GetRandomSuffix(itemproto);
 				}
+				else
+				{
+					// save some calls :P
+					itm.iRandomProperty = NULL;
+					itm.iRandomSuffix = NULL;
+				}
+
+				loot->items.push_back(itm);
 			}
 		}
 	}
