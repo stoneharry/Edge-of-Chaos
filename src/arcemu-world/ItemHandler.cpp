@@ -1720,7 +1720,7 @@ void WorldSession::HandleRepairItemOpcode(WorldPacket & recvPacket)
 		return;
 
 	//this is a blizzlike check
-	if(_player->GetDistanceSq(pCreature) > 100)
+	if(_player->GetDistanceSq(pCreature) > 5)
 		return; //avoid talking to anyone by guid hacking. Like repair items anytime in raid ? Low chance hack
 
 	if(guildmoney)
