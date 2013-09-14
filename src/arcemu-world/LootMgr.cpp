@@ -357,9 +357,10 @@ void LootMgr::PushLoot(StoreLootList* list, Loot* loot, uint32 type)
 	uint32 i;
 	uint32 count;
 
-	if(type < LOOT_NORMAL10 || type >= NUM_LOOT_TYPES)
+	if(type >= NUM_LOOT_TYPES)
 		return;
-	for(uint32 x = 0; x < loot->items.size(); x++)
+
+	for(uint32 x = 0; x < list->count; x++)
 	{
 		if(list->items[x].item.itemproto)  // this check is needed until loot DB is fixed
 		{
@@ -389,7 +390,7 @@ void LootMgr::PushLoot(StoreLootList* list, Loot* loot, uint32 type)
 				continue;
 
 			ItemPrototype* itemproto = list->items[x].item.itemproto;
-			if(Rand(chance))      //|| itemproto->Class == ITEM_CLASS_QUEST)
+			if(Rand(chance * sWorld.getRate(RATE_DROP0 + itemproto->Quality)))      //|| itemproto->Class == ITEM_CLASS_QUEST)
 			{
 				if(list->items[x].mincount == list->items[x].maxcount)
 					count = list->items[x].maxcount;
