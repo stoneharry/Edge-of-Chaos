@@ -1686,6 +1686,8 @@ void Object::SpellNonMeleeDamageLog(Unit* pVictim, uint32 spellID, uint32 damage
 	res = objmgr.ApplySpellDamageLimit(spellID, res);
 	if(res <= 0)
 		dmg.resisted_damage = dmg.full_damage;
+	if (res > 1950 && this->IsPlayer()) // Hardcoded cap for player spell damage
+		res = rand() % 150 + 1900;
 
 	//------------------------------resistance reducing-----------------------------------------
 	if(res > 0 && this->IsUnit())
