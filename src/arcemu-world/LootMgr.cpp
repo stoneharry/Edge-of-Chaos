@@ -385,6 +385,18 @@ void LootMgr::PushLoot(StoreLootList* list, Loot* loot, uint32 type)
 					break;
 			}
 
+			bool skip = false;
+			for (int _xx = 0; _xx < loot->items.size(); ++_xx)
+			{
+				if (loot->items[_xx].item.itemproto->ItemId == list->items[x].item.itemproto->ItemId)
+				{
+					skip = true;
+					break;
+				}
+			}
+			if (skip)
+				continue;
+
 			// drop chance cannot be larger than 100% or smaller than 0%
 			if(chance <= 0.0f || chance > 100.0f)
 				continue;
@@ -440,8 +452,14 @@ void LootMgr::PushLoot(StoreLootList* list, Loot* loot, uint32 type)
 
 				loot->items.push_back(itm);
 			}
+			if ((list->count - 1) > 2 &&
+				loot->items.size() < 3 &&
+				x != (list->count - 1) &&
+				list->items[0].chance2 != 0)
+				x = 0;
 		}
 	}
+	
 	if(loot->items.size() > 16)
 	{
 		std::vector<__LootItem>::iterator item_to_remove;
