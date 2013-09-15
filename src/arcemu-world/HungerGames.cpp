@@ -9,6 +9,7 @@
 		- Add worldstate for players left alive
 		- plyercreateinfo_skills does not appear to be loading correctly or not applying correctly (?) investigate
 		- Players left alive is completely bugged up, need to make a hash to store that shit or something
+		- Items not in backpack are not deleted
 		...
 */
 

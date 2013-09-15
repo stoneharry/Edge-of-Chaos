@@ -116,7 +116,7 @@ void TotemSummon::SetupSpells()
 
 	if(TotemSpell == NULL)
 	{
-		LOG_DEBUG("Totem %u does not have any spells to cast", creature_info->Id);
+		printf("Totem %u does not have any spells to cast", creature_info->Id);
 		return;
 	}
 

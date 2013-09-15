@@ -920,6 +920,8 @@ uint32 CBattlegroundManager::GetMinimumPlayers(uint32 dbcIndex)
 			return sWorld.bgsettings.SOTA_MIN;
 		case BATTLEGROUND_ISLE_OF_CONQUEST:
 			return sWorld.bgsettings.IOC_MIN;
+		case BATTLEGROUND_HUNGER_GAMES:
+			return 100; // To disable it for now as a hack fix
 		default:
 			return 1;
 	}
