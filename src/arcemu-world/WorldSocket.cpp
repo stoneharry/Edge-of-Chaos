@@ -63,9 +63,16 @@ WorldSocket::~WorldSocket()
 {
 	WorldPacket* pck;
 	queueLock.Acquire();
+	try
+	{
 	while((pck = _queue.Pop()) != NULL)
 	{
 		delete pck;
+	}
+	}
+	catch (...)
+	{
+		printf("Caught exception in WorldSocket.cpp\n");
 	}
 	queueLock.Release();
 
