@@ -184,6 +184,7 @@ typedef struct
 }Realm;
 
 class AuthSocket;
+class BattleNetSocket;
 class LogonCommServerSocket;
 
 class InformationCore : public Singleton<InformationCore>

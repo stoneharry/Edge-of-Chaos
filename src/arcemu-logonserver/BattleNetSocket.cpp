@@ -12,6 +12,7 @@ static BattleNetHandler Handlers[MAX_BATTLENET_CMD] = {
 
 BattleNetSocket::BattleNetSocket(SOCKET fd) : Socket(fd, 32768, 4096)
 {
+	printf("CREATED SOCKET!\n");
 	last_recv = time(NULL);
 	_authSocketLock.Acquire();
 	_authSockets_BN.insert(this);
@@ -20,6 +21,16 @@ BattleNetSocket::BattleNetSocket(SOCKET fd) : Socket(fd, 32768, 4096)
 
 BattleNetSocket::~BattleNetSocket()
 {
+}
+
+void BattleNetSocket::OnDisconnect()
+{
+	if(!removedFromSet)
+	{
+		_authSocketLock.Acquire();
+		_authSockets_BN.erase(this);
+		_authSocketLock.Release();
+	}
 }
 
 void BattleNetSocket::InformationRequest()
