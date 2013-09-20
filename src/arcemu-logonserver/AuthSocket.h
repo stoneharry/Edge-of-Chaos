@@ -103,13 +103,4 @@ public:
 	PatchJob * m_patchJob;
 };
 
-class BattleNetSocket : public Socket
-{
-public:
-	BattleNetSocket(SOCKET fd);
-	~BattleNetSocket();
-
-	void OnRead();
-};
-
 #endif

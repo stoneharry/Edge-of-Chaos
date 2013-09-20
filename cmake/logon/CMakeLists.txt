@@ -4,6 +4,7 @@ SET( sources
   AccountCache.cpp
   AuthSocket.cpp
   AutoPatcher.cpp
+  BattleNetSocket.cpp
   LogonCommServer.cpp
   LogonConsole.cpp
   LogonOpcodes.cpp
@@ -15,6 +16,7 @@ SET( sources
 	AuthSocket.h
 	AuthStructs.h
 	AutoPatcher.h
+	BattleNetSocket.h
 	LogonCommServer.h
 	LogonConsole.h
 	LogonOpcodes.h

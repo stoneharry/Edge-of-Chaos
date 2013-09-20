@@ -881,16 +881,3 @@ void AuthSocket::HandleTransferCancel()
 	readBuffer.Remove(1);
 	Disconnect();
 }
-
-BattleNetSocket::BattleNetSocket(SOCKET fd) : Socket(fd, 32768, 4096)
-{
-}
-
-BattleNetSocket::~BattleNetSocket()
-{
-
-}
-
-void BattleNetSocket::OnRead()
-{
-}

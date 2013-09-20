@@ -51,6 +51,7 @@
 #include "../arcemu-logonserver/AuthStructs.h"
 #include "../arcemu-logonserver/LogonCommServer.h"
 #include "../arcemu-logonserver/LogonConsole.h"
+#include "../arcemu-logonserver/BattleNetSocket.h"
 #include "../arcemu-shared/WorldPacket.h"
 
 // database decl
