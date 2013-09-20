@@ -109,7 +109,7 @@ void AuthSocket::HandleChallenge()
 	}
 
 	// Copy the data into our cached challenge structure
-	if(full_size > sizeof(sAuthLogonChallenge_C))
+	if(full_size > sizeof(sAuthLogonChallenge_C_BattleNet))
 	{
 		LOG_ERROR( "[AuthChallenge] Packet is larger than expected, refusing to handle!" );
 		Disconnect();

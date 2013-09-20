@@ -24,7 +24,7 @@
 #endif
 #include "../arcemu-shared/arcemu_getopt.h"
 
-#define BANNER "Kronos :: Logon Server"
+#define BANNER "EoC :: Logon Server"
 
 #ifndef WIN32
 #include <sched.h>
@@ -36,6 +36,7 @@ initialiseSingleton(LogonServer);
 Arcemu::Threading::AtomicBoolean mrunning(true);
 Mutex _authSocketLock;
 set<AuthSocket*> _authSockets;
+set<BattleNetSocket*> _authSockets_BN;
 
 /*** Signal Handler ***/
 void _OnSignal(int s)
@@ -354,16 +355,16 @@ void LogonServer::Run(int argc, char ** argv)
 		sLog.SetFileLoggingLevel(file_log_level);
 
 	printf("The key combination <Ctrl-C> will safely shut down the server at any time.");
-	Log.Success("System","Initializing Random Number Generators...");
+	//Log.Success("System","Initializing Random Number Generators...");
 
-	Log.Success("Config", "Loading Config Files...");
+	//Log.Success("Config", "Loading Config Files...");
 	if(!Rehash())
 	{
 		sLog.Close();
 		return;
 	}
 
-	Log.Success("ThreadMgr", "Starting...");
+	//Log.Success("ThreadMgr", "Starting...");
 	sLog.SetFileLoggingLevel(Config.MainConfig.GetIntDefault("LogLevel", "File", 0));
 
 	ThreadPool.Startup();
@@ -374,15 +375,15 @@ void LogonServer::Run(int argc, char ** argv)
 		return;
 	}
 
-	Log.Success("AccountMgr", "Starting...");
+	//Log.Success("AccountMgr", "Starting...");
 	new AccountMgr;
 	new IPBanner;
 
-	Log.Success("InfoCore", "Starting...");
+	//Log.Success("InfoCore", "Starting...");
 	new InformationCore;
 
 	new PatchMgr;
-	Log.Notice("AccountMgr", "Precaching accounts...");
+	//Log.Notice("AccountMgr", "Precaching accounts...");
 	sAccountMgr.ReloadAccounts(true);
 	Log.Success("AccountMgr", "%u accounts are loaded and ready.", sAccountMgr.GetCount());
 
@@ -416,7 +417,7 @@ void LogonServer::Run(int argc, char ** argv)
 	new SocketGarbageCollector;
 
 	ListenSocket<AuthSocket> * cl = new ListenSocket<AuthSocket>(host.c_str(), cport);
-	//new ListenSocket<BattleNetSocket>(host.c_str(), 1119);
+	ListenSocket<BattleNetSocket> * bl = new ListenSocket<BattleNetSocket>(host.c_str(), 1119);
 	ListenSocket<LogonCommServerSocket> * sl = new ListenSocket<LogonCommServerSocket>(shost.c_str(), sport);
 
 	sSocketMgr.SpawnWorkerThreads();
@@ -425,14 +426,16 @@ void LogonServer::Run(int argc, char ** argv)
 	// Spawn interserver listener
 	bool authsockcreated = cl->IsOpen();
 	bool intersockcreated = sl->IsOpen();
-	if(authsockcreated && intersockcreated)
+	bool BattleNetSocketCreated = bl->IsOpen();
+	if(authsockcreated && intersockcreated && BattleNetSocketCreated)
 	{
 #ifdef WIN32
 		ThreadPool.ExecuteTask(cl);
 		ThreadPool.ExecuteTask(sl);
+		ThreadPool.ExecuteTask(bl);
 #endif
 		// hook signals
-		sLog.outString("Hooking signals...");
+		//sLog.outString("Hooking signals...");
 		signal(SIGINT, _OnSignal);
 		signal(SIGTERM, _OnSignal);
 		signal(SIGABRT, _OnSignal);
@@ -517,6 +520,7 @@ void LogonServer::Run(int argc, char ** argv)
 
 	cl->Close();
 	sl->Close();
+	bl->Close();
 	sSocketMgr.CloseAll();
 #ifdef WIN32
 	sSocketMgr.ShutdownThreads();
@@ -544,6 +548,7 @@ void LogonServer::Run(int argc, char ** argv)
 	delete pfc;
 	delete cl;
 	delete sl;
+	delete bl;
 	LOG_BASIC("Shutdown complete.");
 	sLog.Close();
 }
@@ -555,6 +560,7 @@ void OnCrash(bool Terminate)
 
 void LogonServer::CheckForDeadSockets()
 {
+	// To do check BN dead sockets too here
 	_authSocketLock.Acquire();
 	time_t t = time(NULL);
 	time_t diff;

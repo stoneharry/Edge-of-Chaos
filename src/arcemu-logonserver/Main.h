@@ -35,6 +35,8 @@ enum RealmFlags
 extern Arcemu::Threading::AtomicBoolean mrunning;
 class AuthSocket;
 extern set<AuthSocket*> _authSockets;
+class BattleNetSocket;
+extern set<BattleNetSocket*> _authSockets_BN;
 extern Mutex _authSocketLock;
 
 struct AllowedIP

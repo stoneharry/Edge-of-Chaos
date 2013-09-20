@@ -44,6 +44,48 @@ typedef struct {
 	uint8   I[50];		   // account name
 } sAuthLogonChallenge_C;
 
+/*
+ int:6 PacketId
+ int:1 hasChannel
+ if (hasChannel)
+	int:4 ChannelId
+
+ char[4] Program
+ char[4] Platform
+ char[4] Locale
+ int:6 componentCount
+ for (componentCount)
+ {
+         char[4] Program
+ 	char[4] Platform
+ 	int:32 Build
+ }
+ 
+ int:1 hasAccountName
+ if (hasAccountName) {
+ 	int:9 accountLength. then add 3 to this
+ 	byte[accountLength] accountName
+ }
+*/
+
+typedef struct {
+	uint8   cmd;
+	uint8   error;		  // 0x00
+	uint16  size;		   // 0x0026
+	uint8   gamename[4];	// 'WoW'
+	uint8   version1;	   // 0x00
+	uint8   version2;	   // 0x08 (0.8.0)
+	uint8   version3;	   // 0x00
+	uint16  build;		  // 3734
+	uint8   platform[4];	// 'x86'
+	uint8   os[4];		  // 'Win'
+	uint8   country[4];	 // 'enUS'
+	uint32  timezone_bias;  // -419
+	uint32  ip;			 // client ip
+	uint8   I_len;		  // length of account name
+	uint8   I[50];		   // account name
+} sAuthLogonChallenge_C_BattleNet;
+
 typedef sAuthLogonChallenge_C sAuthReconnectChallenge_C;
 
 typedef struct {
