@@ -2710,6 +2710,7 @@ template <class T> T Player::ApplySpellMod(uint32 spellId, SpellModOp op, T &bas
     float diff = (float)basevalue * (totalmul - 1.0f) + (float)totalflat;
     basevalue = T((float)basevalue + diff);
     return T(diff);
+	return T(0);
 }
 
 class SkillIterator
