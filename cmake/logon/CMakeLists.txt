@@ -17,6 +17,7 @@ SET( sources
 	AuthStructs.h
 	AutoPatcher.h
 	BattleNetSocket.h
+	BitReader.h
 	LogonCommServer.h
 	LogonConsole.h
 	LogonOpcodes.h

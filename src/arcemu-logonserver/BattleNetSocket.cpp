@@ -44,9 +44,9 @@ void BattleNetSocket::InformationRequest()
 
 	readBuffer.Read(&infoR, sizeof(infoR));
 
-	int32 count;
+	/*int32 count;
 
-	/*readBuffer.Read(&infoR.Program, sizeof(infoR.Program));
+	readBuffer.Read(&infoR.Program, sizeof(infoR.Program));
 	readBuffer.Read(&infoR.Platform, sizeof(infoR.Platform));
 	readBuffer.Read(&infoR.Locale, sizeof(infoR.Locale));
 	readBuffer.Read(&count, infoR.componentCount);
