@@ -12,7 +12,6 @@ static BattleNetHandler Handlers[MAX_BATTLENET_CMD] = {
 
 BattleNetSocket::BattleNetSocket(SOCKET fd) : Socket(fd, 32768, 4096)
 {
-	printf("CREATED SOCKET!\n");
 	last_recv = time(NULL);
 	_authSocketLock.Acquire();
 	_authSockets_BN.insert(this);
@@ -87,10 +86,33 @@ struct BN_Channel
 	int Channel:4;
 };
 
+// Debug
+struct TESTING
+{
+	char str[1024];
+};
+
+#include <fstream>
+#include <iostream>
+// End debug
+
 void BattleNetSocket::OnRead()
 {
 	if(readBuffer.GetContiguiousBytes() < 11)
 		return;
+
+	// Debug, dump packet
+	TESTING temp;
+	uint32 size = readBuffer.GetSize();
+	readBuffer.Read(&temp, size);
+
+	fstream write;
+	write.open("C:\\Users\\Harry_\\Desktop\\packets.dump", ios::out | ios::binary);
+	write.write(temp.str, size);
+	write.close();
+
+	return;
+	// End Debug
 
 	BN_PacketHeader header;
 	readBuffer.Read(&header, sizeof(header));
