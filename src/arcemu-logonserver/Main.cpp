@@ -397,6 +397,7 @@ void LogonServer::Run(int argc, char ** argv)
 	// Load conf settings..
 	uint32 cport = Config.MainConfig.GetIntDefault("Listen", "RealmListPort", 3724);
 	uint32 sport = Config.MainConfig.GetIntDefault("Listen", "ServerPort", 8093);
+	uint32 bport = Config.MainConfig.GetIntDefault("Listen", "BattleNetPort", 1119);
 	//uint32 threadcount = Config.MainConfig.GetIntDefault("Network", "ThreadCount", 5);
 	//uint32 threaddelay = Config.MainConfig.GetIntDefault("Network", "ThreadDelay", 20);
 	string host = Config.MainConfig.GetStringDefault("Listen", "Host", "0.0.0.0");
@@ -417,7 +418,7 @@ void LogonServer::Run(int argc, char ** argv)
 	new SocketGarbageCollector;
 
 	ListenSocket<AuthSocket> * cl = new ListenSocket<AuthSocket>(host.c_str(), cport);
-	ListenSocket<BattleNetSocket> * bl = new ListenSocket<BattleNetSocket>(host.c_str(), 1119);
+	ListenSocket<BattleNetSocket> * bl = new ListenSocket<BattleNetSocket>(host.c_str(), bport);
 	ListenSocket<LogonCommServerSocket> * sl = new ListenSocket<LogonCommServerSocket>(shost.c_str(), sport);
 
 	sSocketMgr.SpawnWorkerThreads();

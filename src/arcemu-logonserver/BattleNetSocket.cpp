@@ -33,52 +33,75 @@ void BattleNetSocket::OnDisconnect()
 	}
 }
 
+struct InfRequestComponents
+{
+	char Program[4];
+	char Platform[4];
+	int Build:32;
+};
+
+struct InformationRequestStruct
+{
+	char Program[4];
+	char Platform[4];
+	char Locale[4];
+	int componentCount:6;
+	vector<InfRequestComponents> components;
+	int hasAccountName:1;
+	int accountLength:9; // then add 3 to this
+	vector<Byte> accountName;
+};
+
 void BattleNetSocket::InformationRequest()
 {
-	if (readBuffer.GetContiguiousBytes() < 4)
+	if (readBuffer.GetContiguiousBytes() < 11)
 	{
 		printf( "[InformationRequest] Packet has no header. Refusing to handle." );
 		return;
 	}
 
-	// Check the rest of the packet is complete.
-	uint8 * ReceiveBuffer = (uint8*)readBuffer.GetBufferStart();
+	InformationRequestStruct infoR;
+	int32 count;
 
-	uint16 full_size = *(uint16*)&ReceiveBuffer[2];
+	readBuffer.Read(&infoR.Program, sizeof(infoR.Program));
+	readBuffer.Read(&infoR.Platform, sizeof(infoR.Platform));
+	readBuffer.Read(&infoR.Locale, sizeof(infoR.Locale));
+	readBuffer.Read(&count, infoR.componentCount);
 
-	printf("[InformationRequest] got header, body is %u bytes", full_size );
-
-	if(readBuffer.GetSize() < uint32(full_size+4)){
-		printf( "[InformationRequest] Packet is smaller than expected, refusing to handle" );
-		return;
-	}
-
-	// Copy the data into our cached challenge structure
-	if(full_size > sizeof(sAuthLogonChallenge_C))
+	for (int32 i = 0; i < count; ++i)
 	{
-		printf( "[InformationRequest] Packet is larger than expected, refusing to handle!" );
-		Disconnect();
-		return;
+		InfRequestComponents temp;
+		readBuffer.Read(&temp, sizeof(temp));
+		infoR.components.push_back(temp);
 	}
-
-	printf("[InformationRequest] got a complete packet.");
-
-	//memcpy(&m_challenge, ReceiveBuffer, full_size + 4);
-	//RemoveReadBufferBytes(full_size + 4, true);
-	readBuffer.Read(&m_challenge, full_size + 4);
 }
+
+struct BN_PacketHeader
+{
+	int id:6;
+	int hasChannel:1;
+};
+
+struct BN_Channel
+{
+	int Channel:4;
+};
 
 void BattleNetSocket::OnRead()
 {
-	printf("Called!\n");
-	if(readBuffer.GetContiguiousBytes() < 1)
+	if(readBuffer.GetContiguiousBytes() < 11)
 		return;
 
-	int32 Command = *(int32*)readBuffer.GetBufferStart();
-	printf("%d\n",Command);
+	BN_PacketHeader header;
+	readBuffer.Read(&header, sizeof(header));
+	/*BN_Channel channel;
+	if (header.hasChannel != -1)
+		readBuffer.Read(&channel, sizeof(channel));*/
+
+	printf("%d\n",header.id);
 	last_recv = UNIXTIME;
-	if(Command < MAX_BATTLENET_CMD && Handlers[Command] != NULL)
-		(this->*Handlers[Command])();
+	if(header.id < MAX_BATTLENET_CMD && Handlers[header.id] != NULL)
+		(this->*Handlers[header.id])();
 	else
-		printf("Unknown cmd %u\n", Command);
+		printf("Unknown cmd %u\n", header.id);
 }
