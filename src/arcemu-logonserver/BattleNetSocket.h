@@ -16,12 +16,9 @@ struct InfRequestComponents
 
 struct InformationRequestStruct
 {
-	uint8 Program[4];
-	uint8 Platform[4];
-	uint8 Locale[4];
-	//int32 Program:4; // I have no clue how to read this data, http://pastebin.com/rDPmNumD it is sent from the client like this
-	//int32 Platform:4; // Until this data can be read we cannot get any further
-	//int32 Locale:4;
+	char Program[4];
+	char Platform[4];
+	char Locale[4];
 	int componentCount:6;
 	vector<InfRequestComponents> components;
 	int hasAccountName:1;

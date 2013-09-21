@@ -42,7 +42,14 @@ void BattleNetSocket::InformationRequest()
 
 	InformationRequestStruct infoR;
 
-	readBuffer.Read(&infoR, sizeof(infoR));
+	unsigned char data[1024];
+	uint32 size = readBuffer.GetSize();
+	readBuffer.Read(&data, size);
+
+	BitReader test(data, size);
+	string test2 = test.ReadUTFString(4);
+
+	//readBuffer.Read(&infoR, sizeof(infoR));
 
 	/*int32 count;
 

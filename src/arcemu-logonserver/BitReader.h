@@ -67,28 +67,28 @@ public:
     float ReadFloat()
     {
         //return BitConverter.ToSingle(BitConverter.GetBytes(ReadInt32(32)), 0);
-		return 0.0f;
+		return float(ReadInt32(32));
     }
 
     string ReadAsciiString(int32 bitCount)
     {
         int32 len = ReadInt32(bitCount);
         //return Encoding.ASCII.GetString(ReadBytes(len));
-		return "";
+		return reinterpret_cast<char*>(ReadBytes(len));
     }
 
     string ReadAsciiString(int32 bitCount, int32 min)
     {
         int32 len = ReadInt32(bitCount, min);
         //return Encoding.ASCII.GetString(ReadBytes(len));
-		return "";
+		return reinterpret_cast<char*>(ReadBytes(len));
     }
 
     string ReadUTFString(int32 bitCount)
     {
         int32 len = ReadInt32(bitCount + 2);
         //return Encoding.UTF8.GetString(ReadBytes(len));
-		return "";
+		return reinterpret_cast<char*>(ReadBytes(len));
     }
 
 	uint32 ReadUInt32(int32 numBits)
