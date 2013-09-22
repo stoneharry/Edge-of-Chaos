@@ -1647,20 +1647,18 @@ void Player::GiveXP(uint32 xp, const uint64 & guid, bool allowbonus)
 		if (level == 10)
 		{
 			QueryResult* result = CharacterDatabase.Query("SELECT COUNT(*) FROM `accounts` WHERE acct = '%u'", GetSession()->GetAccountId());
-
-			if (!result)
-				return;
-
-			Field* fields = result->Fetch();
-			uint32 count = fields[0].GetUInt32();
-
-			if (count == 1)
+			if (result)
 			{
-				AchievementMgr ach = GetAchievementMgr();
-				ach.GMCompleteAchievement(NULL, 60012);
-				ach.GMCompleteAchievement(NULL, 60016);
-			}
+				Field* fields = result->Fetch();
+				uint32 count = fields[0].GetUInt32();
 
+				if (count == 1)
+				{
+					AchievementMgr ach = GetAchievementMgr();
+					ach.GMCompleteAchievement(NULL, 60012);
+					ach.GMCompleteAchievement(NULL, 60016);
+				}
+			}
 			delete result;
 		}
 
@@ -3514,6 +3512,26 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 
 	if(GetSession()->CanUseCommand('a'))
 		ModUnsigned32Value(UNIT_FIELD_FLAGS_2, 0x40000); // Allows use of death touch and other spells.
+
+	QueryResult* result = CharacterDatabase.Query("SELECT COUNT(*) FROM `accounts` WHERE acct = '%u'", GetSession()->GetAccountId());
+	if (result)
+	{
+		Field* fields = result->Fetch();
+		uint32 count = fields[0].GetUInt32();
+
+		if (count == 1)
+		{
+			RankTitles title = static_cast< RankTitles >(71);
+			if (!HasTitle(title))
+			{
+				SetKnownTitle(title, true);
+				SetChosenTitle(71);
+			}
+			if (!HasSpell(50036))
+				addSpell(50036, false);
+		}
+	}
+	delete result;
 
 	OnLogin();
  }
