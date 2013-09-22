@@ -385,7 +385,7 @@ void LootMgr::PushLoot(StoreLootList* list, Loot* loot, uint32 type)
 					break;
 			}
 
-			bool skip = false;
+			/*bool skip = false;
 			for (int _xx = 0; _xx < loot->items.size(); ++_xx)
 			{
 				if (loot->items[_xx].item.itemproto->ItemId == list->items[x].item.itemproto->ItemId)
@@ -395,14 +395,14 @@ void LootMgr::PushLoot(StoreLootList* list, Loot* loot, uint32 type)
 				}
 			}
 			if (skip)
-				continue;
+				continue;*/
 
 			// drop chance cannot be larger than 100% or smaller than 0%
 			if(chance <= 0.0f || chance > 100.0f)
 				continue;
 
 			ItemPrototype* itemproto = list->items[x].item.itemproto;
-			if(Rand(chance * sWorld.getRate(RATE_DROP0 + itemproto->Quality)))      //|| itemproto->Class == ITEM_CLASS_QUEST)
+			if(Rand(chance * 2))      //|| itemproto->Class == ITEM_CLASS_QUEST)
 			{
 				if(list->items[x].mincount == list->items[x].maxcount)
 					count = list->items[x].maxcount;
@@ -452,11 +452,12 @@ void LootMgr::PushLoot(StoreLootList* list, Loot* loot, uint32 type)
 
 				loot->items.push_back(itm);
 			}
-			if ((list->count - 1) > 2 &&
+			/*if ((list->count - 1) > 2 &&
 				loot->items.size() < 3 &&
 				x != (list->count - 1) &&
 				list->items[0].chance2 != 0)
 				x = 0;
+			*/
 		}
 	}
 	

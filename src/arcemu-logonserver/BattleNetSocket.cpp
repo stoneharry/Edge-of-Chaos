@@ -47,7 +47,7 @@ void BattleNetSocket::InformationRequest()
 	readBuffer.Read(&data, size);
 
 	BitReader test(data, size);
-	string test2 = test.ReadUTFString(4);
+	int32 test2 = test.ReadInt32(32);
 
 	//readBuffer.Read(&infoR, sizeof(infoR));
 
