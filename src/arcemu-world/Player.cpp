@@ -3513,11 +3513,11 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 	if(GetSession()->CanUseCommand('a'))
 		ModUnsigned32Value(UNIT_FIELD_FLAGS_2, 0x40000); // Allows use of death touch and other spells.
 
-	QueryResult* result = CharacterDatabase.Query("SELECT COUNT(*) FROM `accounts` WHERE acct = '%u'", GetSession()->GetAccountId());
-	if (result)
+	QueryResult* resul2t = CharacterDatabase.Query("SELECT COUNT(*) FROM `accounts` WHERE acct = '%u'", GetSession()->GetAccountId());
+	if (resul2t)
 	{
-		Field* fields = result->Fetch();
-		uint32 count = fields[0].GetUInt32();
+		Field* field2s = resul2t->Fetch();
+		uint32 count = field2s[0].GetUInt32();
 
 		if (count == 1)
 		{
@@ -3531,7 +3531,7 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 				addSpell(50036, false);
 		}
 	}
-	delete result;
+	delete resul2t;
 
 	OnLogin();
  }
