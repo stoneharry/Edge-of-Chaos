@@ -7318,7 +7318,8 @@ void Unit::AddGarbagePet(Pet* pet)
 
 void Unit::RemoveGarbage()
 {
-
+	try
+	{
 	std::list< Aura* >::iterator itr1;
 
 	for(itr1 = m_GarbageAuras.begin(); itr1 != m_GarbageAuras.end(); ++itr1)
@@ -7349,6 +7350,11 @@ void Unit::RemoveGarbage()
 	m_GarbageAuras.clear();
 	m_GarbageSpells.clear();
 	m_GarbagePets.clear();
+	}
+	catch (...)
+	{
+		printf("Fatal exception thrown when collecting Garbage <- Unit.cpp\n");
+	}
 }
 
 void Unit::Tag(uint64 TaggerGUID)
