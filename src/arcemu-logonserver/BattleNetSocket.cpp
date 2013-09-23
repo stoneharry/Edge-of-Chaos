@@ -129,6 +129,23 @@ void BattleNetSocket::InformationRequest()
 	}
 
 	// Now for proof response
+
+
+	/*
+	int:3 moduleCount
+	for (moduleCount)
+	{
+ 		{ // Battlenet::Cache::Handle
+		aligntobb	char[4] "auth"
+				char[4] locale
+				byte[32] ModuleId
+		}
+		int:10 blobSize
+		byte[blobSize] moduleData
+	}
+	*/
+
+
 }
 
 string BattleNetSocket::ReverseString(string str)

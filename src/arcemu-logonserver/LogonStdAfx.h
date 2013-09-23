@@ -53,6 +53,7 @@
 #include "../arcemu-logonserver/LogonConsole.h"
 #include "../arcemu-logonserver/BattleNetSocket.h"
 #include "../arcemu-logonserver/BitReader.h"
+#include "../arcemu-logonserver/BitWriter.h"
 #include "../arcemu-shared/WorldPacket.h"
 
 // database decl
