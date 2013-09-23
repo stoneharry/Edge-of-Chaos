@@ -1,5 +1,8 @@
 
-class BitReader
+#ifndef BITREADER_BN_C
+#define BITREADER_BN_C
+
+class BitReader_BN
 {
 private:
     unsigned char * _buffer;
@@ -7,7 +10,7 @@ private:
 	int32 _readPos;
 
 public:
-    BitReader::BitReader(unsigned char buffer[], uint32 Length)
+    BitReader_BN::BitReader_BN(unsigned char buffer[], uint32 Length)
     {
         _buffer = buffer;
         _numBits = Length*8;
@@ -194,3 +197,5 @@ public:
         }
     }
 };
+
+#endif

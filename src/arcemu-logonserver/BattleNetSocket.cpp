@@ -34,36 +34,41 @@ void BattleNetSocket::OnDisconnect()
 
 void BattleNetSocket::InformationRequest()
 {
-	if (readBuffer.GetContiguiousBytes() < 11)
+	/*if (reader->ReadBuffer() < 11)
 	{
 		printf( "[InformationRequest] Packet has no header. Refusing to handle." );
 		return;
-	}
+	}*/
 
 	InformationRequestStruct infoR;
 
-	unsigned char data[1024];
-	uint32 size = readBuffer.GetSize();
-	readBuffer.Read(&data, size);
+	int32 n = reader->ReadInt32(32);
+	char chars[5] = { 0 };
+	memcpy(chars, &n, 4 * sizeof(char));
 
-	BitReader test(data, size);
-	int32 test2 = test.ReadInt32(32);
+	infoR.program = ReverseString(chars);
 
-	//readBuffer.Read(&infoR, sizeof(infoR));
+	n = reader->ReadInt32(32);
+	memcpy(chars, &n, 4 * sizeof(char));
 
-	/*int32 count;
+	infoR.platform = ReverseString(chars);
 
-	readBuffer.Read(&infoR.Program, sizeof(infoR.Program));
-	readBuffer.Read(&infoR.Platform, sizeof(infoR.Platform));
-	readBuffer.Read(&infoR.Locale, sizeof(infoR.Locale));
-	readBuffer.Read(&count, infoR.componentCount);
+	n = reader->ReadInt32(32);
+	memcpy(chars, &n, 4 * sizeof(char));
 
-	for (int32 i = 0; i < count; ++i)
-	{
-		InfRequestComponents temp;
-		readBuffer.Read(&temp, sizeof(temp));
-		infoR.components.push_back(temp);
-	}*/
+	infoR.locale = ReverseString(chars);
+
+	infoR.componentCount = reader->ReadInt32(6);
+}
+
+string BattleNetSocket::ReverseString(string str)
+{
+	string ret;
+	uint32 size = str.size();
+	ret.resize(size);
+	for (uint32 i = 0; i < size; i++)
+		ret[i] = str[size - i - 1];
+	return ret;
 }
 
 #ifdef DEBUG_STONE
@@ -97,14 +102,20 @@ void BattleNetSocket::OnRead()
 	return;
 	// End Debug
 #endif
-
 	BN_PacketHeader header;
-	readBuffer.Read(&header, sizeof(header));
-	BN_Channel channel;
-	if (header.hasChannel != -1)
-		readBuffer.Read(&channel, sizeof(channel));
 
-	printf("Got packet ID: %d\n",header.id);
+	unsigned char data[1024];
+	uint32 size = readBuffer.GetSize();
+	readBuffer.Read(&data, size);
+
+	reader = new BitReader_BN(data, size);
+
+	header.id = reader->ReadInt32(6);
+	header.hasChannel = reader->ReadInt32(1);
+	if (header.hasChannel)
+		header.Channel = reader->ReadInt32(4);
+
+	printf("Got packet ID: %d\n", header.id);
 	last_recv = UNIXTIME;
 	if(header.id < MAX_BATTLENET_CMD && Handlers[header.id] != NULL)
 		(this->*Handlers[header.id])();

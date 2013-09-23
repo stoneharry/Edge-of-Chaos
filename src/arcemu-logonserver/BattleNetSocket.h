@@ -6,35 +6,32 @@
 
 #include "AccountCache.h"
 #include "AuthStructs.h"
+#include "BitReader.h"
 
 struct InfRequestComponents
 {
-	char Program[4];
-	char Platform[4];
-	int Build:32;
+	string program;
+	string platform;
+	int32 Build;
 };
 
 struct InformationRequestStruct
 {
-	char Program[4];
-	char Platform[4];
-	char Locale[4];
-	int componentCount:6;
+	string program;
+	string platform;
+	string locale;
+	int32 componentCount;
 	vector<InfRequestComponents> components;
-	int hasAccountName:1;
-	int accountLength:9; // then add 3 to this
-	vector<char> accountName;
+	int32 hasAccountName;
+	int32 accountLength; // then add 3 to this
+	string accountName;
 };
 
 struct BN_PacketHeader
 {
-	int id:6;
-	int hasChannel:1;
-};
-
-struct BN_Channel
-{
-	int Channel:4;
+	int32 id;
+	bool hasChannel;
+	int32 Channel;
 };
 
 class LogonCommServerSocket;
@@ -58,6 +55,8 @@ public:
 
 	time_t last_recv;
 protected:
+	string ReverseString(string str);
+	BitReader_BN * reader;
 	sAuthLogonChallenge_C_BattleNet m_challenge;
 	Account * m_account;
 	bool m_authenticated;
