@@ -59,6 +59,27 @@ void BattleNetSocket::InformationRequest()
 	infoR.locale = ReverseString(chars);
 
 	infoR.componentCount = reader->ReadInt32(6);
+	infoR.components.resize(infoR.componentCount);
+	for (int32 i = 0; i < infoR.componentCount; ++i)
+	{
+		InfRequestComponents comp;
+		n = reader->ReadInt32(32);
+		memcpy(chars, &n, 4 * sizeof(char));
+		comp.program = ReverseString(chars);
+		n = reader->ReadInt32(32);
+		memcpy(chars, &n, 4 * sizeof(char));
+		comp.platform = ReverseString(chars);
+		comp.Build = reader->ReadInt32(32);
+		infoR.components.at(i) = comp;
+	}
+
+	infoR.hasAccountName = reader->ReadInt32(1);
+	if (!infoR.hasAccountName)
+	{
+		printf("WARNING: Account tried to connect with no account name.\n");
+		return;
+	}
+	infoR.accountName = reader->ReadAsciiString(9, 3);
 }
 
 string BattleNetSocket::ReverseString(string str)
@@ -66,7 +87,7 @@ string BattleNetSocket::ReverseString(string str)
 	string ret;
 	uint32 size = str.size();
 	ret.resize(size);
-	for (uint32 i = 0; i < size; i++)
+	for (uint32 i = 0; i < size; ++i)
 		ret[i] = str[size - i - 1];
 	return ret;
 }

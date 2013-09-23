@@ -42,18 +42,18 @@ public:
         _readPos = (ReadPos() + 7) & ~7;
     }
 
-    unsigned char * ReadBytes(int count)
+    unsigned char * ReadBytes(int32 count)
     {
         AlignToNextByte();
         unsigned char * buf = new unsigned char[count];
-		memcpy(_buffer + (ReadPos() >> 3), buf, count);
+		memcpy(buf, _buffer + (ReadPos() >> 3), count);
         _readPos = ReadPos() + count*8;
         return buf;
     }
 
-    unsigned char * ReadBuffer(int sizeBitCount)
+    unsigned char * ReadBuffer(int32 sizeBitCount)
     {
-        int blobSize = ReadInt32(sizeBitCount);
+        int32 blobSize = ReadInt32(sizeBitCount);
         return ReadBytes(blobSize);
     }
 
@@ -76,7 +76,7 @@ public:
     string ReadAsciiString(int32 bitCount)
     {
         int32 len = ReadInt32(bitCount);
-        //return Encoding.ASCII.GetString(ReadBytes(len));
+        //return Encoding.ASCII.GetString(ReadBytes(len));;
 		return reinterpret_cast<char*>(ReadBytes(len));
     }
 
@@ -115,7 +115,7 @@ public:
 
             Byte lShift = (Byte)(1 << subNum);
 
-            int v10 = _buffer[ReadPos() >> 3] >> (ReadPos() & 7);
+            int32 v10 = _buffer[ReadPos() >> 3] >> (ReadPos() & 7);
             numBits -= subNum;
 
             ret |= (uint32) (((lShift - 1) & v10) << numBits);
@@ -180,7 +180,7 @@ public:
             int32 pos7 = (ReadPos() & 7);
             int32 bitsLeftInByte = 8 - pos7;
 
-            int subNum = bitsLeftInByte;
+            int32 subNum = bitsLeftInByte;
             if (bitsLeftInByte >= numBits)
                 subNum = numBits;
 
