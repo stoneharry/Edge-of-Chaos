@@ -36,6 +36,7 @@ void BattleNetSocket::InformationRequest()
 {
 	/*if (reader->ReadBuffer() < 11)
 	{
+		delete reader;
 		printf( "[InformationRequest] Packet has no header. Refusing to handle." );
 		return;
 	}*/
@@ -76,10 +77,58 @@ void BattleNetSocket::InformationRequest()
 	infoR.hasAccountName = reader->ReadInt32(1);
 	if (!infoR.hasAccountName)
 	{
+		delete reader;
 		printf("WARNING: Account tried to connect with no account name.\n");
+		Disconnect();
 		return;
 	}
 	infoR.accountName = reader->ReadAsciiString(9, 3);
+
+	delete reader;
+
+	if (infoR.accountName.length() == 0)
+	{
+		Disconnect();
+		return;
+	}
+
+	if (infoR.program != "WoW")
+	{
+		printf("Someone tried to connect who is not using WoW! They use: %s.\n", infoR.program);
+		Disconnect();
+		return;
+	}
+
+	// Check for a possible IP ban on this client.
+	BAN_STATUS ipb = IPBanner::getSingleton().CalculateBanStatus(GetRemoteAddress());
+	if( ipb != BAN_STATUS_NOT_BANNED )
+	{
+		printf("Battle.net detected ban person logging in. Refusing.", GetRemoteIP().c_str());
+		Disconnect();
+		return;
+	}
+
+	// Make account name uppercase
+	transform(infoR.accountName.begin(), infoR.accountName.end(),infoR.accountName.begin(), ::toupper);
+	m_account = AccountMgr::getSingleton().GetAccount(infoR.accountName);
+	if(m_account == 0)
+	{
+		printf("[Battlenet] Invalid account name: %s.", infoR.accountName.c_str());
+		Disconnect();
+		return;
+	}
+	if(m_account->Banned == 1)
+	{
+		Disconnect();
+		return;
+	}
+	else if(m_account->Banned > 0)
+	{
+		Disconnect();
+		return;
+	}
+
+	// Now for proof response
 }
 
 string BattleNetSocket::ReverseString(string str)

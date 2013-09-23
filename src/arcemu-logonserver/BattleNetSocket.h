@@ -23,7 +23,6 @@ struct InformationRequestStruct
 	int32 componentCount;
 	vector<InfRequestComponents> components;
 	int32 hasAccountName;
-	int32 accountLength; // then add 3 to this
 	string accountName;
 };
 

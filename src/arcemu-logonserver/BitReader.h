@@ -83,8 +83,12 @@ public:
     string ReadAsciiString(int32 bitCount, int32 min)
     {
         int32 len = ReadInt32(bitCount, min);
-        //return Encoding.ASCII.GetString(ReadBytes(len));
-		return reinterpret_cast<char*>(ReadBytes(len));
+		if (len > 100)
+			return "";
+		string ret;
+		ret.resize(len);
+		ret.assign(reinterpret_cast<char*>(ReadBytes(len)), len);
+		return ret;
     }
 
     string ReadUTFString(int32 bitCount)
