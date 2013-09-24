@@ -7,6 +7,7 @@
 #include "AccountCache.h"
 #include "AuthStructs.h"
 #include "BitReader.h"
+#include "BitWriter.h"
 
 struct InfRequestComponents
 {
@@ -56,6 +57,7 @@ public:
 protected:
 	string ReverseString(string str);
 	BitReader_BN * reader;
+	BitWriter_BN * writer;
 	sAuthLogonChallenge_C_BattleNet m_challenge;
 	Account * m_account;
 	bool m_authenticated;

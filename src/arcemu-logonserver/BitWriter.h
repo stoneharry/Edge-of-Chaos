@@ -34,18 +34,20 @@ public:
         return (_numBits + bitsLeft)/8;
     }
 
-    //int32 WritePos { get; set; }
+	template<typename T>
+	T Shift (T left, int32 right) {
+		return (T)0;
+	}
 
-    template <T> Shift (T left, int32 right)
-    {
-        if (typeof (T).Name == "Int32")
-            return Convert.ToInt32(left) >> right;
+	template<>
+	uint32 Shift<uint32>(uint32 left, int32 right) {
+		return left >> right;
+	}
 
-        if (typeof (T).Name == "UInt32")
-            return (int) (Convert.ToUInt32(left) >> right);
-
-        return 0;
-    }
+	template<>
+	int32 Shift<int32>(int32 left, int32 right) {
+		return static_cast<int32>(static_cast<uint32>(left) >> right);
+	}
 
     void AlignToNextByte()
     {
@@ -55,11 +57,11 @@ public:
     void WriteBytes( unsigned char * bytes )
     {
         AlignToNextByte();
-
-        foreach (var b in bytes)
+		printf("NOT HANDLED\n");
+        /*foreach (var b in bytes)
         {
             WriteBits((int)b, 8);
-        }
+        }*/
     }
 
     void WriteBytes( unsigned char * bytes, int32 length )
@@ -82,7 +84,7 @@ public:
     }
 
     // passing 5730135 into function, which is equal to 'WoW' (WoW + chr(0) to make 4 chars)
-    void WriteBits<T>(T valz, int32 numBits)
+    template<typename T> void WriteBits(T valz, int numBits)
     {
         if (numBits > 0)
         {
@@ -103,7 +105,7 @@ public:
 				// lShift = 32
 				// second run, 256
 				// 3rd, 4th, 5th = 256
-                var lShift = (char) (1 << unk);
+                char lShift = (char) (1 << unk);
                 int32 subNum;
 
                 if (unk < numBits)
@@ -129,20 +131,20 @@ public:
 				// 65287
 				// 65280 second run & 3rd & 4th
 				// 65528 = 5th
-                var firstHalf = (char) (~((lShift - 1) << pos7));
+                char firstHalf = (char) (~((lShift - 1) << pos7));
 
 				// both 0
 				// second run, both 10
 				// 3rd run = 2797
 				// 4th run = 60906
 				// 5th run = 28503
-                var shifted = (char) Shift(valz, numBits);
+                char shifted = (char) Shift(valz, numBits);
 				// 3rd run = 237
 				// 4th run = 234
 				// 5th run = 7
-                var secondHalf = (char) (((lShift - 1) & shifted) << pos7);
+                char secondHalf = (char) (((lShift - 1) & shifted) << pos7);
 
-                Buffer[WritePos >> 3] = (byte) (Buffer[WritePos >> 3] & firstHalf | secondHalf);
+                Buffer()[WritePos >> 3] = (Byte) (Buffer()[WritePos >> 3] & firstHalf | secondHalf);
 
 				// writepos = 16
 				// second run, writepos = 24
@@ -160,17 +162,15 @@ public:
 
     void WriteFourCC(string fourCC)
     {
-        /*unsigned char* arr = Encoding.ASCII.GetBytes(fourCC);
-        Array.Reverse(arr);
-
-        if (arr.Length < 4)
-        {
-            byte[] backup = arr;
-            arr = new byte[arr.Length + 1];
-            backup.CopyTo(arr, 0);
-        }
-        int32 test = BitConverter.ToInt32(arr, 0);
-        WriteInt32(BitConverter.ToInt32(arr,0));*/
+		string temp = fourCC;
+		for (uint32 i = 0; i < fourCC.length(); ++i)
+		{
+			fourCC[fourCC.length() - 1 - i] = temp[i];
+		}
+		if (fourCC.length() < 4)
+			fourCC.push_back('\0');
+		int32 value = atoi(fourCC.c_str());
+        WriteInt32(value);
     }
 
     void WriteHeader( int32 packetId, int32 channelId )
@@ -198,6 +198,7 @@ public:
         return str;
     }
 
+	int32 WritePos;
 };
 
 #endif

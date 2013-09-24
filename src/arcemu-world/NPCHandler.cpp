@@ -424,11 +424,11 @@ void WorldSession::HandleGossipHelloOpcode(WorldPacket & recv_data)
 
 	recv_data >> guid;
 	Creature* qst_giver = _player->GetMapMgr()->GetCreature(GET_LOWGUID_PART(guid));
-	if(_player->GetDistanceSq(qst_giver) > 1600 ) //Temp exploit fix
-		return;
 
 	if(qst_giver != NULL)
 	{
+		if(_player->GetDistanceSq(qst_giver) > 1600 ) //Temp exploit fix
+			return;
 		if(qst_giver->GetCreatureInfo()->no_trial && IsTrial())
 		{
 			sChatHandler.RedSystemMessage(this, "You may not interact with %s on a trial account.", qst_giver->GetCreatureInfo()->Name);

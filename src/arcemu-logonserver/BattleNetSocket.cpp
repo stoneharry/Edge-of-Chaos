@@ -129,8 +129,23 @@ void BattleNetSocket::InformationRequest()
 	}
 
 	// Now for proof response
+	writer = new BitWriter_BN(206); // (( (4*8) + (4*8) + 32 ) * 2) + 3 + 11
+	writer->WriteHeader(2, 0);
+	int32 moduleCount = 2;
+	writer->WriteBits(moduleCount, 3);
+	// Passwords.dll
+	writer->WriteFourCC("auth");
+	writer->WriteFourCC(infoR.locale);
+	const char * moduleID = "TEMP";
+	writer->WriteBits(moduleID, 32);
+	int32 blobSize = 0;
+	writer->WriteBits(blobSize, 10);
+	const char * moduleData = "BlaBlaBla";
+	// Thumbnails.dll
 
-
+	// Send
+	Send(writer->Buffer(), 206);
+	delete writer;
 	/*
 	int:3 moduleCount
 	for (moduleCount)
@@ -144,8 +159,6 @@ void BattleNetSocket::InformationRequest()
 		byte[blobSize] moduleData
 	}
 	*/
-
-
 }
 
 string BattleNetSocket::ReverseString(string str)
