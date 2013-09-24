@@ -55,23 +55,20 @@ public:
         WritePos = (WritePos + 7) & ~7;
     }
 
-    void WriteBytes( unsigned char * bytes )
+    void WriteBytes( unsigned char * bytes, int32 length )
     {
         AlignToNextByte();
-		printf("NOT HANDLED\n");
-        /*foreach (var b in bytes)
-        {
-            WriteBits((int)b, 8);
-        }*/
+		for (uint32 i = 0; i < length; ++i)
+			WriteBits((int)bytes[i], 8);
     }
 
-    void WriteBytes( unsigned char * bytes, int32 length )
+    /*void WriteBytes( unsigned char * bytes, int32 length )
     {
         unsigned char* buf = new unsigned char[length];
         //Array.Copy(bytes, 0, buf, 0, length);
 		memcpy(buf, bytes, length);
         WriteBytes(buf);
-    }
+    }*/
 
     void WriteBuffer(unsigned char * bytes, int32 byteLength, int32 sizeBitCount)
     {
