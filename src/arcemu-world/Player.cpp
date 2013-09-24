@@ -3532,6 +3532,28 @@ void Player::LoadFromDBProc(QueryResultVector & results)
 		}
 	}
 	delete resul2t;
+	resul2t = CharacterDatabase.Query("SELECT COUNT(*) FROM `accounts_donated` WHERE acct = '%u'", GetSession()->GetAccountId());
+	if (resul2t)
+	{
+		Field* field2s = resul2t->Fetch();
+		uint32 count = field2s[0].GetUInt32();
+
+		if (count == 1)
+		{
+			RankTitles title = static_cast< RankTitles >(70);
+			if (!HasTitle(title))
+			{
+				SetKnownTitle(title, true);
+				SetChosenTitle(70);
+			}
+			if (!HasItemCount(19160, 1, true))
+			{
+				ItemPrototype* proto = ItemPrototypeStorage.LookupEntry(19160);
+				if(proto != NULL)
+					GetItemInterface()->AddItemById(19160, 1, 0);
+			}
+		}
+	}
 
 	OnLogin();
  }
