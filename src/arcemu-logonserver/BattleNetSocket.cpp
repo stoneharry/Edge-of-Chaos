@@ -79,6 +79,7 @@ void BattleNetSocket::InformationRequest()
 	{
 		delete reader;
 		printf("WARNING: Account tried to connect with no account name.\n");
+		SendError(AUTH_BAD_CREDENTIALS);
 		Disconnect();
 		return;
 	}
@@ -88,6 +89,7 @@ void BattleNetSocket::InformationRequest()
 
 	if (infoR.accountName.length() == 0)
 	{
+		SendError(AUTH_BAD_CREDENTIALS);
 		Disconnect();
 		return;
 	}
@@ -95,6 +97,7 @@ void BattleNetSocket::InformationRequest()
 	if (infoR.program != "WoW")
 	{
 		printf("Someone tried to connect who is not using WoW! They use: %s.\n", infoR.program);
+		SendError(AUTH_INVALID_PROGRAM);
 		Disconnect();
 		return;
 	}
@@ -104,6 +107,7 @@ void BattleNetSocket::InformationRequest()
 	if( ipb != BAN_STATUS_NOT_BANNED )
 	{
 		printf("Battle.net detected ban person logging in. Refusing.", GetRemoteIP().c_str());
+		SendError(LOGIN_BANNED);
 		Disconnect();
 		return;
 	}
@@ -113,17 +117,14 @@ void BattleNetSocket::InformationRequest()
 	m_account = AccountMgr::getSingleton().GetAccount(infoR.accountName);
 	if(m_account == 0)
 	{
+		SendError(AUTH_BAD_CREDENTIALS);
 		printf("[Battlenet] Invalid account name: %s.", infoR.accountName.c_str());
 		Disconnect();
 		return;
 	}
-	if(m_account->Banned == 1)
+	if(m_account->Banned != 0)
 	{
-		Disconnect();
-		return;
-	}
-	else if(m_account->Banned > 0)
-	{
+		SendError(LOGIN_BANNED);
 		Disconnect();
 		return;
 	}
@@ -159,6 +160,28 @@ void BattleNetSocket::InformationRequest()
 		byte[blobSize] moduleData
 	}
 	*/
+}
+
+void BattleNetSocket::SendError(int32 ErrorCode)
+{
+	BitWriter_BN * writer = new BitWriter_BN(63); // 6 + 1 + 4 + 1 + 1 + 2 + 0x10 + 0x20
+
+	int32 Zero = 0;
+	int32 One = 1;
+	// Header
+	writer->WriteBits(Zero, 6);
+	writer->WriteBits(One, 1);
+	writer->WriteBits(Zero, 4);
+	// Contents
+	writer->WriteBits(One, 1); // bool isError???
+	writer->WriteBits(Zero, 1); // bool ???
+	writer->WriteBits(One, 2);
+	writer->WriteBits(ErrorCode, 0x10);
+    writer->WriteBits(Zero, 0x20);
+
+	Send(writer->Buffer(), 63);
+
+	delete writer;
 }
 
 string BattleNetSocket::ReverseString(string str)
