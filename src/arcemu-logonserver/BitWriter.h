@@ -12,6 +12,7 @@ public:
     BitWriter_BN(int32 capacity)
     {
         _buffer = new unsigned char[capacity];
+		WritePos = 0;
     }
 
     unsigned char * Buffer()
@@ -163,14 +164,10 @@ public:
     void WriteFourCC(string fourCC)
     {
 		string temp = fourCC;
-		for (uint32 i = 0; i < fourCC.length(); ++i)
-		{
-			fourCC[fourCC.length() - 1 - i] = temp[i];
-		}
-		if (fourCC.length() < 4)
+		while (fourCC.length() < 4)
 			fourCC.push_back('\0');
-		int32 value = atoi(fourCC.c_str());
-        WriteInt32(value);
+		reverse(fourCC.begin(), fourCC.begin() + 4); 
+		WriteInt32(*(int32*)fourCC.c_str());
     }
 
     void WriteHeader( int32 packetId, int32 channelId )
