@@ -196,6 +196,18 @@ public:
     }
 
 	int32 WritePos;
+
+	void HexadecimalToBinary(const string & hex, vector<unsigned char> & bin)
+	{
+		for(uint32 i = 0; i < hex.length() / 2; ++i)
+		{
+			stringstream strm;
+			strm << hex.substr(i * 2, 2);
+			unsigned int cur = 0;
+			strm >> std::hex >> cur;
+			bin.push_back((unsigned char)cur);
+		}
+	}
 };
 
 #endif
