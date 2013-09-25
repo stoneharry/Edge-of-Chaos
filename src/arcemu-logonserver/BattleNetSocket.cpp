@@ -2,6 +2,14 @@
 #include <openssl/md5.h>
 #include <sha.h>
 
+#ifdef DEBUG_STONE
+// Debug
+struct TESTING { char str[2048]; };
+#include <fstream>
+#include <iostream>
+// End debug
+#endif
+
 typedef void (BattleNetSocket::*BattleNetHandler)();
 static BattleNetHandler Handlers[MAX_BATTLENET_CMD] = {
 		&BattleNetSocket::InformationRequest,			// 0
@@ -152,12 +160,19 @@ void BattleNetSocket::InformationRequest()
 	writer = new BitWriter_BN(206+321+1024); // (( (4*8) + (4*8) + 32 ) * 2) + 3 + 11 = 206
 	writer->WriteHeader(2, 0);
 	// Some stuff
-	writer->WriteBits(Zero, 1); // HasError must equal 0
+	//writer->WriteBits(Zero, 1); // HasError must equal 0
 	int32 moduleCount = 2;
 	writer->WriteBits(moduleCount, 3);
 	// Passwords.dll
 	writer->WriteFourCC("auth");
-	writer->WriteFourCC(infoR.locale);
+	int16 _Zero = 1;
+	writer->WriteBits(_Zero, 16);
+	string EU = "EU";
+	string US = "US";
+	if (infoR.locale == "enUS")
+		writer->WriteBits(*(int32*)US.c_str(), 16);
+	else
+		writer->WriteBits(*(int32*)EU.c_str(), 16);
 	const char * moduleID = "8f52906a2c85b416a595702251570f96d3522f39237603115f2f1ab24962043c";
 	writer->WriteBits(moduleID, 32);
 	// Size of module data this must be
@@ -240,14 +255,6 @@ string BattleNetSocket::ReverseString(string str)
 		ret[i] = str[size - i - 1];
 	return ret;
 }
-
-#ifdef DEBUG_STONE
-// Debug
-struct TESTING { char str[1024]; };
-#include <fstream>
-#include <iostream>
-// End debug
-#endif
 
 void BattleNetSocket::OnRead()
 {

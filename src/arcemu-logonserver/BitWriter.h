@@ -13,6 +13,7 @@ public:
     {
         _buffer = new unsigned char[capacity];
 		WritePos = 0;
+		_numBits = 0;
     }
 
     unsigned char * Buffer()
@@ -103,7 +104,7 @@ public:
 				// lShift = 32
 				// second run, 256
 				// 3rd, 4th, 5th = 256
-                char lShift = (char) (1 << unk);
+                uint16 lShift = (uint16) (1 << unk);
                 int32 subNum;
 
                 if (unk < numBits)
@@ -116,7 +117,7 @@ public:
                 {
 					// 5th run
 					// lshift = 8
-                    lShift = (char) (1 << numBits);
+                    lShift = (uint16) (1 << numBits);
 					// subnum = 3
                     subNum = numBits;
                 }
@@ -129,20 +130,20 @@ public:
 				// 65287
 				// 65280 second run & 3rd & 4th
 				// 65528 = 5th
-                char firstHalf = (char) (~((lShift - 1) << pos7));
+                uint16 firstHalf = (uint16) (~((lShift - 1) << pos7));
 
 				// both 0
 				// second run, both 10
 				// 3rd run = 2797
 				// 4th run = 60906
 				// 5th run = 28503
-                char shifted = (char) Shift(valz, numBits);
+                uint16 shifted = (uint16) Shift(valz, numBits);
 				// 3rd run = 237
 				// 4th run = 234
 				// 5th run = 7
-                char secondHalf = (char) (((lShift - 1) & shifted) << pos7);
+                uint16 secondHalf = (uint16) (((lShift - 1) & shifted) << pos7);
 
-                Buffer()[WritePos >> 3] = (Byte) (Buffer()[WritePos >> 3] & firstHalf | secondHalf);
+                _buffer[WritePos >> 3] = (Byte) (_buffer[WritePos >> 3] & firstHalf | secondHalf);
 
 				// writepos = 16
 				// second run, writepos = 24
@@ -160,10 +161,9 @@ public:
 
     void WriteFourCC(string fourCC)
     {
-		string temp = fourCC;
+		reverse(fourCC.begin(), fourCC.begin() + fourCC.length()); 
 		while (fourCC.length() < 4)
 			fourCC.push_back('\0');
-		reverse(fourCC.begin(), fourCC.begin() + 4); 
 		WriteInt32(*(int32*)fourCC.c_str());
     }
 
