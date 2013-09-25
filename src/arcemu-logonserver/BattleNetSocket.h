@@ -2,7 +2,7 @@
 #ifndef _BATTLENETSOCKET
 #define _BATTLENETSOCKET
 
-#define MAX_BATTLENET_CMD 5
+#define MAX_BATTLENET_CMD 3
 
 #include "AccountCache.h"
 #include "AuthStructs.h"
@@ -73,6 +73,8 @@ public:
 
 	void OnRead();
 	void InformationRequest();
+	void InformationRequestSecond();
+	void ProofResponse();
 
 	ARCEMU_INLINE sAuthLogonChallenge_C_BattleNet * GetChallenge() { return &m_challenge; }
 	ARCEMU_INLINE void SendPacket(const uint8* data, const uint16 len) { Send(data, len); }
@@ -92,6 +94,7 @@ protected:
 	bool m_authenticated;
 	const static int32 Zero = 0;
 	const static int32 One = 1;
+	bool FirstAuth;
 };
 
 #endif

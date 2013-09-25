@@ -6,13 +6,13 @@ typedef void (BattleNetSocket::*BattleNetHandler)();
 static BattleNetHandler Handlers[MAX_BATTLENET_CMD] = {
 		&BattleNetSocket::InformationRequest,			// 0
 		NULL,
-		NULL,
-		NULL,
+		&BattleNetSocket::ProofResponse					// 2
 };
 
 BattleNetSocket::BattleNetSocket(SOCKET fd) : Socket(fd, 32768, 4096)
 {
 	last_recv = time(NULL);
+	FirstAuth = true;
 	_authSocketLock.Acquire();
 	_authSockets_BN.insert(this);
 	_authSocketLock.Release();
@@ -40,6 +40,14 @@ void BattleNetSocket::InformationRequest()
 		printf( "[InformationRequest] Packet has no header. Refusing to handle." );
 		return;
 	}*/
+
+	if (FirstAuth)
+		FirstAuth = false;
+	else
+	{
+		InformationRequestSecond();
+		return;
+	}
 
 	InformationRequestStruct infoR;
 
@@ -136,7 +144,8 @@ void BattleNetSocket::InformationRequest()
 	// So instead we will hackfix by parsing build in with username, yay!
 	////////////////////////////////////////////////////////////////////////////////
 	// TO DO //////////////////////////////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////////////////////
+
+	/////////////////////////////////////////////////////////////////////////////
 
 	// Now for proof response
 	// Header
@@ -172,16 +181,6 @@ void BattleNetSocket::InformationRequest()
 	memcpy(moduleData + 0x41, publicB, 0x80);
 	memcpy(moduleData + 0xc1, Something, 0x80);
 	writer->WriteBytes(moduleData, 321);
-	/*
-	        this.authState = 1;
-            byte[] dst = new byte[0x141];
-            dst[0] = 0;
-            Buffer.BlockCopy(this.handler.User.UserSalt, 0, dst, 1, 0x20);
-            Buffer.BlockCopy(this.handler.User.PassSalt, 0, dst, 0x21, 0x20);
-            Buffer.BlockCopy(this.crypto._PublicB, 0, dst, 0x41, 0x80);
-            Buffer.BlockCopy(Utilities.HexToBin("0EA3375900A3F7CA981C3F61B6CA728BA25126959240EE93DB398AFCA28FAE9501B3853EB11E2E37C02078F9C8E31EA079F1ED5E65964BB853DAEB58C7DDEDBD880E66554C9C039AAE78AA78309AAD8442DB29ABD4C59222FD9FF7C3AA65638D78494FBBEA6A5EF66A9DBA58BB79F9A0B5352ECF1F9E6BBE724A8EC571517C74"), 0, dst, 0xc1, 0x80);
-            return dst;
-	*/
 	// Thumbnails.dll
 	writer->WriteFourCC("auth");
 	writer->WriteFourCC(infoR.locale);
@@ -202,6 +201,14 @@ void BattleNetSocket::InformationRequest()
 	// Send
 	Send(writer->Buffer(), 206+321+1024);
 	delete writer;
+}
+
+void BattleNetSocket::ProofResponse()
+{
+}
+
+void BattleNetSocket::InformationRequestSecond()
+{
 }
 
 void BattleNetSocket::SendError(int32 ErrorCode)
@@ -236,11 +243,7 @@ string BattleNetSocket::ReverseString(string str)
 
 #ifdef DEBUG_STONE
 // Debug
-struct TESTING
-{
-	char str[1024];
-};
-
+struct TESTING { char str[1024]; };
 #include <fstream>
 #include <iostream>
 // End debug
@@ -256,15 +259,14 @@ void BattleNetSocket::OnRead()
 	TESTING temp;
 	uint32 size = readBuffer.GetSize();
 	readBuffer.Read(&temp, size);
-
 	fstream write;
 	write.open("C:\\Users\\Harry_\\Desktop\\packets.dump", ios::out | ios::binary);
 	write.write(temp.str, size);
 	write.close();
-
 	return;
 	// End Debug
 #endif
+
 	BN_PacketHeader header;
 
 	unsigned char data[1024];
@@ -278,10 +280,9 @@ void BattleNetSocket::OnRead()
 	if (header.hasChannel)
 		header.Channel = reader->ReadInt32(4);
 
-	printf("Got packet ID: %d\n", header.id);
 	last_recv = UNIXTIME;
 	if(header.id < MAX_BATTLENET_CMD && Handlers[header.id] != NULL)
 		(this->*Handlers[header.id])();
 	else
-		printf("Unknown cmd %u\n", header.id);
+		printf("Unknown packet: %u.\n", header.id);
 }
