@@ -11,12 +11,17 @@ private:
 public:
     BitWriter_BN(int32 capacity)
     {
-        _buffer = new unsigned char[capacity];
+		_buffer = new unsigned char[capacity];
 		WritePos = 0;
 		_numBits = 0;
     }
 
-    unsigned char * Buffer()
+	~BitWriter_BN()
+	{
+		delete _buffer;
+	}
+
+    inline unsigned char * Buffer()
     {
         return _buffer;
     }
@@ -143,7 +148,7 @@ public:
 				// 5th run = 7
                 uint16 secondHalf = (uint16) (((lShift - 1) & shifted) << pos7);
 
-                _buffer[WritePos >> 3] = (Byte) (_buffer[WritePos >> 3] & firstHalf | secondHalf);
+                Buffer()[WritePos >> 3] = (Byte) (Buffer()[WritePos >> 3] & firstHalf | secondHalf);
 
 				// writepos = 16
 				// second run, writepos = 24

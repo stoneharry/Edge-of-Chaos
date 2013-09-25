@@ -159,8 +159,7 @@ void BattleNetSocket::InformationRequest()
 	// Header
 	writer = new BitWriter_BN(206+321+1024); // (( (4*8) + (4*8) + 32 ) * 2) + 3 + 11 = 206
 	writer->WriteHeader(2, 0);
-	// Some stuff
-	//writer->WriteBits(Zero, 1); // HasError must equal 0
+	// HasError is only written when there is an error
 	int32 moduleCount = 2;
 	writer->WriteBits(moduleCount, 3);
 	// Passwords.dll
