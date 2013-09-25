@@ -108,6 +108,7 @@ void AccountMgr::AddAccount(Field* field)
 	acct->AccountId				= field[0].GetUInt32();
 	acct->AccountFlags			= field[5].GetUInt8();
 	acct->Banned				= field[6].GetUInt32();
+	acct->BNPassword			= field[16].GetString();
 	if ( (uint32)UNIXTIME > acct->Banned && acct->Banned != 0 && acct->Banned != 1) //1 = perm ban?
 	{
 		//Accounts should be unbanned once the date is past their set expiry date.

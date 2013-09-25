@@ -16,6 +16,7 @@ SET( sources
 	AuthSocket.h
 	AuthStructs.h
 	AutoPatcher.h
+	BattlenetCrypto.h
 	BattleNetSocket.h
 	BitReader.h
 	BitWriter.h

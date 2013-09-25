@@ -58,7 +58,7 @@ public:
     void WriteBytes( unsigned char * bytes, int32 length )
     {
         AlignToNextByte();
-		for (uint32 i = 0; i < length; ++i)
+		for (int32 i = 0; i < length; ++i)
 			WriteBits((int)bytes[i], 8);
     }
 

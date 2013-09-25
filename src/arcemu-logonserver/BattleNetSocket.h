@@ -6,6 +6,7 @@
 
 #include "AccountCache.h"
 #include "AuthStructs.h"
+#include "BattlenetCrypto.h"
 #include "BitReader.h"
 #include "BitWriter.h"
 
@@ -89,6 +90,8 @@ protected:
 	sAuthLogonChallenge_C_BattleNet m_challenge;
 	Account * m_account;
 	bool m_authenticated;
+	const static int32 Zero = 0;
+	const static int32 One = 1;
 };
 
 #endif

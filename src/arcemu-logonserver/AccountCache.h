@@ -32,6 +32,7 @@ struct Account
 	uint8 SrpHash[20]; // the encrypted password field, reversed
 	uint8 * SessionKey;
 	string * UsernamePtr;
+	string BNPassword;
 	uint32 Muted;
 
 	Account()
