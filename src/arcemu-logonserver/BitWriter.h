@@ -148,7 +148,7 @@ public:
 				// 5th run = 7
                 uint16 secondHalf = (uint16) (((lShift - 1) & shifted) << pos7);
 
-                Buffer()[WritePos >> 3] = (Byte) (Buffer()[WritePos >> 3] & firstHalf | secondHalf);
+                Buffer()[WritePos >> 3] = (unsigned char) (Buffer()[WritePos >> 3] & firstHalf | secondHalf); // was (Byte)
 
 				// writepos = 16
 				// second run, writepos = 24
