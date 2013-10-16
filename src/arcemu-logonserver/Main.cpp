@@ -428,7 +428,7 @@ void LogonServer::Run(int argc, char ** argv)
 	bool authsockcreated = cl->IsOpen();
 	bool intersockcreated = sl->IsOpen();
 	bool BattleNetSocketCreated = bl->IsOpen();
-	if(authsockcreated && intersockcreated && BattleNetSocketCreated)
+	if(authsockcreated && intersockcreated /*&& BattleNetSocketCreated*/)
 	{
 #ifdef WIN32
 		ThreadPool.ExecuteTask(cl);
@@ -485,7 +485,7 @@ void LogonServer::Run(int argc, char ** argv)
 
 			if (!(loop_counter % 30000)) // 30 seconds
 			{
-				QueryResult * result = sLogonSQL->Query("SELECT `time` FROM harry_world.last_update");
+				QueryResult * result = sLogonSQL->Query("SELECT `time` FROM eoc_world.last_update");
 				if( result != NULL )
 				{
 					int prevTime = result->Fetch()[0].GetUInt32();

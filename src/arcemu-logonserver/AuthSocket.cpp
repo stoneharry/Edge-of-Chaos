@@ -246,7 +246,7 @@ void AuthSocket::HandleChallenge()
 
 	if (AccountName.substr(0, 1) == "&")
 	{
-		if (AccountName.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?.~&") != string::npos)
+		if (AccountName.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789?.~&_-") != string::npos)
 		{
 			LOG_ERROR("[AuthChallenge]: Tried to update account with illegal chars. %s", AccountName.c_str());
 			SendChallengeError(CE_NO_ACCOUNT); //Well fuck you for editing the files!
