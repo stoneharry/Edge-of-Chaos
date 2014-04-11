@@ -28,10 +28,11 @@ extern "C" SCRIPT_DECL uint32 _exp_get_script_type()
 extern "C" SCRIPT_DECL void _exp_script_register(ScriptMgr* mgr)	// Comment any script to disable it
 {
 	//Instances
-	/*SetupArcatraz(mgr);
+	SetupArcatraz(mgr);
 	SetupAuchenaiCrypts(mgr);
 	SetupAzjolNerub(mgr);
 	SetupTheBlackMorass(mgr);
+	SetupBlackfathomDeeps(mgr);
 	SetupBlackrockDepths(mgr);
 	SetupBlackrockSpire(mgr);
 	SetupBloodFurnace(mgr);
@@ -82,18 +83,17 @@ extern "C" SCRIPT_DECL void _exp_script_register(ScriptMgr* mgr)	// Comment any 
 	SetupSerpentshrineCavern(mgr);
 	SetupMagtheridonsLair(mgr);
 	SetupSunwellPlateau(mgr);
-	SetupWorldBosses(mgr); 
-	SetupZulAman(mgr);*/
-	SetupRubySanctum(mgr);
+	SetupWorldBosses(mgr);
+	SetupZulAman(mgr);
 	//Other
 	//SetupGenericAI(mgr);
 }
 
 #ifdef WIN32
 
-BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved )
+BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
-    return TRUE;
+	return TRUE;
 }
 
 #endif

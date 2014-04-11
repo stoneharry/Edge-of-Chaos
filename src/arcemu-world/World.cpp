@@ -1294,6 +1294,8 @@ bool TaskExecutor::run()
 
 	while(starter->running)
 	{
+		if (starter == NULL || !starter)
+			continue;
 		t = starter->GetTask();
 		if(t)
 		{

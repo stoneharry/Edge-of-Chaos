@@ -77,6 +77,7 @@ extern "C" SCRIPT_DECL void _exp_script_register(ScriptMgr* mgr)
 	SetupUndercity(mgr);
 	SetupUnGoro(mgr);
 	SetupWestfall(mgr);
+	SetupWetlands(mgr);
 	SetupWinterspring(mgr);
 	SetupZangarmarsh(mgr);
 	SetupBarrens(mgr);
@@ -90,9 +91,9 @@ extern "C" SCRIPT_DECL void _exp_script_register(ScriptMgr* mgr)
 
 #ifdef WIN32
 
-BOOL APIENTRY DllMain( HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved )
+BOOL APIENTRY DllMain(HANDLE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
-    return TRUE;
+	return TRUE;
 }
 
 #endif

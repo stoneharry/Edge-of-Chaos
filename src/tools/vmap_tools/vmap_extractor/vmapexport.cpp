@@ -230,14 +230,14 @@ void ParsMapFiles()
             {
                 for (int y=0; y<64; ++y)
                 {
-					if (ADTFile *ADT = WDT.GetMap(x,y))
+                    if (ADTFile *ADT = WDT.GetMap(x,y))
                     {
                         //sprintf(id_filename,"%02u %02u %03u",x,y,map_ids[i].id);//!!!!!!!!!
                         ADT->init(map_ids[i].id, x, y);
                         delete ADT;
                     }
                 }
-				printf("%d/64\n",x+1);
+                printf("#");
                 fflush(stdout);
             }
             printf("]\n");
@@ -447,16 +447,16 @@ int main(int argc, char ** argv)
         {
             printf("Your output directory seems to be polluted, please use an empty directory!\n");
             printf("<press return to exit>");
-            //char garbage[2];
-            //scanf("%c", garbage);
-            //return 1;
+            char garbage[2];
+            scanf("%c", garbage);
+            return 1;
         }
     }
 
     printf("Extract %s. Beginning work ....\n",versionString);
     //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     // Create the working directory
-	if(mkdir(szWorkDirWmo
+    if(mkdir(szWorkDirWmo
 #ifndef _WIN32
                     , 0711
 #endif

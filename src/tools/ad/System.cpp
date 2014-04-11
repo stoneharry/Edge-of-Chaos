@@ -19,6 +19,7 @@
 #include <fcntl.h>
 
 #if defined( __GNUC__ )
+    #include <unistd.h>
     #define _open   open
     #define _close close
     #ifndef O_BINARY
@@ -86,6 +87,12 @@ static const char *CONF_mpq_list[]={
 
 static const char* const langs[] = {"enGB", "enUS", "deDE", "esES", "frFR", "koKR", "zhCN", "zhTW", "enCN", "enTW", "esMX", "ruRU" };
 #define LANG_COUNT 12
+
+namespace
+{
+	const int REQUIRED_BUILD = 12340;
+}
+
 
 void CreateDir( const std::string& Path )
 {
@@ -201,6 +208,12 @@ uint32 ReadBuild(int locale)
         exit(1);
     }
 
+	if( build != REQUIRED_BUILD )
+	{
+		printf( "FATAL ERROR: Required client version: %d\nYour client version: %d", REQUIRED_BUILD, build );
+		exit( 1 );
+	}
+
     return build;
 }
 
@@ -221,7 +234,6 @@ uint32 ReadMapDBC()
     {
         map_ids[x].id = dbc.getRecord(x).getUInt(0);
         strcpy(map_ids[x].name, dbc.getRecord(x).getString(1));
-		printf("Loaded: %s", map_ids[x].name);
     }
     printf("Done! (%u maps loaded)\n", map_count);
     return map_count;

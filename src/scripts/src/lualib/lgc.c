@@ -201,7 +201,6 @@ static int traversetable (global_State *g, Table *h) {
 ** prototype is still being created
 */
 static void traverseproto (global_State *g, Proto *f) {
-
   int i;
   if (f->source) stringmark(f->source);
   for (i=0; i<f->sizek; i++)  /* mark literals */

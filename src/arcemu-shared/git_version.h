@@ -2,10 +2,10 @@
 #define GIT_VERSION_HPP
 
 #define BUILD_TAG "4.0-TRUNK"
-#define BUILD_HASH 0x76f690d
-#define COMMIT_TIMESTAMP 1331421335
-#define BUILD_HASH_STR "76f690d"
-#define BUILD_USER_STR "derek"
-#define BUILD_HOST_STR "Derek"
+#define BUILD_HASH 0xa816536
+#define COMMIT_TIMESTAMP 1374448178
+#define BUILD_HASH_STR "a816536"
+#define BUILD_USER_STR "harry_"
+#define BUILD_HOST_STR "Harry"
 
 #endif

@@ -1,6 +1,6 @@
 /*
  * ArcEmu MMORPG Server
- * Copyright (C) 2008-2011 <http://www.ArcEmu.org/>
+ * Copyright (C) 2008-2012 <http://www.ArcEmu.org/>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -184,7 +184,13 @@ bool ConfigFile::SetSource(const char* file, bool ignorecase)
 				/* grab a line. */
 				end = buffer.find(EOL);
 				if(end == string::npos)
-					break;
+				{
+					if(buffer.size() == 0)
+						break;
+					line = buffer;
+					buffer.clear();
+					goto parse;
+				}
 
 				line = buffer.substr(0, end);
 				buffer.erase(0, end + EOL_SIZE);

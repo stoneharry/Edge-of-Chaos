@@ -19,6 +19,7 @@ SET(sources
 	Arenas.cpp 
 	AuctionHouse.cpp 
 	AuctionMgr.cpp 
+	BattlegroundMgr.cpp
 	BattlegroundCommands.cpp 
 	BattlegroundHandler.cpp 
 	BattlegroundMgr.cpp 
@@ -164,8 +165,8 @@ SET(sources
 	Rogue.cpp
 	Shaman.cpp
 	Warlock.cpp
-	Warrior.cpp 
-	IsleOfConquest.cpp )
+	IsleOfConquest.cpp
+	Warrior.cpp )
 
 SET( headers
 	AchievementMgr.h
@@ -214,7 +215,7 @@ SET( headers
 	Guild.h
 	HonorHandler.h
 	Hunter.h
-	HungerGames.cpp
+	HungerGames.h
 	IEventListener.h
 	IsleOfConquest.h
 	Item.h
@@ -249,7 +250,7 @@ SET( headers
 	Quest.h
 	QuestMgr.h
 	Rogue.h
-    ServerPlayedCharacter.h
+	ServerPlayedCharacter.h
 	ScriptMgr.h
 	ScriptSetup.h
 	Shaman.h

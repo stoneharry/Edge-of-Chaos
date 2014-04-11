@@ -452,6 +452,12 @@ namespace VMAP
 						zDist = group_Z;
 						hit = prims + entry;
 					}
+#ifdef VMAP_DEBUG
+					const GroupModel & gm = prims[entry];
+					printf("%10u %8X %7.3f,%7.3f,%7.3f | %7.3f,%7.3f,%7.3f | z=%f, p_z=%f\n", gm.GetWmoID(), gm.GetMogpFlags(),
+					       gm.GetBound().low().x, gm.GetBound().low().y, gm.GetBound().low().z,
+					       gm.GetBound().high().x, gm.GetBound().high().y, gm.GetBound().high().z, group_Z, point.z);
+#endif
 				}
 				//}
 				//std::cout << "trying to intersect '" << prims[entry].name << "'\n";

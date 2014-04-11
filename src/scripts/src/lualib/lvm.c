@@ -371,7 +371,6 @@ static void Arith (lua_State *L, StkId ra, const TValue *rb,
 
 
 void luaV_execute (lua_State *L, int nexeccalls) {
-
   LClosure *cl;
   StkId base;
   TValue *k;

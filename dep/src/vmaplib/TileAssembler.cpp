@@ -77,6 +77,7 @@ namespace VMAP
 			// build global map tree
 			std::vector<ModelSpawn*> mapSpawns;
 			UniqueEntryMap::iterator entry;
+			printf("Calculating model bounds for map %u...\n", map_iter->first);
 			for(entry = map_iter->second->UniqueEntries.begin(); entry != map_iter->second->UniqueEntries.end(); ++entry)
 			{
 				// M2 models don't have a bound set in WDT/ADT placement data, i still think they're not used for LoS at all on retail
@@ -95,6 +96,7 @@ namespace VMAP
 				spawnedModelFiles.insert(entry->second.name);
 			}
 
+			printf("Creating map tree...\n");
 			BIH pTree;
 			pTree.build(mapSpawns, BoundsTrait<ModelSpawn*>::getBounds);
 
@@ -110,6 +112,7 @@ namespace VMAP
 			if(!mapfile)
 			{
 				success = false;
+				printf("Cannot open %s\n", mapfilename.str().c_str());
 				break;
 			}
 
@@ -196,7 +199,11 @@ namespace VMAP
 		std::string fname = iSrcDir + "/dir_bin";
 		FILE* dirf = fopen(fname.c_str(), "rb");
 		if(!dirf)
+		{
+			printf("Could not read dir_bin file!\n");
 			return false;
+		}
+		printf("Read coordinate mapping...\n");
 		G3D::uint32 mapID, tileX, tileY, check = 0;
 		G3D::Vector3 v1, v2;
 		ModelSpawn spawn;
@@ -215,9 +222,11 @@ namespace VMAP
 			MapSpawns* current;
 			MapData::iterator map_iter = mapData.find(mapID);
 			if(map_iter == mapData.end())
+			{
+				printf("spawning Map %d\n", mapID);
 				mapData[mapID] = current = new MapSpawns();
-			else 
-				current = (*map_iter).second;
+			}
+			else current = (*map_iter).second;
 			current->UniqueEntries.insert(std::pair<G3D::uint32, ModelSpawn>(spawn.ID, spawn));
 			current->TileEntries.insert(std::pair<G3D::uint32, G3D::uint32>(StaticMapTree::packTileID(tileX, tileY), spawn.ID));
 		}
@@ -236,7 +245,10 @@ namespace VMAP
 
 		FILE* rf = fopen(modelFilename.c_str(), "rb");
 		if(!rf)
+		{
+			printf("ERROR: Can't open model file: %s\n", modelFilename.c_str());
 			return false;
+		}
 
 		G3D::AABox modelBound;
 		bool boundEmpty = true;
@@ -265,8 +277,7 @@ namespace VMAP
 
 		READ_OR_RETURN(&groups, sizeof(G3D::uint32));
 		READ_OR_RETURN(&wmoRootId, sizeof(G3D::uint32));
-		if(groups != 1) 
-			printf("Warning: '%s' does not seem to be a M2 model!\n", modelFilename.c_str());
+		if(groups != 1) printf("Warning: '%s' does not seem to be a M2 model!\n", modelFilename.c_str());
 
 		for(G3D::uint32 g = 0; g < groups; ++g) // should be only one for M2 files...
 		{
@@ -341,7 +352,11 @@ namespace VMAP
 		FILE* rf = fopen(filename.c_str(), "rb");
 
 		if(!rf)
+		{
+			printf("ERROR: Can't open model file in form: %s", pModelFilename.c_str());
+			printf("...                          or form: %s", filename.c_str());
 			return false;
+		}
 
 		char ident[8];
 
